@@ -11,6 +11,8 @@ find_package(Gurobi REQUIRED)
 
 add_subdirectory(third_party)
 
+enable_testing()
+
 add_subdirectory(entity)
 add_subdirectory(io)
 
