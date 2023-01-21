@@ -1,3 +1,6 @@
 set(BOOST_ENABLE_CMAKE ON)
 add_subdirectory(boost)
-include_directories(boost)
+
+set(BUILD_GMOCK OFF CACHE INTERNAL "" FORCE)
+set(INSTALL_GTEST OFF CACHE INTERNAL "" FORCE)
+add_subdirectory(googletest)
