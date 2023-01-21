@@ -11,6 +11,7 @@ find_package(Gurobi REQUIRED)
 
 add_subdirectory(third_party)
 
+add_subdirectory(entity)
 add_executable(main src/main.cpp)
 set_property(TARGET main PROPERTY CXX_STANDARD 17)
 target_link_libraries(main PRIVATE boost_array gurobi::cxx)
