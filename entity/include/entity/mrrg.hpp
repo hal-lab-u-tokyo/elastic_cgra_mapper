@@ -23,10 +23,6 @@ enum MRRGCGRAType {
   kElastic,
 };
 
-struct MRRGGraphProperty {
-  MRRGCGRAType mrrg_type;
-};
-
 enum MRRGMemoryIOType {
   kAll,
 };
@@ -34,6 +30,14 @@ enum MRRGMemoryIOType {
 enum MRRGNetworkType {
   kOrthogonal,
   kDiagonal,
+};
+
+struct MRRGGraphProperty {
+  int row_num;
+  int column_num;
+  MRRGMemoryIOType memory_io;
+  MRRGCGRAType cgra_type;
+  MRRGNetworkType network_type;
 };
 
 struct MRRGConfig {
@@ -63,5 +67,7 @@ class MRRG : public BaseGraphClass<MRRGNodeProperty, MRRGEdgeProperty,
                        MRRGGraphProperty>::BaseGraphClass;
   MRRG(MRRGGraph mrrg_graph);
   MRRG(MRRGConfig mrrg_config);
+
+  MRRGConfig GetMRRGConfig();
 };
 }  // namespace entity
