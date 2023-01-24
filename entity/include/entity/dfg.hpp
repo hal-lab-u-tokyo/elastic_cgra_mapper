@@ -1,12 +1,9 @@
 #pragma once
 
 #include <entity/graph.hpp>
+#include <entity/operation.hpp>
 
 namespace entity {
-enum OpType { ADD, SUB, MUL, DIV, CONST, LOAD, OUTPUT };
-std::string OpTypeToString(OpType op);
-OpType OpTypeFromString(std::string op_string);
-
 struct DFGNodeProperty {
   OpType op;
   std::string op_str;
