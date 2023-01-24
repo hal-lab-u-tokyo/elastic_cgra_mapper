@@ -6,8 +6,8 @@
 
 template <class T>
 struct JsonData {
-  JsonData(bool _is_succeed, T _data) {
-    is_succeed = _is_succeed;
+  JsonData(bool _is_success, T _data) {
+    is_success = _is_success;
     data = _data;
   }
   bool is_success;
