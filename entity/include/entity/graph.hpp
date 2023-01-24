@@ -5,13 +5,12 @@
 namespace entity {
   template <typename NodeProperty, typename EdgeProperty, typename GraphProperty>
   class BaseGraph
-    : public boost::adjacency_list<boost::vecS, boost::vecS,
-    boost::bidirectionalS, NodeProperty,
-    EdgeProperty, GraphProperty> {
+      : public boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS,
+                                    NodeProperty, EdgeProperty, GraphProperty> {
   public:
-    using boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS,
-      NodeProperty, EdgeProperty,
-      GraphProperty>::adjacency_list; 
+    using boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS,
+                                NodeProperty, EdgeProperty,
+                                GraphProperty>::adjacency_list;
   };
   typedef std::pair<int, int> Edge;
 
@@ -36,7 +35,7 @@ namespace entity {
       return graph_[edge_id];
     }
 
-  private:
+  protected:
     BaseGraph<NodeProperty, EdgeProperty, GraphProperty> graph_;
   };
 }  // namespace entity
