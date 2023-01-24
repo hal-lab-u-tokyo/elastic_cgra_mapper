@@ -43,7 +43,7 @@ struct MRRGConfig {
   MRRGCGRAType cgra_type;
   MRRGNetworkType network_type;
   int local_reg_size;
-  int contest_size;
+  int context_size;
 };
 
 MRRGCGRAType MRRGCGRATypeFromString(std::string cgra_type_string);
