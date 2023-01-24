@@ -1,5 +1,5 @@
-#include <entity/operation.hpp>
 #include <cassert>
+#include <entity/operation.hpp>
 
 std::string entity::OpTypeToString(OpType op) {
   switch (op) {
