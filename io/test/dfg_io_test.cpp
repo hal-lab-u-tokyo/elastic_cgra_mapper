@@ -37,5 +37,4 @@ TEST(IOTest, dfg_io_test) {
 
   EXPECT_EQ(output_node_num, node_num); // check number of node
   EXPECT_EQ(output_dfg.GetNodeProperty(0).op, input_dfg.GetNodeProperty(0).op); // check node property
-
 }
