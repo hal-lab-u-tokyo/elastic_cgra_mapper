@@ -38,6 +38,8 @@ class BaseGraphClass {
     return graph_[edge_id];
   }
 
+  int GetNodeNum() { return boost::num_vertices(graph_); };
+
  protected:
   BaseGraph<NodeProperty, EdgeProperty, GraphProperty> graph_;
 };
