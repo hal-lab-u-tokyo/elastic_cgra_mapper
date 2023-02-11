@@ -5,6 +5,7 @@
 
 namespace entity {
 struct DFGNodeProperty {
+  int id;
   OpType op;
   std::string op_str;
 };
