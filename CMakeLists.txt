@@ -18,4 +18,4 @@ add_subdirectory(io)
 
 add_executable(main src/main.cpp)
 set_property(TARGET main PROPERTY CXX_STANDARD 17)
-target_link_libraries(main PRIVATE Boost::array gurobi::cxx io entity)
+target_link_libraries(main PRIVATE Boost::array Boost::graph gurobi::cxx io entity)
