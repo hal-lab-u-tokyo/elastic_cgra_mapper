@@ -40,6 +40,18 @@ class BaseGraphClass {
 
   int GetNodeNum() { return boost::num_vertices(graph_); };
 
+  std::vector<int> GetAdjacentNodeIdVec(int node_id) {
+    std::vector<int> adjacent_node_id_vec;
+    auto pair_it_and_end = boost::adjacent_vertices(node_id, graph_);
+    auto vit = pair_it_and_end.first;
+    auto vend = pair_it_and_end.second;
+    for (vit; vit != vend; vit++) {
+      adjacent_node_id_vec.push_back(*vit);
+    }
+
+    return adjacent_node_id_vec;
+  };
+
  protected:
   BaseGraph<NodeProperty, EdgeProperty, GraphProperty> graph_;
 };
