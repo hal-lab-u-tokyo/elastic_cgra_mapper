@@ -37,9 +37,33 @@ struct HashConfigId {
 };
 
 struct CGRAConfig {
+ public:
   ConfigId from_config_id_vec[2];
+  int from_config_id_num;
   std::vector<ConfigId> to_config_id_vec;
   OpType operation_type;
+
+  CGRAConfig() : from_config_id_num(0), operation_type(entity::OpType::NOP){};
+
+  static CGRAConfig GenerateInitialCGRAConfig() {
+    CGRAConfig result;
+    return result;
+  }
+
+  void AddFromConfig(ConfigId from_config_id, OpType op_type) {
+    from_config_id_vec[from_config_id_num] = from_config_id;
+    from_config_id_num++;
+    operation_type = op_type;
+
+    return;
+  }
+
+  void AddToConfig(ConfigId to_config_id, OpType op_type) {
+    to_config_id_vec.push_back(to_config_id);
+    operation_type = op_type;
+
+    return;
+  }
 };
 
 }  // namespace entity
