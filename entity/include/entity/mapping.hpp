@@ -9,7 +9,9 @@
 namespace entity {
 class Mapping {
  public:
-  Mapping(MRRG mrrg, DFG dfg);
+  Mapping(MRRG mrrg, DFG dfg, const std::vector<int>& dfg_node_to_mrrg_node,
+          const std::vector<std::vector<int>>& dfg_output_to_mrrg_reg);
+  Mapping(bool is_succeed);
 
  private:
   std::unordered_map<ConfigId, int, entity::HashConfigId>
@@ -17,5 +19,6 @@ class Mapping {
   std::unordered_map<ConfigId, CGRAConfig, entity::HashConfigId> config_map_;
   std::shared_ptr<MRRG> mrrg_ptr_;
   std::shared_ptr<DFG> dfg_ptr_;
+  bool is_succeed_;
 };
 }  // namespace entity
