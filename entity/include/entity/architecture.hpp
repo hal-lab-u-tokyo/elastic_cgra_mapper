@@ -1,6 +1,6 @@
 #pragma once
 
-#include <entity/dfg.hpp>
+#include <entity/mrrg.hpp>
 #include <tuple>
 #include <vector>
 
@@ -10,6 +10,17 @@ struct ConfigId {
   int row_id;
   int column_id;
   int context_id;
+
+  ConfigId() : row_id(-1), column_id(-1), context_id(-1){};
+
+  ConfigId(int row_id_, int column_id_, int context_id_)
+      : row_id(row_id_), column_id(column_id_), context_id(context_id_){};
+
+  ConfigId(entity::MRRGNodeProperty mrrg_node_property) {
+    row_id = mrrg_node_property.position_id.first;
+    column_id = mrrg_node_property.position_id.second;
+    context_id = mrrg_node_property.context_id;
+  }
 
   bool operator==(const ConfigId& config_id) const {
     return row_id == config_id.row_id && column_id == config_id.column_id &&
