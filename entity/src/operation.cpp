@@ -24,6 +24,9 @@ std::string entity::OpTypeToString(OpType op) {
     case entity::OpType::OUTPUT:
       return "output";
       break;
+    case entity::OpType::NOP:
+      return "nop";
+      break;
     default:
       assert("invalid OpType");
       abort();
@@ -45,6 +48,8 @@ entity::OpType entity::OpTypeFromString(std::string op_string) {
     return entity::OpType::LOAD;
   } else if (op_string == "output") {
     return entity::OpType::OUTPUT;
+  } else if (op_string == "nop") {
+    return entity::OpType::NOP;
   } else {
     assert("invalid op string");
     abort();
