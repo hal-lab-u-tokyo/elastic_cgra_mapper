@@ -55,3 +55,10 @@ entity::OpType entity::OpTypeFromString(std::string op_string) {
     abort();
   }
 };
+
+std::vector<entity::OpType> entity::GetAllOperations() {
+  return std::vector<OpType>({entity::OpType::ADD, entity::OpType::SUB,
+                              entity::OpType::MUL, entity::OpType::DIV,
+                              entity::OpType::CONST, entity::OpType::LOAD,
+                              entity::OpType::OUTPUT, entity::OpType::NOP});
+};
