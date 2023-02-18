@@ -6,9 +6,9 @@
 mapper::GurobiILPMapper::GurobiILPMapper(
     const std::shared_ptr<entity::DFG> dfg_ptr,
     const std::shared_ptr<entity::MRRG> mrrg_ptr)
-    : IILPMapper(), dfg_ptr_(dfg_ptr), mrrg_ptr_(mrrg_ptr) {}
+    : dfg_ptr_(dfg_ptr), mrrg_ptr_(mrrg_ptr) {}
 
-mapper::GurobiILPMapper* mapper::GurobiILPMapper::CreateMapper(
+mapper::IILPMapper* mapper::GurobiILPMapper::CreateMapper(
     const std::shared_ptr<entity::DFG> dfg_ptr,
     const std::shared_ptr<entity::MRRG> mrrg_ptr) {
   mapper::GurobiILPMapper* result_mapper;
