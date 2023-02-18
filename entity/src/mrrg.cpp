@@ -130,10 +130,7 @@ entity::MRRG::MRRG(entity::MRRGConfig mrrg_config)
                              entity::MRRGGraphProperty>() {
   entity::MRRGGraph mrrg_graph;
   std::map<std::tuple<int, int, int>, int> node_id_to_vertex_id;
-  std::vector<entity::OpType> all_operations(
-      {entity::OpType::ADD, entity::OpType::SUB, entity::OpType::MUL,
-       entity::OpType::DIV, entity::OpType::CONST, entity::OpType::LOAD,
-       entity::OpType::OUTPUT});
+  std::vector<entity::OpType> all_operations = entity::GetAllOperations();
 
   for (int i = 0; i < mrrg_config.row; i++) {
     for (int j = 0; j < mrrg_config.column; j++) {
