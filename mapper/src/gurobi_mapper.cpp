@@ -32,7 +32,7 @@ entity::Mapping mapper::GurobiILPMapper::Execution() {
     // create variable
     std::vector<std::vector<GRBVar>> map_op_to_PE(
         dfg_node_num, std::vector<GRBVar>(mrrg_node_num));
-    std::vector<std::vector<GRBVar>> map_output_to_PE_reg(
+    std::vector<std::vector<GRBVar>> map_output_to_route(
         dfg_node_num, std::vector<GRBVar>(mrrg_node_num));
 
     for (int i = 0; i < dfg_node_num; i++) {
@@ -42,18 +42,17 @@ entity::Mapping mapper::GurobiILPMapper::Execution() {
         map_op_to_PE[i][j] = model.addVar(0.0, 1.0, 0.0, GRB_BINARY, var_name);
 
         var_name = "r_" + std::to_string(i) + "_" + std::to_string(j);
-        map_output_to_PE_reg[i][j] =
+        map_output_to_route[i][j] =
             model.addVar(0.0, 1.0, 0.0, GRB_BINARY, var_name);
       }
     }
-
     // set objective
     GRBLinExpr objective_lin_expr;
     const double object_coefficient = 1.0;
     for (int i = 0; i < dfg_node_num; i++) {
       for (int j = 0; j < mrrg_node_num; j++) {
         objective_lin_expr.addTerms(&object_coefficient,
-                                    &(map_output_to_PE_reg[i][j]), 1);
+                                    &(map_output_to_route[i][j]), 1);
       }
     }
     model.setObjective(objective_lin_expr, GRB_MAXIMIZE);
@@ -77,6 +76,8 @@ entity::Mapping mapper::GurobiILPMapper::Execution() {
       for (int j = 0; j < dfg_node_num; j++) {
         tmp_lin_expr.addTerms(&exclusivity_coefficient, &(map_op_to_PE[j][i]),
                               1);
+        tmp_lin_expr.addTerms(&exclusivity_coefficient,
+                              &(map_output_to_route[j][i]), 1);
       }
       std::string constr_name = "c_exclusivity_" + std::to_string(i);
       model.addConstr(tmp_lin_expr, GRB_LESS_EQUAL, 1, constr_name);
@@ -118,7 +119,7 @@ entity::Mapping mapper::GurobiILPMapper::Execution() {
                 &(map_op_to_PE[dfg_adj_node_id][mrrg_adj_node_id]), 1);
             tmp_lin_expr.addTerms(
                 &data_flow_coefficient,
-                &(map_output_to_PE_reg[dfg_node_id][mrrg_adj_node_id]), 1);
+                &(map_output_to_route[dfg_node_id][mrrg_adj_node_id]), 1);
           }
           std::string constr_name;
           constr_name = "c_data_flow_" + std::to_string(dfg_node_id) + "_" +
@@ -130,7 +131,7 @@ entity::Mapping mapper::GurobiILPMapper::Execution() {
           constr_name = "c_data_flow_reg_" + std::to_string(dfg_node_id) + "_" +
                         std::to_string(mrrg_node_id) + "_" +
                         std::to_string(dfg_adj_node_id);
-          model.addConstr(map_output_to_PE_reg[dfg_node_id][mrrg_node_id],
+          model.addConstr(map_output_to_route[dfg_node_id][mrrg_node_id],
                           GRB_LESS_EQUAL, tmp_lin_expr, constr_name);
         }
       }
@@ -150,7 +151,7 @@ entity::Mapping mapper::GurobiILPMapper::Execution() {
         if (map_op_to_PE[i][j].get(GRB_DoubleAttr_X) == 1) {
           dfg_node_to_mrrg_node[i] = j;
         }
-        if (map_output_to_PE_reg[i][j].get(GRB_DoubleAttr_X) == 1) {
+        if (map_output_to_route[i][j].get(GRB_DoubleAttr_X) == 1) {
           dfg_output_to_mrrg_reg[i].push_back(j);
         }
       }
