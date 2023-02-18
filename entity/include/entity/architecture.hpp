@@ -38,10 +38,10 @@ struct HashConfigId {
 
 struct CGRAConfig {
  public:
-  ConfigId from_config_id_vec[2];
   int from_config_id_num;
   std::vector<ConfigId> to_config_id_vec;
   OpType operation_type;
+  ConfigId from_config_id_vec[2];
 
   CGRAConfig() : from_config_id_num(0), operation_type(entity::OpType::NOP){};
 
