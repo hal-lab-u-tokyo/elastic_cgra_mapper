@@ -43,7 +43,10 @@ struct CGRAConfig {
   OpType operation_type;
   ConfigId from_config_id_vec[2];
 
-  CGRAConfig() : from_config_id_num(0), operation_type(entity::OpType::NOP){};
+  CGRAConfig()
+      : from_config_id_num(0),
+        operation_type(entity::OpType::NOP),
+        to_config_id_vec({}){};
 
   static CGRAConfig GenerateInitialCGRAConfig() {
     CGRAConfig result;
@@ -59,7 +62,7 @@ struct CGRAConfig {
   }
 
   void AddToConfig(ConfigId to_config_id, OpType op_type) {
-    to_config_id_vec.push_back(to_config_id);
+    to_config_id_vec.emplace_back(to_config_id);
     operation_type = op_type;
 
     return;
