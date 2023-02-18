@@ -12,6 +12,7 @@ class Mapping {
   Mapping(MRRG mrrg, DFG dfg, const std::vector<int>& dfg_node_to_mrrg_node,
           const std::vector<std::vector<int>>& dfg_output_to_mrrg_reg);
   Mapping(bool is_succeed);
+  bool Succeed() { return is_succeed_; };
 
  private:
   std::unordered_map<ConfigId, int, entity::HashConfigId>
