@@ -96,6 +96,7 @@ std::vector<std::tuple<int, int, int>> GetConnectedNodeIdVector(
 
   for (int i = -1; i <= 1; i++) {
     for (int j = -1; j <= 1; j++) {
+      if (i == 0 && j == 0) continue;
       if (mrrg_config.network_type == entity::MRRGNetworkType::kOrthogonal &&
           abs(i) + abs(j) > 1) {
         continue;
