@@ -136,20 +136,6 @@ entity::Mapping mapper::GurobiILPMapper::Execution() {
       }
     }
 
-    // add constraint: reg size
-    const double reg_size_coefficient = 1;
-    for (int i = 0; i < mrrg_node_num; i++) {
-      GRBLinExpr tmp_lin_expr;
-      for (int j = 0; j < dfg_node_num; j++) {
-        tmp_lin_expr.addTerms(&reg_size_coefficient,
-                              &(map_output_to_PE_reg[j][i]), 1);
-      }
-      std::string constr_name = "c_reg_size_" + std::to_string(i);
-      int local_reg_size = (mrrg_ptr_->GetNodeProperty(i)).local_reg_size;
-      model.addConstr(tmp_lin_expr, GRB_LESS_EQUAL, local_reg_size,
-                      constr_name);
-    }
-
     // add constraint: elastic order (TODO)
 
     // optimize model
