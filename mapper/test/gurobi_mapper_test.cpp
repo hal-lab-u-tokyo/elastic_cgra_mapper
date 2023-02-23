@@ -38,8 +38,9 @@ TEST(MapperTest, gurobi_mapper_test) {
   *mrrg_ptr = entity::MRRG(mrrg_config);
 
   auto mapper_ptr = mapper::GurobiILPMapper().CreateMapper(dfg_ptr, mrrg_ptr);
-  entity::Mapping result = mapper_ptr->Execution();
-  std::cout << "result: " << result.Succeed() << std::endl;
+  entity::Mapping result;
+  bool is_succeed;
+  std::tie(is_succeed, result) = mapper_ptr->Execution();
 
-  EXPECT_EQ(result.Succeed(), true);
+  EXPECT_EQ(is_succeed, true);
 }
