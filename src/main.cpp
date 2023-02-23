@@ -2,6 +2,7 @@
 
 #include <boost/array.hpp>
 #include <io/architecture_io.hpp>
+#include <mapper/gurobi_mapper.hpp>
 
 #include <boost/graph/adjacency_list.hpp>
 
