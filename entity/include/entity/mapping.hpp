@@ -7,19 +7,22 @@
 #include <tuple>
 
 namespace entity {
+typedef std::unordered_map<ConfigId, CGRAConfig, entity::HashConfigId>
+    ConfigMap;
+
 class Mapping {
  public:
+  Mapping() : config_map_({}){};
+  Mapping(entity::MRRGConfig mrrg_config)
+      : config_map_({}), mrrg_config_(mrrg_config){};
   Mapping(MRRG mrrg, DFG dfg, const std::vector<int>& dfg_node_to_mrrg_node,
           const std::vector<std::vector<int>>& dfg_output_to_mrrg_reg);
-  Mapping(bool is_succeed);
-  bool Succeed() { return is_succeed_; };
+  Mapping(entity::MRRGConfig mrrg_config, ConfigMap config_map)
+      : config_map_(config_map), mrrg_config_(mrrg_config){};
+  ConfigMap GetConfigMap() { return config_map_; };
 
  private:
-  std::unordered_map<ConfigId, int, entity::HashConfigId>
-      config_id_to_dfg_node_id_;
-  std::unordered_map<ConfigId, CGRAConfig, entity::HashConfigId> config_map_;
-  std::shared_ptr<MRRG> mrrg_ptr_;
-  std::shared_ptr<DFG> dfg_ptr_;
-  bool is_succeed_;
+  entity::MRRGConfig mrrg_config_;
+  ConfigMap config_map_;
 };
 }  // namespace entity
