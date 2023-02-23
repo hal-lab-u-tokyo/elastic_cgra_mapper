@@ -15,6 +15,7 @@ enable_testing()
 
 add_subdirectory(entity)
 add_subdirectory(io)
+add_subdirectory(mapper)
 
 add_executable(main src/main.cpp)
 set_property(TARGET main PROPERTY CXX_STANDARD 17)
