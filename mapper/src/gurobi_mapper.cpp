@@ -8,16 +8,16 @@ mapper::GurobiILPMapper::GurobiILPMapper(
     const std::shared_ptr<entity::MRRG> mrrg_ptr)
     : dfg_ptr_(dfg_ptr), mrrg_ptr_(mrrg_ptr) {}
 
-mapper::IILPMapper* mapper::GurobiILPMapper::CreateMapper(
+mapper::GurobiILPMapper* mapper::GurobiILPMapper::CreateMapper(
     const std::shared_ptr<entity::DFG> dfg_ptr,
     const std::shared_ptr<entity::MRRG> mrrg_ptr) {
-  mapper::GurobiILPMapper* result_mapper;
-  *result_mapper = mapper::GurobiILPMapper(dfg_ptr, mrrg_ptr);
+  mapper::GurobiILPMapper* result = new mapper::GurobiILPMapper;
+  *result = mapper::GurobiILPMapper(dfg_ptr, mrrg_ptr);
 
-  return result_mapper;
+  return result;
 }
 
-entity::Mapping mapper::GurobiILPMapper::Execution() {
+std::pair<bool, entity::Mapping> mapper::GurobiILPMapper::Execution() {
   try {
     // create gurobi env
     GRBEnv env = GRBEnv(true);
@@ -157,12 +157,13 @@ entity::Mapping mapper::GurobiILPMapper::Execution() {
       }
     }
 
-    return entity::Mapping(*mrrg_ptr_, *dfg_ptr_, dfg_node_to_mrrg_node,
-                           dfg_output_to_mrrg_reg);
+    return std::make_pair(
+        true, entity::Mapping(*mrrg_ptr_, *dfg_ptr_, dfg_node_to_mrrg_node,
+                              dfg_output_to_mrrg_reg));
   } catch (GRBException e) {
     std::cout << "Error code = " << e.getErrorCode() << std::endl;
     std::cout << e.getMessage() << std::endl;
 
-    return entity::Mapping(false);
+    return std::make_pair(false, entity::Mapping(mrrg_ptr_->GetMRRGConfig()));
   }
 }

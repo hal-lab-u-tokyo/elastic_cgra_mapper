@@ -8,9 +8,9 @@ class GurobiILPMapper : public IILPMapper {
   GurobiILPMapper() {}
   GurobiILPMapper(const std::shared_ptr<entity::DFG> dfg_ptr,
                   const std::shared_ptr<entity::MRRG> mmrg_ptr);
-  IILPMapper* CreateMapper(const std::shared_ptr<entity::DFG> dfg_ptr,
+  GurobiILPMapper* CreateMapper(const std::shared_ptr<entity::DFG> dfg_ptr,
                            const std::shared_ptr<entity::MRRG> mmrg_ptr);
-  entity::Mapping Execution();
+  std::pair<bool, entity::Mapping> Execution();
 
  private:
   std::shared_ptr<entity::DFG> dfg_ptr_;

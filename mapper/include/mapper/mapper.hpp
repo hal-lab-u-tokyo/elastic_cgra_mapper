@@ -8,6 +8,6 @@ class IILPMapper {
   virtual IILPMapper* CreateMapper(
       const std::shared_ptr<entity::DFG> dfg_ptr,
       const std::shared_ptr<entity::MRRG> mrrg_ptr) = 0;
-  virtual entity::Mapping Execution() = 0;
+  virtual std::pair<bool, entity::Mapping> Execution() = 0;
 };
 }  // namespace mapper
