@@ -11,7 +11,7 @@ entity::DFG io::ReadDFGDotFile(std::string file_name) {
   dp.property("operand", boost::get(&entity::DFGEdgeProperty::operand, graph));
   boost::read_graphviz(dot, graph, dp);
 
-  for (int i = 0; i < boost::num_vertices(graph); i++) {
+  for (size_t i = 0; i < boost::num_vertices(graph); i++) {
     graph[i].op = entity::OpTypeFromString(graph[i].op_str);
   }
 

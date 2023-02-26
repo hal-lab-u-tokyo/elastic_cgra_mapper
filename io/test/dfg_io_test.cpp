@@ -30,7 +30,7 @@ TEST(IOTest, dfg_io_test) {
 
   int output_node_num = 0;
   auto vertex_iter = boost::vertices(output_dfg.GetGraph());
-  for (vertex_iter; vertex_iter.first != vertex_iter.second;
+  for (; vertex_iter.first != vertex_iter.second;
        ++vertex_iter.first) {
     output_node_num++;
   }

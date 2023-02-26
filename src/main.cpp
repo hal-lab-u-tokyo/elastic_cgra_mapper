@@ -1,14 +1,12 @@
 #include <gurobi_c++.h>
 
 #include <boost/array.hpp>
+#include <boost/graph/adjacency_list.hpp>
 #include <io/architecture_io.hpp>
 #include <mapper/gurobi_mapper.hpp>
 
-#include <boost/graph/adjacency_list.hpp>
-
 int main() {
   std::cout << "Hello world!" << std::endl;
-  boost::array<int, 4> a;
 
   // test: boost adjacent vertices
   boost::adjacency_list<> g;
@@ -24,7 +22,7 @@ int main() {
   boost::adjacency_list<>::adjacency_iterator vit, vend;
   std::tie(vit, vend) = boost::adjacent_vertices(v2, g);
 
-  for(vit; vit != vend; vit++){
+  for (; vit != vend; vit++) {
     std::cout << *vit << std::endl;
   }
 }

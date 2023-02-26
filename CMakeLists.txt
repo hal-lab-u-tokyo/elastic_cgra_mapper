@@ -19,5 +19,5 @@ add_subdirectory(mapper)
 
 add_executable(main src/main.cpp)
 set_property(TARGET main PROPERTY CXX_STANDARD 17)
-target_link_libraries(main PRIVATE Boost::array Boost::graph gurobi::cxx io
-                                   entity mapper)
+target_compile_options(main INTERFACE -Wall -Wextra -Wno-deprecated)
+target_link_libraries(main PRIVATE Boost::graph gurobi::cxx io entity mapper)
