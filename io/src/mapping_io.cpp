@@ -75,7 +75,6 @@ struct ConfigIOStruct {
     entity::CGRAConfig cgra_config;
 
     auto op = entity::OpTypeFromString(operation_type);
-    cgra_config.from_config_id_num = from_config_id.size();
     for (ConfigIdIOStruct from_config_id_ele : from_config_id) {
       cgra_config.AddFromConfig(from_config_id_ele.CreateConfigId(), op);
     }
@@ -252,9 +251,9 @@ entity::Mapping io::ReadMappingFile(std::string file_name) {
   return mapping_io.CreateMapping();
 }
 
-void WriteMappingFIle(std::string file_name,
-                      std::shared_ptr<entity::Mapping> mapping_ptr_,
-                      entity::MRRGConfig mrrg_config) {
+void io::WriteMappingFile(std::string file_name,
+                          std::shared_ptr<entity::Mapping> mapping_ptr_,
+                          entity::MRRGConfig mrrg_config) {
   MappingIOStruct mapping_io(mrrg_config, mapping_ptr_);
 
   boost::property_tree::write_json(file_name, mapping_io.ConvertToPTree());
