@@ -57,7 +57,7 @@ struct CGRAConfig {
   void AddFromConfig(ConfigId from_config_id, OpType op_type) {
     from_config_id_vec[from_config_id_num] = from_config_id;
     from_config_id_num++;
-    if(from_config_id_num >= 3) {
+    if (from_config_id_num >= 3) {
       std::cerr << "from config id > 3" << std::endl;
       abort();
     }
