@@ -3,7 +3,7 @@
 #include <mapper/gurobi_mapper.hpp>
 
 TEST(MapperTest, gurobi_mapper_test) {
-  // create dfgsc
+  // create dfg
   std::vector<entity::Edge> edges = {{0, 1}, {1, 2}, {2, 3}, {3, 4}, {4, 5}};
   int node_num = 6;
   entity::DFGGraph g;
