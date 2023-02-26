@@ -59,8 +59,7 @@ entity::Mapping::Mapping(
                   to_config_id,
                   entity::CGRAConfig::GenerateInitialCGRAConfig());
             }
-
-            config_map_[from_config_id].AddToConfig(to_config_id, to_op_type);
+            config_map_[from_config_id].AddToConfig(to_config_id, from_op_type);
             config_map_[to_config_id].AddFromConfig(from_config_id, to_op_type);
           }
         }
