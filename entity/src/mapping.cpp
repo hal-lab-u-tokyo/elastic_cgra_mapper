@@ -9,11 +9,11 @@ entity::Mapping::Mapping(
 
   // create config_map_
   for (int from_op_id = 0; from_op_id < dfg.GetNodeNum(); from_op_id++) {
-    int from_PE_id = dfg_node_to_mrrg_node[from_op_id];
+    int from_op_PE_id = dfg_node_to_mrrg_node[from_op_id];
 
-    std::vector<int> PE_id_vec{from_PE_id};
+    std::vector<int> PE_id_vec{from_op_PE_id};
     std::unordered_map<int, int> PE_id_to_op_id_map = {
-        {from_PE_id, from_op_id}};
+        {from_op_PE_id, from_op_id}};
 
     // create PE_id_vec
     std::vector<int> to_op_id_vec = dfg.GetAdjacentNodeIdVec(from_op_id);
