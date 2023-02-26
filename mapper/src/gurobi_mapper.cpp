@@ -55,7 +55,7 @@ std::pair<bool, entity::Mapping> mapper::GurobiILPMapper::Execution() {
                                     &(map_output_to_route[i][j]), 1);
       }
     }
-    model.setObjective(objective_lin_expr, GRB_MAXIMIZE);
+    model.setObjective(objective_lin_expr, GRB_MINIMIZE);
 
     // add constraint
     // add constraint: operation placement
