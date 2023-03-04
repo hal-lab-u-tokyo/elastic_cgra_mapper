@@ -43,26 +43,31 @@ class Visualizer():
         def create_PE_id(column_id, row_id):
             return column_id * 100 + row_id
 
+        def create_xy_from_row_id_and_column_id(row_id, column_id, row_num):
+            return (column_id, row_num - 1 - row_id)
+
         PE_id_to_patch = {}
 
         for row_id in range(row_num):
             for column_id in range(column_num):
                 tmp_PE_config = mapping.PE_array[row_id][column_id].config_list[context_id]
 
+                x, y = create_xy_from_row_id_and_column_id(row_id, column_id, row_num)
+
                 # add PE and opcode
                 PE_operation_type = tmp_PE_config.operation_type
                 if PE_operation_type != OperationType.Nop:
                     color = pe_color
                     opcode = OperationType.to_string(PE_operation_type)
-                    ax.annotate(opcode + str(row_id) + str(column_id), xy=(row_id + 1 - pe_margin * 3,
-                                column_id + 1 - pe_margin * 2), size=12)
+                    ax.annotate(opcode, xy=(x + 1 - pe_margin * 3,
+                                y + 1 - pe_margin * 2), size=12)
                 else:
                     color = "white"
-                pe = Visualizer.__make_PE_patch((row_id, column_id), color)
+                pe = Visualizer.__make_PE_patch((x, y), color)
                 ax.add_patch(pe)
 
                 # add ALU
-                alu = Visualizer.__make_ALU_patch((row_id, column_id))
+                alu = Visualizer.__make_ALU_patch((x, y))
                 ax.add_patch(alu)
 
                 PE_id = create_PE_id(row_id, column_id)
@@ -70,9 +75,10 @@ class Visualizer():
 
         for row_id in range(row_num):
             for column_id in range(column_num):
-                tmp_PE_id = create_PE_id(row_id, column_id)
+                x, y = create_xy_from_row_id_and_column_id(row_id, column_id, row_num)
+                tmp_PE_id = create_PE_id(x, y)
                 tmp_PE_patch = PE_id_to_patch[tmp_PE_id]
-                tmp_PE_config = mapping.PE_array[row_id][column_id].config_list[context_id]
+                tmp_PE_config = mapping.PE_array[x][y].config_list[context_id]
 
                 for from_config_id in tmp_PE_config.from_config_id:
                     from_PE_id = create_PE_id(
