@@ -1,28 +1,26 @@
-#include <gurobi_c++.h>
-
-#include <boost/array.hpp>
-#include <boost/graph/adjacency_list.hpp>
 #include <io/architecture_io.hpp>
+#include <io/dfg_io.hpp>
+#include <io/mapping_io.hpp>
+#include <iostream>
 #include <mapper/gurobi_mapper.hpp>
 
 int main() {
-  std::cout << "Hello world!" << std::endl;
+  std::shared_ptr<entity::DFG> dfg_ptr = std::make_shared<entity::DFG>();
+  std::shared_ptr<entity::MRRG> mrrg_ptr = std::make_shared<entity::MRRG>();
 
-  // test: boost adjacent vertices
-  boost::adjacency_list<> g;
-  boost::adjacency_list<>::vertex_descriptor v1 = boost::add_vertex(g);
-  boost::adjacency_list<>::vertex_descriptor v2 = boost::add_vertex(g);
-  boost::adjacency_list<>::vertex_descriptor v3 = boost::add_vertex(g);
-  boost::adjacency_list<>::vertex_descriptor v4 = boost::add_vertex(g);
+  *dfg_ptr =
+      io::ReadDFGDotFile("../benchmark/matrixmultiply/matrixmultiply.dot");
+  *mrrg_ptr = io::ReadMRRGFromJsonFile("../data/CGRA/8x8_elastic_cgra.json");
 
-  boost::add_edge(v1, v2, g);
-  boost::add_edge(v2, v3, g);
-  boost::add_edge(v2, v4, g);
+  mapper::IILPMapper* mapper;
+  mapper = mapper::GurobiILPMapper().CreateMapper(dfg_ptr, mrrg_ptr);
+  std::shared_ptr<entity::Mapping> mapping_ptr =
+      std::make_shared<entity::Mapping>();
+  bool is_success = false;
+  std::tie(is_success, *mapping_ptr) = mapper->Execution();
 
-  boost::adjacency_list<>::adjacency_iterator vit, vend;
-  std::tie(vit, vend) = boost::adjacent_vertices(v2, g);
-
-  for (; vit != vend; vit++) {
-    std::cout << *vit << std::endl;
+  if (is_success) {
+    io::WriteMappingFile("../output/mapping.json", mapping_ptr,
+                         mrrg_ptr->GetMRRGConfig());
   }
 }
