@@ -8,6 +8,7 @@ struct DFGNodeProperty {
   int id;
   OpType op;
   std::string op_str;
+  std::string op_name;
 };
 
 struct DFGEdgeProperty {

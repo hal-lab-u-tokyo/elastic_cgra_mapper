@@ -11,7 +11,10 @@ TEST(IOTest, dfg_io_test) {
   entity::DFGGraph g;
   for (int i = 0; i < node_num; i++) {
     auto v1 = boost::add_vertex(g);
+    std::string node_name = "add" + std::to_string(i);
+    g[v1].op_name = node_name;
     g[v1].op = entity::OpType::ADD;
+    g[v1].op_str = entity::OpTypeToString(entity::OpType::ADD);
   }
 
   boost::graph_traits<entity::DFGGraph>::edge_descriptor e;
@@ -30,11 +33,11 @@ TEST(IOTest, dfg_io_test) {
 
   int output_node_num = 0;
   auto vertex_iter = boost::vertices(output_dfg.GetGraph());
-  for (; vertex_iter.first != vertex_iter.second;
-       ++vertex_iter.first) {
+  for (; vertex_iter.first != vertex_iter.second; ++vertex_iter.first) {
     output_node_num++;
   }
 
-  EXPECT_EQ(output_node_num, node_num); // check number of node
-  EXPECT_EQ(output_dfg.GetNodeProperty(0).op, input_dfg.GetNodeProperty(0).op); // check node property
+  EXPECT_EQ(output_node_num, node_num);  // check number of node
+  EXPECT_EQ(output_dfg.GetNodeProperty(0).op,
+            input_dfg.GetNodeProperty(0).op);  // check node property
 }

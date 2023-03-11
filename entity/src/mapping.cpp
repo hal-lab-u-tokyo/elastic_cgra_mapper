@@ -39,15 +39,25 @@ entity::Mapping::Mapping(
       return dfg.GetNodeProperty(op_id).op;
     };
 
+    auto GetOpNameFromPEId = [&](int PE_id) {
+      int op_id = PE_id_to_op_id_map.at(PE_id);
+      if (op_id == kNopId) {
+        return std::string("");
+      }
+      return dfg.GetNodeProperty(op_id).op_name;
+    };
+
     for (int from_PE_id : PE_id_vec) {
       std::vector<int> adj_PE_id_vec = mrrg.GetAdjacentNodeIdVec(from_PE_id);
       entity::ConfigId from_config_id(mrrg.GetNodeProperty(from_PE_id));
       entity::OpType from_op_type = GetOpTypeFromPEId(from_PE_id);
+      std::string from_op_name = GetOpNameFromPEId(from_PE_id);
       for (int adj_PE_id : adj_PE_id_vec) {
         for (int to_PE_id : PE_id_vec) {
           if (adj_PE_id == to_PE_id) {
             entity::ConfigId to_config_id(mrrg.GetNodeProperty(to_PE_id));
             entity::OpType to_op_type = GetOpTypeFromPEId(to_PE_id);
+            std::string to_op_name = GetOpNameFromPEId(to_PE_id);
 
             if (config_map_.count(from_config_id) == 0) {
               config_map_.emplace(
@@ -59,8 +69,8 @@ entity::Mapping::Mapping(
                   to_config_id,
                   entity::CGRAConfig::GenerateInitialCGRAConfig());
             }
-            config_map_[from_config_id].AddToConfig(to_config_id, from_op_type);
-            config_map_[to_config_id].AddFromConfig(from_config_id, to_op_type);
+            config_map_[from_config_id].AddToConfig(to_config_id, from_op_type, from_op_name);
+            config_map_[to_config_id].AddFromConfig(from_config_id, to_op_type, to_op_name);
           }
         }
       }
