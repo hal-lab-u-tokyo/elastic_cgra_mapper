@@ -45,9 +45,9 @@ def read_mapping_from_json(file_name: str) -> Mapping:
         result.PE_array = []
 
         # PE_array initialize
-        for _ in range(result.column_num):
+        for _ in range(result.row_num):
             PE_column_list: list[PE] = []
-            for _ in range(result.row_num):
+            for _ in range(result.column_num):
                 PE_column_list.append(PE())
             result.PE_array.append(PE_column_list)
 

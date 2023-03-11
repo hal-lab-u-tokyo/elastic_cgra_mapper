@@ -21,8 +21,8 @@ arrow_setting = dict(facecolor='black', width=0.8,
 class Visualizer():
     @staticmethod
     def visualize_mapping(mapping: Mapping, output_dir: str):
-        fig = plt.figure(figsize=(mapping.row_num *
-                         mapping.context_size, mapping.column_num))
+        fig = plt.figure(figsize=(mapping.column_num *
+                         mapping.context_size, mapping.row_num))
 
         for context_id in range(mapping.context_size):
             Visualizer.visualize_mapping_one_context(mapping, context_id, fig)
@@ -76,9 +76,9 @@ class Visualizer():
         for row_id in range(row_num):
             for column_id in range(column_num):
                 x, y = create_xy_from_row_id_and_column_id(row_id, column_id, row_num)
-                tmp_PE_id = create_PE_id(x, y)
+                tmp_PE_id = create_PE_id(row_id, column_id)
                 tmp_PE_patch = PE_id_to_patch[tmp_PE_id]
-                tmp_PE_config = mapping.PE_array[x][y].config_list[context_id]
+                tmp_PE_config = mapping.PE_array[row_id][column_id].config_list[context_id]
 
                 for from_config_id in tmp_PE_config.from_config_id:
                     from_PE_id = create_PE_id(
