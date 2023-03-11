@@ -58,8 +58,8 @@ class Visualizer():
                 PE_operation_type = tmp_PE_config.operation_type
                 if PE_operation_type != OperationType.Nop:
                     color = pe_color
-                    opcode = OperationType.to_string(PE_operation_type)
-                    ax.annotate(opcode, xy=(x + 1 - pe_margin * 3,
+                    op_name = tmp_PE_config.operation_name
+                    ax.annotate(op_name, xy=(x + 1 - pe_margin * 3,
                                 y + 1 - pe_margin * 2), size=12)
                 else:
                     color = "white"

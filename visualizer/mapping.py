@@ -95,6 +95,7 @@ class ConfigId:
 class CGRAConfig:
     context_id: int
     operation_type: OperationType
+    operation_name: str
     to_config_id: list[ConfigId]
     from_config_id: list[ConfigId]
 

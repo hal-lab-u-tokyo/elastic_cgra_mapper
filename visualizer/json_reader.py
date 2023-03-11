@@ -14,6 +14,7 @@ def read_PE_from_dict(dict: Dict, context_size: int) -> PE:
         config_element.context_id = int(config_dict["context_id"])
         config_element.operation_type = OperationType.get_from_string(
             config_dict["operation_type"])
+        config_element.operation_name = config_dict["operation_name"]
         config_element.from_config_id = []
         for from_config_dict in config_dict["from_config_id"]:
             from_config_id: ConfigId = ConfigId()
