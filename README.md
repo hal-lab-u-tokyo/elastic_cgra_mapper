@@ -13,3 +13,16 @@ CMakeLists.txtの以下の部分を設定
 ```cmake
 set(ENV{GUROBI_HOME} /opt/gurobi911/linux64)
 ```
+
+## mapping
+```bash
+cd build
+./main
+```
+
+## visualizer 
+```bash
+cd visualizer
+dot -Tpng {input/dotfile} -o {output/pngfile} # visualize dot file
+python3 main.py {input/mapping/json} # visualize mapping result
+```
