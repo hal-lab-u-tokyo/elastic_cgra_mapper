@@ -27,6 +27,9 @@ std::string entity::OpTypeToString(OpType op) {
     case entity::OpType::NOP:
       return "nop";
       break;
+    case entity::OpType::ROUTE:
+      return "route";
+      break;
     default:
       assert("invalid OpType");
       abort();
@@ -50,6 +53,8 @@ entity::OpType entity::OpTypeFromString(std::string op_string) {
     return entity::OpType::OUTPUT;
   } else if (op_string == "nop") {
     return entity::OpType::NOP;
+  } else if (op_string == "route") {
+    return entity::OpType::ROUTE;
   } else {
     assert("invalid op string");
     abort();
@@ -57,8 +62,8 @@ entity::OpType entity::OpTypeFromString(std::string op_string) {
 };
 
 std::vector<entity::OpType> entity::GetAllOperations() {
-  return std::vector<OpType>({entity::OpType::ADD, entity::OpType::SUB,
-                              entity::OpType::MUL, entity::OpType::DIV,
-                              entity::OpType::CONST, entity::OpType::LOAD,
-                              entity::OpType::OUTPUT, entity::OpType::NOP});
+  return std::vector<OpType>(
+      {entity::OpType::ADD, entity::OpType::SUB, entity::OpType::MUL,
+       entity::OpType::DIV, entity::OpType::CONST, entity::OpType::LOAD,
+       entity::OpType::OUTPUT, entity::OpType::NOP, entity::OpType::ROUTE});
 };
