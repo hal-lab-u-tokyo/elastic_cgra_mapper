@@ -123,6 +123,9 @@ std::vector<std::tuple<int, int, int>> GetConnectedNodeIdVector(
     }
   }
 
+  result.emplace_back(from_row_id, from_column_id,
+                      (from_context_id + 1) % mrrg_config.context_size);
+
   return result;
 };
 
