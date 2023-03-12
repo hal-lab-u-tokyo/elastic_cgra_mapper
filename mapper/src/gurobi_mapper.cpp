@@ -108,8 +108,7 @@ std::pair<bool, entity::Mapping> mapper::GurobiILPMapper::Execution() {
     for (int dfg_node_id = 0; dfg_node_id < dfg_node_num; dfg_node_id++) {
       std::vector<int> dfg_adjacent_node_ids =
           dfg_ptr_->GetAdjacentNodeIdVec(dfg_node_id);
-      for (int mrrg_node_id = 0; mrrg_node_id < mrrg_node_num;
-      mrrg_node_id++) {
+      for (int mrrg_node_id = 0; mrrg_node_id < mrrg_node_num; mrrg_node_id++) {
         std::vector<int> mrrg_adjacent_node_ids =
             mrrg_ptr_->GetAdjacentNodeIdVec(mrrg_node_id);
         for (int dfg_adj_node_id : dfg_adjacent_node_ids) {
@@ -129,8 +128,7 @@ std::pair<bool, entity::Mapping> mapper::GurobiILPMapper::Execution() {
           model.addConstr(map_op_to_PE[dfg_node_id][mrrg_node_id],
                           GRB_LESS_EQUAL, tmp_lin_expr, constr_name);
 
-          constr_name = "c_data_flow_reg_" + std::to_string(dfg_node_id) +
-          "_" +
+          constr_name = "c_data_flow_reg_" + std::to_string(dfg_node_id) + "_" +
                         std::to_string(mrrg_node_id) + "_" +
                         std::to_string(dfg_adj_node_id);
           model.addConstr(map_output_to_route[dfg_node_id][mrrg_node_id],
