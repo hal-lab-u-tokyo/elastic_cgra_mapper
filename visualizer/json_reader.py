@@ -28,7 +28,7 @@ def read_PE_from_dict(dict: Dict, context_size: int) -> PE:
             to_config_id.row_id = int(to_config_dict["row_id"])
             to_config_id.column_id = int(to_config_dict["column_id"])
             to_config_id.context_id = int(to_config_dict["context_id"])
-            config_element.to_config_id.append(from_config_id)
+            config_element.to_config_id.append(to_config_id)
         result.config_list.append(config_element)
     return result
 
