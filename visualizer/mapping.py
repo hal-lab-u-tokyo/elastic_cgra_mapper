@@ -24,10 +24,13 @@ class CGRAType(Enum):
 
 class NetworkType(Enum):
     Diagonal = 0
+    Orthogonal = 1
 
     def get_from_string(input: str):
         if input == "diagonal":
             return NetworkType.Diagonal
+        if input == "orthogonal":
+            return NetworkType.Orthogonal
         else: 
             print("ERROR: NetworkType get_from_string invalid input")
             raise ValueError
