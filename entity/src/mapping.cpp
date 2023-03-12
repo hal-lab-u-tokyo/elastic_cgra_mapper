@@ -12,7 +12,7 @@ entity::Mapping::Mapping(
   for (int from_op_id = 0; from_op_id < dfg.GetNodeNum(); from_op_id++) {
     int from_op_PE_id = dfg_node_to_mrrg_node[from_op_id];
 
-    std::vector<int> PE_id_vec{from_op_PE_id};
+    std::vector<int> PE_id_vec;
     std::unordered_map<int, int> PE_id_to_op_id_map = {
         {from_op_PE_id, from_op_id}};
 
@@ -51,7 +51,7 @@ entity::Mapping::Mapping(
     // BFS
     std::queue<int> from_PE_id_queue;
     from_PE_id_queue.push(from_op_PE_id);
-    std::set<int> searched_PE_id = {from_op_PE_id};
+    std::set<int> searched_PE_id;
     while (from_PE_id_queue.size() > 0) {
       int from_PE_id = from_PE_id_queue.front();
       from_PE_id_queue.pop();
@@ -67,22 +67,25 @@ entity::Mapping::Mapping(
       }
 
       for (int adj_PE_id : adj_PE_id_vec) {
-        if (searched_PE_id.count(adj_PE_id) > 0) continue;
+        if (searched_PE_id.count(adj_PE_id) > 0) {
+          continue;
+        }
         for (int to_PE_id : PE_id_vec) {
-          if (adj_PE_id == to_PE_id) {
-            entity::ConfigId to_config_id(mrrg.GetNodeProperty(to_PE_id));
-            entity::OpType to_op_type = GetOpTypeFromPEId(to_PE_id);
-            std::string to_op_name = GetOpNameFromPEId(to_PE_id);
+          if (adj_PE_id != to_PE_id) continue;
 
-            if (config_map_.count(to_config_id) == 0) {
-              config_map_.emplace(
-                  to_config_id,
-                  entity::CGRAConfig::GenerateInitialCGRAConfig());
-            }
-            config_map_[from_config_id].AddToConfig(to_config_id, from_op_type,
-                                                    from_op_name);
-            config_map_[to_config_id].AddFromConfig(from_config_id, to_op_type,
-                                                    to_op_name);
+          entity::ConfigId to_config_id(mrrg.GetNodeProperty(to_PE_id));
+          entity::OpType to_op_type = GetOpTypeFromPEId(to_PE_id);
+          std::string to_op_name = GetOpNameFromPEId(to_PE_id);
+
+          if (config_map_.count(to_config_id) == 0) {
+            config_map_.emplace(
+                to_config_id, entity::CGRAConfig::GenerateInitialCGRAConfig());
+          }
+          config_map_[from_config_id].AddToConfig(to_config_id, from_op_type,
+                                                  from_op_name);
+          config_map_[to_config_id].AddFromConfig(from_config_id, to_op_type,
+                                                  to_op_name);
+          if (searched_PE_id.count(adj_PE_id) == 0) {
             from_PE_id_queue.push(to_PE_id);
             searched_PE_id.emplace(to_PE_id);
           }
