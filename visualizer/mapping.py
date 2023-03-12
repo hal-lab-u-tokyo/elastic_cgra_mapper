@@ -41,6 +41,7 @@ class OperationType(Enum):
     Load = 5
     Output = 6
     Nop = 7
+    Route = 8
 
     def get_from_string(input: str):
         if input == "add":
@@ -59,6 +60,8 @@ class OperationType(Enum):
             return OperationType.Output
         elif input == "nop":
             return OperationType.Nop
+        elif input == "route":
+            return OperationType.Route
         else:
             print("ERROR: OperationType get_from_string invalid input")
             raise ValueError
@@ -80,6 +83,8 @@ class OperationType(Enum):
             return "output"
         elif input == OperationType.Nop:
             return "nop"
+        elif input == OperationType.Route:
+            return "route"
         else:
             print("ERROR: OperationType to_string invalid input")
             raise ValueError
