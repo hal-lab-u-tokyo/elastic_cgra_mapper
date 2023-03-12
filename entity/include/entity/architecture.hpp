@@ -49,13 +49,18 @@ struct CGRAConfig {
       : from_config_id_num(0),
         operation_type(entity::OpType::NOP),
         to_config_id_vec({}){};
+  CGRAConfig(entity::OpType op_type, std::string op_name)
+      : from_config_id_num(0),
+        operation_type(op_type),
+        operation_name(op_name) {}
 
   static CGRAConfig GenerateInitialCGRAConfig() {
     CGRAConfig result;
     return result;
   }
 
-  void AddFromConfig(ConfigId from_config_id, OpType op_type, std::string op_name) {
+  void AddFromConfig(ConfigId from_config_id, OpType op_type,
+                     std::string op_name) {
     from_config_id_vec[from_config_id_num] = from_config_id;
     from_config_id_num++;
     if (from_config_id_num >= 3) {
