@@ -13,10 +13,13 @@ class MemoryIOType(Enum):
 
 class CGRAType(Enum):
     Elastic = 0
+    Default = 1
 
     def get_from_string(input: str):
         if input == "elastic":
             return CGRAType.Elastic
+        if input == "default":
+            return CGRAType.Default
         else:
             print("ERROR: CGRAType get_from_string invalid input")
             raise ValueError
