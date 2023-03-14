@@ -102,6 +102,11 @@ struct CGRAConfig {
 
     return;
   }
+
+  void SetConstValue(int _const_value) {
+    const_value = _const_value;
+    return;
+  }
 };
 
 }  // namespace entity

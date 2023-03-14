@@ -65,6 +65,11 @@ entity::Mapping::Mapping(
         config_map_.emplace(from_config_id,
                             entity::CGRAConfig(from_op_type, from_op_name));
       }
+      if (from_op_type == entity::OpType::CONST) {
+        int op_id = PE_id_to_op_id_map.at(from_PE_id);
+        config_map_[from_config_id].SetConstValue(
+            dfg.GetNodeProperty(op_id).const_value);
+      }
 
       for (int adj_PE_id : adj_PE_id_vec) {
         if (searched_PE_id.count(adj_PE_id) > 0) {
