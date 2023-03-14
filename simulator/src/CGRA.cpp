@@ -1,5 +1,5 @@
-#include <simulator/CGRA.hpp>
 #include <entity/architecture.hpp>
+#include <simulator/CGRA.hpp>
 
 simulator::CGRA::CGRA(entity::MRRGConfig mrrg_config) {
   memory_ptr_ = std::make_shared<simulator::Memory>();
@@ -9,12 +9,13 @@ simulator::CGRA::CGRA(entity::MRRGConfig mrrg_config) {
   column_ = mrrg_config.column;
   register_size_ = mrrg_config.local_reg_size;
   context_size_ = mrrg_config.context_size;
+  num_update_ = 0;
 
   PE_array_.resize(row_);
   for (int i = 0; i < row_; i++) {
     PE_array_[i].resize(column_);
     for (int j = 0; j < column_; j++) {
-      PE_array_[i][j] = PE(register_size_, context_size_, memory_ptr_);
+      PE_array_[i][j] = PE(register_size_, context_size_, memory_ptr_, i, j);
     }
   }
 
@@ -27,7 +28,7 @@ simulator::CGRA::CGRA(entity::MRRGConfig mrrg_config) {
 
           if (adj_row_id < 0 || row_ <= adj_row_id) continue;
           if (adj_column_id < 0 || column_ <= adj_column_id) continue;
-          if (adj_row_id == 0 && adj_column_id == 0) continue;
+          if (row_diff == 0 && column_diff == 0) continue;
 
           bool is_diagonal = (abs(row_diff) + abs(column_diff)) == 2;
           if (mrrg_config.network_type ==
@@ -56,15 +57,30 @@ void simulator::CGRA::SetConfig(std::shared_ptr<entity::Mapping> mapping) {
     entity::ConfigId tmp_config_id = itr->first;
     PE_array_[tmp_config_id.row_id][tmp_config_id.column_id].SetConfig(
         tmp_config_id.context_id, config_map[tmp_config_id]);
+    entity::CGRAConfig tmp_config = itr->second;
+    if (tmp_config.operation_type == entity::OpType::OUTPUT) {
+      output_config_id_ = tmp_config_id;
+    }
   }
+  num_update_ = 0;
 }
 
 void simulator::CGRA::Update() {
   for (int row_id = 0; row_id < row_; row_id++) {
     for (int column_id = 0; column_id < column_; column_id++) {
+      // std::cout << row_id << ":" << column_id << std::endl;
       PE_array_[row_id][column_id].Update();
+      // if (row_id == 0 && column_id == 0) {
+      //   std::cout << PE_array_[row_id][column_id].GetOutput() << std::endl;
+      // }
     }
   }
+  if (num_update_ % context_size_ == output_config_id_.context_id) {
+    output_vec_.push_back(
+        PE_array_[output_config_id_.row_id][output_config_id_.column_id]
+            .GetOutput());
+  }
+  num_update_++;
 }
 
 void simulator::CGRA::RegisterUpdate() {
