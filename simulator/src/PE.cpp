@@ -1,7 +1,7 @@
 #include <entity/operation.hpp>
 #include <simulator/PE.hpp>
 
-entity::PE::PE() : input_wire_({}), output_wire_({}) {
+simulator::PE::PE() : input_wire_({}), output_wire_({}) {
   register_size_ = 1;
   config_size_ = 1;
   register_.resize(register_size_);
@@ -9,11 +9,11 @@ entity::PE::PE() : input_wire_({}), output_wire_({}) {
   tmp_config_id_ = 0;
   output_ = 0;
 
-  memory_ptr_ = std::make_shared<entity::Memory>();
+  memory_ptr_ = std::make_shared<simulator::Memory>();
 }
 
-entity::PE::PE(int register_size, int config_size,
-               std::shared_ptr<entity::Memory> memory_ptr)
+simulator::PE::PE(int register_size, int config_size,
+                  std::shared_ptr<simulator::Memory> memory_ptr)
     : input_wire_({}),
       output_wire_({}),
       register_size_(register_size),
@@ -25,32 +25,35 @@ entity::PE::PE(int register_size, int config_size,
   output_ = 0;
 }
 
-void entity::PE::SetConfig(int id, CGRAConfig config) { config_[id] = config; }
+void simulator::PE::SetConfig(int id, entity::CGRAConfig config) {
+  config_[id] = config;
+}
 
-void entity::PE::SetInputWire(entity::PEPositionId position_id,
-                              Wire<int> wire) {
+void simulator::PE::SetInputWire(entity::PEPositionId position_id,
+                                 simulator::Wire<int> wire) {
   input_wire_[position_id] = wire;
 }
 
-void entity::PE::SetOutputWire(entity::PEPositionId position_id,
-                               Wire<int> wire) {
+void simulator::PE::SetOutputWire(entity::PEPositionId position_id,
+                                  simulator::Wire<int> wire) {
   if (output_wire_.count(position_id) > 0) return;
   output_wire_[position_id] = wire;
 }
 
-entity::Wire<int> entity::PE::GetOutputWire(PEPositionId position_id) {
+simulator::Wire<int> simulator::PE::GetOutputWire(
+    entity::PEPositionId position_id) {
   if (output_wire_.count(position_id) == 0) {
-    entity::Wire<int> new_wire;
+    simulator::Wire<int> new_wire;
     output_wire_.emplace(position_id, new_wire);
   }
 
   return output_wire_[position_id];
 }
 
-void entity::PE::Update() {
+void simulator::PE::Update() {
   entity::CGRAConfig tmp_config = config_[tmp_config_id_];
   output_ = 0;
-  entity::Wire<int> input_1, input_2;
+  simulator::Wire<int> input_1, input_2;
 
   // execute operation
   switch (tmp_config.operation_type) {
@@ -101,7 +104,7 @@ void entity::PE::Update() {
   tmp_config_id_ = (tmp_config_id_ + 1) % config_size_;
 }
 
-void entity::PE::RegisterUpdate() {
+void simulator::PE::RegisterUpdate() {
   // output wire update (output register)
   for (auto itr = output_wire_.begin(); itr != output_wire_.end(); itr++) {
     itr->second.UpdateValue(output_);

@@ -2,7 +2,7 @@
 
 #include <unordered_map>
 
-namespace entity {
+namespace simulator {
 class Memory {
  public:
   Memory() : memory_map_({}){};
@@ -12,4 +12,4 @@ class Memory {
  private:
   std::unordered_map<int, int> memory_map_;
 };
-}  // namespace entity
+}  // namespace simulator

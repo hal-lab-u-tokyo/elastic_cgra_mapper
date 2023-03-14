@@ -1,14 +1,14 @@
 #pragma once
 
-#include <simulator/PE.hpp>
 #include <entity/mapping.hpp>
+#include <simulator/PE.hpp>
 #include <simulator/module.hpp>
 
-namespace entity {
+namespace simulator {
 class CGRA : public IModule {
  public:
-  CGRA(MRRGConfig mrrg_config);
-  void SetConfig(std::shared_ptr<Mapping> mapping);
+  CGRA(entity::MRRGConfig mrrg_config);
+  void SetConfig(std::shared_ptr<entity::Mapping> mapping);
   void Update();
   void RegisterUpdate();
   void StoreMemoryData(int address, int store_data);
@@ -18,4 +18,4 @@ class CGRA : public IModule {
   std::vector<std::vector<PE>> PE_array_;
   std::shared_ptr<Memory> memory_ptr_;
 };
-}  // namespace entity
+}  // namespace simulator

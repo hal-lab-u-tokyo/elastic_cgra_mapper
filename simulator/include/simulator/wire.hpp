@@ -1,6 +1,6 @@
 #pragma once
 
-namespace entity {
+namespace simulator {
 template <typename T>
 class Wire {
  public:

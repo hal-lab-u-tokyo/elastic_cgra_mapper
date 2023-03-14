@@ -6,22 +6,22 @@
 #include <simulator/wire.hpp>
 #include <vector>
 
-namespace entity {
+namespace simulator {
 class PE : public IModule {
  public:
   PE();
   PE(int register_size, int config_size, std::shared_ptr<Memory> memory_ptr);
-  void SetConfig(int id, CGRAConfig config);
-  void SetInputWire(PEPositionId position_id, Wire<int> wire);
-  void SetOutputWire(PEPositionId position_id, Wire<int> wire);
-  Wire<int> GetOutputWire(PEPositionId position_id);
+  void SetConfig(int id, entity::CGRAConfig config);
+  void SetInputWire(entity::PEPositionId position_id, Wire<int> wire);
+  void SetOutputWire(entity::PEPositionId position_id, Wire<int> wire);
+  Wire<int> GetOutputWire(entity::PEPositionId position_id);
   void Update();
   void RegisterUpdate();
 
  private:
-  std::unordered_map<PEPositionId, Wire<int>, HashPEPositionId> input_wire_;
-  std::unordered_map<PEPositionId, Wire<int>, HashPEPositionId> output_wire_;
-  std::vector<CGRAConfig> config_;
+  std::unordered_map<entity::PEPositionId, Wire<int>, entity::HashPEPositionId> input_wire_;
+  std::unordered_map<entity::PEPositionId, Wire<int>, entity::HashPEPositionId> output_wire_;
+  std::vector<entity::CGRAConfig> config_;
   std::vector<int> register_;
   int register_size_;
   int config_size_;
@@ -29,4 +29,4 @@ class PE : public IModule {
   int output_;
   std::shared_ptr<Memory> memory_ptr_;
 };
-}  // namespace entity
+}  // namespace simulator

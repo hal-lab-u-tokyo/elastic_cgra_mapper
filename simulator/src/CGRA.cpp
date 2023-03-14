@@ -1,9 +1,9 @@
 #include <simulator/CGRA.hpp>
 #include <entity/architecture.hpp>
 
-entity::CGRA::CGRA(entity::MRRGConfig mrrg_config) {
-  memory_ptr_ = std::make_shared<entity::Memory>();
-  *memory_ptr_ = entity::Memory();
+simulator::CGRA::CGRA(entity::MRRGConfig mrrg_config) {
+  memory_ptr_ = std::make_shared<simulator::Memory>();
+  *memory_ptr_ = simulator::Memory();
 
   row_ = mrrg_config.row;
   column_ = mrrg_config.column;
@@ -36,11 +36,11 @@ entity::CGRA::CGRA(entity::MRRGConfig mrrg_config) {
             continue;
 
           entity::PEPositionId adj_position_id(adj_row_id, adj_column_id);
-          entity::Wire<int> new_output_wire;
+          simulator::Wire<int> new_output_wire;
           PE_array_[row_id][column_id].SetOutputWire(adj_position_id,
                                                      new_output_wire);
           entity::PEPositionId position_id(row_id, column_id);
-          entity::Wire<int> adj_output_wire =
+          simulator::Wire<int> adj_output_wire =
               PE_array_[adj_row_id][adj_column_id].GetOutputWire(position_id);
           PE_array_[row_id][column_id].SetInputWire(adj_position_id,
                                                     adj_output_wire);
@@ -50,7 +50,7 @@ entity::CGRA::CGRA(entity::MRRGConfig mrrg_config) {
   }
 }
 
-void entity::CGRA::SetConfig(std::shared_ptr<entity::Mapping> mapping) {
+void simulator::CGRA::SetConfig(std::shared_ptr<entity::Mapping> mapping) {
   entity::ConfigMap config_map = mapping->GetConfigMap();
   for (auto itr = config_map.begin(); itr != config_map.end(); itr++) {
     entity::ConfigId tmp_config_id = itr->first;
@@ -59,7 +59,7 @@ void entity::CGRA::SetConfig(std::shared_ptr<entity::Mapping> mapping) {
   }
 }
 
-void entity::CGRA::Update() {
+void simulator::CGRA::Update() {
   for (int row_id = 0; row_id < row_; row_id++) {
     for (int column_id = 0; column_id < column_; column_id++) {
       PE_array_[row_id][column_id].Update();
@@ -67,7 +67,7 @@ void entity::CGRA::Update() {
   }
 }
 
-void entity::CGRA::RegisterUpdate() {
+void simulator::CGRA::RegisterUpdate() {
   for (int row_id = 0; row_id < row_; row_id++) {
     for (int column_id = 0; column_id < column_; column_id++) {
       PE_array_[row_id][column_id].RegisterUpdate();
@@ -75,6 +75,6 @@ void entity::CGRA::RegisterUpdate() {
   }
 }
 
-void entity::CGRA::StoreMemoryData(int address, int store_data) {
+void simulator::CGRA::StoreMemoryData(int address, int store_data) {
   memory_ptr_->Store(address, store_data);
 }
