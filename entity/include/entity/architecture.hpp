@@ -7,6 +7,25 @@
 
 namespace entity {
 
+struct PEPositionId {
+  int row_id;
+  int column_id;
+
+  PEPositionId(int _row_id, int _column_id)
+      : row_id(_row_id), column_id(_column_id) {}
+
+  bool operator==(const PEPositionId& position_id) const {
+    return row_id == position_id.row_id && column_id == position_id.column_id;
+  }
+};
+
+struct HashPEPositionId {
+ public:
+  size_t operator()(const PEPositionId& config_id) const {
+    return config_id.row_id * 1000 + config_id.column_id * 1000;
+  }
+};
+
 struct ConfigId {
   int row_id;
   int column_id;
@@ -27,6 +46,8 @@ struct ConfigId {
     return row_id == config_id.row_id && column_id == config_id.column_id &&
            context_id == config_id.context_id;
   }
+
+  PEPositionId GetPositionId() { return PEPositionId(row_id, column_id); }
 };
 
 struct HashConfigId {
@@ -40,6 +61,7 @@ struct HashConfigId {
 struct CGRAConfig {
  public:
   int from_config_id_num;
+  int const_value = 0;
   std::vector<ConfigId> to_config_id_vec;
   OpType operation_type;
   std::string operation_name;
