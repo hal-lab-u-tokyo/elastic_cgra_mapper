@@ -31,6 +31,11 @@ class BaseGraphClass {
     return graph_[vertex_id];
   };
 
+  void SetNodeProperty(int vertex_id, NodeProperty node_property) {
+    graph_[vertex_id] = node_property;
+    return;
+  }
+
   EdgeProperty GetEdgeProperty(
       typename boost::graph_traits<
           BaseGraph<NodeProperty, EdgeProperty, GraphProperty>>::edge_descriptor
