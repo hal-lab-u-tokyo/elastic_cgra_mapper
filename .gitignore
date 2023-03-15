@@ -1,6 +1,6 @@
 build/*
 output/*
 .vscode/
-**/*.dot
+benchmark/**/*.dot
 __pycache__/
 **/output/*
