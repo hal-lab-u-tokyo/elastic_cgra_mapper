@@ -31,6 +31,8 @@ entity::MRRGMemoryIOType entity::MRRGMemoryIOTypeFromString(
     std::string memory_io_type_string) {
   if (memory_io_type_string == "all") {
     return entity::MRRGMemoryIOType::kAll;
+  } else if (memory_io_type_string == "both_ends") {
+    return entity::MRRGMemoryIOType::kBothEnds;
   } else {
     assert("invalid Memory IO Type String");
     abort();
@@ -42,6 +44,9 @@ std::string entity::MRRGMemoryIoTypeToString(
   switch (memory_io_type) {
     case entity::MRRGMemoryIOType::kAll:
       return "all";
+      break;
+    case entity::MRRGMemoryIOType::kBothEnds:
+      return "both_ends";
       break;
     default:
       assert("invalid MRRG Memory IO Type");
@@ -131,10 +136,10 @@ std::vector<std::tuple<int, int, int>> GetConnectedNodeIdVector(
 
 entity::MRRG::MRRG(entity::MRRGConfig mrrg_config)
     : entity::BaseGraphClass<entity::MRRGNodeProperty, entity::MRRGEdgeProperty,
-                             entity::MRRGGraphProperty>() {
+                             entity::MRRGGraphProperty>(),
+      config_id_to_node_id_map_({}) {
   entity::MRRGGraph mrrg_graph;
   std::map<std::tuple<int, int, int>, int> node_id_to_vertex_id;
-  std::vector<entity::OpType> all_operations = entity::GetAllOperations();
 
   for (int i = 0; i < mrrg_config.row; i++) {
     for (int j = 0; j < mrrg_config.column; j++) {
@@ -151,7 +156,20 @@ entity::MRRG::MRRG(entity::MRRGConfig mrrg_config)
         graph_[vertex_id].local_reg_size = mrrg_config.local_reg_size;
         graph_[vertex_id].context_size = mrrg_config.context_size;
 
-        graph_[vertex_id].supported_operations = all_operations;
+        if (mrrg_config.memory_io == entity::MRRGMemoryIOType::kAll) {
+          graph_[vertex_id].supported_operations = entity::GetAllOperations();
+        } else if (mrrg_config.memory_io ==
+                   entity::MRRGMemoryIOType::kBothEnds) {
+          if (j == 0 || j == mrrg_config.column - 1) {
+            graph_[vertex_id].supported_operations = entity::GetAllOperations();
+          } else {
+            graph_[vertex_id].supported_operations =
+                entity::GetAllOperationsExceptMemoryAccess();
+          }
+        }
+
+        std::tuple<int, int, int> config_id(i, j, k);
+        config_id_to_node_id_map_.emplace(config_id, vertex_id);
       }
     }
   }

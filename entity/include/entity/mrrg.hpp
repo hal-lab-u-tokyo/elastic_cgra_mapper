@@ -25,6 +25,7 @@ enum MRRGCGRAType {
 
 enum MRRGMemoryIOType {
   kAll,
+  kBothEnds,
 };
 
 enum MRRGNetworkType {
