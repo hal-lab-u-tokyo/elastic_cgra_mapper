@@ -67,3 +67,10 @@ std::vector<entity::OpType> entity::GetAllOperations() {
        entity::OpType::DIV, entity::OpType::CONST, entity::OpType::LOAD,
        entity::OpType::OUTPUT, entity::OpType::NOP, entity::OpType::ROUTE});
 };
+
+std::vector<entity::OpType> entity::GetAllOperationsExceptMemoryAccess() {
+  return std::vector<OpType>({entity::OpType::ADD, entity::OpType::SUB,
+                              entity::OpType::MUL, entity::OpType::DIV,
+                              entity::OpType::CONST, entity::OpType::NOP,
+                              entity::OpType::ROUTE});
+};
