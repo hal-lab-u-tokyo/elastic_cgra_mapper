@@ -2,10 +2,13 @@ from enum import Enum
 
 class MemoryIOType(Enum):
     All = 0
+    BothEnds = 1
 
     def get_from_string(input: str):
         if input == "all":
             return MemoryIOType.All
+        if input == "both_ends":
+            return MemoryIOType.BothEnds
         else:
             print("ERROR: MemoryIOType get_from_string invalid input")
             raise ValueError
