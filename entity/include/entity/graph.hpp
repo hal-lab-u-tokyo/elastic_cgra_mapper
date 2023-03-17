@@ -1,6 +1,7 @@
 #pragma once
 
 #include <boost/graph/adjacency_list.hpp>
+#include <boost/graph/graph_utility.hpp>
 
 namespace entity {
 template <typename NodeProperty, typename EdgeProperty, typename GraphProperty>
@@ -56,6 +57,12 @@ class BaseGraphClass {
 
     return adjacent_node_id_vec;
   };
+
+  bool IsReachable(int src_node_id, int to_node_id) {
+    std::vector<boost::default_color_type> color(GetNodeNum(),
+                                                 boost::white_color);
+    return boost::is_reachable(src_node_id, to_node_id, graph_, color.data());
+  }
 
  protected:
   BaseGraph<NodeProperty, EdgeProperty, GraphProperty> graph_;
