@@ -83,7 +83,8 @@ std::string entity::MRRGNetworkTypeToString(
 
 entity::MRRG::MRRG(entity::MRRGGraph mrrg_graph)
     : entity::BaseGraphClass<entity::MRRGNodeProperty, entity::MRRGEdgeProperty,
-                             entity::MRRGGraphProperty>(mrrg_graph){};
+                             entity::MRRGGraphProperty>(mrrg_graph),
+      config_id_to_node_id_map_({}){};
 
 std::vector<std::tuple<int, int, int>> GetConnectedNodeIdVector(
     std::tuple<int, int, int> from_node_id,
@@ -208,4 +209,10 @@ entity::MRRGConfig entity::MRRG::GetMRRGConfig() {
   mrrg_config.context_size = graph_[0].context_size;
 
   return mrrg_config;
+}
+
+int entity::MRRG::GetMRRGNodeId(int row_id, int column_id, int context_id) {
+  std::tuple<int, int, int> config_id(row_id, column_id, context_id);
+  if (config_id_to_node_id_map_.count(config_id) == 0) return -1;
+  return config_id_to_node_id_map_[config_id];
 }

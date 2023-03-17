@@ -2,6 +2,8 @@
 
 #include <entity/dfg.hpp>
 #include <entity/graph.hpp>
+#include <map>
+#include <tuple>
 
 namespace entity {
 struct MRRGNodeProperty {
@@ -70,5 +72,18 @@ class MRRG : public BaseGraphClass<MRRGNodeProperty, MRRGEdgeProperty,
   MRRG(MRRGConfig mrrg_config);
 
   MRRGConfig GetMRRGConfig();
+  int GetMRRGNodeId(int row_id, int column_id, int context_id);
+
+ private:
+  struct HashTuple_ {
+   public:
+    size_t operator()(const std::tuple<int, int, int>& tuple) const {
+      int a, b, c;
+      std::tie(a, b, c) = tuple;
+      return a * 1000 + b * 1000 + c * 1000;
+    }
+  };
+  std::unordered_map<std::tuple<int, int, int>, int, HashTuple_>
+      config_id_to_node_id_map_;
 };
 }  // namespace entity
