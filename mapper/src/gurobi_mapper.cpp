@@ -1,7 +1,6 @@
 #include <gurobi_c++.h>
 
 #include <mapper/gurobi_mapper.hpp>
-#include <string>
 
 mapper::GurobiILPMapper::GurobiILPMapper(
     const std::shared_ptr<entity::DFG> dfg_ptr,
@@ -137,7 +136,116 @@ std::pair<bool, entity::Mapping> mapper::GurobiILPMapper::Execution() {
       }
     }
 
-    // add constraint: elastic order (TODO)
+    // add constraint for elastic CGRA
+    if (mrrg_ptr_->GetMRRGConfig().cgra_type ==
+        entity::MRRGCGRAType::kElastic) {
+      // add constraint: Race Condition Avoidance
+      entity::MRRGConfig mrrg_config = mrrg_ptr_->GetMRRGConfig();
+      for (int src_node_id = 0; src_node_id < dfg_node_num; src_node_id++) {
+        for (int to_node_id = 0; to_node_id < dfg_node_num; to_node_id++) {
+          if (src_node_id == to_node_id) continue;
+
+          bool is_reachable = dfg_ptr_->IsReachable(src_node_id, to_node_id);
+          if (!is_reachable) continue;
+
+          for (int row_id = 0; row_id < mrrg_config.row; row_id++) {
+            for (int column_id = 0; column_id < mrrg_config.column;
+                 column_id++) {
+              for (int earlier_context_id = 0;
+                   earlier_context_id < mrrg_config.context_size - 1;
+                   earlier_context_id++) {
+                int earlier_mrrg_node_id = mrrg_ptr_->GetMRRGNodeId(
+                    row_id, column_id, earlier_context_id);
+                for (int later_context_id = earlier_context_id + 1;
+                     later_context_id < mrrg_config.context_size;
+                     later_context_id++) {
+                  int later_mrrg_node_id = mrrg_ptr_->GetMRRGNodeId(
+                      row_id, column_id, later_context_id);
+
+                  std::string constr_name =
+                      "c_elastic_race_condition_" + std::to_string(row_id) +
+                      "_" + std::to_string(column_id) + "_" +
+                      std::to_string(later_context_id) + "_" +
+                      std::to_string(earlier_context_id);
+                  model.addConstr(
+                      map_op_to_PE[src_node_id][later_mrrg_node_id],
+                      GRB_LESS_EQUAL,
+                      1 - map_op_to_PE[to_node_id][earlier_mrrg_node_id],
+                      constr_name + "_op_to_op");
+                  model.addConstr(
+                      map_op_to_PE[src_node_id][later_mrrg_node_id],
+                      GRB_LESS_EQUAL,
+                      1 - map_output_to_route[to_node_id][earlier_mrrg_node_id],
+                      constr_name + "_op_to_route");
+                  model.addConstr(map_op_to_PE[src_node_id][later_mrrg_node_id],
+                                  GRB_LESS_EQUAL,
+                                  1 - map_output_to_route[src_node_id]
+                                                         [earlier_mrrg_node_id],
+                                  constr_name + "_op_to_route");
+                  model.addConstr(
+                      map_output_to_route[src_node_id][later_mrrg_node_id],
+                      GRB_LESS_EQUAL,
+                      1 - map_op_to_PE[to_node_id][earlier_mrrg_node_id],
+                      constr_name + "_route_to_op");
+                  model.addConstr(
+                      map_output_to_route[src_node_id][later_mrrg_node_id],
+                      GRB_LESS_EQUAL,
+                      1 - map_output_to_route[to_node_id][earlier_mrrg_node_id],
+                      constr_name + "_route_to_route");
+                }
+              }
+            }
+          }
+        }
+      }
+
+      // add constraint: context collapsing
+      const double context_collapsing_coefficient = 1;
+      for (int row_id = 0; row_id < mrrg_config.row; row_id++) {
+        for (int column_id = 0; column_id < mrrg_config.column; column_id++) {
+          for (int no_op_context_id = 0;
+               no_op_context_id < mrrg_config.context_size - 1;
+               no_op_context_id++) {
+            GRBLinExpr num_op_in_config;
+            int no_op_mrrg_node_id =
+                mrrg_ptr_->GetMRRGNodeId(row_id, column_id, no_op_context_id);
+            for (int dfg_node_id = 0; dfg_node_id < dfg_node_num;
+                 dfg_node_id++) {
+              num_op_in_config.addTerms(
+                  &context_collapsing_coefficient,
+                  &(map_op_to_PE[dfg_node_id][no_op_mrrg_node_id]), 1);
+              num_op_in_config.addTerms(
+                  &context_collapsing_coefficient,
+                  &(map_output_to_route[dfg_node_id][no_op_mrrg_node_id]), 1);
+            }
+
+            GRBLinExpr later_num_op_in_config;
+            for (int later_context_id = no_op_context_id + 1;
+                 later_context_id < mrrg_config.context_size;
+                 later_context_id++) {
+              for (int dfg_node_id = 0; dfg_node_id < dfg_node_num;
+                   dfg_node_id++) {
+                int later_mrrg_node_id = mrrg_ptr_->GetMRRGNodeId(
+                    row_id, column_id, later_context_id);
+                later_num_op_in_config.addTerms(
+                    &context_collapsing_coefficient,
+                    &(map_op_to_PE[dfg_node_id][later_mrrg_node_id]), 1);
+                later_num_op_in_config.addTerms(
+                    &context_collapsing_coefficient,
+                    &(map_output_to_route[dfg_node_id][later_mrrg_node_id]), 1);
+              }
+            }
+
+            std::string constr_name = "c_context_collapsing_" +
+                                      std::to_string(row_id) + "_" +
+                                      std::to_string(column_id) + "_" +
+                                      std::to_string(no_op_context_id);
+            model.addConstr(num_op_in_config, GRB_GREATER_EQUAL,
+                            later_num_op_in_config, constr_name);
+          }
+        }
+      }
+    }
 
     // optimize model
     model.optimize();
