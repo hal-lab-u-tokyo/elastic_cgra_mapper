@@ -6,4 +6,4 @@ set_target_properties(
 
 target_link_libraries(simulator INTERFACE entity)
 target_compile_options(simulator INTERFACE -Wall -Wextra -Wno-deprecated)
-target_sources(simulator INTERFACE CGRA.cpp memory.cpp PE.cpp)
+target_sources(simulator INTERFACE CGRA.cpp memory.cpp PE.cpp elastic_PE.cpp)
