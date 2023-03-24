@@ -15,7 +15,8 @@ simulator::CGRA::CGRA(entity::MRRGConfig mrrg_config) {
   for (int i = 0; i < row_; i++) {
     PE_array_[i].resize(column_);
     for (int j = 0; j < column_; j++) {
-      PE_array_[i][j] = PE(register_size_, context_size_, memory_ptr_, i, j);
+      PE_array_[i][j] =
+          simulator::PE(register_size_, context_size_, memory_ptr_, i, j);
     }
   }
 
