@@ -58,16 +58,6 @@ void simulator::PE::Update() {
   entity::CGRAConfig tmp_config = config_[tmp_config_id_];
   int input_1, input_2;
 
-  // if (input_wire_.count(entity::PEPositionId(0, 0)) >= 1) {
-  //   std::cout << "input:" << input_wire_[entity::PEPositionId(0,
-  //   0)]
-  //             << std::endl;
-  // }
-  // if (output_wire_.count(entity::PEPositionId(0, 0)) >= 1) {
-  //   std::cout << "output:"
-  //             << output_wire_[entity::PEPositionId(0, 0)]
-  //             << std::endl;
-  // }
   auto GetWireValue = [&](entity::PEPositionId position_id) {
     if (position_id == position_id_) {
       return output_;
@@ -81,18 +71,6 @@ void simulator::PE::Update() {
     case entity::OpType::ADD:
       input_1 = GetWireValue(tmp_config.from_config_id_vec[0].GetPositionId());
       input_2 = GetWireValue(tmp_config.from_config_id_vec[1].GetPositionId());
-      // if (tmp_config.operation_name == "add15") {
-      //   std::cout << tmp_config.from_config_id_vec[0].row_id << ","
-      //             << tmp_config.from_config_id_vec[0].column_id << ","
-      //             << tmp_config.from_config_id_vec[0].context_id <<
-      //             std::endl;
-      //   std::cout << tmp_config.from_config_id_vec[1].row_id << ","
-      //             << tmp_config.from_config_id_vec[1].column_id << ","
-      //             << tmp_config.from_config_id_vec[1].context_id <<
-      //             std::endl;
-      //   std::cout << input_1 << ":" << input_2
-      //             << std::endl;
-      // }
       output_ = input_1 + input_2;
       break;
     case entity::OpType::SUB:
@@ -112,9 +90,6 @@ void simulator::PE::Update() {
       output_ = input_1 / input_2;
       break;
     case entity::OpType::CONST:
-      // if (tmp_config.operation_name == "const16") {
-      //   std::cout << tmp_config.const_value << std::endl;
-      // }
       output_ = tmp_config.const_value;
       break;
     case entity::OpType::LOAD:
@@ -130,11 +105,6 @@ void simulator::PE::Update() {
       break;
     case entity::OpType::ROUTE:
       input_1 = GetWireValue(tmp_config.from_config_id_vec[0].GetPositionId());
-      // std::cout << "route" << std::endl;
-      // std::cout << tmp_config.from_config_id_vec[0].row_id << ","
-      //           << tmp_config.from_config_id_vec[0].column_id << ","
-      //           << tmp_config.from_config_id_vec[0].context_id << std::endl;
-      // std::cout << output_ << "->" << input_1 << std::endl;
       output_ = input_1;
       break;
     default:
