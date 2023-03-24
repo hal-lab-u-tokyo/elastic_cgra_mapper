@@ -17,6 +17,13 @@ struct PEPositionId {
   bool operator==(const PEPositionId& position_id) const {
     return row_id == position_id.row_id && column_id == position_id.column_id;
   }
+
+  bool operator<(const PEPositionId& position_id) const {
+    if (row_id != position_id.row_id) {
+      return row_id < position_id.row_id;
+    }
+    return column_id < position_id.column_id;
+  }
 };
 
 struct HashPEPositionId {
