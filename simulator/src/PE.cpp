@@ -18,10 +18,10 @@ simulator::PE::PE(int register_size, int config_size,
                   int column_id)
     : input_wire_({}),
       output_wire_({}),
-      register_size_(register_size),
-      config_size_(config_size),
       memory_ptr_(memory_ptr),
-      position_id_(row_id, column_id) {
+      position_id_(row_id, column_id),
+      register_size_(register_size),
+      config_size_(config_size) {
   register_.resize(register_size);
   config_.resize(config_size);
   tmp_config_id_ = 0;
