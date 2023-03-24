@@ -1,3 +1,5 @@
+#include <time.h>
+
 #include <io/architecture_io.hpp>
 #include <io/dfg_io.hpp>
 #include <io/mapping_io.hpp>
@@ -8,8 +10,8 @@ int main() {
   std::shared_ptr<entity::DFG> dfg_ptr = std::make_shared<entity::DFG>();
   std::shared_ptr<entity::MRRG> mrrg_ptr = std::make_shared<entity::MRRG>();
 
-  *dfg_ptr =
-      io::ReadDFGDotFile("../benchmark/matrixmultiply/matrixmultiply.dot");
+  *dfg_ptr = io::ReadDFGDotFile(
+      "../benchmark/matrixmultiply/fixed_matrixmultiply.dot");
   *mrrg_ptr = io::ReadMRRGFromJsonFile("../data/CGRA/8x8_elastic_cgra.json");
 
   mapper::IILPMapper* mapper;
@@ -17,7 +19,10 @@ int main() {
   std::shared_ptr<entity::Mapping> mapping_ptr =
       std::make_shared<entity::Mapping>();
   bool is_success = false;
+  long long int mapping_start = clock();
   std::tie(is_success, *mapping_ptr) = mapper->Execution();
+  long long int mapping_end = clock();
+  std::cout << "mapping time (s): " << double(mapping_end - mapping_start) / CLOCKS_PER_SEC << std::endl;
 
   if (is_success) {
     io::WriteMappingFile("../output/mapping.json", mapping_ptr,
