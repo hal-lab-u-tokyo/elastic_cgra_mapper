@@ -11,6 +11,10 @@ struct PEPositionId {
   int row_id;
   int column_id;
 
+  PEPositionId() {
+    row_id = -1;
+    column_id = -1;
+  }
   PEPositionId(int _row_id, int _column_id)
       : row_id(_row_id), column_id(_column_id) {}
 

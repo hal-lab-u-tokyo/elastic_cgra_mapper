@@ -4,16 +4,26 @@
 #include <simulator/elastic_module.hpp>
 #include <simulator/elastic_wire.hpp>
 #include <simulator/memory.hpp>
+#include <simulator/module.hpp>
 
 namespace simulator {
-class ElasticPE {
+class ElasticPE : public IModule {
  public:
   ElasticPE(
       int buffer_size, int config_size, std::shared_ptr<Memory> memory_ptr,
       int row_id, int column_id,
-      std::function<int(entity::OpType, int, int)> execute_operation_func);
+      std::function<int(entity::OpType, int, int,
+                        std::shared_ptr<simulator::Memory>, entity::CGRAConfig)>
+          execute_operation_func);
+  void SetConfig(int id, entity::CGRAConfig config);
   void SetInputWire(entity::PEPositionId position_id, ElasticWire<int> wire);
   void SetOutputWire(entity::PEPositionId position_id, ElasticWire<int> wire);
+  ElasticWire<int> GetOutputWire(entity::PEPositionId position_id) {
+    return output_fork_.GetOutputWire(position_id);
+  }
+  int GetOutput() { return output_fork_.GetOutput(); }
+  void Update();
+  void RegisterUpdate();
 
  private:
   entity::PEPositionId position_id_;
@@ -26,11 +36,9 @@ class ElasticPE {
   ElasticJoin<int> join_;
   ElasticVLU<int> VLU_;
   ElasticBuffer<int> buffer_;
-  std::vector<ElasticWire<int>> elastic_wire_vec_;
+  ElasticRegister<int> register_;
+
   int buffer_size_;
   int config_size_;
-
-  const entity::PEPositionId bypass_position_ = entity::PEPositionId(-1, -1);
-  const entity::PEPositionId buffer_position_ = entity::PEPositionId(-2, -2);
 };
 }  // namespace simulator

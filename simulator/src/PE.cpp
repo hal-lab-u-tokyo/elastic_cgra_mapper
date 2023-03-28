@@ -1,5 +1,6 @@
 #include <entity/operation.hpp>
 #include <simulator/PE.hpp>
+#include <simulator/operation.hpp>
 
 simulator::PE::PE() : input_wire_({}), output_wire_({}), position_id_(0, 0) {
   register_size_ = 1;
@@ -66,51 +67,13 @@ void simulator::PE::Update() {
     }
   };
 
+  input_1 = GetWireValue(tmp_config.from_config_id_vec[0].GetPositionId());
+  input_2 = GetWireValue(tmp_config.from_config_id_vec[1].GetPositionId());
+
   // execute operation
-  switch (tmp_config.operation_type) {
-    case entity::OpType::ADD:
-      input_1 = GetWireValue(tmp_config.from_config_id_vec[0].GetPositionId());
-      input_2 = GetWireValue(tmp_config.from_config_id_vec[1].GetPositionId());
-      output_ = input_1 + input_2;
-      break;
-    case entity::OpType::SUB:
-      input_1 = GetWireValue(tmp_config.from_config_id_vec[0].GetPositionId());
-      input_2 = GetWireValue(tmp_config.from_config_id_vec[1].GetPositionId());
-      output_ = input_1 - input_2;
-      break;
-    case entity::OpType::MUL:
-      input_1 = GetWireValue(tmp_config.from_config_id_vec[0].GetPositionId());
-      input_2 = GetWireValue(tmp_config.from_config_id_vec[1].GetPositionId());
-      std::cout << input_1 << ":" << input_2 << std::endl;
-      output_ = input_1 * input_2;
-      break;
-    case entity::OpType::DIV:
-      input_1 = GetWireValue(tmp_config.from_config_id_vec[0].GetPositionId());
-      input_2 = GetWireValue(tmp_config.from_config_id_vec[1].GetPositionId());
-      output_ = input_1 / input_2;
-      break;
-    case entity::OpType::CONST:
-      output_ = tmp_config.const_value;
-      break;
-    case entity::OpType::LOAD:
-      input_1 = GetWireValue(tmp_config.from_config_id_vec[0].GetPositionId());
-      output_ = memory_ptr_->Load(input_1);
-      break;
-    case entity::OpType::OUTPUT:
-      input_1 = GetWireValue(tmp_config.from_config_id_vec[0].GetPositionId());
-      output_ = input_1;
-      break;
-    case entity::OpType::NOP:
-      output_ = 0;
-      break;
-    case entity::OpType::ROUTE:
-      input_1 = GetWireValue(tmp_config.from_config_id_vec[0].GetPositionId());
-      output_ = input_1;
-      break;
-    default:
-      output_ = 0;
-      break;
-  }
+  output_ = simulator::ExecuteOperation(tmp_config.operation_type, input_1,
+                                        input_2, memory_ptr_, tmp_config);
+
   if (tmp_config.operation_name != "") {
     std::cout << tmp_config.operation_name << std::endl;
     std::cout << output_ << std::endl;

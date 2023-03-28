@@ -4,24 +4,19 @@
 #include <entity/operation.hpp>
 #include <map>
 #include <queue>
+#include <simulator/elastic_module_interface.hpp>
 #include <simulator/elastic_wire.hpp>
+#include <simulator/memory.hpp>
 
 namespace simulator {
-class IElasticModule {
- public:
-  virtual void UpdateFromDownstream() = 0;
-  virtual void UpdateFromUpstream() = 0;
-
- private:
-  virtual void Execution() = 0;
-};
-
 template <typename T>
 class ElasticMultiPlexer : public IElasticModule {
  public:
   ElasticMultiPlexer(){};
   ElasticMultiPlexer(ElasticWire<T> output_wire, int config_size)
       : output_wire_(output_wire), config_size_(config_size) {
+    this_ptr_ = std::shared_ptr<IElasticModule>(this);
+    output_wire_.SetUpstreamElasticModule(this_ptr_);
     config_vec_.reserve(config_size);
     config_id_ = 0;
   };
@@ -46,6 +41,8 @@ class ElasticMultiPlexer : public IElasticModule {
 
   void SetInputWire(entity::PEPositionId position_id, ElasticWire<T> wire) {
     input_wire_.emplace(position_id, wire);
+    wire.SetDownstreamElasticModule(this_ptr_);
+
     return;
   };
 
@@ -71,12 +68,13 @@ class ElasticMultiPlexer : public IElasticModule {
   std::vector<entity::PEPositionId> config_vec_;
   int config_id_;
   int config_size_;
+  std::shared_ptr<IElasticModule> this_ptr_;
 };
 
 template <typename T>
 class ElasticJoin : public IElasticModule {
  public:
-  ElasticJoin(){};
+  ElasticJoin() { this_ptr_ = std::shared_ptr<IElasticModule>(this); };
   void UpdateFromDownstream() {
     bool updated_stop = false;
     for (auto wire : output_wire_) {
@@ -111,6 +109,9 @@ class ElasticJoin : public IElasticModule {
     input_wire_.push_back(input_wire);
     output_wire_.push_back(output_wire);
 
+    input_wire.SetDownstreamElasticModule(this_ptr_);
+    output_wire.SetUpstreamElasticModule(this_ptr_);
+
     return;
   };
 
@@ -118,6 +119,7 @@ class ElasticJoin : public IElasticModule {
   void Execution() { return; };
   std::vector<ElasticWire<T>> output_wire_;
   std::vector<ElasticWire<T>> input_wire_;
+  std::shared_ptr<IElasticModule> this_ptr_;
 };
 
 template <typename T>
@@ -127,6 +129,7 @@ class ElasticFork : public IElasticModule {
   ElasticFork(int config_size) : output_wire_({}), config_size_(config_size) {
     config_vec_.reserve(config_size);
     config_id_ = 0;
+    this_ptr_ = std::shared_ptr<IElasticModule>(this);
     return;
   };
 
@@ -165,6 +168,7 @@ class ElasticFork : public IElasticModule {
 
   void SetInputWire(ElasticWire<T> wire) {
     input_wire_ = wire;
+    wire.SetDownstreamElasticModule(this_ptr_);
 
     return;
   };
@@ -172,10 +176,17 @@ class ElasticFork : public IElasticModule {
   void SetOutputWire(entity::PEPositionId position_id, ElasticWire<T> wire) {
     if (output_wire_.count(position_id) == 0) {
       output_wire_.emplace(position_id, wire);
+      wire.SetUpstreamElasticModule(this_ptr_);
     }
 
     return;
   };
+
+  ElasticWire<T> GetOutputWire(entity::PEPositionId position_id) {
+    return output_wire_[position_id];
+  }
+
+  T GetOutput() { return output_wire_.begin()->second.GetValue(); }
 
  private:
   void Execution() {
@@ -203,21 +214,30 @@ class ElasticFork : public IElasticModule {
   std::set<entity::PEPositionId> received_data_PE_set_;
   int config_id_;
   int config_size_;
+  std::shared_ptr<IElasticModule> this_ptr_;
 };
 
 template <typename T>
 class ElasticVLU : public IElasticModule {
  public:
   ElasticVLU(){};
-  ElasticVLU(
-      std::vector<ElasticWire<T>> input, ElasticWire<T> output, int config_size,
-      std::function<int(entity::OpType, int, int)> execute_operation_func)
+  ElasticVLU(std::vector<ElasticWire<T>> input, ElasticWire<T> output,
+             int config_size,
+             std::function<T(entity::OpType, T, T, std::shared_ptr<Memory>,
+                             entity::CGRAConfig)>
+                 execute_operation_func,
+             std::shared_ptr<Memory> memory_ptr)
       : input_wire_(input),
         output_wire_(output),
         execute_operation_func_(execute_operation_func),
-        config_size_(config_size) {
+        config_size_(config_size),
+        memory_ptr_(memory_ptr) {
     config_id_ = 0;
     config_vec_.reserve(config_size);
+    for (auto wire : input_wire_) {
+      wire.SetDownstreamElasticModule(this_ptr_);
+    }
+    output_wire_.SetUpstreamElasticModule(this_ptr_);
   };
 
   void UpdateFromDownstream() {
@@ -235,15 +255,18 @@ class ElasticVLU : public IElasticModule {
       updated_valid &= wire.IsValid();
     }
 
-    entity::OpType tmp_op = config_vec_[config_id_];
-    bool updated_value = execute_operation_func_(
-        tmp_op, input_wire_[0].GetValue(), input_wire_[1].GetValue());
+    entity::CGRAConfig tmp_config = config_vec_[config_id_];
+    T updated_value = execute_operation_func_(
+        tmp_config.operation_type, input_wire_[0].GetValue(),
+        input_wire_[1].GetValue(), memory_ptr_, tmp_config);
     output_wire_.UpdateFromUpstream(updated_value, updated_valid);
-
-    Execution();
 
     return;
   };
+
+  void SetConfig(int id, entity::CGRAConfig config) {
+    config_vec_[id] = config;
+  }
 
  private:
   void Execution() {
@@ -260,10 +283,14 @@ class ElasticVLU : public IElasticModule {
   };
   std::vector<ElasticWire<T>> input_wire_;
   ElasticWire<T> output_wire_;
-  std::function<int(entity::OpType, int, int)> execute_operation_func_;
-  std::vector<entity::OpType> config_vec_;
+  std::function<T(entity::OpType, T, T, std::shared_ptr<Memory>,
+                  entity::CGRAConfig)>
+      execute_operation_func_;
+  std::vector<entity::CGRAConfig> config_vec_;
+  std::shared_ptr<Memory> memory_ptr_;
   int config_id_;
   int config_size_;
+  std::shared_ptr<IElasticModule> this_ptr_;
 };
 
 template <typename T>
@@ -273,6 +300,9 @@ class ElasticBuffer : public IElasticModule {
   ElasticBuffer(ElasticWire<T> input, ElasticWire<T> output, int buffer_size) {
     input_wire_ = input;
     output_wire_ = output;
+    this_ptr_ = std::shared_ptr<IElasticModule>(this);
+    input_wire_.SetDownstreamElasticModule(this_ptr_);
+    output_wire_.SetUpstreamElasticModule(this_ptr_);
     buffer_size_ = buffer_size;
   };
 
@@ -304,5 +334,26 @@ class ElasticBuffer : public IElasticModule {
 
   int buffer_size_;
   std::deque<T> buffer_;
+  std::shared_ptr<IElasticModule> this_ptr_;
+};
+
+template <typename T>
+class ElasticRegister : public IElasticModule {
+ public:
+  ElasticRegister(){};
+  ElasticRegister(ElasticWire<T> input, ElasticWire<T> output) {
+    input_wire_ = input;
+    output_wire_ = output;
+  }
+  void UpdateFromDownstream() { return; }
+  void UpdateFromUpstream() { return; }
+  void Update() {
+    output_wire_.UpdateFromUpstream(input_wire_.GetValue(),
+                                    input_wire_.IsValid());
+  }
+
+ private:
+  void Execution() { return; }
+  ElasticWire<T> input_wire_, output_wire_;
 };
 }  // namespace simulator

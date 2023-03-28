@@ -1,7 +1,9 @@
 #include <entity/architecture.hpp>
 #include <simulator/CGRA.hpp>
+#include <simulator/elastic_CGRA.hpp>
+#include <simulator/operation.hpp>
 
-simulator::CGRA::CGRA(entity::MRRGConfig mrrg_config) {
+simulator::ElasticCGRA::ElasticCGRA(entity::MRRGConfig mrrg_config) {
   memory_ptr_ = std::make_shared<simulator::Memory>();
   *memory_ptr_ = simulator::Memory();
 
@@ -11,12 +13,13 @@ simulator::CGRA::CGRA(entity::MRRGConfig mrrg_config) {
   context_size_ = mrrg_config.context_size;
   num_update_ = 0;
 
-  PE_array_.resize(row_);
+  PE_array_.reserve(row_);
   for (int i = 0; i < row_; i++) {
-    PE_array_[i].resize(column_);
+    PE_array_[i].reserve(column_);
     for (int j = 0; j < column_; j++) {
       PE_array_[i][j] =
-          simulator::PE(register_size_, context_size_, memory_ptr_, i, j);
+          simulator::ElasticPE(register_size_, context_size_, memory_ptr_, i, j,
+                               &(simulator::ExecuteOperation<int>));
     }
   }
 
@@ -39,11 +42,11 @@ simulator::CGRA::CGRA(entity::MRRGConfig mrrg_config) {
 
           entity::PEPositionId adj_position_id(adj_row_id, adj_column_id);
           if (mrrg_config.cgra_type == entity::MRRGCGRAType::kDefault) {
-            simulator::Wire<int> new_output_wire;
+            simulator::ElasticWire<int> new_output_wire;
             PE_array_[row_id][column_id].SetOutputWire(adj_position_id,
                                                        new_output_wire);
             entity::PEPositionId position_id(row_id, column_id);
-            simulator::Wire<int> adj_output_wire =
+            simulator::ElasticWire<int> adj_output_wire =
                 PE_array_[adj_row_id][adj_column_id].GetOutputWire(position_id);
             PE_array_[row_id][column_id].SetInputWire(adj_position_id,
                                                       adj_output_wire);
@@ -55,7 +58,8 @@ simulator::CGRA::CGRA(entity::MRRGConfig mrrg_config) {
   }
 }
 
-void simulator::CGRA::SetConfig(std::shared_ptr<entity::Mapping> mapping) {
+void simulator::ElasticCGRA::SetConfig(
+    std::shared_ptr<entity::Mapping> mapping) {
   entity::ConfigMap config_map = mapping->GetConfigMap();
   for (auto itr = config_map.begin(); itr != config_map.end(); itr++) {
     entity::ConfigId tmp_config_id = itr->first;
@@ -69,7 +73,7 @@ void simulator::CGRA::SetConfig(std::shared_ptr<entity::Mapping> mapping) {
   num_update_ = 0;
 }
 
-void simulator::CGRA::Update() {
+void simulator::ElasticCGRA::Update() {
   for (int row_id = 0; row_id < row_; row_id++) {
     for (int column_id = 0; column_id < column_; column_id++) {
       PE_array_[row_id][column_id].Update();
@@ -83,7 +87,7 @@ void simulator::CGRA::Update() {
   num_update_++;
 }
 
-void simulator::CGRA::RegisterUpdate() {
+void simulator::ElasticCGRA::RegisterUpdate() {
   for (int row_id = 0; row_id < row_; row_id++) {
     for (int column_id = 0; column_id < column_; column_id++) {
       PE_array_[row_id][column_id].RegisterUpdate();
@@ -91,6 +95,6 @@ void simulator::CGRA::RegisterUpdate() {
   }
 }
 
-void simulator::CGRA::StoreMemoryData(int address, int store_data) {
+void simulator::ElasticCGRA::StoreMemoryData(int address, int store_data) {
   memory_ptr_->Store(address, store_data);
 }
