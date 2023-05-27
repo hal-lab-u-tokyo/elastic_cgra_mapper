@@ -20,6 +20,7 @@ std::pair<bool, entity::Mapping> mapper::GurobiILPMapper::Execution() {
   try {
     // create gurobi env
     GRBEnv env = GRBEnv(true);
+    env.set(GRB_IntParam_Threads, 4);
     env.start();
 
     // create an empty model
@@ -133,6 +134,38 @@ std::pair<bool, entity::Mapping> mapper::GurobiILPMapper::Execution() {
           model.addConstr(map_output_to_route[dfg_node_id][mrrg_node_id],
                           GRB_LESS_EQUAL, tmp_lin_expr, constr_name);
         }
+      }
+    }
+
+    // add constraint: adequate number of input
+    const double adequate_number_coefficient = 1;
+    for (int dfg_node_id = 0; dfg_node_id < dfg_node_num; dfg_node_id++) {
+      for (int mrrg_node_id = 0; mrrg_node_id < mrrg_node_num; mrrg_node_id++) {
+        std::vector<int> dfg_parent_node_id_vec =
+            dfg_ptr_->GetParentNodeIdVec(dfg_node_id);
+        std::vector<int> mrrg_parent_node_id_vec =
+            mrrg_ptr_->GetParentNodeIdVec(mrrg_node_id);
+
+        GRBLinExpr parent_node_num_expr;
+        double dfg_parent_node_num = static_cast<double>(dfg_parent_node_id_vec.size());
+        parent_node_num_expr.addTerms(
+            &dfg_parent_node_num,
+            &(map_op_to_PE[dfg_node_id][mrrg_node_id]), 1);
+        GRBLinExpr neighborhood_parent_node_num_lin_expr;
+        for (int dfg_parent_node_id : dfg_parent_node_id_vec) {
+          for (int mrrg_parent_node_id : mrrg_parent_node_id_vec) {
+            neighborhood_parent_node_num_lin_expr.addTerms(
+                &adequate_number_coefficient,
+                &(map_op_to_PE[dfg_parent_node_id][mrrg_parent_node_id]), 1);
+            neighborhood_parent_node_num_lin_expr.addTerms(
+                &adequate_number_coefficient,
+                &(map_output_to_route[dfg_parent_node_id][mrrg_parent_node_id]),
+                1);
+          }
+        }
+
+        model.addConstr(parent_node_num_expr, GRB_LESS_EQUAL,
+                        neighborhood_parent_node_num_lin_expr);
       }
     }
 
