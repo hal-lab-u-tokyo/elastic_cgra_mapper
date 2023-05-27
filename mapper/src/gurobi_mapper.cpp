@@ -177,11 +177,6 @@ std::pair<bool, entity::Mapping> mapper::GurobiILPMapper::Execution() {
                       GRB_LESS_EQUAL,
                       1 - map_output_to_route[to_node_id][earlier_mrrg_node_id],
                       constr_name + "_op_to_route");
-                  model.addConstr(map_op_to_PE[src_node_id][later_mrrg_node_id],
-                                  GRB_LESS_EQUAL,
-                                  1 - map_output_to_route[src_node_id]
-                                                         [earlier_mrrg_node_id],
-                                  constr_name + "_op_to_route");
                   model.addConstr(
                       map_output_to_route[src_node_id][later_mrrg_node_id],
                       GRB_LESS_EQUAL,
@@ -220,20 +215,16 @@ std::pair<bool, entity::Mapping> mapper::GurobiILPMapper::Execution() {
             }
 
             GRBLinExpr later_num_op_in_config;
-            for (int later_context_id = no_op_context_id + 1;
-                 later_context_id < mrrg_config.context_size;
-                 later_context_id++) {
-              for (int dfg_node_id = 0; dfg_node_id < dfg_node_num;
-                   dfg_node_id++) {
-                int later_mrrg_node_id = mrrg_ptr_->GetMRRGNodeId(
-                    row_id, column_id, later_context_id);
-                later_num_op_in_config.addTerms(
-                    &context_collapsing_coefficient,
-                    &(map_op_to_PE[dfg_node_id][later_mrrg_node_id]), 1);
-                later_num_op_in_config.addTerms(
-                    &context_collapsing_coefficient,
-                    &(map_output_to_route[dfg_node_id][later_mrrg_node_id]), 1);
-              }
+            for (int dfg_node_id = 0; dfg_node_id < dfg_node_num;
+                 dfg_node_id++) {
+              int later_mrrg_node_id = mrrg_ptr_->GetMRRGNodeId(
+                  row_id, column_id, no_op_context_id + 1);
+              later_num_op_in_config.addTerms(
+                  &context_collapsing_coefficient,
+                  &(map_op_to_PE[dfg_node_id][later_mrrg_node_id]), 1);
+              later_num_op_in_config.addTerms(
+                  &context_collapsing_coefficient,
+                  &(map_output_to_route[dfg_node_id][later_mrrg_node_id]), 1);
             }
 
             std::string constr_name = "c_context_collapsing_" +
