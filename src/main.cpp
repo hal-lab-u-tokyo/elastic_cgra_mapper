@@ -6,26 +6,29 @@
 #include <iostream>
 #include <mapper/gurobi_mapper.hpp>
 
-int main() {
+int main(int argc, char* argv[]) {
+  if (argc != 4) {
+    std::cerr << "invalid arguments" << std::endl;
+    abort();
+  }
+
+  std::string dfg_dot_file_path = argv[1];
+  std::string mrrg_file_path = argv[2];
+  std::string output_mapping_path = argv[3];
+
   std::shared_ptr<entity::DFG> dfg_ptr = std::make_shared<entity::DFG>();
   std::shared_ptr<entity::MRRG> mrrg_ptr = std::make_shared<entity::MRRG>();
 
-  *dfg_ptr = io::ReadDFGDotFile(
-      "../benchmark/matrixmultiply/fixed_matrixmultiply.dot");
-  *mrrg_ptr = io::ReadMRRGFromJsonFile("../data/CGRA/8x8_elastic_cgra.json");
+  *dfg_ptr = io::ReadDFGDotFile(dfg_dot_file_path);
+  *mrrg_ptr = io::ReadMRRGFromJsonFile(mrrg_file_path);
 
   mapper::IILPMapper* mapper;
   mapper = mapper::GurobiILPMapper().CreateMapper(dfg_ptr, mrrg_ptr);
   std::shared_ptr<entity::Mapping> mapping_ptr =
       std::make_shared<entity::Mapping>();
   bool is_success = false;
-  long long int mapping_start = clock();
   std::tie(is_success, *mapping_ptr) = mapper->Execution();
-  long long int mapping_end = clock();
-  std::cout << "mapping time (s): " << double(mapping_end - mapping_start) / CLOCKS_PER_SEC << std::endl;
 
-  if (is_success) {
-    io::WriteMappingFile("../output/mapping.json", mapping_ptr,
-                         mrrg_ptr->GetMRRGConfig());
-  }
+  io::WriteMappingFile(output_mapping_path, mapping_ptr,
+                       mrrg_ptr->GetMRRGConfig());
 }
