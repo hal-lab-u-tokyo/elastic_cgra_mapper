@@ -49,8 +49,9 @@ class OperationType(Enum):
     Const = 4
     Load = 5
     Output = 6
-    Nop = 7
-    Route = 8
+    Store = 7
+    Nop = 8
+    Route = 9
 
     def get_from_string(input: str):
         if input == "add":
@@ -67,6 +68,8 @@ class OperationType(Enum):
             return OperationType.Load
         elif input == "output":
             return OperationType.Output
+        elif input == "store":
+            return OperationType.Store
         elif input == "nop":
             return OperationType.Nop
         elif input == "route":
@@ -90,6 +93,8 @@ class OperationType(Enum):
             return "load"
         elif input == OperationType.Output:
             return "output"
+        elif input == OperationType.Store:
+            return "store"
         elif input == OperationType.Nop:
             return "nop"
         elif input == OperationType.Route:

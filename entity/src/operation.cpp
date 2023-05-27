@@ -30,6 +30,9 @@ std::string entity::OpTypeToString(OpType op) {
     case entity::OpType::ROUTE:
       return "route";
       break;
+    case entity::OpType::STORE:
+      return "store";
+      break;
     default:
       assert("invalid OpType");
       abort();
@@ -51,6 +54,8 @@ entity::OpType entity::OpTypeFromString(std::string op_string) {
     return entity::OpType::LOAD;
   } else if (op_string == "output") {
     return entity::OpType::OUTPUT;
+  } else if (op_string == "store") {
+    return entity::OpType::STORE;
   } else if (op_string == "nop") {
     return entity::OpType::NOP;
   } else if (op_string == "route") {
@@ -62,10 +67,11 @@ entity::OpType entity::OpTypeFromString(std::string op_string) {
 };
 
 std::vector<entity::OpType> entity::GetAllOperations() {
-  return std::vector<OpType>(
-      {entity::OpType::ADD, entity::OpType::SUB, entity::OpType::MUL,
-       entity::OpType::DIV, entity::OpType::CONST, entity::OpType::LOAD,
-       entity::OpType::OUTPUT, entity::OpType::NOP, entity::OpType::ROUTE});
+  return std::vector<OpType>({entity::OpType::ADD, entity::OpType::SUB,
+                              entity::OpType::MUL, entity::OpType::DIV,
+                              entity::OpType::CONST, entity::OpType::LOAD,
+                              entity::OpType::OUTPUT, entity::OpType::STORE,
+                              entity::OpType::NOP, entity::OpType::ROUTE});
 };
 
 std::vector<entity::OpType> entity::GetAllOperationsExceptMemoryAccess() {
