@@ -2,10 +2,10 @@
 mapping tool for Elastic CGRA
 
 
-## requirement (currently ikura env)
-GCC 8.5.0 x86_64-redha-linux
-
-cmake 3.20.2
+## requirement (currently confirmed to work)
+GCC >= 8.5.0 
+gurobi = 9.1.1
+cmake >= 3.20.2
 
 ## build
 ### 1. setup
