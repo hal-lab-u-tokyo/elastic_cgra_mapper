@@ -10,9 +10,9 @@ TEST(SimulatorTest, simulator_default_result_test) {
   std::shared_ptr<entity::MRRG> mrrg_ptr = std::make_shared<entity::MRRG>();
 
   *dfg_ptr =
-      io::ReadDFGDotFile("../../../simulator/test/data/matrixmultiply.dot");
+      io::ReadDFGDotFile("../../../../simulator/cpp/test/data/matrixmultiply.dot");
   *mrrg_ptr = io::ReadMRRGFromJsonFile(
-      "../../../simulator/test/data/4x4_default_cgra.json");
+      "../../../../simulator/cpp/test/data/4x4_default_cgra.json");
 
   // verify A[0][i] * A[i][0]
   // const9: 0, const7: 4, const3: 1000, const16: 1, const 18: 1, const1: 0
