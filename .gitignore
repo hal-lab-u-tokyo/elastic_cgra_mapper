@@ -4,3 +4,4 @@ output/*
 benchmark/**/*.dot
 __pycache__/
 **/output/*
+**/obj_dir/*
