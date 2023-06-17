@@ -3,7 +3,7 @@
 #include <io/architecture_io.hpp>
 #include <io/dfg_io.hpp>
 #include <mapper/gurobi_mapper.hpp>
-#include <simulator/CGRA.hpp>
+#include <cpp_simulator/CGRA.hpp>
 
 TEST(SimulatorTest, simulator_default_result_test) {
   std::shared_ptr<entity::DFG> dfg_ptr = std::make_shared<entity::DFG>();

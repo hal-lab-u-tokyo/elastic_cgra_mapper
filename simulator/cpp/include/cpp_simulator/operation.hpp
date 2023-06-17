@@ -1,7 +1,7 @@
 #pragma once
 
 #include <entity/operation.hpp>
-#include <simulator/memory.hpp>
+#include <cpp_simulator/memory.hpp>
 
 namespace simulator {
 template <typename T>

@@ -1,4 +1,4 @@
-#include <simulator/elastic_PE.hpp>
+#include <cpp_simulator/elastic_PE.hpp>
 
 const entity::PEPositionId kBypassPosition = entity::PEPositionId(-1, -1);
 const entity::PEPositionId kBufferPosition = entity::PEPositionId(-2, -2);

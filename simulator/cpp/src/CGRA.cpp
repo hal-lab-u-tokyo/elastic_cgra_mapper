@@ -1,5 +1,5 @@
 #include <entity/architecture.hpp>
-#include <simulator/CGRA.hpp>
+#include <cpp_simulator/CGRA.hpp>
 
 simulator::CGRA::CGRA(entity::MRRGConfig mrrg_config) {
   memory_ptr_ = std::make_shared<simulator::Memory>();

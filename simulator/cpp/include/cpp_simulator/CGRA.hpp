@@ -1,8 +1,8 @@
 #pragma once
 
 #include <entity/mapping.hpp>
-#include <simulator/PE.hpp>
-#include <simulator/module.hpp>
+#include <cpp_simulator/PE.hpp>
+#include <cpp_simulator/module.hpp>
 
 namespace simulator {
 class CGRA : public IModule {

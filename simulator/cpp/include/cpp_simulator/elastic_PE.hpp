@@ -1,10 +1,10 @@
 #pragma once
 
 #include <entity/architecture.hpp>
-#include <simulator/elastic_module.hpp>
-#include <simulator/elastic_wire.hpp>
-#include <simulator/memory.hpp>
-#include <simulator/module.hpp>
+#include <cpp_simulator/elastic_module.hpp>
+#include <cpp_simulator/elastic_wire.hpp>
+#include <cpp_simulator/memory.hpp>
+#include <cpp_simulator/module.hpp>
 
 namespace simulator {
 class ElasticPE : public IModule {
