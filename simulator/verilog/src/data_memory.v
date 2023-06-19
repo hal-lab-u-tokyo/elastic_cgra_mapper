@@ -1,3 +1,5 @@
+`ifndef DATA_MEMORY
+`define DATA_MEMORY
 `include "param.v"
 
 module DataMemory (
@@ -27,3 +29,5 @@ module DataMemory (
     end
 
 endmodule
+
+`endif  // DATA_MEMORY
