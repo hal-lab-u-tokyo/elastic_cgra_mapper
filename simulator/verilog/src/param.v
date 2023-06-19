@@ -6,10 +6,11 @@ parameter NEIGHBOR_PE_NUM_BIT_LENGTH = 2;
 parameter OPERATION_BIT_LENGTH = 4;
 parameter CONTEXT_SIZE_BIT_LENGTH = 3;  // log CONTEXT_HW_SIZE
 parameter CONTEXT_HW_SIZE = 8;
-parameter CONTEXT_SW_SIZE = 4;
+parameter CONTEXT_SW_SIZE = 8;
 parameter DATA_WIDTH = 32;
 parameter CONFIG_DATA_BIT_LENGTH = NEIGHBOR_PE_NUM_BIT_LENGTH * 3 + OPERATION_BIT_LENGTH;
 parameter ADDRESS_WIDTH = 8;  // log MEMORY_SIZE
 parameter MEMORY_SIZE = 256;
+parameter CONTEXT_SWITCH_CLK_SIZE = 3;
 
 `endif  // PARAM
