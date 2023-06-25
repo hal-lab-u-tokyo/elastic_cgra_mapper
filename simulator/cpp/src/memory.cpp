@@ -1,4 +1,4 @@
-#include <simulator/memory.hpp>
+#include <cpp_simulator/memory.hpp>
 
 int simulator::Memory::Load(int address) {
   if (memory_map_.count(address) == 0) return 0;

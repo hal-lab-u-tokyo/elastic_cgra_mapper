@@ -1,7 +1,7 @@
 #include <entity/architecture.hpp>
-#include <simulator/CGRA.hpp>
-#include <simulator/elastic_CGRA.hpp>
-#include <simulator/operation.hpp>
+#include <cpp_simulator/CGRA.hpp>
+#include <cpp_simulator/elastic_CGRA.hpp>
+#include <cpp_simulator/operation.hpp>
 
 simulator::ElasticCGRA::ElasticCGRA(entity::MRRGConfig mrrg_config) {
   memory_ptr_ = std::make_shared<simulator::Memory>();
