@@ -1,0 +1,9 @@
+{
+    "column" : "4",
+    "row" : "4",
+    "memory_io": "both_ends",
+    "CGRA_type": "default",
+    "network_type": "orthogonal",
+    "local_reg_size": "1",
+    "context_size": "2"
+}
