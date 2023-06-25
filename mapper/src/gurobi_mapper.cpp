@@ -20,7 +20,7 @@ std::pair<bool, entity::Mapping> mapper::GurobiILPMapper::Execution() {
   try {
     // create gurobi env
     GRBEnv env = GRBEnv(true);
-    env.set(GRB_IntParam_Threads, 4);
+    env.set(GRB_IntParam_Threads, 32);
     env.start();
 
     // create an empty model
