@@ -19,7 +19,14 @@ class Mapping {
           const std::vector<std::vector<int>>& dfg_output_to_mrrg_reg);
   Mapping(entity::MRRGConfig mrrg_config, ConfigMap config_map)
       : config_map_(config_map), mrrg_config_(mrrg_config){};
-  ConfigMap GetConfigMap() { return config_map_; };
+  ConfigMap GetConfigMap() const { return config_map_; };
+  CGRAConfig GetConfig(ConfigId config_id) const {
+    if (config_map_.count(config_id) > 0) {
+      return config_map_.at(config_id);
+    } else {
+      return CGRAConfig(OpType::NOP, OpTypeToString(OpType::NOP));
+    }
+  };
 
  private:
   entity::MRRGConfig mrrg_config_;
