@@ -5,10 +5,11 @@
 module DataMemory (
     input clk,
     input reset_n,
-    input [ADDRESS_WIDTH-1:0] address,
+    input [ADDRESS_WIDTH-1:0] write_address,
+    input [ADDRESS_WIDTH-1:0] read_address[PE_ROW_SIZE][PE_COLUMN_SIZE],
     input write,
-    input [DATA_WIDTH-1:0] input_data,
-    output reg [DATA_WIDTH-1:0] output_data
+    input [DATA_WIDTH-1:0] write_data,
+    output reg [DATA_WIDTH-1:0] read_data[PE_ROW_SIZE][PE_COLUMN_SIZE]
 );
 
     reg [DATA_WIDTH-1:0] r_memory[MEMORY_SIZE - 1:0];
@@ -21,9 +22,14 @@ module DataMemory (
             end
         end else begin
             if (write) begin
-                r_memory[address] <= input_data;
+                r_memory[write_address] <= write_data;
             end else begin
-                output_data <= r_memory[address];
+                integer i, j;
+                for (i = 0; i < PE_ROW_SIZE; i++) begin
+                    for (j = 0; j < PE_COLUMN_SIZE; j++) begin
+                        read_data[i][j] <= r_memory[read_address[i][j]];
+                    end
+                end
             end
         end
     end

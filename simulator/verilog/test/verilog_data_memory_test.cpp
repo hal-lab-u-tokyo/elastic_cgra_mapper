@@ -24,17 +24,17 @@ TEST(VerilogSimulatorTest, data_memory_test) {
     if ((time_counter % 10) == 0) {
       cycle++;
       if (cycle == 1) {
-        data_memory->address = 10;
+        data_memory->write_address = 10;
       } else if (cycle == 2) {
-        data_memory->address = 25;
+        data_memory->write_address = 25;
         data_memory->write = 1;
-        data_memory->input_data = 225;
-        EXPECT_EQ(0, data_memory->output_data);
+        data_memory->write_data = 225;
+        EXPECT_EQ(0, data_memory->read_data[0][0]);
       } else if (cycle == 3) {
         data_memory->write = 0;
-        data_memory->address = 25;
+        data_memory->read_address[2][3] = 25;
       } else if (cycle == 4) {
-        EXPECT_EQ(225, data_memory->output_data);
+        EXPECT_EQ(225, data_memory->read_data[2][3]);
       }
     }
 
