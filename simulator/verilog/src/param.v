@@ -3,9 +3,9 @@
 
 // CGRA HW param
 parameter PE_COLUMN_SIZE = 4;
-parameter PE_COLUMN_BIT_LENGTH = 2; // log PE_WIDTH
+parameter PE_COLUMN_BIT_LENGTH = 2;  // log PE_WIDTH
 parameter PE_ROW_SIZE = 4;
-parameter PE_ROW_BIT_LENGTH = 2; // log PE_HEIGHT
+parameter PE_ROW_BIT_LENGTH = 2;  // log PE_HEIGHT
 parameter CONTEXT_SIZE_BIT_LENGTH = 3;  // log CONTEXT_HW_SIZE
 parameter CONTEXT_SIZE = 8;
 parameter ADDRESS_WIDTH = 10;  // log MEMORY_SIZE
@@ -19,5 +19,9 @@ parameter OPERATION_BIT_LENGTH = 4;
 // CGRA topology param
 parameter NEIGHBOR_PE_NUM = 5;
 parameter NEIGHBOR_PE_NUM_BIT_LENGTH = 3;
+
+// param for Elastic CGRA
+parameter ELASTIC_BUFFER_SIZE = 4;
+parameter ELASTIC_BUFFER_SIZE_BIT_LENGTH = 2;
 
 `endif  // PARAM

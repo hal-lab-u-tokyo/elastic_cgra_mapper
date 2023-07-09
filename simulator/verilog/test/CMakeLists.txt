@@ -20,3 +20,11 @@ verilate(VerilogSynchronousCGRATest INCLUDE_DIRS
 target_link_libraries(VerilogSynchronousCGRATest PRIVATE gtest_main io mapper)
 
 add_test(NAME VerilogSynchronousCGRATest COMMAND VerilogSynchronousCGRATest)
+
+add_executable(VerilogElasticBufferTest verilog_elastic_buffer_test.cpp)
+verilate(VerilogElasticBufferTest INCLUDE_DIRS
+         ${CMAKE_CURRENT_SOURCE_DIR}/../src/ SOURCES
+         ${CMAKE_CURRENT_SOURCE_DIR}/../src/elastic_module/elastic_buffer.v)
+target_link_libraries(VerilogElasticBufferTest PRIVATE gtest_main io mapper)
+
+add_test(NAME VerilogElasticBufferTest COMMAND VerilogElasticBufferTest)
