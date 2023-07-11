@@ -32,4 +32,10 @@ verilate(VerilogElasticForkTest INCLUDE_DIRS
 target_link_libraries(VerilogElasticForkTest PRIVATE gtest_main io mapper)
 add_test(NAME VerilogElasticForkTest COMMAND VerilogElasticForkTest)
 
-add_test(NAME VerilogElasticBufferTest COMMAND VerilogElasticBufferTest)
+add_executable(VerilogElasticJoinTest verilog_elastic_join_test.cpp)
+verilate(VerilogElasticJoinTest INCLUDE_DIRS
+         ${CMAKE_CURRENT_SOURCE_DIR}/../src/ SOURCES
+         ${CMAKE_CURRENT_SOURCE_DIR}/../src/elastic_module/elastic_join.v)
+target_link_libraries(VerilogElasticJoinTest PRIVATE gtest_main io mapper)
+add_test(NAME VerilogElasticJoinTest COMMAND VerilogElasticJoinTest)
+
