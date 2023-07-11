@@ -39,3 +39,13 @@ verilate(VerilogElasticJoinTest INCLUDE_DIRS
 target_link_libraries(VerilogElasticJoinTest PRIVATE gtest_main io mapper)
 add_test(NAME VerilogElasticJoinTest COMMAND VerilogElasticJoinTest)
 
+add_executable(VerilogElasticMultiplexerTest
+               verilog_elastic_multiplexer_test.cpp)
+verilate(
+  VerilogElasticMultiplexerTest INCLUDE_DIRS
+  ${CMAKE_CURRENT_SOURCE_DIR}/../src/ SOURCES
+  ${CMAKE_CURRENT_SOURCE_DIR}/../src/elastic_module/elastic_multiplexer.v)
+target_link_libraries(VerilogElasticMultiplexerTest PRIVATE gtest_main io
+                                                            mapper)
+add_test(NAME VerilogElasticMultiplexerTest
+         COMMAND VerilogElasticMultiplexerTest)
