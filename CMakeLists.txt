@@ -5,7 +5,6 @@ project(ElasticCGRAMapper)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 set(PROJECT_ROOT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
-set(ENV{GUROBI_HOME} /opt/gurobi911/linux64)
 
 find_package(Gurobi REQUIRED)
 find_package(verilator HINTS $ENV{VERILATOR_ROOT})
