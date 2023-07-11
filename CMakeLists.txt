@@ -10,6 +10,8 @@ set(ENV{GUROBI_HOME} /opt/gurobi911/linux64)
 find_package(Gurobi REQUIRED)
 find_package(verilator HINTS $ENV{VERILATOR_ROOT})
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS on)
+
 add_subdirectory(third_party)
 
 enable_testing()
