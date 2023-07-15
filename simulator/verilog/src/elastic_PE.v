@@ -76,13 +76,12 @@ module ElasticPE (
             wire fork_valid_output[NEIGHBOR_PE_NUM];
             wire fork_stop_output[NEIGHBOR_PE_NUM];
 
-            assign fork_output_data[0]  = w_fork_a_output_data[i];
-            assign fork_output_data[1]  = w_fork_b_output_data[i];
-            assign fork_valid_output[0] = w_fork_a_output_valid[i];
-            assign fork_valid_output[1] = w_fork_b_output_valid[i];
-            assign fork_stop_output[0]  = w_fork_a_output_stop[i];
-            assign fork_stop_output[1]  = w_fork_b_output_stop[i];
-
+            assign w_fork_a_output_data[i] = fork_output_data[0];
+            assign w_fork_b_output_data[i] = fork_output_data[1];
+            assign w_fork_a_output_valid[i] = fork_valid_output[0];
+            assign w_fork_b_output_valid[i] = fork_valid_output[1];
+            assign fork_stop_output[0] = w_fork_a_output_stop[i];
+            assign fork_stop_output[1] = w_fork_b_output_stop[i];
 
             ElasticFork elastic_fork (
                 .clk(clk),
@@ -92,7 +91,7 @@ module ElasticPE (
                 .stop_input(stop_input[i]),
                 .output_data(fork_output_data),
                 .valid_output(fork_valid_output),
-                .stop_output(stop_output),
+                .stop_output(fork_stop_output),
                 .available_output(available_output)
             );
         end
