@@ -36,23 +36,12 @@ module ElasticPE (
     input valid_input[NEIGHBOR_PE_NUM],
     output stop_input[NEIGHBOR_PE_NUM],
     output valid_output[NEIGHBOR_PE_NUM],
-    input stop_output[NEIGHBOR_PE_NUM],
-    // DEBUG
-    output [DATA_WIDTH-1:0] DEBUG_input_PE_data_1,
-    output [DATA_WIDTH-1:0] DEBUG_input_PE_data_2,
-    output [NEIGHBOR_PE_NUM_BIT_LENGTH-1:0] DEBUG_input_PE_index_1,
-    output [NEIGHBOR_PE_NUM_BIT_LENGTH-1:0] DEBUG_input_PE_index_2
+    input stop_output[NEIGHBOR_PE_NUM]
 );
     ElasticConfigData r_config_memory[CONTEXT_SIZE];
 
     reg [CONTEXT_SIZE_BIT_LENGTH-1:0] r_config_index;
     reg [DATA_WIDTH-1:0] op_cycle_counter;
-
-    // assign for DEBUG signal
-    assign DEBUG_input_PE_data_1 = pe_input_data[r_config_memory[r_config_index].input_PE_index_1];
-    assign DEBUG_input_PE_data_2 = pe_input_data[r_config_memory[r_config_index].input_PE_index_2];
-    assign DEBUG_input_PE_index_1 = r_config_memory[r_config_index].input_PE_index_1;
-    assign DEBUG_input_PE_index_2 = r_config_memory[r_config_index].input_PE_index_2;
 
     // Fork -> Mux
     wire [DATA_WIDTH-1:0]        w_fork_a_output_data[NEIGHBOR_PE_NUM], w_fork_b_output_data[NEIGHBOR_PE_NUM];
