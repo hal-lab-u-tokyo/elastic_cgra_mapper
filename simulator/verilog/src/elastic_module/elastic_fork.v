@@ -41,9 +41,6 @@ module ElasticFork (
             for (int i = 0; i < NEIGHBOR_PE_NUM; i++) begin
                 prev_reg[i] <= !input_retry | (prev_reg[i] & available_stop_output[i]);
             end
-            // $display("prev_reg[2]:", prev_reg[2]);
-            // $display("available_stop_output[2]:", available_stop_output[2]);
-            // $display("available_output[2]:", available_output[2]);
         end
     end
 endmodule
