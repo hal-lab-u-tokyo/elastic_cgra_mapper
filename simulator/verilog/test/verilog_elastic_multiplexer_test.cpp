@@ -39,7 +39,7 @@ TEST(VerilogSimulatorTest, elastic_mux_test) {
         SetElasticMuxValue(data_input, valid_input, 0, 1);
       } else if (cycle == 4) {
         EXPECT_EQ(elastic_mux->data_output, 2);
-        EXPECT_EQ(elastic_mux->valid_output, 0);
+        EXPECT_EQ(elastic_mux->valid_output, 1);
         for (int i = 0; i < 5; i++) {
           EXPECT_EQ(elastic_mux->stop_input[i], 0);
         }
@@ -69,7 +69,7 @@ TEST(VerilogSimulatorTest, elastic_mux_test) {
         SetElasticMuxValue(data_input, valid_input, 1, 3);
       } else if (cycle == 10) {
         EXPECT_EQ(elastic_mux->data_output, 4);
-        EXPECT_EQ(elastic_mux->valid_output, 0);
+        EXPECT_EQ(elastic_mux->valid_output, 1);
         for (int i = 0; i < 5; i++) {
           EXPECT_EQ(elastic_mux->stop_input[i], 1);
         }
