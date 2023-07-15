@@ -24,4 +24,14 @@ parameter NEIGHBOR_PE_NUM_BIT_LENGTH = 3;
 parameter ELASTIC_BUFFER_SIZE = 4;
 parameter ELASTIC_BUFFER_SIZE_BIT_LENGTH = 2;
 
+// param 
+parameter ADD_CYCLE = 1;
+parameter SUB_CYCLE = 1;
+parameter MUL_CYCLE = 4;
+parameter DIV_CYCLE = 4;
+parameter CONST_CYCLE = 1;
+parameter LOAD_CYCLE = 4;
+parameter OUTPUT_CYCLE = 1;
+parameter ROUTE_CYCLE = 1;
+
 `endif  // PARAM
