@@ -19,9 +19,6 @@ module ElasticBuffer (
     input stop_output,
     output [DATA_WIDTH-1:0] data_output,
     // DEBUG
-    // output [DATA_WIDTH-1:0] DEBUG_data_array[ELASTIC_BUFFER_SIZE],
-    // output [ELASTIC_BUFFER_SIZE_BIT_LENGTH-1:0] DEBUG_read_index,
-    // output [ELASTIC_BUFFER_SIZE_BIT_LENGTH-1:0] DEBUG_write_index,
     output [ELASTIC_BUFFER_SIZE_BIT_LENGTH:0] DEBUG_data_size
 );
     reg [DATA_WIDTH-1:0] data_array[ELASTIC_BUFFER_SIZE];
@@ -32,9 +29,6 @@ module ElasticBuffer (
     assign valid_output = data_size != 0;
     assign stop_input   = data_size === ELASTIC_BUFFER_SIZE;
 
-    // assign DEBUG_data_array = data_array;
-    // assign DEBUG_read_index = read_index;
-    // assign DEBUG_write_index = write_index;
     assign DEBUG_data_size = data_size;
 
     always_ff @(posedge clk, negedge reset_n) begin
