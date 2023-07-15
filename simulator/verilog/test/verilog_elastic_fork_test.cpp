@@ -10,12 +10,18 @@ TEST(VerilogSimulatorTest, elastic_fork_test) {
   Velastic_fork* elastic_fork = new Velastic_fork();
 
   auto SetElasticForkValue = [&](int input_data, bool valid_input,
-                                 bool* stop_output) {
+                                 bool* stop_output, bool* available_output) {
     elastic_fork->input_data = input_data;
     elastic_fork->valid_input = valid_input;
     for (int i = 0; i < 5; i++) {
       elastic_fork->stop_output[i] = stop_output[i];
     }
+    int available_output_binary = 0;
+    for (int i = 4; i >= 0; i--) {
+      available_output_binary *= 2;
+      available_output_binary += available_output[i];
+    }
+    elastic_fork->available_output = available_output_binary;
   };
 
   elastic_fork->reset_n = 0;
@@ -30,7 +36,7 @@ TEST(VerilogSimulatorTest, elastic_fork_test) {
   elastic_fork->reset_n = 1;
   elastic_fork->clk = 1;
   int cycle = 0;
-  while (time_counter < 200) {
+  while (time_counter < 220) {
     if ((time_counter % 5) == 0) {
       elastic_fork->clk = !elastic_fork->clk;
     }
@@ -39,7 +45,8 @@ TEST(VerilogSimulatorTest, elastic_fork_test) {
       cycle++;
       if (cycle == 1) {
         bool stop_output[5] = {0, 0, 0, 0, 0};
-        SetElasticForkValue(cycle, 1, stop_output);
+        bool available_output[5] = {1, 1, 1, 1, 1};
+        SetElasticForkValue(cycle, 1, stop_output, available_output);
       } else if (cycle == 2) {
         EXPECT_EQ(elastic_fork->stop_input, 0);
         for (int i = 0; i < 5; i++) {
@@ -48,7 +55,8 @@ TEST(VerilogSimulatorTest, elastic_fork_test) {
         }
       } else if (cycle == 3) {
         bool stop_output[5] = {0, 0, 1, 0, 1};
-        SetElasticForkValue(cycle, 1, stop_output);
+        bool available_output[5] = {1, 1, 1, 1, 1};
+        SetElasticForkValue(cycle, 1, stop_output, available_output);
       } else if (cycle == 4) {
         EXPECT_EQ(elastic_fork->stop_input, 1);
         bool valid_output_result[5] = {0, 0, 1, 0, 1};
@@ -57,7 +65,8 @@ TEST(VerilogSimulatorTest, elastic_fork_test) {
         }
       } else if (cycle == 5) {
         bool stop_output[5] = {0, 0, 0, 0, 0};
-        SetElasticForkValue(cycle, 0, stop_output);
+        bool available_output[5] = {1, 1, 1, 1, 1};
+        SetElasticForkValue(cycle, 0, stop_output, available_output);
       } else if (cycle == 6) {
         EXPECT_EQ(elastic_fork->stop_input, 0);
         for (int i = 0; i < 5; i++) {
@@ -65,9 +74,29 @@ TEST(VerilogSimulatorTest, elastic_fork_test) {
         }
       } else if (cycle == 7) {
         bool stop_output[5] = {0, 0, 1, 0, 1};
-        SetElasticForkValue(cycle, 0, stop_output);
+        bool available_output[5] = {1, 1, 1, 1, 1};
+        SetElasticForkValue(cycle, 0, stop_output, available_output);
       } else if (cycle == 8) {
         EXPECT_EQ(elastic_fork->stop_input, 1);
+        for (int i = 0; i < 5; i++) {
+          EXPECT_EQ(elastic_fork->valid_output[i], 0);
+        }
+      } else if (cycle == 9) {
+        bool stop_output[5] = {0, 0, 1, 0, 1};
+        bool available_output[5] = {1, 1, 0, 1, 0};
+        SetElasticForkValue(cycle, 1, stop_output, available_output);
+      } else if (cycle == 10) {
+        bool stop_output[5] = {0, 0, 1, 0, 1};
+        EXPECT_EQ(elastic_fork->stop_input, 0);
+        for (int i = 0; i < 5; i++) {
+          EXPECT_EQ(elastic_fork->valid_output[i], !stop_output[i]);
+        }
+      } else if (cycle == 11) {
+        bool stop_output[5] = {0, 0, 1, 0, 1};
+        bool available_output[5] = {1, 1, 0, 1, 0};
+        SetElasticForkValue(cycle, 0, stop_output, available_output);
+      } else if (cycle == 12) {
+        EXPECT_EQ(elastic_fork->stop_input, 0);
         for (int i = 0; i < 5; i++) {
           EXPECT_EQ(elastic_fork->valid_output[i], 0);
         }

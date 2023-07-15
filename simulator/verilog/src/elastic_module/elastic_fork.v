@@ -23,22 +23,27 @@ module ElasticFork (
     /* verilator lint_off UNOPTFLAT */
     wire stop_input_intermediate[NEIGHBOR_PE_NUM + 1];
     assign stop_input_intermediate[0] = 0;
+    wire available_stop_output[NEIGHBOR_PE_NUM];
 
     genvar i;
     for (i = 0; i < NEIGHBOR_PE_NUM; i++) begin
         assign output_data[i] = input_data;
-        wire available_valid_input = valid_input || !available_output[i];
+        wire available_valid_input = valid_input && available_output[i];
         assign valid_output[i] = prev_reg[i] & available_valid_input;
-        wire available_stop_output = stop_output[i] & available_output[i];
-        assign stop_input_intermediate[i+1] = stop_input_intermediate[i] | (available_stop_output & prev_reg[i]);
+
+        assign available_stop_output[i] = stop_output[i] & available_output[i];
+        assign stop_input_intermediate[i+1] = stop_input_intermediate[i] | (available_stop_output[i] & prev_reg[i]);
     end
     assign stop_input = stop_input_intermediate[NEIGHBOR_PE_NUM];
 
     always_ff @(posedge clk, negedge reset_n) begin
         begin
             for (int i = 0; i < NEIGHBOR_PE_NUM; i++) begin
-                prev_reg[i] <= !input_retry | (prev_reg[i] & stop_output[i]);
+                prev_reg[i] <= !input_retry | (prev_reg[i] & available_stop_output[i]);
             end
+            // $display("prev_reg[2]:", prev_reg[2]);
+            // $display("available_stop_output[2]:", available_stop_output[2]);
+            // $display("available_output[2]:", available_output[2]);
         end
     end
 endmodule
