@@ -13,11 +13,11 @@ TEST(VerilogSimulatorTest, elastic_fork_test) {
                                  bool* stop_output, bool* available_output) {
     elastic_fork->input_data = input_data;
     elastic_fork->valid_input = valid_input;
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < 3; i++) {
       elastic_fork->stop_output[i] = stop_output[i];
     }
     int available_output_binary = 0;
-    for (int i = 4; i >= 0; i--) {
+    for (int i = 3; i >= 0; i--) {
       available_output_binary *= 2;
       available_output_binary += available_output[i];
     }
@@ -44,60 +44,60 @@ TEST(VerilogSimulatorTest, elastic_fork_test) {
     if ((time_counter % 10) == 0) {
       cycle++;
       if (cycle == 1) {
-        bool stop_output[5] = {0, 0, 0, 0, 0};
-        bool available_output[5] = {1, 1, 1, 1, 1};
+        bool stop_output[4] = {0, 0, 0, 0};
+        bool available_output[4] = {1, 1, 1, 1};
         SetElasticForkValue(cycle, 1, stop_output, available_output);
       } else if (cycle == 2) {
         EXPECT_EQ(elastic_fork->stop_input, 0);
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < 4; i++) {
           EXPECT_EQ(elastic_fork->valid_output[i], 1);
           EXPECT_EQ(elastic_fork->output_data[i], 1);
         }
       } else if (cycle == 3) {
-        bool stop_output[5] = {0, 0, 1, 0, 1};
-        bool available_output[5] = {1, 1, 1, 1, 1};
+        bool stop_output[4] = {0, 0, 1, 0};
+        bool available_output[4] = {1, 1, 1, 1};
         SetElasticForkValue(cycle, 1, stop_output, available_output);
       } else if (cycle == 4) {
         EXPECT_EQ(elastic_fork->stop_input, 1);
         bool valid_output_result[5] = {0, 0, 1, 0, 1};
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < 4; i++) {
           EXPECT_EQ(elastic_fork->valid_output[i], valid_output_result[i]);
         }
       } else if (cycle == 5) {
-        bool stop_output[5] = {0, 0, 0, 0, 0};
-        bool available_output[5] = {1, 1, 1, 1, 1};
+        bool stop_output[4] = {0, 0, 0, 0};
+        bool available_output[4] = {1, 1, 1, 1};
         SetElasticForkValue(cycle, 0, stop_output, available_output);
       } else if (cycle == 6) {
         EXPECT_EQ(elastic_fork->stop_input, 0);
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < 4; i++) {
           EXPECT_EQ(elastic_fork->valid_output[i], 0);
         }
       } else if (cycle == 7) {
-        bool stop_output[5] = {0, 0, 1, 0, 1};
-        bool available_output[5] = {1, 1, 1, 1, 1};
+        bool stop_output[4] = {0, 0, 1, 0};
+        bool available_output[4] = {1, 1, 1, 1};
         SetElasticForkValue(cycle, 0, stop_output, available_output);
       } else if (cycle == 8) {
         EXPECT_EQ(elastic_fork->stop_input, 1);
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < 4; i++) {
           EXPECT_EQ(elastic_fork->valid_output[i], 0);
         }
       } else if (cycle == 9) {
-        bool stop_output[5] = {0, 0, 1, 0, 1};
-        bool available_output[5] = {1, 1, 0, 1, 0};
+        bool stop_output[4] = {0, 0, 1, 0};
+        bool available_output[4] = {1, 1, 0, 1};
         SetElasticForkValue(cycle, 1, stop_output, available_output);
       } else if (cycle == 10) {
-        bool stop_output[5] = {0, 0, 1, 0, 1};
+        bool stop_output[4] = {0, 0, 1, 0};
         EXPECT_EQ(elastic_fork->stop_input, 0);
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < 4; i++) {
           EXPECT_EQ(elastic_fork->valid_output[i], !stop_output[i]);
         }
       } else if (cycle == 11) {
-        bool stop_output[5] = {0, 0, 1, 0, 1};
-        bool available_output[5] = {1, 1, 0, 1, 0};
+        bool stop_output[4] = {0, 0, 1, 0};
+        bool available_output[4] = {1, 1, 0, 1};
         SetElasticForkValue(cycle, 0, stop_output, available_output);
       } else if (cycle == 12) {
         EXPECT_EQ(elastic_fork->stop_input, 0);
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < 4; i++) {
           EXPECT_EQ(elastic_fork->valid_output[i], 0);
         }
       }
