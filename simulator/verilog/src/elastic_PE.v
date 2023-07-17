@@ -14,8 +14,8 @@ module ElasticPE (
     input clk,
     input reset_n,
     // config load if
-    input [NEIGHBOR_PE_NUM_BIT_LENGTH-1:0] config_input_PE_index_1,
-    input [NEIGHBOR_PE_NUM_BIT_LENGTH-1:0] config_input_PE_index_2,
+    input [INPUT_NUM_BIT_LENGTH-1:0] config_input_PE_index_1,
+    input [INPUT_NUM_BIT_LENGTH-1:0] config_input_PE_index_2,
     input [NEIGHBOR_PE_NUM-1:0] config_output_PE_index,
     input [OPERATION_BIT_LENGTH-1:0] config_op,
     input [DATA_WIDTH-1:0] config_const_data,
@@ -45,9 +45,9 @@ module ElasticPE (
     reg [DATA_WIDTH-1:0] op_cycle_counter;
 
     // Fork -> Mux
-    wire [DATA_WIDTH-1:0]        w_fork_a_output_data[NEIGHBOR_PE_NUM], w_fork_b_output_data[NEIGHBOR_PE_NUM];
-    wire w_fork_a_output_valid[NEIGHBOR_PE_NUM], w_fork_b_output_valid[NEIGHBOR_PE_NUM];
-    wire w_fork_a_output_stop[NEIGHBOR_PE_NUM], w_fork_b_output_stop[NEIGHBOR_PE_NUM];
+    wire [DATA_WIDTH-1:0]        w_fork_a_output_data[INPUT_NUM], w_fork_b_output_data[INPUT_NUM];
+    wire w_fork_a_output_valid[INPUT_NUM], w_fork_b_output_valid[INPUT_NUM];
+    wire w_fork_a_output_stop[INPUT_NUM], w_fork_b_output_stop[INPUT_NUM];
 
     // Mux -> Join
     ElasticWire w_mux_a_output, w_mux_b_output;
@@ -59,6 +59,7 @@ module ElasticPE (
     // ALU -> Buffer
     ElasticWire w_alu_output;
     wire switch_context;
+    reg [DATA_WIDTH-1:0] r_alu_output[PE_REG_SIZE];
 
     // Buffer -> Fork
     ElasticWire w_buffer_output;
@@ -94,6 +95,13 @@ module ElasticPE (
             );
         end
     endgenerate
+    generate
+        for (i = 0; i < PE_REG_SIZE; i++) begin : AddRegValueToForkOutput
+            assign w_fork_a_output_data[NEIGHBOR_PE_NUM+i] = r_alu_output[i];
+            assign w_fork_b_output_data[NEIGHBOR_PE_NUM+i] = r_alu_output[i];
+        end
+    endgenerate
+
 
     // Elastic Module: Mux
     ElasticMultiplexer elastic_mux_a (
