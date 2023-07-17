@@ -113,11 +113,11 @@ module ElasticALU (
                     state <= FINISH_EXEC;
                 end
             end
-            $display("state: ", state);
-            $display("input transfer: ", input_transfer);
-            $display("op_cycle_counter: ", op_cycle_counter);
-            $display("output_transfer: ", output_transfer);
-            $display("stop_output: ", stop_output);
+            // $display("state: ", state);
+            // $display("input transfer: ", input_transfer);
+            // $display("op_cycle_counter: ", op_cycle_counter);
+            // $display("output_transfer: ", output_transfer);
+            // $display("stop_output: ", stop_output);
         end
     end
 

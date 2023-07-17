@@ -133,16 +133,17 @@ TEST(VerilogSimulatorTest, elastic_alu_test) {
         int stop_input[2] = {1, 1};
         EvaluateOutput(1, stop_input, 20, -1, -1, -1, -1, alu);
       }
-      std::cout << "----- cycle " << cycle << " -----" << std::endl;
-      std::cout << "output: " << alu->output_data << std::endl;
-      std::cout << "stop_input: " << alu->stop_input[0] + 0 << std::endl;
-      std::cout << "valid_output: " << alu->valid_output + 0 << std::endl;
-      std::cout << "memory_write_address: " << alu->memory_write_address
-                << std::endl;
-      std::cout << "memory_write: " << alu->memory_write + 0 << std::endl;
-      std::cout << "memory_write_data: " << alu->memory_write_data << std::endl;
-      std::cout << "memory_read_address: " << alu->memory_read_data
-                << std::endl;
+      // std::cout << "----- cycle " << cycle << " -----" << std::endl;
+      // std::cout << "output: " << alu->output_data << std::endl;
+      // std::cout << "stop_input: " << alu->stop_input[0] + 0 << std::endl;
+      // std::cout << "valid_output: " << alu->valid_output + 0 << std::endl;
+      // std::cout << "memory_write_address: " << alu->memory_write_address
+      //           << std::endl;
+      // std::cout << "memory_write: " << alu->memory_write + 0 << std::endl;
+      // std::cout << "memory_write_data: " << alu->memory_write_data <<
+      // std::endl; std::cout << "memory_read_address: " <<
+      // alu->memory_read_data
+      //           << std::endl;
     }
     alu->eval();
     time_counter++;
