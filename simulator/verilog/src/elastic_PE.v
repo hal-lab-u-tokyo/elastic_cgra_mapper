@@ -8,6 +8,7 @@
 `include "elastic_module/elastic_fork.v"
 `include "elastic_module/elastic_join.v"
 `include "elastic_module/elastic_multiplexer.v"
+`include "elastic_module/elastic_alu.v"
 
 module ElasticPE (
     input clk,
@@ -27,10 +28,10 @@ module ElasticPE (
     input [DATA_WIDTH-1:0] pe_input_data[NEIGHBOR_PE_NUM],
     output [DATA_WIDTH-1:0] pe_output_data[NEIGHBOR_PE_NUM],
     // memory if
-    output reg [ADDRESS_WIDTH-1:0] memory_write_address,
-    output reg memory_write,
-    output reg [DATA_WIDTH-1:0] memory_write_data,
-    output reg [ADDRESS_WIDTH-1:0] memory_read_address,
+    output [ADDRESS_WIDTH-1:0] memory_write_address,
+    output memory_write,
+    output [DATA_WIDTH-1:0] memory_write_data,
+    output [ADDRESS_WIDTH-1:0] memory_read_address,
     input [DATA_WIDTH-1:0] memory_read_data,
     // SELF protocol
     input valid_input[NEIGHBOR_PE_NUM],
@@ -53,15 +54,11 @@ module ElasticPE (
 
     // Join -> ALU
     wire [DATA_WIDTH-1:0] w_elastic_join_data_output[2];
-    wire w_elastic_join_valid_output;
-    reg w_elastic_join_stop_output;
+    wire w_elastic_join_valid_output, w_elastic_join_stop_output;
 
     // ALU -> Buffer
-    ElasticWire r_alu_output;
-    genvar i;
-    for (i = 0; i < NEIGHBOR_PE_NUM; i++) begin
-        assign pe_output_data[i] = r_alu_output.data;
-    end
+    ElasticWire w_alu_output;
+    wire switch_context;
 
     // Buffer -> Fork
     ElasticWire w_buffer_output;
@@ -70,6 +67,7 @@ module ElasticPE (
     // Elastic Module : Fork
     wire [NEIGHBOR_PE_NUM-1:0] available_output;
     assign available_output = ~0;
+    genvar i;
     generate
         for (i = 0; i < NEIGHBOR_PE_NUM; i++) begin : GenerateFork
             wire [DATA_WIDTH-1:0] fork_output_data[NEIGHBOR_PE_NUM];
@@ -138,14 +136,34 @@ module ElasticPE (
     );
 
     // Elastic Module : ALU
-    wire w_alu_input_transfer = w_elastic_join_valid_output &!w_elastic_join_stop_output;
-    wire w_alu_output_transfer = r_alu_output.valid & !r_alu_output.stop;
+    wire w_elastic_join_stop_output_for_alu[2];
+    assign w_elastic_join_stop_output_for_alu[0] = w_elastic_join_stop_output;
+    assign w_elastic_join_stop_output_for_alu[1] = w_elastic_join_stop_output;
+    wire w_elastic_join_valid_output_for_alu[2];
+    assign w_elastic_join_valid_output_for_alu[0] = w_elastic_join_valid_output;
+    assign w_elastic_join_valid_output_for_alu[1] = w_elastic_join_valid_output;
+
+    ElasticALU elastic_alu (
+        .clk(clk),
+        .reset_n(reset_n),
+        .input_data_1(w_elastic_join_data_output[0]),
+        .input_data_2(w_elastic_join_data_output[1]),
+        .op(r_config_memory[r_config_index].op),
+        .const_data(r_config_memory[r_config_index].const_data),
+        .output_data(w_alu_output.data),
+        .memory_write_address(memory_write_address),
+        .memory_write(memory_write),
+        .memory_write_data(memory_write_data),
+        .memory_read_address(memory_read_address),
+        .memory_read_data(memory_read_data),
+        .valid_input(w_elastic_join_valid_output_for_alu),
+        .stop_input(w_elastic_join_stop_output_for_alu),
+        .valid_output(w_alu_output.valid),
+        .stop_output(w_alu_output.stop),
+        .switch_context(switch_context)
+    );
 
     // Elastic Module : Buffer
-    ElasticWire w_alu_output;
-    assign w_alu_output.data  = r_alu_output.data;
-    assign w_alu_output.valid = r_alu_output.valid;
-    assign w_alu_output.stop  = r_alu_output.stop;
     wire [ELASTIC_BUFFER_SIZE_BIT_LENGTH:0] w_buffer_data_size;
     ElasticBuffer elastic_buffer (
         .clk(clk),
@@ -188,55 +206,6 @@ module ElasticPE (
                 r_config_memory[config_index].output_PE_index<=config_output_PE_index;
                 r_config_memory[config_index].op <= config_op;
                 r_config_memory[config_index].const_data <= config_const_data;
-            end else if (w_alu_input_transfer | op_cycle_counter > 0) begin
-                // operation
-                case (r_config_memory[r_config_index].op)
-                    0: r_alu_output.data <= 0;  // nop
-                    1: begin
-                        r_alu_output.data <= pe_input_data[r_config_memory[r_config_index].input_PE_index_1] + pe_input_data[r_config_memory[r_config_index].input_PE_index_2];  // add 
-                        op_cycle_counter <= ADD_CYCLE;
-                    end
-                    2: begin
-                        r_alu_output.data <= pe_input_data[r_config_memory[r_config_index].input_PE_index_1] - pe_input_data[r_config_memory[r_config_index].input_PE_index_2];  // sub
-                        op_cycle_counter <= SUB_CYCLE;
-                    end
-                    3: begin
-                        r_alu_output.data <= pe_input_data[r_config_memory[r_config_index].input_PE_index_1] * pe_input_data[r_config_memory[r_config_index].input_PE_index_2];  // mul
-                        op_cycle_counter <= MUL_CYCLE;
-                    end
-                    4: begin
-                        r_alu_output.data <= pe_input_data[r_config_memory[r_config_index].input_PE_index_1] / pe_input_data[r_config_memory[r_config_index].input_PE_index_2];  //div
-                        op_cycle_counter <= DIV_CYCLE;
-                    end
-                    5: begin
-                        r_alu_output.data <= r_config_memory[r_config_index].const_data;  //const
-                        op_cycle_counter <= CONST_CYCLE;
-                    end
-                    6: begin  //load
-                        memory_read_address <= pe_input_data[r_config_memory[r_config_index].input_PE_index_1][ADDRESS_WIDTH-1:0];
-                        memory_write <= 1;
-                        r_alu_output.data <= memory_read_data;
-                        op_cycle_counter <= LOAD_CYCLE;
-                    end
-                    7: begin
-                        r_alu_output.data <= pe_input_data[r_config_memory[r_config_index].input_PE_index_1];  //output 
-                        op_cycle_counter <= OUTPUT_CYCLE;
-                    end
-                    8: begin
-                        r_alu_output.data <= pe_input_data[r_config_memory[r_config_index].input_PE_index_1];  // route
-                        op_cycle_counter <= ROUTE_CYCLE;
-                    end
-                endcase
-                if (op_cycle_counter > 0) begin  // during op
-                    op_cycle_counter <= op_cycle_counter - 1;
-                    if (op_cycle_counter == 1) begin
-                        r_alu_output.valid <= 1;
-                        w_elastic_join_stop_output <= 0;
-                    end
-                end else begin  // beginning of op
-                    r_alu_output.valid <= 0;
-                    w_elastic_join_stop_output <= 1;
-                end
             end
 
             // context reset 
@@ -245,7 +214,7 @@ module ElasticPE (
             end
 
             // context switch
-            if (w_alu_output_transfer) begin
+            if (switch_context) begin
                 // context update
                 if (r_config_index == mapping_context_max_id) begin
                     r_config_index <= 0;
@@ -253,6 +222,25 @@ module ElasticPE (
                     r_config_index <= r_config_index + 1;
                 end
             end
+            $display("------");
+            $display("r_config_index: ", r_config_index);
+            // $display("input PE index 1: ",
+            //          r_config_memory[r_config_index].input_PE_index_1);
+            // $display("input PE index 2: ",
+            //          r_config_memory[r_config_index].input_PE_index_2);
+            $display("input PE data 1: ", pe_input_data[0]);
+            $display("input PE data 2: ", pe_input_data[1]);
+
+            $display("mux output data: ", w_mux_a_output.data);
+            $display("mux output valid: ", w_mux_a_output.valid);
+            $display("elastic join data [0]: ", w_elastic_join_data_output[0]);
+            $display("elastic join data [1]: ", w_elastic_join_data_output[1]);
+            $display("elastic join valid: ", w_elastic_join_valid_output);
+            $display("elastic stop valid: ", w_elastic_join_stop_output);
+            $display("mapping_context_max_id: ", mapping_context_max_id);
+            $display("alu_output.data: ", w_alu_output.data);
+            $display("alu_output.valid: ", w_alu_output.valid);
+            $display("alu_output.stop: ", w_alu_output.stop);
         end
 
         // debug
