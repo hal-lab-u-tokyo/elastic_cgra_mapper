@@ -49,3 +49,10 @@ target_link_libraries(VerilogElasticMultiplexerTest PRIVATE gtest_main io
                                                             mapper)
 add_test(NAME VerilogElasticMultiplexerTest
          COMMAND VerilogElasticMultiplexerTest)
+
+add_executable(VerilogElasticALUTest verilog_elastic_alu_test.cpp)
+verilate(VerilogElasticALUTest INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/../src/
+         SOURCES
+         ${CMAKE_CURRENT_SOURCE_DIR}/../src/elastic_module/elastic_alu.v)
+target_link_libraries(VerilogElasticALUTest PRIVATE gtest_main io mapper)
+add_test(NAME VerilogElasticALUTest COMMAND VerilogElasticALUTest)
