@@ -9,8 +9,8 @@ module CGRA (
     // config load if
     input [PE_ROW_BIT_LENGTH-1:0] config_PE_row_index,
     input [PE_COLUMN_BIT_LENGTH-1:0] config_PE_column_index,
-    input [NEIGHBOR_PE_NUM_BIT_LENGTH-1:0] config_input_PE_index_1,
-    input [NEIGHBOR_PE_NUM_BIT_LENGTH-1:0] config_input_PE_index_2,
+    input [INPUT_NUM_BIT_LENGTH-1:0] config_input_PE_index_1,
+    input [INPUT_NUM_BIT_LENGTH-1:0] config_input_PE_index_2,
     input [OPERATION_BIT_LENGTH-1:0] config_op,
     input [DATA_WIDTH-1:0] config_const_data,
     input write_config_data,
@@ -24,12 +24,12 @@ module CGRA (
     inout [DATA_WIDTH-1:0] memory_write_data,
     // output
     output [DATA_WIDTH-1:0] pe_output[PE_ROW_SIZE][PE_COLUMN_SIZE],
-    output [DATA_WIDTH-1:0] pe_input_array[PE_ROW_SIZE][PE_COLUMN_SIZE][NEIGHBOR_PE_NUM],
+    output [DATA_WIDTH-1:0] pe_input_array[PE_ROW_SIZE][PE_COLUMN_SIZE][INPUT_NUM],
     // DEBUG
     output [DATA_WIDTH-1:0] DEBUG_input_PE_data_1[PE_ROW_SIZE][PE_COLUMN_SIZE],
     output [DATA_WIDTH-1:0] DEBUG_input_PE_data_2[PE_ROW_SIZE][PE_COLUMN_SIZE],
-    output [NEIGHBOR_PE_NUM_BIT_LENGTH-1:0] DEBUG_input_PE_index_1[PE_ROW_SIZE][PE_COLUMN_SIZE],
-    output [NEIGHBOR_PE_NUM_BIT_LENGTH-1:0] DEBUG_input_PE_index_2[PE_ROW_SIZE][PE_COLUMN_SIZE],
+    output [INPUT_NUM_BIT_LENGTH-1:0] DEBUG_input_PE_index_1[PE_ROW_SIZE][PE_COLUMN_SIZE],
+    output [INPUT_NUM_BIT_LENGTH-1:0] DEBUG_input_PE_index_2[PE_ROW_SIZE][PE_COLUMN_SIZE],
     output DEBUG_write_config_data[PE_ROW_SIZE][PE_COLUMN_SIZE],
     output [ADDRESS_WIDTH-1:0] DEBUG_memory_read_address[PE_ROW_SIZE][PE_COLUMN_SIZE]
 );
@@ -55,7 +55,7 @@ module CGRA (
             for (
                 j = 0; j < PE_COLUMN_SIZE; j++
             ) begin : GenerateProcessingElementJ
-                wire [DATA_WIDTH - 1:0] pe_input_data[NEIGHBOR_PE_NUM];
+                wire [DATA_WIDTH - 1:0] pe_input_data[INPUT_NUM];
                 assign pe_input_array[i][j] = pe_input_data;
                 if (i > 0) begin
                     assign pe_input_data[0] = pe_output[i-1][j];
