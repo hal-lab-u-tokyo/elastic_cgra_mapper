@@ -118,6 +118,7 @@ module ElasticPE (
         .stop_input(w_fork_a_output_stop),
         .data_output(w_mux_a_output.data),
         .valid_output(w_mux_a_output.valid),
+        .stop_output(w_elastic_join_stop_input[0]),
         .input_data_index(r_config_memory[r_config_index_mux_a].input_PE_index_1),
         .switch_context(w_switch_context_mux_a)
     );
@@ -127,20 +128,16 @@ module ElasticPE (
         .stop_input(w_fork_b_output_stop),
         .data_output(w_mux_b_output.data),
         .valid_output(w_mux_b_output.valid),
+        .stop_output(w_elastic_join_stop_input[1]),
         .input_data_index(r_config_memory[r_config_index_mux_b].input_PE_index_2),
         .switch_context(w_switch_context_mux_b)
     );
 
     // Elastic Module : Join
-    wire [DATA_WIDTH-1:0] w_elastic_join_data_input[2];
-    wire w_elastic_join_valid_input[2], w_elastic_join_stop_input[2];
-
     assign w_elastic_join_data_input[0]  = w_mux_a_output.data;
     assign w_elastic_join_data_input[1]  = w_mux_b_output.data;
     assign w_elastic_join_valid_input[0] = w_mux_a_output.valid;
     assign w_elastic_join_valid_input[1] = w_mux_b_output.valid;
-    assign w_elastic_join_stop_input[0]  = w_mux_a_output.stop;
-    assign w_elastic_join_stop_input[1]  = w_mux_b_output.stop;
 
     ElasticJoin elastic_join (
         .data_input  (w_elastic_join_data_input),
