@@ -149,13 +149,6 @@ module ElasticPE (
     );
 
     // Elastic Module : ALU
-    wire w_elastic_join_stop_output_for_alu[2];
-    assign w_elastic_join_stop_output_for_alu[0] = w_elastic_join_stop_output;
-    assign w_elastic_join_stop_output_for_alu[1] = w_elastic_join_stop_output;
-    wire w_elastic_join_valid_output_for_alu[2];
-    assign w_elastic_join_valid_output_for_alu[0] = w_elastic_join_valid_output;
-    assign w_elastic_join_valid_output_for_alu[1] = w_elastic_join_valid_output;
-
     ElasticALU elastic_alu (
         .clk(clk),
         .reset_n(reset_n),
