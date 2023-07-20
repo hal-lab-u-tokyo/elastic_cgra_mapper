@@ -101,8 +101,6 @@ module ElasticALU (
                         state <= DURING_EXEC;
                     end
                 end
-            end else if (state == FINISH_EXEC & output_transfer) begin
-                state <= BEFORE_EXEC;
             end
 
 
