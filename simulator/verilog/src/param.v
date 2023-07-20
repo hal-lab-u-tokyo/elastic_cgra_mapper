@@ -17,11 +17,25 @@ parameter DATA_WIDTH = 32;
 parameter OPERATION_BIT_LENGTH = 4;
 
 // CGRA topology param
-parameter NEIGHBOR_PE_NUM = 5;
-parameter NEIGHBOR_PE_NUM_BIT_LENGTH = 3;
+parameter NEIGHBOR_PE_NUM = 4;
+parameter NEIGHBOR_PE_NUM_BIT_LENGTH = 2;
+parameter INPUT_NUM = 5;  // neighbor pe input + own output as input
+parameter INPUT_NUM_BIT_LENGTH = 3;
+parameter PE_REG_SIZE = 1;
+parameter PE_REG_SIZE_BIT_LENGTH = 1;
 
 // param for Elastic CGRA
 parameter ELASTIC_BUFFER_SIZE = 4;
 parameter ELASTIC_BUFFER_SIZE_BIT_LENGTH = 2;
+
+// param 
+parameter ADD_CYCLE = 1;
+parameter SUB_CYCLE = 1;
+parameter MUL_CYCLE = 4;
+parameter DIV_CYCLE = 4;
+parameter CONST_CYCLE = 1;
+parameter LOAD_CYCLE = 4;
+parameter OUTPUT_CYCLE = 1;
+parameter ROUTE_CYCLE = 1;
 
 `endif  // PARAM

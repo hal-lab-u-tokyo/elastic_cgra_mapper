@@ -8,8 +8,8 @@ module PE (
     input clk,
     input reset_n,
     // config load if
-    input [NEIGHBOR_PE_NUM_BIT_LENGTH-1:0] config_input_PE_index_1,
-    input [NEIGHBOR_PE_NUM_BIT_LENGTH-1:0] config_input_PE_index_2,
+    input [INPUT_NUM_BIT_LENGTH-1:0] config_input_PE_index_1,
+    input [INPUT_NUM_BIT_LENGTH-1:0] config_input_PE_index_2,
     input [OPERATION_BIT_LENGTH-1:0] config_op,
     input [DATA_WIDTH-1:0] config_const_data,
     input write_config_data,
@@ -18,7 +18,7 @@ module PE (
     input start_exec,
     input [CONTEXT_SIZE_BIT_LENGTH-1:0] mapping_context_max_id,
     // PE if
-    input [DATA_WIDTH-1:0] pe_input_data[NEIGHBOR_PE_NUM],
+    input [DATA_WIDTH-1:0] pe_input_data[INPUT_NUM],
     output reg [DATA_WIDTH-1:0] pe_output_data,
     // memory if
     output reg [ADDRESS_WIDTH-1:0] memory_write_address,
@@ -29,8 +29,8 @@ module PE (
     // DEBUG
     output [DATA_WIDTH-1:0] DEBUG_input_PE_data_1,
     output [DATA_WIDTH-1:0] DEBUG_input_PE_data_2,
-    output [NEIGHBOR_PE_NUM_BIT_LENGTH-1:0] DEBUG_input_PE_index_1,
-    output [NEIGHBOR_PE_NUM_BIT_LENGTH-1:0] DEBUG_input_PE_index_2
+    output [INPUT_NUM_BIT_LENGTH-1:0] DEBUG_input_PE_index_1,
+    output [INPUT_NUM_BIT_LENGTH-1:0] DEBUG_input_PE_index_2
 );
     ConfigData r_config_memory[CONTEXT_SIZE];
 
