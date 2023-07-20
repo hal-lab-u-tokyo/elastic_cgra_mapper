@@ -267,23 +267,37 @@ module ElasticPE (
                     r_config_index_fork <= r_config_index_fork + 1;
                 end
             end
+
+            // $display("--- PE ---");
+            // $display("r_config_index_alu: ", r_config_index_alu);
             // $display("input PE index 1: ",
             //          r_config_memory[r_config_index].input_PE_index_1);
             // $display("input PE index 2: ",
             //          r_config_memory[r_config_index].input_PE_index_2);
-            $display("input PE data 1: ", pe_input_data[0]);
-            $display("input PE data 2: ", pe_input_data[1]);
+            // $display("input PE data 1: ", pe_input_data[0]);
+            // $display("input PE data 2: ", pe_input_data[1]);
 
-            $display("mux output data: ", w_mux_a_output.data);
-            $display("mux output valid: ", w_mux_a_output.valid);
-            $display("elastic join data [0]: ", w_elastic_join_data_output[0]);
-            $display("elastic join data [1]: ", w_elastic_join_data_output[1]);
-            $display("elastic join valid: ", w_elastic_join_valid_output);
-            $display("elastic stop valid: ", w_elastic_join_stop_output);
-            $display("mapping_context_max_id: ", mapping_context_max_id);
-            $display("alu_output.data: ", w_alu_output.data);
-            $display("alu_output.valid: ", w_alu_output.valid);
-            $display("alu_output.stop: ", w_alu_output.stop);
+            // $display("--- join ---");
+            // $display("elastic join data [0]: ", w_elastic_join_data_output[0]);
+            // $display("elastic join data [1]: ", w_elastic_join_data_output[1]);
+            // $display("elastic join input valid[0]: ",
+            //          w_elastic_join_valid_input[0]);
+            // $display("elastic join input stop[0]: ",
+            //          w_elastic_join_stop_input[0]);
+            // $display("elastic join output valid: ",
+            //          w_elastic_join_valid_output);
+            // $display("elastic join output stop: ", w_elastic_join_stop_output);
+            // $display("--- mux ---");
+            // $display("elastic mux a output valid: ", w_mux_a_output.valid);
+            // $display("elastic mux a output stop: ", w_mux_a_output.stop);
+            // $display("elastic mux a output data: ", w_mux_a_output.data);
+            // $display("elastic mux b output valid: ", w_mux_b_output.valid);
+            // $display("elastic mux b output stop: ", w_mux_b_output.stop);
+            // $display("elastic mux b output data: ", w_mux_b_output.data);
+            // $display("mux b index: ", r_config_index_mux_b);
+            // $display("--- fork ---");
+            // $display("fork index: ", r_config_index_fork);
+            // $display("fork output valid from reg: ", w_fork_b_output_valid[4]);
         end
 
         // debug

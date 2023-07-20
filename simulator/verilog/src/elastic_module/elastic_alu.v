@@ -118,11 +118,19 @@ module ElasticALU (
                     state <= FINISH_EXEC;
                 end
             end
+            // $display("--- ALU ---");
             // $display("state: ", state);
             // $display("input transfer: ", input_transfer);
+            // $display("input valid: ", valid_input);
+            // $display("input stop: ", stop_input);
             // $display("op_cycle_counter: ", op_cycle_counter);
             // $display("output_transfer: ", output_transfer);
             // $display("stop_output: ", stop_output);
+            // $display("output data: ", output_data);
+            // $display("output valid: ", valid_output);
+            // $display("output stop: ", stop_output);
+            // $display("input_data_1_for_alu: ", input_data_1_for_alu);
+            // $display("input_data_2_for_alu: ", input_data_2_for_alu);
         end
     end
 
