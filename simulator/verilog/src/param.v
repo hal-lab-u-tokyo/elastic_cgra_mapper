@@ -22,6 +22,7 @@ parameter NEIGHBOR_PE_NUM_BIT_LENGTH = 2;
 parameter INPUT_NUM = 5;  // neighbor pe input + own output as input
 parameter INPUT_NUM_BIT_LENGTH = 3;
 parameter PE_REG_SIZE = 1;
+parameter PE_REG_SIZE_BIT_LENGTH = 1;
 
 // param for Elastic CGRA
 parameter ELASTIC_BUFFER_SIZE = 4;
