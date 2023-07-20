@@ -56,3 +56,9 @@ verilate(VerilogElasticALUTest INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/../src/
          ${CMAKE_CURRENT_SOURCE_DIR}/../src/elastic_module/elastic_alu.v)
 target_link_libraries(VerilogElasticALUTest PRIVATE gtest_main io mapper)
 add_test(NAME VerilogElasticALUTest COMMAND VerilogElasticALUTest)
+
+add_executable(VerilogElasticPETest verilog_elastic_PE_test.cpp)
+verilate(VerilogElasticPETest INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/../src/
+         SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/../src/elastic_PE.v)
+target_link_libraries(VerilogElasticPETest PRIVATE gtest_main io mapper)
+add_test(NAME VerilogElasticPETest COMMAND VerilogElasticPETest)
