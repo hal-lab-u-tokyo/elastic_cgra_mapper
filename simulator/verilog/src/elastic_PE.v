@@ -164,8 +164,8 @@ module ElasticPE (
         .memory_write_data(memory_write_data),
         .memory_read_address(memory_read_address),
         .memory_read_data(memory_read_data),
-        .valid_input(w_elastic_join_valid_output_for_alu),
-        .stop_input(w_elastic_join_stop_output_for_alu),
+        .valid_input(w_elastic_join_valid_output),
+        .stop_input(w_elastic_join_stop_output),
         .valid_output(w_alu_output.valid),
         .stop_output(w_alu_output.stop),
         .switch_context(switch_context)

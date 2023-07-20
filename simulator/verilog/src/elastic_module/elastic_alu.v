@@ -24,21 +24,20 @@ module ElasticALU (
     output reg [ADDRESS_WIDTH-1:0] memory_read_address,
     input [DATA_WIDTH-1:0] memory_read_data,
     // SELF protocol
-    input valid_input[2],
-    output stop_input[2],
+    input valid_input,
+    output stop_input,
     output valid_output,
     input stop_output,
     // config
     output switch_context
 );
     wire output_transfer = valid_output & !(stop_output);
-    wire input_transfer = (valid_input[0] & !(stop_input[0])) & (valid_input[1] & !(stop_input[1]));
+    wire input_transfer = valid_input & !stop_input;
     reg [1:0] state;
     reg [DATA_WIDTH-1:0] op_cycle_counter;
 
-    assign stop_input[0]  = (state >= DURING_EXEC);
-    assign stop_input[1]  = (state >= DURING_EXEC);
-    assign valid_output   = (state == FINISH_EXEC);
+    assign stop_input = (state >= DURING_EXEC);
+    assign valid_output = (state == FINISH_EXEC);
     assign switch_context = output_transfer;
 
     function [DATA_WIDTH-1:0] getOpCycle(
