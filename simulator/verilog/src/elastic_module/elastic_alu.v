@@ -35,6 +35,10 @@ module ElasticALU (
     wire input_transfer = valid_input & !stop_input;
     reg [1:0] state;
     reg [DATA_WIDTH-1:0] op_cycle_counter;
+    reg [DATA_WIDTH-1:0] r_input_data_1, r_input_data_2;
+    wire [DATA_WIDTH-1:0] input_data_1_for_alu;
+    assign input_data_1_for_alu = input_transfer ? input_data_1 : r_input_data_1;
+    wire [DATA_WIDTH-1:0] input_data_2_for_alu = input_transfer ? input_data_2 : r_input_data_2;
 
     assign stop_input = (state >= DURING_EXEC);
     assign valid_output = (state == FINISH_EXEC);
@@ -64,33 +68,37 @@ module ElasticALU (
             if (output_transfer & state == FINISH_EXEC) begin
                 state <= BEFORE_EXEC;
             end else if (input_transfer | state == DURING_EXEC) begin
+                if (input_transfer) begin
+                    r_input_data_1 <= input_data_1;
+                    r_input_data_2 <= input_data_2;
+                end
                 case (op)
                     0: output_data <= 0;  // nop
                     1: begin
-                        output_data <= input_data_1 + input_data_2;  // add 
+                        output_data <= input_data_1_for_alu + input_data_2_for_alu;  // add 
                     end
                     2: begin
-                        output_data <= input_data_1 - input_data_2;  // sub
+                        output_data <= input_data_1_for_alu - input_data_2_for_alu;  // sub
                     end
                     3: begin
-                        output_data <= input_data_1 * input_data_2;  // mul
+                        output_data <= input_data_1_for_alu * input_data_2_for_alu;  // mul
                     end
                     4: begin
-                        output_data <= input_data_1 / input_data_2;  //div
+                        output_data <= input_data_1_for_alu / input_data_2_for_alu;  // div
                     end
                     5: begin
-                        output_data <= const_data;  //const
+                        output_data <= const_data;  // const
                     end
-                    6: begin  //load
-                        memory_read_address <= input_data_1[ADDRESS_WIDTH-1:0];
+                    6: begin  // load
+                        memory_read_address <= input_data_1_for_alu[ADDRESS_WIDTH-1:0];
                         memory_write <= 1;
                         output_data <= memory_read_data;
                     end
                     7: begin
-                        output_data <= input_data_1;  //output 
+                        output_data <= input_data_1_for_alu;  // output 
                     end
                     8: begin
-                        output_data <= input_data_1;  // route
+                        output_data <= input_data_1_for_alu;  // route
                     end
                 endcase
                 if (input_transfer) begin
