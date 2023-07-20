@@ -41,7 +41,10 @@ module ElasticPE (
 );
     ElasticConfigData r_config_memory[CONTEXT_SIZE];
 
-    reg [CONTEXT_SIZE_BIT_LENGTH-1:0] r_config_index;
+    reg [CONTEXT_SIZE_BIT_LENGTH-1:0] r_config_index_mux_a;
+    reg [CONTEXT_SIZE_BIT_LENGTH-1:0] r_config_index_mux_b;
+    reg [CONTEXT_SIZE_BIT_LENGTH-1:0] r_config_index_alu;
+    reg [CONTEXT_SIZE_BIT_LENGTH-1:0] r_config_index_fork;
     reg [DATA_WIDTH-1:0] op_cycle_counter;
 
     // Fork -> Mux
@@ -51,6 +54,7 @@ module ElasticPE (
 
     // Mux -> Join
     ElasticWire w_mux_a_output, w_mux_b_output;
+    wire w_switch_context_mux_a, w_switch_context_mux_b;
 
     // Join -> ALU
     wire [DATA_WIDTH-1:0] w_elastic_join_data_output[2];
@@ -58,11 +62,13 @@ module ElasticPE (
 
     // ALU -> Buffer
     ElasticWire w_alu_output;
-    wire switch_context;
+    wire w_switch_context_alu;
     reg [DATA_WIDTH-1:0] r_alu_output[PE_REG_SIZE];
+    reg [PE_REG_SIZE_BIT_LENGTH-1:0] r_alu_output_index;
 
     // Buffer -> Fork
     ElasticWire w_buffer_output;
+    wire w_switch_context_fork;
 
     // Elastic Module
     // Elastic Module : Fork
@@ -74,6 +80,7 @@ module ElasticPE (
             wire [DATA_WIDTH-1:0] fork_output_data[NEIGHBOR_PE_NUM];
             wire fork_valid_output[NEIGHBOR_PE_NUM];
             wire fork_stop_output[NEIGHBOR_PE_NUM];
+            wire dummy_context_switch_fork;
 
             assign w_fork_a_output_data[i] = fork_output_data[0];
             assign w_fork_b_output_data[i] = fork_output_data[1];
@@ -91,7 +98,8 @@ module ElasticPE (
                 .output_data(fork_output_data),
                 .valid_output(fork_valid_output),
                 .stop_output(fork_stop_output),
-                .available_output(available_output)
+                .available_output(available_output),
+                .switch_context(dummy_context_switch_fork)
             );
         end
     endgenerate
@@ -110,8 +118,8 @@ module ElasticPE (
         .stop_input(w_fork_a_output_stop),
         .data_output(w_mux_a_output.data),
         .valid_output(w_mux_a_output.valid),
-        .stop_output(w_mux_a_output.stop),
-        .input_data_index(r_config_memory[r_config_index].input_PE_index_1)
+        .input_data_index(r_config_memory[r_config_index_mux_a].input_PE_index_1),
+        .switch_context(w_switch_context_mux_a)
     );
     ElasticMultiplexer elastic_mux_b (
         .data_input(w_fork_b_output_data),
@@ -119,8 +127,8 @@ module ElasticPE (
         .stop_input(w_fork_b_output_stop),
         .data_output(w_mux_b_output.data),
         .valid_output(w_mux_b_output.valid),
-        .stop_output(w_mux_b_output.stop),
-        .input_data_index(r_config_memory[r_config_index].input_PE_index_2)
+        .input_data_index(r_config_memory[r_config_index_mux_b].input_PE_index_2),
+        .switch_context(w_switch_context_mux_b)
     );
 
     // Elastic Module : Join
@@ -156,8 +164,8 @@ module ElasticPE (
         .reset_n(reset_n),
         .input_data_1(w_elastic_join_data_output[0]),
         .input_data_2(w_elastic_join_data_output[1]),
-        .op(r_config_memory[r_config_index].op),
-        .const_data(r_config_memory[r_config_index].const_data),
+        .op(r_config_memory[r_config_index_alu].op),
+        .const_data(r_config_memory[r_config_index_alu].const_data),
         .output_data(w_alu_output.data),
         .memory_write_address(memory_write_address),
         .memory_write(memory_write),
@@ -168,7 +176,7 @@ module ElasticPE (
         .stop_input(w_elastic_join_stop_output),
         .valid_output(w_alu_output.valid),
         .stop_output(w_alu_output.stop),
-        .switch_context(switch_context)
+        .switch_context(w_switch_context_alu)
     );
 
     // Elastic Module : Buffer
@@ -195,7 +203,8 @@ module ElasticPE (
         .output_data(pe_output_data),
         .valid_output(valid_output),
         .stop_output(stop_output),
-        .available_output(r_config_memory[r_config_index].output_PE_index)
+        .available_output(r_config_memory[r_config_index_fork].output_PE_index),
+        .switch_context(w_switch_context_fork)
     );
 
     // data for operation execution
@@ -218,20 +227,52 @@ module ElasticPE (
 
             // context reset 
             if (start_exec) begin
-                r_config_index <= 0;
+                r_config_index_mux_a <= 0;
+                r_config_index_mux_b <= 0;
+                r_config_index_alu   <= 0;
+                r_config_index_fork  <= 0;
             end
 
-            // context switch
-            if (switch_context) begin
-                // context update
-                if (r_config_index == mapping_context_max_id) begin
-                    r_config_index <= 0;
+            // context switch : mux
+            if (w_switch_context_mux_a) begin
+                if (r_config_index_mux_a == mapping_context_max_id) begin
+                    r_config_index_mux_a <= 0;
                 end else begin
-                    r_config_index <= r_config_index + 1;
+                    r_config_index_mux_a <= r_config_index_mux_a + 1;
                 end
             end
-            $display("------");
-            $display("r_config_index: ", r_config_index);
+            if (w_switch_context_mux_b) begin
+                if (r_config_index_mux_b == mapping_context_max_id) begin
+                    r_config_index_mux_b <= 0;
+                end else begin
+                    r_config_index_mux_b <= r_config_index_mux_b + 1;
+                end
+            end
+            // context switch & register update : alu
+            if (w_switch_context_alu) begin
+                // register update       
+                r_alu_output[r_alu_output_index] <= w_alu_output.data;
+                if (r_alu_output_index == PE_REG_SIZE - 1) begin
+                    r_alu_output_index <= 0;
+                end else begin
+                    r_alu_output_index <= r_alu_output_index + 1;
+                end
+
+                // alu config update
+                if (r_config_index_alu == mapping_context_max_id) begin
+                    r_config_index_alu <= 0;
+                end else begin
+                    r_config_index_alu <= r_config_index_alu + 1;
+                end
+            end
+            // context switch : fork
+            if (w_switch_context_fork) begin
+                if (r_config_index_fork == mapping_context_max_id) begin
+                    r_config_index_fork <= 0;
+                end else begin
+                    r_config_index_fork <= r_config_index_fork + 1;
+                end
+            end
             // $display("input PE index 1: ",
             //          r_config_memory[r_config_index].input_PE_index_1);
             // $display("input PE index 2: ",
