@@ -55,6 +55,8 @@ module ElasticPE (
     // Mux -> Join
     ElasticWire w_mux_a_output, w_mux_b_output;
     wire w_switch_context_mux_a, w_switch_context_mux_b;
+    wire [DATA_WIDTH-1:0] w_elastic_join_data_input[2];
+    wire w_elastic_join_valid_input[2], w_elastic_join_stop_input[2];
 
     // Join -> ALU
     wire [DATA_WIDTH-1:0] w_elastic_join_data_output[2];
