@@ -105,8 +105,10 @@ module ElasticPE (
     endgenerate
     generate
         for (i = 0; i < PE_REG_SIZE; i++) begin : AddRegValueToForkOutput
-            assign w_fork_a_output_data[NEIGHBOR_PE_NUM+i] = r_alu_output[i];
-            assign w_fork_b_output_data[NEIGHBOR_PE_NUM+i] = r_alu_output[i];
+            assign w_fork_a_output_data[NEIGHBOR_PE_NUM+i]  = r_alu_output[i];
+            assign w_fork_b_output_data[NEIGHBOR_PE_NUM+i]  = r_alu_output[i];
+            assign w_fork_a_output_valid[NEIGHBOR_PE_NUM+i] = 1;
+            assign w_fork_b_output_valid[NEIGHBOR_PE_NUM+i] = 1;
         end
     endgenerate
 
