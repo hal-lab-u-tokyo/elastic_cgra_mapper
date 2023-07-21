@@ -37,6 +37,7 @@ struct ConfigIdIOStruct {
 
 struct ConfigIOStruct {
   int context_id;
+  int const_value;
   std::vector<ConfigIdIOStruct> to_config_id;
   std::string operation_type;
   std::string operation_name;
@@ -45,12 +46,14 @@ struct ConfigIOStruct {
   ConfigIOStruct(int context_id_) {
     context_id = context_id_;
     operation_type = entity::OpTypeToString(entity::OpType::NOP);
-    operation_name = "";
+    operation_name = "nop";
+    const_value = 0;
   }
   ConfigIOStruct(entity::CGRAConfig cgra_config, int context_id_) {
     context_id = context_id_;
     operation_type = entity::OpTypeToString(cgra_config.operation_type);
     operation_name = cgra_config.operation_name;
+    const_value = cgra_config.const_value;
     for (entity::ConfigId config_id : cgra_config.to_config_id_vec) {
       to_config_id.emplace_back(config_id);
     }
@@ -61,6 +64,8 @@ struct ConfigIOStruct {
   ConfigIOStruct(const boost::property_tree::ptree& ptree) {
     operation_type = GetValueFromPTree<std::string>(ptree, "operation_type");
     operation_name = GetValueFromPTree<std::string>(ptree, "operation_name");
+    const_value = GetValueFromPTree<int>(ptree, "const_value");
+    context_id = GetValueFromPTree<int>(ptree, "context_id");
     BOOST_FOREACH (const boost::property_tree::ptree::value_type& child,
                    ptree.get_child("to_config_id")) {
       const boost::property_tree::ptree& info = child.second;
@@ -87,6 +92,9 @@ struct ConfigIOStruct {
       cgra_config.AddToConfig(to_config_id_ele.CreateConfigId(), op,
                               operation_name);
     }
+    cgra_config.operation_type = op;
+    cgra_config.operation_name = operation_type;
+    cgra_config.const_value = const_value;
 
     return cgra_config;
   }
@@ -107,6 +115,7 @@ struct ConfigIOStruct {
     result.put("context_id", context_id);
     result.put("operation_type", operation_type);
     result.put("operation_name", operation_name);
+    result.put("const_value", const_value);
     result.add_child("to_config_id", to_config_id_vec_ptree);
     result.add_child("from_config_id", from_config_id_vec_ptree);
 
