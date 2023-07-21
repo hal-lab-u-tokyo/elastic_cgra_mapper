@@ -60,15 +60,16 @@ TEST(IOTest, maping_io_test) {
   // read mapping
   entity::Mapping output_mapping = io::ReadMappingFile(file_name);
 
-  // // mapping test
-  // entity::ConfigMap input_config_map, output_config_map;
-  // input_config_map = input_mapping.GetConfigMap();
-  // output_config_map = output_mapping.GetConfigMap();
+  // mapping test
+  entity::ConfigMap input_config_map, output_config_map;
+  input_config_map = input_mapping.GetConfigMap();
+  output_config_map = output_mapping.GetConfigMap();
 
-  // for (auto key_value : input_config_map) {
-  //   entity::CGRAConfig input_value = key_value.second;
-  //   entity::CGRAConfig output_value = output_config_map[key_value.first];
+  for (auto key_value : input_config_map) {
+    entity::CGRAConfig input_value = key_value.second;
+    entity::CGRAConfig output_value = output_config_map[key_value.first];
 
-  //   EXPECT_EQ(input_value.operation_type, output_value.operation_type);
-  // }
+    EXPECT_EQ(input_value.operation_type, output_value.operation_type);
+    EXPECT_EQ(input_value.const_value, output_value.const_value);
+  }
 }
