@@ -10,45 +10,12 @@
 #include <vector>
 
 TEST(VerilogSimulatorTest, synchronous_CGRA_test) {
-  std::string dfg_dot_file_path =
-      "../../../../simulator/verilog/test/data/matrixmultiply.dot";
-  std::string mrrg_file_path =
-      "../../../../simulator/verilog/test/data/4x4_default_cgra.json";
+  std::string mapping_file_path =
+      "../../../../simulator/verilog/test/data/default_mapping.json";
+  std::shared_ptr<entity::Mapping> mapping_ptr = std::make_shared<entity::Mapping>();
+  *mapping_ptr = io::ReadMappingFile(mapping_file_path);
 
-  // create mapping
-  std::shared_ptr<entity::DFG> dfg_ptr = std::make_shared<entity::DFG>();
-  std::shared_ptr<entity::MRRG> mrrg_ptr = std::make_shared<entity::MRRG>();
-
-  *dfg_ptr = io::ReadDFGDotFile(dfg_dot_file_path);
-  *mrrg_ptr = io::ReadMRRGFromJsonFile(mrrg_file_path);
-
-  // verify A[0][i] * A[i][0]
-  // const9: 0, const7: 1, const3: 30, const16: 1, const 18: 1, const1: 0
-  for (int i = 0; i < dfg_ptr->GetNodeNum(); i++) {
-    entity::DFGNodeProperty node_property = dfg_ptr->GetNodeProperty(i);
-    if (node_property.op_name == "const9") {
-      node_property.const_value = 0;
-    } else if (node_property.op_name == "const7") {
-      node_property.const_value = 1;
-    } else if (node_property.op_name == "const3") {
-      node_property.const_value = 30;
-    } else if (node_property.op_name == "const16") {
-      node_property.const_value = 1;
-    } else if (node_property.op_name == "const18") {
-      node_property.const_value = 1;
-    } else if (node_property.op_name == "const1") {
-      node_property.const_value = 0;
-    }
-    dfg_ptr->SetNodeProperty(i, node_property);
-  }
-
-  mapper::IILPMapper* mapper;
-  mapper = mapper::GurobiILPMapper().CreateMapper(dfg_ptr, mrrg_ptr);
-  std::shared_ptr<entity::Mapping> mapping_ptr =
-      std::make_shared<entity::Mapping>();
-  bool is_success = false;
-  std::tie(is_success, *mapping_ptr) = mapper->Execution();
-
+ 
   // verilog simulator
   auto GetInputPEIndex = [](entity::ConfigId from, entity::ConfigId to) {
     if (from.row_id < to.row_id) return 0;
@@ -85,9 +52,9 @@ TEST(VerilogSimulatorTest, synchronous_CGRA_test) {
 
   cgra->reset_n = 1;
   cgra->clk = 1;
-  int row_size = mrrg_ptr->GetMRRGConfig().row;
-  int column_size = mrrg_ptr->GetMRRGConfig().column;
-  int context_size = mrrg_ptr->GetMRRGConfig().context_size;
+  int row_size = mapping_ptr->GetMRRGConfig().row;
+  int column_size = mapping_ptr->GetMRRGConfig().column;
+  int context_size = mapping_ptr->GetMRRGConfig().context_size;
 
   int cycle = 0;
   int config_size = row_size * column_size * context_size;
