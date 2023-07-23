@@ -7,14 +7,18 @@ TEST(IOTest, maping_io_test) {
   // create mapping
   // create dfg
   std::vector<entity::Edge> edges = {{0, 1}, {1, 2}, {2, 3}, {3, 4}, {4, 5}};
-  int node_num = 6;
+  std::vector<entity::OpType> all_op = entity::GetAllOperations();
+  int node_num = all_op.size();
   entity::DFGGraph g;
   for (int i = 0; i < node_num; i++) {
     auto v1 = boost::add_vertex(g);
     std::string node_name = "add" + std::to_string(i);
     g[v1].op_name = node_name;
-    g[v1].op = entity::OpType::ADD;
-    g[v1].op_str = entity::OpTypeToString(entity::OpType::ADD);
+    g[v1].op = all_op[i];
+    g[v1].op_str = entity::OpTypeToString(all_op[i]);
+    if(v1 < 5) {
+      g[v1].const_value = i;
+    }
   }
 
   boost::graph_traits<entity::DFGGraph>::edge_descriptor e;
