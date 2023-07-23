@@ -27,7 +27,9 @@ module ElasticCGRA (
     output [DATA_WIDTH-1:0] pe_input_array[PE_ROW_SIZE][PE_COLUMN_SIZE][NEIGHBOR_PE_NUM],
     // SELF protocol
     output pe_valid_output[PE_ROW_SIZE][PE_COLUMN_SIZE][NEIGHBOR_PE_NUM],
-    output pe_stop_input[PE_ROW_SIZE][PE_COLUMN_SIZE][NEIGHBOR_PE_NUM]
+    output pe_stop_input[PE_ROW_SIZE][PE_COLUMN_SIZE][NEIGHBOR_PE_NUM],
+    // DEBUG
+    output [CONTEXT_SIZE_BIT_LENGTH-1:0] DEBUG_alu_context_id[PE_ROW_SIZE][PE_COLUMN_SIZE]
 );
     // data path
     wire [DATA_WIDTH-1:0] memory_read_data[PE_ROW_SIZE][PE_COLUMN_SIZE];
@@ -110,7 +112,9 @@ module ElasticCGRA (
                     .valid_input(tmp_pe_valid_input),
                     .stop_input(tmp_pe_stop_input),
                     .valid_output(tmp_pe_valid_output),
-                    .stop_output(tmp_pe_stop_output)
+                    .stop_output(tmp_pe_stop_output),
+                    // DEBUG
+                    .DEBUG_alu_context_id(DEBUG_alu_context_id[i][j])
                 );
             end
         end

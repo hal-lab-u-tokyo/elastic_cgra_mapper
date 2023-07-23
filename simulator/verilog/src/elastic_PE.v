@@ -37,7 +37,9 @@ module ElasticPE (
     input valid_input[NEIGHBOR_PE_NUM],
     output stop_input[NEIGHBOR_PE_NUM],
     output valid_output[NEIGHBOR_PE_NUM],
-    input stop_output[NEIGHBOR_PE_NUM]
+    input stop_output[NEIGHBOR_PE_NUM],
+    // DEBUG
+    output [CONTEXT_SIZE_BIT_LENGTH-1:0] DEBUG_alu_context_id
 );
     ElasticConfigData r_config_memory[CONTEXT_SIZE];
 
@@ -46,6 +48,8 @@ module ElasticPE (
     reg [CONTEXT_SIZE_BIT_LENGTH-1:0] r_config_index_alu;
     reg [CONTEXT_SIZE_BIT_LENGTH-1:0] r_config_index_fork;
     reg [DATA_WIDTH-1:0] op_cycle_counter;
+
+    assign DEBUG_alu_context_id = r_config_index_alu;
 
     // Fork -> Mux
     wire [DATA_WIDTH-1:0]        w_fork_a_output_data[INPUT_NUM], w_fork_b_output_data[INPUT_NUM];
