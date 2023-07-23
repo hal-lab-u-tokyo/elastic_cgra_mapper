@@ -32,7 +32,7 @@ module ElasticALU (
     output switch_context
 );
     wire output_transfer = valid_output & !(stop_output);
-    wire input_transfer = valid_input & !stop_input;
+    wire input_transfer = (valid_input & !stop_input) | (op == 5);
     reg [1:0] state;
     reg [DATA_WIDTH-1:0] op_cycle_counter;
     reg [DATA_WIDTH-1:0] r_input_data_1, r_input_data_2;
