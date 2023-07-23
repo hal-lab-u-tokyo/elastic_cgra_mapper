@@ -16,7 +16,9 @@ TEST(IOTest, maping_io_test) {
     g[v1].op_name = node_name;
     g[v1].op = all_op[i];
     g[v1].op_str = entity::OpTypeToString(all_op[i]);
-    g[v1].const_value = i;
+    if(v1 < 5) {
+      g[v1].const_value = i;
+    }
   }
 
   boost::graph_traits<entity::DFGGraph>::edge_descriptor e;

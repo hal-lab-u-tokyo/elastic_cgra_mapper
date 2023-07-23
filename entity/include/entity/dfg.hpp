@@ -1,5 +1,6 @@
 #pragma once
 
+#include <boost/optional.hpp>
 #include <entity/graph.hpp>
 #include <entity/operation.hpp>
 
@@ -9,7 +10,7 @@ struct DFGNodeProperty {
   OpType op;
   std::string op_str;
   std::string op_name;
-  int const_value;
+  boost::optional<int> const_value;
 };
 
 struct DFGEdgeProperty {

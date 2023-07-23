@@ -18,7 +18,9 @@ TEST(IOTest, dfg_io_test) {
     g[v1].op_name = node_name;
     g[v1].op = all_op[i];
     g[v1].op_str = entity::OpTypeToString(all_op[i]);
-    g[v1].const_value = i;
+    if (v1 < 5) {
+      g[v1].const_value = i;
+    }
   }
 
   boost::graph_traits<entity::DFGGraph>::edge_descriptor e;
@@ -45,7 +47,8 @@ TEST(IOTest, dfg_io_test) {
   for (int i = 0; i < output_node_num; i++) {
     EXPECT_EQ(output_dfg.GetNodeProperty(0).op,
               input_dfg.GetNodeProperty(0).op);  // check node property
-    EXPECT_EQ(output_dfg.GetNodeProperty(0).const_value,
-              input_dfg.GetNodeProperty(0).const_value);  // check node property
+    EXPECT_EQ(output_dfg.GetNodeProperty(0).const_value.value(),
+              input_dfg.GetNodeProperty(0)
+                  .const_value.value());  // check node property
   }
 }

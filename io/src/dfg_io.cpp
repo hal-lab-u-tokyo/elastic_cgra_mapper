@@ -1,4 +1,5 @@
 #include <boost/graph/graphviz.hpp>
+#include <boost/optional/optional_io.hpp>
 #include <io/dfg_io.hpp>
 #include <iostream>
 
