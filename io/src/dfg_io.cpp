@@ -10,6 +10,8 @@ entity::DFG io::ReadDFGDotFile(std::string file_name) {
   dp.property("opcode", boost::get(&entity::DFGNodeProperty::op_str, graph));
   dp.property("operand", boost::get(&entity::DFGEdgeProperty::operand, graph));
   dp.property("node_id", boost::get(&entity::DFGNodeProperty::op_name, graph));
+  dp.property("const_value",
+              boost::get(&entity::DFGNodeProperty::const_value, graph));
   boost::read_graphviz(dot, graph, dp);
 
   for (size_t i = 0; i < boost::num_vertices(graph); i++) {
@@ -58,6 +60,8 @@ void io::WriteDFGDotFile(std::string file_name,
   dp.property("opcode", boost::get(&entity::DFGNodeProperty::op_str, graph));
   dp.property("operand", boost::get(&entity::DFGEdgeProperty::operand, graph));
   dp.property("node_id", boost::get(&entity::DFGNodeProperty::op_name, graph));
+  dp.property("const_value",
+              boost::get(&entity::DFGNodeProperty::const_value, graph));
 
   boost::write_graphviz_dp(output_file, dfg_ptr->GetGraph(), dp);
   return;
