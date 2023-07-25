@@ -29,7 +29,18 @@ module ElasticCGRA (
     output pe_valid_output[PE_ROW_SIZE][PE_COLUMN_SIZE][NEIGHBOR_PE_NUM],
     output pe_stop_input[PE_ROW_SIZE][PE_COLUMN_SIZE][NEIGHBOR_PE_NUM],
     // DEBUG
-    output [CONTEXT_SIZE_BIT_LENGTH-1:0] DEBUG_alu_context_id[PE_ROW_SIZE][PE_COLUMN_SIZE]
+    output [CONTEXT_SIZE_BIT_LENGTH-1:0] DEBUG_alu_context_id[PE_ROW_SIZE][PE_COLUMN_SIZE],
+    output [OPERATION_BIT_LENGTH-1:0] DEBUG_alu_op[PE_ROW_SIZE][PE_COLUMN_SIZE],
+    output [DATA_WIDTH-1:0] DEBUG_pe_output[PE_ROW_SIZE][PE_COLUMN_SIZE],
+    output DEBUG_pe_mux_output_valid[PE_ROW_SIZE][PE_COLUMN_SIZE][2],
+    output DEBUG_pe_mux_output_stop[PE_ROW_SIZE][PE_COLUMN_SIZE][2],
+    output[INPUT_NUM_BIT_LENGTH-1:0] DEBUG_pe_mux_input_PE_index[PE_ROW_SIZE][PE_COLUMN_SIZE][2],
+    output DEBUG_pe_buffer_input_stop[PE_ROW_SIZE][PE_COLUMN_SIZE],
+    output DEBUG_pe_buffer_input_valid[PE_ROW_SIZE][PE_COLUMN_SIZE],
+    output DEBUG_pe_fork_a_output_stop[PE_ROW_SIZE][PE_COLUMN_SIZE][INPUT_NUM],
+    output DEBUG_pe_fork_a_output_valid[PE_ROW_SIZE][PE_COLUMN_SIZE][INPUT_NUM],
+    output DEBUG_pe_join_output_stop[PE_ROW_SIZE][PE_COLUMN_SIZE],
+    output DEBUG_pe_join_output_valid[PE_ROW_SIZE][PE_COLUMN_SIZE]
 );
     // data path
     wire [DATA_WIDTH-1:0] memory_read_data[PE_ROW_SIZE][PE_COLUMN_SIZE];
@@ -52,6 +63,8 @@ module ElasticCGRA (
             for (
                 j = 0; j < PE_COLUMN_SIZE; j++
             ) begin : GenerateProcessingElementJ
+                assign DEBUG_pe_output[i][j] = pe_output[i][j][0];
+
                 wire [DATA_WIDTH - 1:0] pe_input_data[NEIGHBOR_PE_NUM];
                 wire tmp_pe_valid_input[NEIGHBOR_PE_NUM];
                 wire tmp_pe_stop_input[NEIGHBOR_PE_NUM];
@@ -114,7 +127,17 @@ module ElasticCGRA (
                     .valid_output(tmp_pe_valid_output),
                     .stop_output(tmp_pe_stop_output),
                     // DEBUG
-                    .DEBUG_alu_context_id(DEBUG_alu_context_id[i][j])
+                    .DEBUG_alu_context_id(DEBUG_alu_context_id[i][j]),
+                    .DEBUG_alu_op(DEBUG_alu_op[i][j]),
+                    .DEBUG_mux_output_valid(DEBUG_pe_mux_output_valid[i][j]),
+                    .DEBUG_mux_output_stop(DEBUG_pe_mux_output_stop[i][j]),
+                    .DEBUG_mux_input_PE_index(DEBUG_pe_mux_input_PE_index[i][j]),
+                    .DEBUG_buffer_input_stop(DEBUG_pe_buffer_input_stop[i][j]),
+                    .DEBUG_buffer_input_valid(DEBUG_pe_buffer_input_valid[i][j]),
+                    .DEBUG_fork_a_output_stop(DEBUG_pe_fork_a_output_stop[i][j]),
+                    .DEBUG_fork_a_output_valid(DEBUG_pe_fork_a_output_valid[i][j]),
+                    .DEBUG_join_output_stop(DEBUG_pe_join_output_stop[i][j]),
+                    .DEBUG_join_output_valid(DEBUG_pe_join_output_valid[i][j])
                 );
             end
         end

@@ -39,7 +39,17 @@ module ElasticPE (
     output valid_output[NEIGHBOR_PE_NUM],
     input stop_output[NEIGHBOR_PE_NUM],
     // DEBUG
-    output [CONTEXT_SIZE_BIT_LENGTH-1:0] DEBUG_alu_context_id
+    output [CONTEXT_SIZE_BIT_LENGTH-1:0] DEBUG_alu_context_id,
+    output [OPERATION_BIT_LENGTH-1:0] DEBUG_alu_op,
+    output DEBUG_mux_output_valid[2],
+    output DEBUG_mux_output_stop[2],
+    output DEBUG_buffer_input_stop,
+    output DEBUG_buffer_input_valid,
+    output DEBUG_fork_a_output_stop[INPUT_NUM],
+    output DEBUG_fork_a_output_valid[INPUT_NUM],
+    output DEBUG_join_output_stop,
+    output DEBUG_join_output_valid,
+    output [INPUT_NUM_BIT_LENGTH-1:0] DEBUG_mux_input_PE_index[2]
 );
     ElasticConfigData r_config_memory[CONTEXT_SIZE];
 
@@ -48,8 +58,6 @@ module ElasticPE (
     reg [CONTEXT_SIZE_BIT_LENGTH-1:0] r_config_index_alu;
     reg [CONTEXT_SIZE_BIT_LENGTH-1:0] r_config_index_fork;
     reg [DATA_WIDTH-1:0] op_cycle_counter;
-
-    assign DEBUG_alu_context_id = r_config_index_alu;
 
     // Fork -> Mux
     wire [DATA_WIDTH-1:0]        w_fork_a_output_data[INPUT_NUM], w_fork_b_output_data[INPUT_NUM];
@@ -309,8 +317,23 @@ module ElasticPE (
             // $display("fork output valid from reg: ", w_fork_b_output_valid[4]);
         end
 
-        // debug
     end
+
+    // DEBUG wire assign
+    assign DEBUG_alu_context_id = r_config_index_alu;
+    assign DEBUG_alu_op = r_config_memory[r_config_index_alu].op;
+    assign DEBUG_mux_output_valid[0] = w_mux_a_output.valid;
+    assign DEBUG_mux_output_valid[1] = w_mux_b_output.valid;
+    assign DEBUG_mux_output_stop[0] = w_elastic_join_stop_input[0];
+    assign DEBUG_mux_output_stop[1] = w_elastic_join_stop_input[1];
+    assign DEBUG_buffer_input_stop = w_alu_output.stop;
+    assign DEBUG_buffer_input_valid = w_alu_output.valid;
+    assign DEBUG_fork_a_output_stop = w_fork_a_output_stop;
+    assign DEBUG_fork_a_output_valid = w_fork_a_output_valid;
+    assign DEBUG_join_output_stop = w_elastic_join_stop_output;
+    assign DEBUG_join_output_valid = w_elastic_join_valid_output;
+    assign DEBUG_mux_input_PE_index[0] = r_config_memory[r_config_index_mux_a].input_PE_index_1;
+    assign DEBUG_mux_input_PE_index[1] = r_config_memory[r_config_index_mux_a].input_PE_index_2;
 endmodule
 
 `endif  // SYNCHRONOUSE_PE
