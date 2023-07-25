@@ -64,51 +64,52 @@ TEST(VerilogSimulatorTest, elastic_alu_test) {
     if ((time_counter % 10) == 0) {
       cycle++;
       if (cycle == 1) {
+        alu->start_exec = 1;
         SetOperation(1, 2, 1, 0, 1, 0, alu);  // add
-      } else if (cycle == 2) {
+      } else if (cycle == 3) {
         alu->valid_input = 0;
         EvaluateOutput(1, 1, 3, -1, -1, -1, -1, alu);
-      } else if (cycle == 3) {
-        SetOperation(6, 2, 2, 0, 0, 0, alu);  // sub
       } else if (cycle == 4) {
+        SetOperation(6, 2, 2, 0, 0, 0, alu);  // sub
+      } else if (cycle == 5) {
         alu->valid_input = 0;
         EvaluateOutput(0, 0, -1, -1, -1, -1, -1, alu);
-      } else if (cycle == 5) {
-        alu->valid_input = 1;
       } else if (cycle == 6) {
+        alu->valid_input = 1;
+      } else if (cycle == 7) {
         alu->valid_input = 0;
         EvaluateOutput(1, 1, 4, -1, -1, -1, -1, alu);
-      } else if (cycle == 7) {
+      } else if (cycle == 8) {
         SetOperation(3, 4, 3, 0, 1, 0, alu);  // mul
-      } else if (cycle == 9) {
+      } else if (cycle == 10) {
         EvaluateOutput(0, 1, 12, -1, -1, -1, -1, alu);
-      } else if (cycle == 11) {
+      } else if (cycle == 12) {
         alu->valid_input = 0;
         EvaluateOutput(1, 1, 12, -1, -1, -1, -1, alu);
-      } else if (cycle == 12) {
+      } else if (cycle == 13) {
         SetOperation(15, 3, 4, 0, 1, 0, alu);  // div
-      } else if (cycle == 16) {
+      } else if (cycle == 17) {
         alu->valid_input = 0;
         EvaluateOutput(1, 1, 5, -1, -1, -1, -1, alu);
-      } else if (cycle == 17) {
-        SetOperation(15, 3, 5, 100, 1, 0, alu);  // const
       } else if (cycle == 18) {
+        SetOperation(15, 3, 5, 100, 1, 0, alu);  // const
+      } else if (cycle == 19) {
         alu->valid_input = 0;
         EvaluateOutput(1, 1, 100, -1, -1, -1, -1, alu);
-      } else if (cycle == 19) {
+      } else if (cycle == 20) {
         SetOperation(20, 34, 6, 0, 1, 0, alu);  // load
         alu->memory_read_data = 200;
-      } else if (cycle == 23) {
+      } else if (cycle == 24) {
         alu->valid_input = 0;
         EvaluateOutput(1, 1, 200, -1, -1, -1, 20, alu);
-      } else if (cycle == 24) {
-        SetOperation(15, 3, 7, 0, 1, 0, alu);  // output
       } else if (cycle == 25) {
+        SetOperation(15, 3, 7, 0, 1, 0, alu);  // output
+      } else if (cycle == 26) {
         alu->valid_input = 0;
         EvaluateOutput(1, 1, 15, -1, -1, -1, -1, alu);
-      } else if (cycle == 26) {
-        SetOperation(20, 3, 8, 0, 1, 0, alu);  // route
       } else if (cycle == 27) {
+        SetOperation(20, 3, 8, 0, 1, 0, alu);  // route
+      } else if (cycle == 28) {
         alu->valid_input = 0;
         EvaluateOutput(1, 1, 20, -1, -1, -1, -1, alu);
       }

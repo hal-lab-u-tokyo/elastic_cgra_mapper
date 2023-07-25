@@ -182,11 +182,16 @@ TEST(VerilogSimulatorTest, elastic_PE_test_const) {
       if (cycle == 1) {
         bool output_PE_index[kNeighborPENum] = {1, 0, 0, 0};
         WritePEConfig(0, 0, 2, output_PE_index, 5, 10, pe);  // set const config
+      }
+      if (cycle == 2) {
+        bool output_PE_index[kNeighborPENum] = {1, 0, 0, 0};
+        WritePEConfig(1, 0, 2, output_PE_index, 5, 100,
+                      pe);  // set const config
         pe->start_exec = 1;
-      } else if (cycle == 2) {
+      } else if (cycle == 3) {
         pe->start_exec = 0;
         pe->stop_output[0] = 1;
-      } else if (cycle >= 4) {
+      } else if (5 <= cycle) {
         EXPECT_EQ(pe->pe_output_data[0], 10);
         EXPECT_EQ(pe->valid_output[0], 1);
       }
