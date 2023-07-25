@@ -29,13 +29,17 @@ module ElasticALU (
     output valid_output,
     input stop_output,
     // config
-    output switch_context
+    output switch_context,
+    // execution param
+    input start_exec
 );
     wire output_transfer = valid_output & !(stop_output);
-    wire input_transfer = valid_input & !stop_input;
+    wire input_transfer = (valid_input & !stop_input) | (op == 5) | (r_is_init & (op == 8)) ;
     reg [1:0] state;
     reg [DATA_WIDTH-1:0] op_cycle_counter;
     reg [DATA_WIDTH-1:0] r_input_data_1, r_input_data_2;
+    reg r_is_init;
+    reg r_start_exec;
     wire [DATA_WIDTH-1:0] input_data_1_for_alu;
     assign input_data_1_for_alu = input_transfer ? input_data_1 : r_input_data_1;
     wire [DATA_WIDTH-1:0] input_data_2_for_alu = input_transfer ? input_data_2 : r_input_data_2;
@@ -62,12 +66,19 @@ module ElasticALU (
     endfunction
 
     always_ff @(posedge clk, negedge reset_n) begin
+        if (start_exec == 1) begin
+            r_start_exec <= 1;
+        end
+        
         if (!reset_n) begin
             state <= BEFORE_EXEC;
-        end else begin
+            r_is_init <= 1;
+            r_start_exec <= 0;
+        end else if (r_start_exec) begin
             if (output_transfer & state == FINISH_EXEC) begin
                 state <= BEFORE_EXEC;
             end else if (input_transfer | state == DURING_EXEC) begin
+                r_is_init <= 0;
                 if (input_transfer) begin
                     r_input_data_1 <= input_data_1;
                     r_input_data_2 <= input_data_2;
@@ -119,7 +130,9 @@ module ElasticALU (
                 end
             end
             // $display("--- ALU ---");
+            // $display("op: ", op);
             // $display("state: ", state);
+            // $display("is init: ", r_is_init);
             // $display("input transfer: ", input_transfer);
             // $display("input valid: ", valid_input);
             // $display("input stop: ", stop_input);

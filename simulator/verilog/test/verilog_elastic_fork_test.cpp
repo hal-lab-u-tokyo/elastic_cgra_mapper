@@ -45,6 +45,7 @@ TEST(VerilogSimulatorTest, elastic_fork_test) {
     if ((time_counter % 10) == 0) {
       cycle++;
       if (cycle == 1) {
+        elastic_fork->stop_input = 1;
         bool stop_output[kNeighborPENum] = {0, 0, 0, 0};
         bool available_output[kNeighborPENum] = {1, 1, 1, 1};
         SetElasticForkValue(cycle, 1, stop_output, available_output);

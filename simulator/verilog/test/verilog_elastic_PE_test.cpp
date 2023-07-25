@@ -155,3 +155,171 @@ TEST(VerilogSimulatorTest, elastic_PE_test) {
     time_counter++;
   }
 }
+
+TEST(VerilogSimulatorTest, elastic_PE_test_const) {
+  Velastic_PE* pe = new Velastic_PE();
+  const int kNeighborPENum = 4;
+
+  int time_counter = 0;
+  pe->reset_n = 0;
+  pe->clk = 0;
+  pe->mapping_context_max_id = 1;
+  while (time_counter < 100) {
+    pe->eval();
+    time_counter++;
+  }
+
+  pe->reset_n = 1;
+  pe->mapping_context_max_id = 1;
+
+  int cycle = 0;
+  while (time_counter < 220) {
+    if ((time_counter % 5) == 0) {
+      pe->clk = !pe->clk;
+    }
+    if ((time_counter % 10) == 0) {
+      cycle++;
+      if (cycle == 1) {
+        bool output_PE_index[kNeighborPENum] = {1, 0, 0, 0};
+        WritePEConfig(0, 0, 2, output_PE_index, 5, 10, pe);  // set const config
+      }
+      if (cycle == 2) {
+        bool output_PE_index[kNeighborPENum] = {1, 0, 0, 0};
+        WritePEConfig(1, 0, 2, output_PE_index, 5, 100,
+                      pe);  // set const config
+        pe->start_exec = 1;
+      } else if (cycle == 3) {
+        pe->start_exec = 0;
+        pe->stop_output[0] = 1;
+      } else if (5 <= cycle) {
+        EXPECT_EQ(pe->pe_output_data[0], 10);
+        EXPECT_EQ(pe->valid_output[0], 1);
+      }
+
+      //   std::cout << std::endl;
+      //   std::cout << "<<<<<< cycle " << cycle << " >>>>>>" << std::endl;
+      //   for (int i = 0; i < kNeighborPENum; i++) {
+      //     std::cout << "output_data[" << i << "]: " << pe->pe_output_data[i]
+      //               << std::endl;
+      //     std::cout << "valid_output[" << i << "]: " << pe->valid_output[i] +
+      //     0
+      //               << std::endl;
+      //   }
+      //   std::cout << "memory_read_address: " << pe->memory_read_address
+      //             << std::endl;
+    }
+
+    pe->eval();
+    time_counter++;
+  }
+}
+
+TEST(VerilogSimulatorTest, elastic_PE_test_route) {
+  Velastic_PE* pe = new Velastic_PE();
+  const int kNeighborPENum = 4;
+
+  int time_counter = 0;
+  pe->reset_n = 1;
+  pe->clk = 0;
+  pe->mapping_context_max_id = 1;
+  while (time_counter < 100) {
+    if (time_counter == 1) {
+      pe->reset_n = 0;
+    }
+    pe->eval();
+    time_counter++;
+  }
+
+  pe->reset_n = 1;
+  pe->mapping_context_max_id = 0;
+
+  int cycle = 0;
+  while (time_counter < 170) {
+    if ((time_counter % 5) == 0) {
+      pe->clk = !pe->clk;
+    }
+    if ((time_counter % 10) == 0) {
+      cycle++;
+      if (cycle == 1) {
+        bool output_PE_index[kNeighborPENum] = {1, 0, 0, 0};
+        WritePEConfig(0, 0, 2, output_PE_index, 8, 10, pe);  // set const config
+        pe->start_exec = 1;
+      } else if (cycle == 2) {
+        pe->start_exec = 0;
+        pe->stop_output[0] = 1;
+      } else if (5 <= cycle) {
+        EXPECT_EQ(pe->pe_output_data[0], 0);
+        EXPECT_EQ(pe->valid_output[0], 1);
+      }
+
+      //   std::cout << std::endl;
+        // std::cout << "<<<<<< cycle " << cycle << " >>>>>>" << std::endl;
+      //   for (int i = 0; i < kNeighborPENum; i++) {
+      //     std::cout << "output_data[" << i << "]: " << pe->pe_output_data[i]
+      //               << std::endl;
+      //     std::cout << "valid_output[" << i << "]: " << pe->valid_output[i] +
+      //     0
+      //               << std::endl;
+      //   }
+      //   std::cout << "memory_read_address: " << pe->memory_read_address
+      //             << std::endl;
+    }
+
+    pe->eval();
+    time_counter++;
+  }
+}
+
+TEST(VerilogSimulatorTest, elastic_PE_test_initialize) {
+  Velastic_PE* pe = new Velastic_PE();
+  const int kNeighborPENum = 4;
+
+  int time_counter = 0;
+  pe->reset_n = 0;
+  pe->clk = 0;
+  pe->mapping_context_max_id = 1;
+  while (time_counter < 100) {
+    pe->eval();
+    time_counter++;
+  }
+
+  pe->reset_n = 1;
+  pe->mapping_context_max_id = 0;
+
+  int cycle = 0;
+  while (time_counter < 150) {
+    if ((time_counter % 5) == 0) {
+      pe->clk = !pe->clk;
+    }
+    if ((time_counter % 10) == 0) {
+      cycle++;
+      if (cycle == 1) {
+        pe->start_exec = 1;
+        pe->pe_input_data[0] = 4;
+        bool output_PE_index[kNeighborPENum] = {1, 0, 0, 0};
+        WritePEConfig(0, 0, 4, output_PE_index, 1, 10, pe);  // set const config
+      } else if (cycle == 2) {
+        pe->start_exec = 0;
+        pe->valid_input[0] = 1;
+      } else if (5 <= cycle) {
+        EXPECT_EQ(pe->pe_output_data[0], 4);
+        EXPECT_EQ(pe->valid_output[0], 1);
+        EXPECT_EQ(pe->stop_input[0], 0);
+      }
+
+      std::cout << std::endl;
+      std::cout << "<<<<<< cycle " << cycle << " >>>>>>" << std::endl;
+      for (int i = 0; i < kNeighborPENum; i++) {
+        std::cout << "output_data[" << i << "]: " << pe->pe_output_data[i]
+                  << std::endl;
+        std::cout << "valid_output[" << i << "]: " << pe->valid_output[i] + 0
+                  << std::endl;
+      }
+      std::cout << "memory_read_address: " << pe->memory_read_address
+                << std::endl;
+    }
+
+    pe->eval();
+    time_counter++;
+  }
+}
