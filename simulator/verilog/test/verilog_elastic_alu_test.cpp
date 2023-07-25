@@ -129,3 +129,47 @@ TEST(VerilogSimulatorTest, elastic_alu_test) {
     time_counter++;
   }
 }
+
+TEST(VerilogSimulatorTest, elastic_alu_init_test) {
+  Velastic_alu* alu = new Velastic_alu();
+
+  int time_counter = 0;
+  alu->reset_n = 0;
+  alu->clk = 0;
+  while (time_counter < 100) {
+    alu->eval();
+    time_counter++;
+  }
+
+  alu->reset_n = 1;
+  alu->clk = 1;
+  int cycle = 0;
+  while (time_counter < 130) {
+    if ((time_counter % 5) == 0) {
+      alu->clk = !alu->clk;
+    }
+    if ((time_counter % 10) == 0) {
+      cycle++;
+      if (cycle == 1) {
+        alu->start_exec = 1;
+        SetOperation(0, 0, 8, 0, 0, 0, alu);  // route
+      } else if (cycle == 2) {
+        alu->valid_output = 1;
+        EvaluateOutput(1, 0, 0, -1, -1, -1, -1, alu);
+      }
+      // std::cout << "----- cycle " << cycle << " -----" << std::endl;
+      // std::cout << "output: " << alu->output_data << std::endl;
+      // std::cout << "stop_input: " << alu->stop_input[0] + 0 << std::endl;
+      // std::cout << "valid_output: " << alu->valid_output + 0 << std::endl;
+      // std::cout << "memory_write_address: " << alu->memory_write_address
+      //           << std::endl;
+      // std::cout << "memory_write: " << alu->memory_write + 0 << std::endl;
+      // std::cout << "memory_write_data: " << alu->memory_write_data <<
+      // std::endl; std::cout << "memory_read_address: " <<
+      // alu->memory_read_data
+      //           << std::endl;
+    }
+    alu->eval();
+    time_counter++;
+  }
+}
