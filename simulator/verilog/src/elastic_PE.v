@@ -178,7 +178,8 @@ module ElasticPE (
         .stop_input(w_elastic_join_stop_output),
         .valid_output(w_alu_output.valid),
         .stop_output(w_alu_output.stop),
-        .switch_context(w_switch_context_alu)
+        .switch_context(w_switch_context_alu),
+        .start_exec(start_exec)
     );
 
     // Elastic Module : Buffer
