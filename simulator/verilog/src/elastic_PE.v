@@ -80,7 +80,7 @@ module ElasticPE (
     // Elastic Module : Fork
     wire [NEIGHBOR_PE_NUM-1:0] available_output;
     assign available_output = ~0;
-    genvar i;
+    genvar i, j;
     generate
         for (i = 0; i < NEIGHBOR_PE_NUM; i++) begin : GenerateFork
             wire [DATA_WIDTH-1:0] fork_output_data[NEIGHBOR_PE_NUM];
@@ -94,6 +94,10 @@ module ElasticPE (
             assign w_fork_b_output_valid[i] = fork_valid_output[1];
             assign fork_stop_output[0] = w_fork_a_output_stop[i];
             assign fork_stop_output[1] = w_fork_b_output_stop[i];
+
+            for (j = 2; j < NEIGHBOR_PE_NUM; j++) begin : GenerateForkOutputWire
+                assign fork_stop_output[j] = 0;
+            end
 
             ElasticFork elastic_fork (
                 .clk(clk),
