@@ -15,7 +15,7 @@ int main(int argc, char* argv[]) {
   std::string dfg_dot_file_path = argv[1];
   std::string mrrg_file_path = argv[2];
   std::string output_mapping_path = argv[3];
-  std::string log_file_dir = argv[4];
+  std::string log_file_path = argv[4];
 
   std::shared_ptr<entity::DFG> dfg_ptr = std::make_shared<entity::DFG>();
   std::shared_ptr<entity::MRRG> mrrg_ptr = std::make_shared<entity::MRRG>();
@@ -25,7 +25,7 @@ int main(int argc, char* argv[]) {
 
   mapper::GurobiILPMapper* mapper;
   mapper = mapper::GurobiILPMapper().CreateMapper(dfg_ptr, mrrg_ptr);
-  mapper->SetLogFilePath(log_file_dir);
+  mapper->SetLogFilePath(log_file_path);
 
   std::shared_ptr<entity::Mapping> mapping_ptr =
       std::make_shared<entity::Mapping>();
