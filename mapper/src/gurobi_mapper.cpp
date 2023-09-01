@@ -308,8 +308,6 @@ std::pair<bool, entity::Mapping> mapper::GurobiILPMapper::Execution() {
 void mapper::GurobiILPMapper::SetLogFilePath(const std::string& log_file_path) {
   log_file_path_ = log_file_path;
 
-  assert(std::filesystem::exists(log_file_path));
-
   std::ofstream log_file;
   const auto mrrg_config = mrrg_ptr_->GetMRRGConfig();
   log_file.open(log_file_path_);
@@ -317,6 +315,7 @@ void mapper::GurobiILPMapper::SetLogFilePath(const std::string& log_file_path) {
   log_file << "-- CGRA setting --" << std::endl;
   log_file << "row: " << mrrg_config.row << std::endl;
   log_file << "column: " << mrrg_config.column << std::endl;
+  log_file << "context_size: " << mrrg_config.context_size << std::endl;
   log_file << "memory_io: "
            << entity::MRRGMemoryIoTypeToString(mrrg_config.memory_io)
            << std::endl;
