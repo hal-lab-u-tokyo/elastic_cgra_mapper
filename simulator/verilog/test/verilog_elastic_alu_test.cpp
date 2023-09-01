@@ -106,7 +106,9 @@ TEST(VerilogSimulatorTest, elastic_alu_test) {
         SetOperation(15, 3, 7, 0, 1, 0, alu);  // output
       } else if (cycle == 26) {
         alu->valid_input = 0;
-        EvaluateOutput(1, 1, 15, -1, -1, -1, -1, alu);
+        std::cout << "output test start" << std::endl;
+        EvaluateOutput(0, 1, 0, -1, -1, 15, -1, alu);
+        std::cout << "output test end" << std::endl;
       } else if (cycle == 27) {
         SetOperation(20, 3, 8, 0, 1, 0, alu);  // route
       } else if (cycle == 28) {
