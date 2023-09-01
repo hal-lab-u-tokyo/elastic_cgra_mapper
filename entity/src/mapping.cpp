@@ -67,8 +67,10 @@ entity::Mapping::Mapping(
       }
       if (from_op_type == entity::OpType::CONST) {
         int op_id = PE_id_to_op_id_map.at(from_PE_id);
-        config_map_[from_config_id].SetConstValue(
-            dfg.GetNodeProperty(op_id).const_value.value());
+        if (dfg.GetNodeProperty(op_id).const_value.has_value()) {
+          config_map_[from_config_id].SetConstValue(
+              dfg.GetNodeProperty(op_id).const_value.value());
+        }
       }
 
       for (int adj_PE_id : adj_PE_id_vec) {

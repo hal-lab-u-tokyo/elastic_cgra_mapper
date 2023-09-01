@@ -1,11 +1,14 @@
 #include <gurobi_c++.h>
 
+#include <cassert>
+#include <filesystem>
+#include <fstream>
 #include <mapper/gurobi_mapper.hpp>
 
 mapper::GurobiILPMapper::GurobiILPMapper(
     const std::shared_ptr<entity::DFG> dfg_ptr,
     const std::shared_ptr<entity::MRRG> mrrg_ptr)
-    : dfg_ptr_(dfg_ptr), mrrg_ptr_(mrrg_ptr) {}
+    : dfg_ptr_(dfg_ptr), mrrg_ptr_(mrrg_ptr), log_file_path_("") {}
 
 mapper::GurobiILPMapper* mapper::GurobiILPMapper::CreateMapper(
     const std::shared_ptr<entity::DFG> dfg_ptr,
@@ -25,6 +28,7 @@ std::pair<bool, entity::Mapping> mapper::GurobiILPMapper::Execution() {
 
     // create an empty model
     GRBModel model = GRBModel(env);
+    model.set("LogFile", log_file_path_);
 
     int dfg_node_num = dfg_ptr_->GetNodeNum();
     int mrrg_node_num = mrrg_ptr_->GetNodeNum();
@@ -147,10 +151,11 @@ std::pair<bool, entity::Mapping> mapper::GurobiILPMapper::Execution() {
             mrrg_ptr_->GetParentNodeIdVec(mrrg_node_id);
 
         GRBLinExpr parent_node_num_expr;
-        double dfg_parent_node_num = static_cast<double>(dfg_parent_node_id_vec.size());
+        double dfg_parent_node_num =
+            static_cast<double>(dfg_parent_node_id_vec.size());
         parent_node_num_expr.addTerms(
-            &dfg_parent_node_num,
-            &(map_op_to_PE[dfg_node_id][mrrg_node_id]), 1);
+            &dfg_parent_node_num, &(map_op_to_PE[dfg_node_id][mrrg_node_id]),
+            1);
         GRBLinExpr neighborhood_parent_node_num_lin_expr;
         for (int dfg_parent_node_id : dfg_parent_node_id_vec) {
           for (int mrrg_parent_node_id : mrrg_parent_node_id_vec) {
@@ -298,4 +303,27 @@ std::pair<bool, entity::Mapping> mapper::GurobiILPMapper::Execution() {
 
     return std::make_pair(false, entity::Mapping(mrrg_ptr_->GetMRRGConfig()));
   }
+}
+
+void mapper::GurobiILPMapper::SetLogFilePath(const std::string& log_file_path) {
+  log_file_path_ = log_file_path;
+
+  std::ofstream log_file;
+  const auto mrrg_config = mrrg_ptr_->GetMRRGConfig();
+  log_file.open(log_file_path_);
+
+  log_file << "-- CGRA setting --" << std::endl;
+  log_file << "row: " << mrrg_config.row << std::endl;
+  log_file << "column: " << mrrg_config.column << std::endl;
+  log_file << "context_size: " << mrrg_config.context_size << std::endl;
+  log_file << "memory_io: "
+           << entity::MRRGMemoryIoTypeToString(mrrg_config.memory_io)
+           << std::endl;
+  log_file << "cgra_type: "
+           << entity::MRRGCGRATypeToString(mrrg_config.cgra_type) << std::endl;
+  log_file << "network_type: "
+           << entity::MRRGNetworkTypeToString(mrrg_config.network_type)
+           << std::endl;
+
+  log_file.close();
 }
