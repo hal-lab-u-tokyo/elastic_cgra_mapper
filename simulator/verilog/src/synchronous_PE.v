@@ -30,7 +30,8 @@ module PE (
     output [DATA_WIDTH-1:0] DEBUG_input_PE_data_1,
     output [DATA_WIDTH-1:0] DEBUG_input_PE_data_2,
     output [INPUT_NUM_BIT_LENGTH-1:0] DEBUG_input_PE_index_1,
-    output [INPUT_NUM_BIT_LENGTH-1:0] DEBUG_input_PE_index_2
+    output [INPUT_NUM_BIT_LENGTH-1:0] DEBUG_input_PE_index_2,
+    output [CONTEXT_SIZE_BIT_LENGTH-1:0] DEBUG_alu_context_id
 );
     ConfigData r_config_memory[CONTEXT_SIZE];
 
@@ -42,6 +43,8 @@ module PE (
     assign DEBUG_input_PE_data_2 = pe_input_data[r_config_memory[r_config_index].input_PE_index_2];
     assign DEBUG_input_PE_index_1 = r_config_memory[r_config_index].input_PE_index_1;
     assign DEBUG_input_PE_index_2 = r_config_memory[r_config_index].input_PE_index_2;
+    assign DEBUG_alu_context_id = r_config_index;
+
     // data for operation execution
     always_ff @(posedge clk, negedge reset_n) begin
         if (!reset_n) begin

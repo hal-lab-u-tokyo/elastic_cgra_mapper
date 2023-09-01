@@ -25,6 +25,7 @@ module CGRA (
     output [DATA_WIDTH-1:0] pe_output[PE_ROW_SIZE][PE_COLUMN_SIZE],
     output [DATA_WIDTH-1:0] pe_input_array[PE_ROW_SIZE][PE_COLUMN_SIZE][INPUT_NUM],
     // DEBUG
+    output [CONTEXT_SIZE_BIT_LENGTH-1:0] DEBUG_alu_context_id[PE_ROW_SIZE][PE_COLUMN_SIZE],
     output [DATA_WIDTH-1:0] DEBUG_input_PE_data_1[PE_ROW_SIZE][PE_COLUMN_SIZE],
     output [DATA_WIDTH-1:0] DEBUG_input_PE_data_2[PE_ROW_SIZE][PE_COLUMN_SIZE],
     output [INPUT_NUM_BIT_LENGTH-1:0] DEBUG_input_PE_index_1[PE_ROW_SIZE][PE_COLUMN_SIZE],
@@ -96,7 +97,8 @@ module CGRA (
                     .DEBUG_input_PE_data_1(DEBUG_input_PE_data_1[i][j]),
                     .DEBUG_input_PE_data_2(DEBUG_input_PE_data_2[i][j]),
                     .DEBUG_input_PE_index_1(DEBUG_input_PE_index_1[i][j]),
-                    .DEBUG_input_PE_index_2(DEBUG_input_PE_index_2[i][j])
+                    .DEBUG_input_PE_index_2(DEBUG_input_PE_index_2[i][j]),
+                    .DEBUG_alu_context_id(DEBUG_alu_context_id[i][j])
                 );
             end
         end
