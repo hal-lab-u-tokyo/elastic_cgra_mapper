@@ -43,7 +43,7 @@ module ElasticFork (
         assign switch_context_intermediate[i+1] = switch_context_intermediate[i] & (r_output_transferred[i] | output_transfer[i] | !(available_output[i]));
     end
     assign stop_input = stop_input_intermediate[NEIGHBOR_PE_NUM];
-    assign switch_context = switch_context_intermediate[NEIGHBOR_PE_NUM];
+    assign switch_context = switch_context_intermediate[NEIGHBOR_PE_NUM] | (available_output == 0);
 
     always_ff @(posedge clk, negedge reset_n) begin
         begin
