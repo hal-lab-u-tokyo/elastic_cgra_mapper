@@ -25,6 +25,11 @@ set_property(TARGET mapping PROPERTY CXX_STANDARD 17)
 target_compile_options(mapping INTERFACE -Wall -Wextra -Wno-deprecated)
 target_link_libraries(mapping PRIVATE io entity mapper cpp_simulator)
 
+add_executable(bulk_mapping src/bulk_mapping.cpp)
+set_property(TARGET bulk_mapping PROPERTY CXX_STANDARD 17)
+target_compile_options(bulk_mapping INTERFACE -Wall -Wextra -Wno-deprecated)
+target_link_libraries(bulk_mapping PRIVATE io entity mapper cpp_simulator)
+
 add_executable(verilator_synchronous_CGRA src/verilator_synchronous_CGRA.cpp)
 verilate(verilator_synchronous_CGRA TRACE INCLUDE_DIRS
          ${CMAKE_CURRENT_SOURCE_DIR}/simulator/verilog/src/ SOURCES
