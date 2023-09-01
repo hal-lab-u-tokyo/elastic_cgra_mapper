@@ -21,9 +21,9 @@ module ElasticPE (
     input [DATA_WIDTH-1:0] config_const_data,
     input write_config_data,
     input [CONTEXT_SIZE_BIT_LENGTH-1:0] config_index,
+    input [CONTEXT_SIZE_BIT_LENGTH-1:0] mapping_context_max_id,
     // execution param
     input start_exec,
-    input [CONTEXT_SIZE_BIT_LENGTH-1:0] mapping_context_max_id,
     // PE if
     input [DATA_WIDTH-1:0] pe_input_data[NEIGHBOR_PE_NUM],
     output [DATA_WIDTH-1:0] pe_output_data[NEIGHBOR_PE_NUM],
@@ -58,6 +58,7 @@ module ElasticPE (
     reg [CONTEXT_SIZE_BIT_LENGTH-1:0] r_config_index_alu;
     reg [CONTEXT_SIZE_BIT_LENGTH-1:0] r_config_index_fork;
     reg [DATA_WIDTH-1:0] op_cycle_counter;
+    reg [CONTEXT_SIZE_BIT_LENGTH-1:0] r_mapping_context_max_id;
 
     // Fork -> Mux
     wire [DATA_WIDTH-1:0]        w_fork_a_output_data[INPUT_NUM], w_fork_b_output_data[INPUT_NUM];
@@ -234,6 +235,7 @@ module ElasticPE (
                 r_config_memory[config_index].output_PE_index<=config_output_PE_index;
                 r_config_memory[config_index].op <= config_op;
                 r_config_memory[config_index].const_data <= config_const_data;
+                r_mapping_context_max_id <= mapping_context_max_id;
             end
 
             // context reset 
@@ -246,14 +248,14 @@ module ElasticPE (
 
             // context switch : mux
             if (w_switch_context_mux_a) begin
-                if (r_config_index_mux_a == mapping_context_max_id) begin
+                if (r_config_index_mux_a == r_mapping_context_max_id) begin
                     r_config_index_mux_a <= 0;
                 end else begin
                     r_config_index_mux_a <= r_config_index_mux_a + 1;
                 end
             end
             if (w_switch_context_mux_b) begin
-                if (r_config_index_mux_b == mapping_context_max_id) begin
+                if (r_config_index_mux_b == r_mapping_context_max_id) begin
                     r_config_index_mux_b <= 0;
                 end else begin
                     r_config_index_mux_b <= r_config_index_mux_b + 1;
@@ -270,7 +272,7 @@ module ElasticPE (
                 end
 
                 // alu config update
-                if (r_config_index_alu == mapping_context_max_id) begin
+                if (r_config_index_alu == r_mapping_context_max_id) begin
                     r_config_index_alu <= 0;
                 end else begin
                     r_config_index_alu <= r_config_index_alu + 1;
@@ -278,7 +280,7 @@ module ElasticPE (
             end
             // context switch : fork
             if (w_switch_context_fork) begin
-                if (r_config_index_fork == mapping_context_max_id) begin
+                if (r_config_index_fork == r_mapping_context_max_id) begin
                     r_config_index_fork <= 0;
                 end else begin
                     r_config_index_fork <= r_config_index_fork + 1;
