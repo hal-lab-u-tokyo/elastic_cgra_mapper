@@ -33,7 +33,7 @@ module ElasticALU (
     // execution param
     input start_exec
 );
-    wire output_transfer = valid_output & !(stop_output);
+    wire output_transfer = (valid_output & !(stop_output)) | (op == 7 & (state == FINISH_EXEC));
     wire input_transfer = (valid_input & !stop_input) | (op == 5) | (r_is_init & (op == 8)) ;
     reg [1:0] state;
     reg [DATA_WIDTH-1:0] op_cycle_counter;
@@ -45,7 +45,7 @@ module ElasticALU (
     wire [DATA_WIDTH-1:0] input_data_2_for_alu = input_transfer ? input_data_2 : r_input_data_2;
 
     assign stop_input = (state >= DURING_EXEC);
-    assign valid_output = (state == FINISH_EXEC);
+    assign valid_output = (state == FINISH_EXEC) & (op != 7);
     assign switch_context = output_transfer;
 
     function [DATA_WIDTH-1:0] getOpCycle(
@@ -69,7 +69,6 @@ module ElasticALU (
         if (start_exec == 1) begin
             r_start_exec <= 1;
         end
-        
         if (!reset_n) begin
             state <= BEFORE_EXEC;
             r_is_init <= 1;
@@ -106,7 +105,8 @@ module ElasticALU (
                         output_data <= memory_read_data;
                     end
                     7: begin
-                        output_data <= input_data_1_for_alu;  // output 
+                        output_data <= 0;
+                        memory_write_data <= input_data_1_for_alu;  // output 
                     end
                     8: begin
                         output_data <= input_data_1_for_alu;  // route
