@@ -39,3 +39,18 @@ target_compile_options(verilator_synchronous_CGRA INTERFACE -Wall -Wextra
                                                             -Wno-deprecated)
 target_link_libraries(verilator_synchronous_CGRA PRIVATE io entity mapper
                                                          cpp_simulator)
+
+add_executable(verilator_elastic_CGRA src/verilator_elastic_CGRA.cpp)
+verilate(
+  verilator_elastic_CGRA
+  TRACE
+  INCLUDE_DIRS
+  ${CMAKE_CURRENT_SOURCE_DIR}/simulator/verilog/src/
+  VERILATOR_ARGS
+  --trace-max-array
+  512
+  SOURCES
+  ${CMAKE_CURRENT_SOURCE_DIR}/simulator/verilog/src/elastic_CGRA.v)
+set_property(TARGET verilator_elastic_CGRA PROPERTY CXX_STANDARD 17)
+target_compile_options(verilator_elastic_CGRA INTERFACE -Wall -Wextra -Wno-deprecated)
+target_link_libraries(verilator_elastic_CGRA PRIVATE io entity mapper cpp_simulator)
