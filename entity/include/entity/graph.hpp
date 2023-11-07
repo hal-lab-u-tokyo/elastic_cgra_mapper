@@ -45,7 +45,21 @@ class BaseGraphClass {
     return graph_[edge_id];
   }
 
-  int GetNodeNum()const  { return boost::num_vertices(graph_); };
+  int GetNodeNum() const { return boost::num_vertices(graph_); };
+
+  int GetEdgeNum() const { return boost::num_edges(graph_); };
+
+  typename boost::graph_traits<
+      BaseGraph<NodeProperty, EdgeProperty, GraphProperty>>::vertex_descriptor
+  AddNode(const NodeProperty property) {
+    auto v = boost::add_vertex(graph_);
+    graph_[v].op = property.op;
+    graph_[v].op_name = property.op_name;
+    graph_[v].op_str = property.op_str;
+    graph_[v].const_value = property.const_value;
+
+    return v;
+  }
 
   std::vector<int> GetAdjacentNodeIdVec(int node_id) const {
     std::vector<int> adjacent_node_id_vec;
