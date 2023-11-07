@@ -30,6 +30,11 @@ set_property(TARGET bulk_mapping PROPERTY CXX_STANDARD 17)
 target_compile_options(bulk_mapping INTERFACE -Wall -Wextra -Wno-deprecated)
 target_link_libraries(bulk_mapping PRIVATE io entity mapper cpp_simulator)
 
+add_executable(measure_parallel_perf src/measure_parallel_perf.cpp)
+set_property(TARGET measure_parallel_perf PROPERTY CXX_STANDARD 17)
+target_compile_options(measure_parallel_perf INTERFACE -Wall -Wextra -Wno-deprecated)
+target_link_libraries(measure_parallel_perf PRIVATE io entity mapper cpp_simulator)
+
 add_executable(verilator_synchronous_CGRA src/verilator_synchronous_CGRA.cpp)
 verilate(verilator_synchronous_CGRA TRACE INCLUDE_DIRS
          ${CMAKE_CURRENT_SOURCE_DIR}/simulator/verilog/src/ SOURCES
