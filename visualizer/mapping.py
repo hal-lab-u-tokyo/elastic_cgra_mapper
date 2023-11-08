@@ -13,6 +13,8 @@ class MemoryIOType(Enum):
             print("ERROR: MemoryIOType get_from_string invalid input")
             raise ValueError
 
+    def __int__(self):
+        return self.value
 
 class CGRAType(Enum):
     Elastic = 0
