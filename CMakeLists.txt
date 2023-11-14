@@ -19,6 +19,7 @@ add_subdirectory(entity)
 add_subdirectory(io)
 add_subdirectory(mapper)
 add_subdirectory(simulator)
+add_subdirectory(remapper)
 
 add_executable(mapping src/mapping.cpp)
 set_property(TARGET mapping PROPERTY CXX_STANDARD 17)
@@ -32,8 +33,10 @@ target_link_libraries(bulk_mapping PRIVATE io entity mapper cpp_simulator)
 
 add_executable(measure_parallel_perf src/measure_parallel_perf.cpp)
 set_property(TARGET measure_parallel_perf PROPERTY CXX_STANDARD 17)
-target_compile_options(measure_parallel_perf INTERFACE -Wall -Wextra -Wno-deprecated)
-target_link_libraries(measure_parallel_perf PRIVATE io entity mapper cpp_simulator)
+target_compile_options(measure_parallel_perf INTERFACE -Wall -Wextra
+                                                       -Wno-deprecated)
+target_link_libraries(measure_parallel_perf PRIVATE io entity mapper
+                                                    cpp_simulator)
 
 add_executable(verilator_synchronous_CGRA src/verilator_synchronous_CGRA.cpp)
 verilate(verilator_synchronous_CGRA TRACE INCLUDE_DIRS
@@ -44,3 +47,7 @@ target_compile_options(verilator_synchronous_CGRA INTERFACE -Wall -Wextra
                                                             -Wno-deprecated)
 target_link_libraries(verilator_synchronous_CGRA PRIVATE io entity mapper
                                                          cpp_simulator)
+add_executable(remapping src/elastic_remapping.cpp)
+set_property(TARGET remapping PROPERTY CXX_STANDARD 17)
+target_compile_options(remapping INTERFACE -Wall -Wextra -Wno-deprecated)
+target_link_libraries(remapping PRIVATE io entity remapper)

@@ -101,3 +101,14 @@ entity::Mapping::Mapping(
     }
   }
 };
+
+size_t entity::Mapping::GetOpNum() const {
+  size_t result = 0;
+  for (const auto& id_and_config : config_map_) {
+    if (id_and_config.second.operation_type != entity::OpType::NOP) {
+      result++;
+    }
+  }
+
+  return result;
+}
