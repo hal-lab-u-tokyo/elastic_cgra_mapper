@@ -28,6 +28,7 @@ class Mapping {
       return CGRAConfig(OpType::NOP, OpTypeToString(OpType::NOP));
     }
   };
+  size_t GetOpNum() const;
 
  private:
   MRRGConfig mrrg_config_;

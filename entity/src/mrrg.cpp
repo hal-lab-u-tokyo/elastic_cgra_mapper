@@ -198,7 +198,7 @@ entity::MRRG::MRRG(entity::MRRGConfig mrrg_config)
   graph_[boost::graph_bundle].network_type = mrrg_config.network_type;
 };
 
-entity::MRRGConfig entity::MRRG::GetMRRGConfig() {
+entity::MRRGConfig entity::MRRG::GetMRRGConfig() const {
   entity::MRRGConfig mrrg_config;
   mrrg_config.row = graph_[boost::graph_bundle].row_num;
   mrrg_config.column = graph_[boost::graph_bundle].column_num;

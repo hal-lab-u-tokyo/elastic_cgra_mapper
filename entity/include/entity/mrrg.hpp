@@ -71,7 +71,7 @@ class MRRG : public BaseGraphClass<MRRGNodeProperty, MRRGEdgeProperty,
   MRRG(MRRGGraph mrrg_graph);
   MRRG(MRRGConfig mrrg_config);
 
-  MRRGConfig GetMRRGConfig();
+  MRRGConfig GetMRRGConfig() const;
   int GetMRRGNodeId(int row_id, int column_id, int context_id);
 
  private:
