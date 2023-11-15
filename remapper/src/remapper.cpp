@@ -6,6 +6,7 @@
 #include "remapper/mapping_concater.hpp"
 #include "remapper/mapping_transform_op.hpp"
 #include "remapper/rotater.hpp"
+#include "time.h"
 
 remapper::MappingTransformOp CreateMappingTransformOpFromSearchId(
     const entity::Mapping& mapping,
@@ -57,8 +58,8 @@ boost::numeric::ublas::matrix<int> CreateMatrixForElastic(
 
 std::pair<bool, entity::Mapping> remapper::Remapper::ElasticRemapping(
     const std::vector<entity::Mapping>& mapping_vec,
-    const entity::MRRGConfig& target_mrrg_config,
-    const int target_parallel_num) {
+    const entity::MRRGConfig& target_mrrg_config, const int target_parallel_num,
+    std::ofstream& log_file) {
   std::vector<int> max_search_id(mapping_vec.size());
 
   for (size_t i = 0; i < mapping_vec.size(); i++) {
@@ -83,11 +84,13 @@ std::pair<bool, entity::Mapping> remapper::Remapper::ElasticRemapping(
       selected_mapping_vec[i] = mapping_vec[selected_mapping_id_vec[i]];
       max_selected_search_id_vec[i] = max_search_id[selected_mapping_id_vec[i]];
     }
-    std::cout << "mapping group id: " << mapping_group_id << std::endl;
+    log_file << "mapping group id: " << mapping_group_id << std::endl;
 
     // shift and rotate mapping
     remapper::CombinationCounter selected_search_id_combination(
         max_selected_search_id_vec, selected_mapping_id_vec);
+
+    const auto start_time = clock();
     while (1) {
       std::vector<int> selected_search_id_vec =
           selected_search_id_combination.GetCombination();
@@ -129,6 +132,8 @@ std::pair<bool, entity::Mapping> remapper::Remapper::ElasticRemapping(
         break;
       }
     };
+    const auto end_time = clock();
+    log_file << "mapping group search time: " << ((double)end_time - start_time) / CLOCKS_PER_SEC << std::endl; 
 
     // update selected mapping
     bool test_all_mapping_combination = !(selected_mapping_combination.Next());

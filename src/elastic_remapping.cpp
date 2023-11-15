@@ -2,6 +2,7 @@
 
 #include <entity/mapping.hpp>
 #include <filesystem>
+#include <fstream>
 #include <io/architecture_io.hpp>
 #include <io/mapping_io.hpp>
 #include <remapper/remapper.hpp>
@@ -10,6 +11,20 @@ int main(int argc, char* argv[]) {
   std::string mapping_dir_path = argv[1];
   std::string mrrg_file_path = argv[2];
   std::string output_mapping_dir = argv[3];
+  std::string output_log_dir = argv[4];
+
+  if (!std::filesystem::exists(output_mapping_dir)) {
+    std::filesystem::create_directories(output_mapping_dir);
+  };
+  if (!std::filesystem::exists(output_log_dir)) {
+    std::filesystem::create_directories(output_log_dir);
+  }
+  const auto tmp_time = std::time(0);
+  std::string log_file_path =
+      output_log_dir + "log" + std::to_string(tmp_time) + ".log";
+
+  std::ofstream log_file;
+  log_file.open(log_file_path);
 
   std::vector<entity::Mapping> mapping_vec;
   const auto mrrg_config =
@@ -33,7 +48,7 @@ int main(int argc, char* argv[]) {
         mapping.GetMRRGConfig().column > min_row_column_size) {
       continue;
     }
-    std::cout << file.path() << std::endl;
+    log_file << file.path() << std::endl;
     min_mapping_op_num = std::min(min_mapping_op_num, mapping.GetOpNum());
     mapping_vec.push_back(mapping);
   }
@@ -46,17 +61,21 @@ int main(int argc, char* argv[]) {
       std::make_shared<entity::Mapping>();
 
   while (parallel_num > 0) {
-    std::cout << "parallel num: " << parallel_num << std::endl;
+    log_file << "parallel num: " << parallel_num << std::endl;
+    const auto start_time = clock();
     std::tie(is_success, *result_mapping) =
         remapper::Remapper::ElasticRemapping(mapping_vec, mrrg_config,
-                                             parallel_num);
+                                             parallel_num, log_file);
+    const auto end_time = clock();
+    log_file << "total " << parallel_num << " parallel remapping time: "
+             << ((double)end_time - start_time) / CLOCKS_PER_SEC << std::endl;
+
     if (is_success) break;
 
     parallel_num--;
   }
 
   if (is_success) {
-    const auto tmp_time = std::time(0);
     std::string output_mapping_path =
         output_mapping_dir + "mapping_" + std::to_string(tmp_time) + ".json";
     io::WriteMappingFile(output_mapping_path, result_mapping, mrrg_config);
