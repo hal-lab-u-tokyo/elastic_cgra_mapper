@@ -1,6 +1,6 @@
 #include "remapper/remapper.hpp"
 
-#include <boost/numeric/ublas/matrix.hpp>
+#include <Eigen/Eigen>
 
 #include "remapper/combination_counter.hpp"
 #include "remapper/mapping_concater.hpp"
@@ -28,12 +28,45 @@ remapper::MappingTransformOp CreateMappingTransformOpFromSearchId(
                                       rotation_op);
 }
 
-boost::numeric::ublas::matrix<int> CreateMatrixForElastic(
+Eigen::MatrixXi CreateMatrixForElastic(const entity::Mapping& mapping) {
+  int min_row_id = mapping.GetMRRGConfig().row,
+      min_column_id = mapping.GetMRRGConfig().column;
+  int max_row_id = 0, max_column_id = 0;
+  Eigen::MatrixXi matrix = Eigen::MatrixXi::Zero(mapping.GetMRRGConfig().row,
+                         mapping.GetMRRGConfig().column);
+  for (int row_id = 0; row_id < mapping.GetMRRGConfig().row; row_id++) {
+    for (int column_id = 0; column_id < mapping.GetMRRGConfig().column;
+         column_id++) {
+      int op_count = 0;
+      for (int context_id = 0;
+           context_id < mapping.GetMRRGConfig().context_size; context_id++) {
+        const entity::ConfigId config_id(row_id, column_id, context_id);
+        const auto config = mapping.GetConfig(config_id);
+        if (config.operation_type != entity::OpType::NOP) {
+          op_count++;
+        }
+      }
+      if (op_count > 0) {
+        min_row_id = std::min(row_id, min_row_id);
+        max_row_id = std::max(row_id, max_row_id);
+        min_column_id = std::min(column_id, min_column_id);
+        max_column_id = std::max(column_id, max_column_id);
+      }
+      matrix(row_id, column_id) = op_count;
+    }
+  }
+
+  const int row_size = max_row_id - min_row_id + 1;
+  const int column_size = max_column_id - min_column_id + 1;
+  return matrix.block(min_row_id, min_column_id, row_size, column_size);
+}
+
+Eigen::MatrixXi CreateMatrixForElastic(
     const entity::Mapping& mapping,
     const entity::MRRGConfig& target_mrrg_config,
     const remapper::MappingTransformOp transform_op) {
-  boost::numeric::ublas::matrix<int> matrix(target_mrrg_config.row,
-                                            target_mrrg_config.column);
+  Eigen::MatrixXi matrix =
+      Eigen::MatrixXi::Zero(target_mrrg_config.row, target_mrrg_config.column);
   const entity::Mapping rotated_mapping =
       remapper::MappingRotater(mapping, transform_op.rotate_op);
 
@@ -57,6 +90,20 @@ boost::numeric::ublas::matrix<int> CreateMatrixForElastic(
 }
 
 std::pair<bool, entity::Mapping> remapper::Remapper::ElasticRemapping(
+    const std::vector<entity::Mapping>& mapping_vec,
+    const entity::MRRGConfig& target_mrrg_config, const int target_parallel_num,
+    std::ofstream& log_file, remapper::RemappingMode mode) {
+  switch (mode) {
+    case RemappingMode::FullSearch:
+      return FullSearchElasticRemapping(mapping_vec, target_mrrg_config,
+                                        target_parallel_num, log_file);
+    case RemappingMode::Naive:
+      return NaiveElasticRemapping(mapping_vec, target_mrrg_config,
+                                   target_parallel_num, log_file);
+  }
+}
+
+std::pair<bool, entity::Mapping> remapper::Remapper::FullSearchElasticRemapping(
     const std::vector<entity::Mapping>& mapping_vec,
     const entity::MRRGConfig& target_mrrg_config, const int target_parallel_num,
     std::ofstream& log_file) {
@@ -94,7 +141,7 @@ std::pair<bool, entity::Mapping> remapper::Remapper::ElasticRemapping(
     while (1) {
       std::vector<int> selected_search_id_vec =
           selected_search_id_combination.GetCombination();
-      boost::numeric::ublas::matrix<int> op_num_matrix(
+      Eigen::MatrixXi op_num_matrix = Eigen::MatrixXi::Zero(
           target_mrrg_config.row, target_mrrg_config.column);
       std::vector<remapper::MappingTransformOp> transform_op_vec(
           target_parallel_num);
@@ -109,13 +156,8 @@ std::pair<bool, entity::Mapping> remapper::Remapper::ElasticRemapping(
         op_num_matrix += CreateMatrixForElastic(
             selected_mapping_vec[i], target_mrrg_config, transform_op);
 
-        int max_op_num = 0;
-        for (int i = 0; i < target_mrrg_config.row; i++) {
-          for (int j = 0; j < target_mrrg_config.column; j++) {
-            max_op_num = std::max(op_num_matrix(i, j), max_op_num);
-            over_context_size = max_op_num > target_mrrg_config.context_size;
-          }
-        }
+        int max_op_num = op_num_matrix.maxCoeff();
+        over_context_size = max_op_num > target_mrrg_config.context_size;
         if (over_context_size) break;
       }
 
@@ -133,7 +175,8 @@ std::pair<bool, entity::Mapping> remapper::Remapper::ElasticRemapping(
       }
     };
     const auto end_time = clock();
-    log_file << "mapping group search time: " << ((double)end_time - start_time) / CLOCKS_PER_SEC << std::endl; 
+    log_file << "mapping group search time: "
+             << ((double)end_time - start_time) / CLOCKS_PER_SEC << std::endl;
 
     // update selected mapping
     bool test_all_mapping_combination = !(selected_mapping_combination.Next());
@@ -146,3 +189,97 @@ std::pair<bool, entity::Mapping> remapper::Remapper::ElasticRemapping(
   entity::Mapping empty;
   return {false, empty};
 };
+
+struct MappingRectangle {
+  MappingRectangle(int _id, const Eigen::MatrixXi& _matrix) {
+    row = _matrix.rows();
+    column = _matrix.cols();
+    config = _matrix.maxCoeff();
+    op_rate = (double)_matrix.sum() / (row * column * config);
+    id = _id;
+  }
+  int row;
+  int column;
+  int config;
+  double op_rate;
+  int id;
+};
+
+std::pair<bool, entity::Mapping> remapper::Remapper::NaiveElasticRemapping(
+    const std::vector<entity::Mapping>& mapping_vec,
+    const entity::MRRGConfig& target_mrrg_config, const int target_parallel_num,
+    std::ofstream& log_file) {
+  std::vector<MappingRectangle> mapping_rectangle_vec;
+  for (size_t i = 0; i < mapping_vec.size(); i++) {
+    const auto& mapping = mapping_vec[i];
+    const auto mapping_matrix = CreateMatrixForElastic(mapping);
+    mapping_rectangle_vec.emplace_back(i, mapping_matrix);
+  }
+  auto compare = [&](MappingRectangle left, MappingRectangle right) {
+    return left.op_rate > right.op_rate;
+  };
+  std::sort(mapping_rectangle_vec.begin(), mapping_rectangle_vec.end(),
+            compare);
+
+  Eigen::MatrixXi target_matrix = Eigen::MatrixXi::Zero(target_mrrg_config.row,
+                                target_mrrg_config.column);
+
+  std::vector<entity::Mapping> result_mapping_vec;
+  std::vector<remapper::MappingTransformOp> result_transform_op_vec;
+
+  int parallel_num = 0;
+  for (const auto& mapping_rectangle : mapping_rectangle_vec) {
+    const auto& mapping = mapping_vec[mapping_rectangle.id];
+    for (int rotate_id = 0; rotate_id < 4; rotate_id++) {
+      const auto rotated_mapping = remapper::MappingRotater(
+          mapping, static_cast<remapper::RotateOp>(rotate_id));
+
+      const auto rotated_mapping_matrix =
+          CreateMatrixForElastic(rotated_mapping);
+      if (target_matrix.rows() < rotated_mapping_matrix.rows() ||
+          target_matrix.cols() < rotated_mapping_matrix.cols())
+        continue;
+      const auto start_time = clock();
+      for (int row_shift = 0;
+           row_shift < target_matrix.rows() - rotated_mapping_matrix.rows() + 1;
+           row_shift++) {
+        for (int col_shift = 0;
+             col_shift <
+             target_matrix.cols() - rotated_mapping_matrix.cols() + 1;
+             col_shift++) {
+          while (1) {
+            Eigen::MatrixXi added_matrix = target_matrix;
+            added_matrix.block(
+                row_shift, col_shift, rotated_mapping_matrix.rows(),
+                rotated_mapping_matrix.cols()) += rotated_mapping_matrix;
+            // failed
+            if (added_matrix.maxCoeff() > target_mrrg_config.context_size)
+              break;
+
+            // success
+            target_matrix = added_matrix;
+            result_mapping_vec.push_back(mapping);
+            result_transform_op_vec.emplace_back(
+                row_shift, col_shift,
+                static_cast<remapper::RotateOp>(rotate_id));
+            parallel_num++;
+
+            if (parallel_num == target_parallel_num) {
+              const auto result_mapping = remapper::MappingConcater(
+                  result_mapping_vec, result_transform_op_vec,
+                  target_mrrg_config);
+              return {true, result_mapping};
+            }
+          }
+        }
+      }
+
+      const auto end_time = clock();
+      log_file << "mapping search time: "
+               << ((double)end_time - start_time) / CLOCKS_PER_SEC << std::endl;
+    }
+  };
+
+  entity::Mapping empty;
+  return {false, empty};
+}

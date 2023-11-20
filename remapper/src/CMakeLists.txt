@@ -5,7 +5,7 @@ set_target_properties(
                       ${CMAKE_CURRENT_SOURCE_DIR}/../include)
 
 target_link_libraries(remapper INTERFACE entity gurobi::cxx stdc++fs
-                                         boost::numeric_ublas)
+                                         Eigen3::Eigen)
 target_compile_options(remapper INTERFACE -Wall -Wextra -Wno-deprecated)
 target_sources(remapper INTERFACE remapper.cpp mapping_concater.cpp
                                   combination_counter.cpp rotater.cpp)
