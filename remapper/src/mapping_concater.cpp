@@ -10,13 +10,14 @@ entity::Mapping remapper::MappingConcater(
     const std::vector<MappingTransformOp>& mapping_transform_op_vec,
     const entity::MRRGConfig& target_mrrg_config) {
   assert(mapping_vec.size() == mapping_transform_op_vec.size());
-  Eigen::MatrixXi mapping_matrix(target_mrrg_config.row,
-                                 target_mrrg_config.column);
+  Eigen::MatrixXi mapping_matrix =
+      Eigen::MatrixXi::Zero(target_mrrg_config.row, target_mrrg_config.column);
 
   std::unordered_map<entity::PEPositionId, int, entity::HashPEPositionId>
       pe_position_id_to_next_context_num;
   for (int row_id = 0; row_id < target_mrrg_config.row; row_id++) {
-    for (int column_id = 0; column_id < target_mrrg_config.column; column_id) {
+    for (int column_id = 0; column_id < target_mrrg_config.column;
+         column_id++) {
       pe_position_id_to_next_context_num.emplace(
           entity::PEPositionId(row_id, column_id), 0);
     }
@@ -27,8 +28,8 @@ entity::Mapping remapper::MappingConcater(
     const auto& mapping = mapping_vec[i];
     const auto& transform_op = mapping_transform_op_vec[i];
 
-    Eigen::MatrixXi tmp_mapping_matrix(target_mrrg_config.row,
-                                       target_mrrg_config.column);
+    Eigen::MatrixXi tmp_mapping_matrix = Eigen::MatrixXi::Zero(
+        target_mrrg_config.row, target_mrrg_config.column);
     const auto rotated_mapping =
         remapper::MappingRotater(mapping, transform_op.rotate_op);
 
@@ -49,13 +50,13 @@ entity::Mapping remapper::MappingConcater(
       tmp_mapping_matrix(shifted_id.row_id, shifted_id.column_id)++;
 
       entity::CGRAConfig shifted_config = id_config_pair.second;
-      for (int i = 0; shifted_config.to_config_id_vec.size(); i++) {
-        shifted_config.to_config_id_vec[i] =
-            ShiftConfigId(shifted_config.to_config_id_vec[i]);
+      for (int j = 0; j < shifted_config.to_config_id_vec.size(); j++) {
+        shifted_config.to_config_id_vec[j] =
+            ShiftConfigId(shifted_config.to_config_id_vec[j]);
       }
-      for (int i = 0; i < shifted_config.from_config_id_num; i++) {
-        shifted_config.from_config_id_vec[i] =
-            ShiftConfigId(shifted_config.from_config_id_vec[i]);
+      for (int j = 0; j < shifted_config.from_config_id_num; j++) {
+        shifted_config.from_config_id_vec[j] =
+            ShiftConfigId(shifted_config.from_config_id_vec[j]);
       }
 
       result_config_map.emplace(shifted_id, shifted_config);

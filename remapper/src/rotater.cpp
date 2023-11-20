@@ -16,7 +16,7 @@ entity::ConfigId RotateConfigId(const entity::ConfigId& config_id,
       break;
 
     case remapper::RotateOp::TopIsLeft:
-      rotated_row_id = target_mrrg_config.row - 1 - config_id.column_id;
+      rotated_row_id = target_mrrg_config.column - 1 - config_id.column_id;
       rotated_column_id = config_id.row_id;
       break;
 
@@ -33,8 +33,30 @@ entity::ConfigId RotateConfigId(const entity::ConfigId& config_id,
 entity::MRRGConfig RotateMRRGConfig(const entity::MRRGConfig& mrrg_config,
                                     const remapper::RotateOp& rotate_op) {
   entity::MRRGConfig rotated_mrrg_config = mrrg_config;
-  rotated_mrrg_config.column = mrrg_config.column;
-  rotated_mrrg_config.row = mrrg_config.row;
+
+  switch (rotate_op) {
+    case remapper::RotateOp::TopIsRight:
+      rotated_mrrg_config.column = mrrg_config.row;
+      rotated_mrrg_config.row = mrrg_config.column;
+      break;
+
+    case remapper::RotateOp::TopIsBottom:
+      rotated_mrrg_config.column = mrrg_config.column;
+      rotated_mrrg_config.row = mrrg_config.row;
+      break;
+
+    case remapper::RotateOp::TopIsLeft:
+      rotated_mrrg_config.column = mrrg_config.row;
+      rotated_mrrg_config.row = mrrg_config.column;
+      break;
+
+    case remapper::RotateOp::TopIsTop:
+      rotated_mrrg_config.column = mrrg_config.column;
+      rotated_mrrg_config.row = mrrg_config.row;
+      break;
+  }
+
+  return rotated_mrrg_config;
 }
 
 entity::Mapping remapper::MappingRotater(const entity::Mapping& mapping,
@@ -45,18 +67,18 @@ entity::Mapping remapper::MappingRotater(const entity::Mapping& mapping,
 
   for (const auto& cgra_config : mapping.GetConfigMap()) {
     entity::ConfigId rotated_config_id =
-        RotateConfigId(cgra_config.first, rotated_mrrg_config, rotate_op);
+        RotateConfigId(cgra_config.first, mapping.GetMRRGConfig(), rotate_op);
     entity::CGRAConfig rotated_cgra_config = cgra_config.second;
     rotated_cgra_config.to_config_id_vec.clear();
     for (const auto& to_config_id : cgra_config.second.to_config_id_vec) {
       rotated_cgra_config.to_config_id_vec.push_back(
-          RotateConfigId(to_config_id, rotated_mrrg_config, rotate_op));
+          RotateConfigId(to_config_id, mapping.GetMRRGConfig(), rotate_op));
     }
 
     for (int i = 0; i < cgra_config.second.from_config_id_num; i++) {
       rotated_cgra_config.from_config_id_vec[i] =
           RotateConfigId(cgra_config.second.from_config_id_vec[i],
-                         rotated_mrrg_config, rotate_op);
+                         mapping.GetMRRGConfig(), rotate_op);
     }
 
     rotated_config_map.emplace(rotated_config_id, rotated_cgra_config);
