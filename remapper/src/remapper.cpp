@@ -1,6 +1,6 @@
 #include "remapper/remapper.hpp"
 
-#include <boost/numeric/ublas/matrix.hpp>
+#include <Eigen/Eigen>
 
 #include "remapper/combination_counter.hpp"
 #include "remapper/mapping_concater.hpp"
@@ -28,12 +28,12 @@ remapper::MappingTransformOp CreateMappingTransformOpFromSearchId(
                                       rotation_op);
 }
 
-boost::numeric::ublas::matrix<int> CreateMatrixForElastic(
+Eigen::MatrixXi CreateMatrixForElastic(
     const entity::Mapping& mapping,
     const entity::MRRGConfig& target_mrrg_config,
     const remapper::MappingTransformOp transform_op) {
-  boost::numeric::ublas::matrix<int> matrix(target_mrrg_config.row,
-                                            target_mrrg_config.column);
+  Eigen::MatrixXi matrix =
+      Eigen::MatrixXi::Zero(target_mrrg_config.row, target_mrrg_config.column);
   const entity::Mapping rotated_mapping =
       remapper::MappingRotater(mapping, transform_op.rotate_op);
 
@@ -94,7 +94,7 @@ std::pair<bool, entity::Mapping> remapper::Remapper::ElasticRemapping(
     while (1) {
       std::vector<int> selected_search_id_vec =
           selected_search_id_combination.GetCombination();
-      boost::numeric::ublas::matrix<int> op_num_matrix(
+      Eigen::MatrixXi op_num_matrix = Eigen::MatrixXi::Zero(
           target_mrrg_config.row, target_mrrg_config.column);
       std::vector<remapper::MappingTransformOp> transform_op_vec(
           target_parallel_num);
@@ -109,13 +109,8 @@ std::pair<bool, entity::Mapping> remapper::Remapper::ElasticRemapping(
         op_num_matrix += CreateMatrixForElastic(
             selected_mapping_vec[i], target_mrrg_config, transform_op);
 
-        int max_op_num = 0;
-        for (int i = 0; i < target_mrrg_config.row; i++) {
-          for (int j = 0; j < target_mrrg_config.column; j++) {
-            max_op_num = std::max(op_num_matrix(i, j), max_op_num);
-            over_context_size = max_op_num > target_mrrg_config.context_size;
-          }
-        }
+        int max_op_num = op_num_matrix.maxCoeff();
+        over_context_size = max_op_num > target_mrrg_config.context_size;
         if (over_context_size) break;
       }
 
@@ -133,7 +128,8 @@ std::pair<bool, entity::Mapping> remapper::Remapper::ElasticRemapping(
       }
     };
     const auto end_time = clock();
-    log_file << "mapping group search time: " << ((double)end_time - start_time) / CLOCKS_PER_SEC << std::endl; 
+    log_file << "mapping group search time: "
+             << ((double)end_time - start_time) / CLOCKS_PER_SEC << std::endl;
 
     // update selected mapping
     bool test_all_mapping_combination = !(selected_mapping_combination.Next());

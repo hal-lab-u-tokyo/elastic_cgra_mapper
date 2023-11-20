@@ -1,6 +1,6 @@
 #include "remapper/mapping_concater.hpp"
 
-#include <boost/numeric/ublas/matrix.hpp>
+#include <Eigen/Eigen>
 #include <unordered_map>
 
 #include "remapper/rotater.hpp"
@@ -10,8 +10,8 @@ entity::Mapping remapper::MappingConcater(
     const std::vector<MappingTransformOp>& mapping_transform_op_vec,
     const entity::MRRGConfig& target_mrrg_config) {
   assert(mapping_vec.size() == mapping_transform_op_vec.size());
-  boost::numeric::ublas::matrix<int> mapping_matrix(target_mrrg_config.row,
-                                                    target_mrrg_config.column);
+  Eigen::MatrixXi mapping_matrix(target_mrrg_config.row,
+                                 target_mrrg_config.column);
 
   std::unordered_map<entity::PEPositionId, int, entity::HashPEPositionId>
       pe_position_id_to_next_context_num;
@@ -27,8 +27,8 @@ entity::Mapping remapper::MappingConcater(
     const auto& mapping = mapping_vec[i];
     const auto& transform_op = mapping_transform_op_vec[i];
 
-    boost::numeric::ublas::matrix<int> tmp_mapping_matrix(
-        target_mrrg_config.row, target_mrrg_config.column);
+    Eigen::MatrixXi tmp_mapping_matrix(target_mrrg_config.row,
+                                       target_mrrg_config.column);
     const auto rotated_mapping =
         remapper::MappingRotater(mapping, transform_op.rotate_op);
 
