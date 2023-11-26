@@ -34,6 +34,8 @@ int main(int argc, char* argv[]) {
       log_file << "mode: FullSearch" << std::endl;
     case remapper::RemappingMode::Naive:
       log_file << "mode: Naive" << std::endl;
+    case remapper::RemappingMode::DP:
+      log_file << "mode: DP" << std::endl;
   }
 
   std::vector<entity::Mapping> mapping_vec;
@@ -56,6 +58,9 @@ int main(int argc, char* argv[]) {
     int min_row_column_size = std::min(mrrg_config.row, mrrg_config.column);
     if (mapping.GetMRRGConfig().row > min_row_column_size ||
         mapping.GetMRRGConfig().column > min_row_column_size) {
+      continue;
+    }
+    if (mapping.GetMRRGConfig().network_type != mrrg_config.network_type) {
       continue;
     }
     log_file << file.path() << std::endl;

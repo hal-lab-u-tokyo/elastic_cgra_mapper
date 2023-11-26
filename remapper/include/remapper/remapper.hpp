@@ -3,7 +3,7 @@
 #include <fstream>
 
 namespace remapper {
-enum RemappingMode { FullSearch, Naive };
+enum RemappingMode { FullSearch, Naive, DP };
 
 class Remapper {
  public:
@@ -19,6 +19,10 @@ class Remapper {
       const entity::MRRGConfig& target_mrrg_config,
       const int target_parallel_num, std::ofstream& log_file);
   static std::pair<bool, entity::Mapping> NaiveElasticRemapping(
+      const std::vector<entity::Mapping>& mapping_vec,
+      const entity::MRRGConfig& target_mrrg_config,
+      const int target_parallel_num, std::ofstream& log_file);
+  static std::pair<bool, entity::Mapping> DPElasticRemapping(
       const std::vector<entity::Mapping>& mapping_vec,
       const entity::MRRGConfig& target_mrrg_config,
       const int target_parallel_num, std::ofstream& log_file);
