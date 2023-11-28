@@ -7,3 +7,6 @@
 [submodule "third_party/eigen"]
 	path = third_party/eigen
 	url = git@gitlab.com:libeigen/eigen.git
+[submodule "benchmark/CGRA-Bench"]
+	path = benchmark/CGRA-Bench
+	url = https://github.com/tancheng/CGRA-Bench.git
