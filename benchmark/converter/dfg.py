@@ -33,7 +33,7 @@ class DFG:
     f.write("digraph G {\n")
 
     for node in self.node_list:
-      line = node.op_name + "[op_code=" + node.op_str
+      line = node.op_name + "[opcode=" + node.op_str
       if node.op_str == "const":
         line = line + ", const_value=\" " + str(node.const_value) + "\""
       line = line + "];"
