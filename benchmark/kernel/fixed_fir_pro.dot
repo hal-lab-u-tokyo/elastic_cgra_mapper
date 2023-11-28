@@ -1,13 +1,13 @@
 digraph G {
-const0[op_code=const, const_value=" 0"];
-const1[op_code=const, const_value=" 0"];
-load2[op_code=load];
-load3[op_code=load];
-load4[op_code=load];
-load5[op_code=load];
-mul6[op_code=mul];
-add7[op_code=add];
-output12[op_code=output];
+const0[opcode=const, const_value=" 0"];
+const1[opcode=const, const_value=" 0"];
+load2[opcode=load];
+load3[opcode=load];
+load4[opcode=load];
+load5[opcode=load];
+mul6[opcode=mul];
+add7[opcode=add];
+output12[opcode=output];
 const0->load2[operand=0]; //const->load
 const0->load4[operand=0]; //const->load
 const1->add7[operand=0]; //const->add
