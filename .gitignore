@@ -1,7 +1,7 @@
 build/*
 output/*
 .vscode/
-benchmark/**/*.dot
+benchmark/**/*.png
 __pycache__/
 **/output/*
 **/obj_dir/*
