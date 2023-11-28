@@ -1,0 +1,43 @@
+digraph G {
+const0[op_code=const, const_value=" 0"];
+const1[op_code=const, const_value=" 0"];
+const2[op_code=const, const_value=" 0"];
+const3[op_code=const, const_value=" 0"];
+shift4[op_code=shift];
+load5[op_code=load];
+load6[op_code=load];
+load7[op_code=load];
+load8[op_code=load];
+output9[op_code=output];
+mul10[op_code=mul];
+mul11[op_code=mul];
+sub12[op_code=sub];
+mul13[op_code=mul];
+mul14[op_code=mul];
+add15[op_code=add];
+or16[op_code=or];
+load17[op_code=load];
+load19[op_code=load];
+const0->shift4[operand=0]; //const->shl
+const0->load7[operand=0]; //const->load
+const1->mul10[operand=0]; //const->mul
+const1->mul13[operand=0]; //const->mul
+const2->mul10[operand=1]; //const->mul
+const2->mul14[operand=0]; //const->mul
+const3->output9[operand=0]; //const->output
+shift4->load5[operand=0]; //shl->load
+shift4->or16[operand=0]; //shl->or
+load5->load6[operand=0]; //load->load
+load6->mul11[operand=0]; //load->mul
+load6->mul14[operand=1]; //load->mul
+load7->load8[operand=0]; //load->load
+load7->output9[operand=1]; //load->output
+load8->mul11[operand=1]; //load->mul
+load8->mul13[operand=1]; //load->mul
+mul10->sub12[operand=0]; //mul->sub
+mul11->sub12[operand=1]; //mul->sub
+mul13->add15[operand=0]; //mul->add
+mul14->add15[operand=1]; //mul->add
+or16->load17[operand=0]; //or->load
+load17->load19[operand=0]; //load->load
+}
