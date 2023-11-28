@@ -32,8 +32,8 @@ int main(int argc, char* argv[]) {
   switch (mode) {
     case remapper::RemappingMode::FullSearch:
       log_file << "mode: FullSearch" << std::endl;
-    case remapper::RemappingMode::Naive:
-      log_file << "mode: Naive" << std::endl;
+    case remapper::RemappingMode::Greedy:
+      log_file << "mode: Greedy" << std::endl;
     case remapper::RemappingMode::DP:
       log_file << "mode: DP" << std::endl;
   }

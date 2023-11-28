@@ -97,8 +97,8 @@ std::pair<bool, entity::Mapping> remapper::Remapper::ElasticRemapping(
     case RemappingMode::FullSearch:
       return FullSearchElasticRemapping(mapping_vec, target_mrrg_config,
                                         target_parallel_num, log_file);
-    case RemappingMode::Naive:
-      return NaiveElasticRemapping(mapping_vec, target_mrrg_config,
+    case RemappingMode::Greedy:
+      return GreedyElasticRemapping(mapping_vec, target_mrrg_config,
                                    target_parallel_num, log_file);
     case RemappingMode::DP:
       return DPElasticRemapping(mapping_vec, target_mrrg_config,
@@ -216,7 +216,7 @@ struct MappingRectangle {
   int id;
 };
 
-std::pair<bool, entity::Mapping> remapper::Remapper::NaiveElasticRemapping(
+std::pair<bool, entity::Mapping> remapper::Remapper::GreedyElasticRemapping(
     const std::vector<entity::Mapping>& mapping_vec,
     const entity::MRRGConfig& target_mrrg_config, const int target_parallel_num,
     std::ofstream& log_file) {
