@@ -63,6 +63,9 @@ int main(int argc, char* argv[]) {
     if (mapping.GetMRRGConfig().network_type != mrrg_config.network_type) {
       continue;
     }
+    if (mapping.GetMRRGConfig().memory_io != mrrg_config.memory_io) {
+      continue;
+    }
     log_file << file.path() << std::endl;
     min_mapping_op_num = std::min(min_mapping_op_num, mapping.GetOpNum());
     mapping_vec.push_back(mapping);
