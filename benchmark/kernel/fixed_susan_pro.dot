@@ -1,19 +1,19 @@
 digraph G {
-const0[op_code=const, const_value=" 0"];
-const1[op_code=const, const_value=" 0"];
-const2[op_code=const, const_value=" 0"];
-const3[op_code=const, const_value=" 0"];
-load6[op_code=load];
-add8[op_code=add];
-load9[op_code=load];
-load10[op_code=load];
-sub13[op_code=sub];
-load14[op_code=load];
-load15[op_code=load];
-mul17[op_code=mul];
-add18[op_code=add];
-mul19[op_code=mul];
-add20[op_code=add];
+const0[opcode=const, const_value=" 0"];
+const1[opcode=const, const_value=" 0"];
+const2[opcode=const, const_value=" 0"];
+const3[opcode=const, const_value=" 0"];
+load6[opcode=load];
+add8[opcode=add];
+load9[opcode=load];
+load10[opcode=load];
+sub13[opcode=sub];
+load14[opcode=load];
+load15[opcode=load];
+mul17[opcode=mul];
+add18[opcode=add];
+mul19[opcode=mul];
+add20[opcode=add];
 const0->add8[operand=0]; //const->add
 const0->add20[operand=0]; //const->add
 const1->load9[operand=0]; //const->load
