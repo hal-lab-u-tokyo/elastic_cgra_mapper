@@ -37,6 +37,9 @@ std::string entity::OpTypeToString(OpType op) {
     case entity::OpType::OR:
       return "or";
       break;
+    case entity::OpType::SHIFT:
+      return "shift";
+      break;
     default:
       assert("invalid OpType");
       abort();
@@ -66,6 +69,8 @@ entity::OpType entity::OpTypeFromString(std::string op_string) {
     return entity::OpType::ROUTE;
   } else if (op_string == "or") {
     return entity::OpType::OR;
+  } else if (op_string == "shift") {
+    return entity::OpType::SHIFT;
   } else {
     std::string message = "invalid op string: " + op_string;
     std::cerr << message << std::endl;
@@ -78,12 +83,12 @@ std::vector<entity::OpType> entity::GetAllOperations() {
       {entity::OpType::ADD, entity::OpType::SUB, entity::OpType::MUL,
        entity::OpType::DIV, entity::OpType::CONST, entity::OpType::LOAD,
        entity::OpType::OUTPUT, entity::OpType::STORE, entity::OpType::NOP,
-       entity::OpType::ROUTE, entity::OpType::OR});
+       entity::OpType::ROUTE, entity::OpType::OR, entity::OpType::SHIFT});
 };
 
 std::vector<entity::OpType> entity::GetAllOperationsExceptMemoryAccess() {
   return std::vector<OpType>({entity::OpType::ADD, entity::OpType::SUB,
                               entity::OpType::MUL, entity::OpType::DIV,
                               entity::OpType::CONST, entity::OpType::NOP,
-                              entity::OpType::ROUTE, entity::OpType::OR});
+                              entity::OpType::ROUTE, entity::OpType::OR, entity::OpType::SHIFT});
 };
