@@ -90,8 +90,8 @@ int main(int argc, char* argv[]) {
       } else {
         mrrg_config.column++;
       }
-      count ++;
-      if(count == 5) break;
+      count++;
+      if (count == 5) break;
     }
   }
 }
