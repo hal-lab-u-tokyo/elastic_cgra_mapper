@@ -1,0 +1,32 @@
+digraph G {
+load16[op_code=SELECT];
+load8[op_code=load];
+add7[op_code=add];
+load22[op_code=load];
+add9[op_code=add];
+load10[op_code=load];
+load24[op_code=load];
+load23[op_code=load];
+add11[op_code=add];
+add14[op_code=add];
+load15[op_code=load];
+load12[op_code=load];
+mul13[op_code=mul];
+add1[op_code=add];
+output2[op_code=output];
+load16->add7[operand=0]; //SELECT->add
+load8->add7[operand=1]; //load->add
+add7->load22[operand=0]; //add->load
+add7->load24[operand=0]; //add->load
+load22->add9[operand=0]; //load->add
+add9->load10[operand=0]; //add->load
+load10->load23[operand=0]; //load->load
+load24->add14[operand=0]; //load->add
+load23->add11[operand=0]; //load->add
+add11->load12[operand=0]; //add->load
+add14->load15[operand=0]; //add->load
+load15->mul13[operand=0]; //load->mul
+load12->mul13[operand=1]; //load->mul
+mul13->add1[operand=0]; //mul->add
+add1->output2[operand=0]; //add->output
+}

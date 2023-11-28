@@ -1,0 +1,33 @@
+digraph G {
+const0[op_code=const, const_value=" 0"];
+const1[op_code=const, const_value=" 0"];
+const2[op_code=const, const_value=" 0"];
+const3[op_code=const, const_value=" 0"];
+load6[op_code=load];
+add8[op_code=add];
+load9[op_code=load];
+load10[op_code=load];
+sub13[op_code=sub];
+load14[op_code=load];
+load15[op_code=load];
+mul17[op_code=mul];
+add18[op_code=add];
+mul19[op_code=mul];
+add20[op_code=add];
+const0->add8[operand=0]; //const->add
+const0->add20[operand=0]; //const->add
+const1->load9[operand=0]; //const->load
+const1->load10[operand=0]; //const->load
+const2->load6[operand=0]; //const->load
+const3->add18[operand=0]; //const->add
+load6->add8[operand=1]; //load->add
+add8->sub13[operand=0]; //add->sub
+add8->mul19[operand=0]; //add->mul
+load10->mul17[operand=0]; //load->mul
+sub13->load14[operand=0]; //sub->load
+load14->load15[operand=0]; //load->load
+load15->mul17[operand=1]; //load->mul
+mul17->add18[operand=1]; //mul->add
+mul17->mul19[operand=1]; //mul->mul
+mul19->add20[operand=1]; //mul->add
+}

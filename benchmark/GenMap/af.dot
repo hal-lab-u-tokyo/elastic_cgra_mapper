@@ -1,0 +1,93 @@
+digraph{
+	#inputs
+	"INPUT_0" [type=input]
+	"INPUT_1" [type=input]
+
+	# operations
+	"op1" [type=op,opcode=SR]
+	"op2" [type=op,opcode=AND]
+	"op3" [type=op,opcode=SR]
+	"op4" [type=op,opcode=AND]
+	"op5" [type=op,opcode=SR]
+	"op6" [type=op,opcode=AND]
+	"op7" [type=op,opcode=SR]
+	"op8" [type=op,opcode=AND]
+	"op9" [type=op,opcode=MULT]
+	"op10" [type=op,opcode=MULT]
+	"op11" [type=op,opcode=MULT]
+	"op12" [type=op,opcode=MULT]
+	"op13" [type=op,opcode=ADD]
+	"op14" [type=op,opcode=MULT]
+	"op15" [type=op,opcode=ADD]
+	"op16" [type=op,opcode=MULT]
+	"op17" [type=op,opcode=SR]
+	"op18" [type=op,opcode=SR]
+	"op19" [type=op,opcode=ADD]
+	"op20" [type=op,opcode=SL]
+	"op21" [type=op,opcode=SL]
+	"op22" [type=op,opcode=SR]
+	"op23" [type=op,opcode=OR]
+	"op24" [type=op,opcode=OR]
+
+	# constants
+	"8" [type=const, datatype=int, value=8]
+	"255" [type=const, datatype=int, value=255]
+	"100" [type=const, datatype=int, value=100]
+	"7" [type=const, datatype=int, value=7]
+	"28" [type=const, datatype=int, value=28]
+	"16" [type=const, datatype=int, value=16]
+
+	# outputs
+	"OUTPUT_0" [type=output]
+
+	# dependencies
+	"INPUT_0" -> "op1" [operand=0];
+	"8" -> "op1" [operand=1];
+	"INPUT_0" -> "op2" [operand=0];
+	"255" -> "op2" [operand=1];
+	"INPUT_1" -> "op3" [operand=0];
+	"8" -> "op3" [operand=1];
+	"INPUT_1" -> "op4" [operand=0];
+	"255" -> "op4" [operand=1];
+	"op1" -> "op5" [operand=0];
+	"8" -> "op5" [operand=1];
+	"op1" -> "op6" [operand=0];
+	"255" -> "op6" [operand=1];
+	"op3" -> "op7" [operand=0];
+	"8" -> "op7" [operand=1];
+	"op3" -> "op8" [operand=0];
+	"255" -> "op8" [operand=1];
+	"op5" -> "op9";
+	"100" -> "op9";
+	"op6" -> "op10";
+	"100" -> "op10";
+	"op7" -> "op11";
+	"28" -> "op11";
+	"op8" -> "op12";
+	"28" -> "op12";
+	"op9" -> "op13";
+	"op11" -> "op13";
+	"op2" -> "op14";
+	"100" -> "op14";
+	"op10" -> "op15";
+	"op12" -> "op15";
+	"op4" -> "op16";
+	"28" -> "op16";
+	"op13" -> "op17" [operand=0];
+	"7" -> "op17" [operand=1];
+	"op15" -> "op18" [operand=0];
+	"7" -> "op18" [operand=1];
+	"op14" -> "op19";
+	"op16" -> "op19";
+	"op17" -> "op20" [operand=0];
+	"16" -> "op20" [operand=1];
+	"op18" -> "op21" [operand=0];
+	"8" -> "op21" [operand=1];
+	"op19" -> "op22" [operand=0];
+	"7" -> "op22" [operand=1];
+	"op20" -> "op23" [operand=0];
+	"op21" -> "op23" [operand=1];
+	"op22" -> "op24" [operand=0];
+	"op23" -> "op24" [operand=1];
+	"op24" -> "OUTPUT_0"
+}
