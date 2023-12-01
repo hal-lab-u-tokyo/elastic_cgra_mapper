@@ -5,3 +5,4 @@ benchmark/**/*.png
 __pycache__/
 **/output/*
 **/obj_dir/*
+experiment_runner/log/*
