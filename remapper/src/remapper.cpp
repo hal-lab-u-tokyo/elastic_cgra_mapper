@@ -99,7 +99,7 @@ std::pair<bool, entity::Mapping> remapper::Remapper::ElasticRemapping(
                                         target_parallel_num, log_file);
     case RemappingMode::Greedy:
       return GreedyElasticRemapping(mapping_vec, target_mrrg_config,
-                                   target_parallel_num, log_file);
+                                    target_parallel_num, log_file);
     case RemappingMode::DP:
       return DPElasticRemapping(mapping_vec, target_mrrg_config,
                                 target_parallel_num, log_file);
@@ -216,6 +216,30 @@ struct MappingRectangle {
   int id;
 };
 
+bool IsAvailableRemapping(const entity::Mapping& mapping, int row_shift,
+                          int column_shift,
+                          const entity::MRRGConfig& target_mrrg_config) {
+  if (target_mrrg_config.memory_io == entity::MRRGMemoryIOType::kAll) {
+    return true;
+  }
+
+  const auto& config_map = mapping.GetConfigMap();
+  for (const auto& config_id_and_config : config_map) {
+    const auto& op = config_id_and_config.second.operation_type;
+
+    if (op != entity::OpType::LOAD && op != entity::OpType::OUTPUT) {
+      continue;
+    }
+
+    int column_id = config_id_and_config.first.column_id + column_shift;
+    if (column_id == 0 || column_id == target_mrrg_config.column - 1) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 std::pair<bool, entity::Mapping> remapper::Remapper::GreedyElasticRemapping(
     const std::vector<entity::Mapping>& mapping_vec,
     const entity::MRRGConfig& target_mrrg_config, const int target_parallel_num,
@@ -258,6 +282,10 @@ std::pair<bool, entity::Mapping> remapper::Remapper::GreedyElasticRemapping(
              col_shift <
              target_matrix.cols() - rotated_mapping_matrix.cols() + 1;
              col_shift++) {
+          if (!IsAvailableRemapping(rotated_mapping, row_shift, col_shift,
+                                    target_mrrg_config)) {
+            continue;
+          }
           while (1) {
             Eigen::MatrixXi added_matrix = target_matrix;
             added_matrix.block(
@@ -319,6 +347,17 @@ std::pair<bool, entity::Mapping> remapper::Remapper::GreedyElasticRemapping(
   return {false, empty};
 }
 
+remapper::RotateOp Rotate180(const remapper::RotateOp& tmp) {
+  if (tmp == remapper::RotateOp::TopIsTop)
+    return remapper::RotateOp::TopIsBottom;
+  if (tmp == remapper::RotateOp::TopIsBottom)
+    return remapper::RotateOp::TopIsTop;
+  if (tmp == remapper::RotateOp::TopIsRight)
+    return remapper::RotateOp::TopIsLeft;
+  if (tmp == remapper::RotateOp::TopIsLeft)
+    return remapper::RotateOp::TopIsRight;
+}
+
 std::pair<bool, entity::Mapping> remapper::Remapper::DPElasticRemapping(
     const std::vector<entity::Mapping>& mapping_vec,
     const entity::MRRGConfig& target_mrrg_config, const int target_parallel_num,
@@ -378,6 +417,10 @@ std::pair<bool, entity::Mapping> remapper::Remapper::DPElasticRemapping(
              col_shift <
              target_mrrg_config.column - rotated_mapping_matrix.cols() + 1;
              col_shift++) {
+          if (!IsAvailableRemapping(rotated_mapping, row_shift, col_shift,
+                                    target_mrrg_config)) {
+            continue;
+          }
           for (int context_shift = 0;
                context_shift < target_mrrg_config.context_size -
                                    rotated_mapping_matrix.maxCoeff() + 1;
@@ -455,6 +498,12 @@ std::pair<bool, entity::Mapping> remapper::Remapper::DPElasticRemapping(
             for (int pattern = 0; pattern < 6; pattern++) {
               uint16_t new_dp_value = 1;
               for (int rectangle_id = 0; rectangle_id < 3; rectangle_id++) {
+                if (target_mrrg_config.memory_io ==
+                        entity::MRRGMemoryIOType::kBothEnds &&
+                    dp_column != target_mrrg_config.column &&
+                    rectangle_id == 1) {
+                  continue;
+                }
                 int rectangle_row =
                     dp_extra_rectangle_size[pattern][rectangle_id][0];
                 int rectangle_col =
@@ -471,6 +520,12 @@ std::pair<bool, entity::Mapping> remapper::Remapper::DPElasticRemapping(
               dp[dp_row][dp_column][dp_context] = new_dp_value;
               dp_result[dp_row][dp_column][dp_context].clear();
               for (int rectangle_id = 0; rectangle_id < 3; rectangle_id++) {
+                if (target_mrrg_config.memory_io ==
+                        entity::MRRGMemoryIOType::kBothEnds &&
+                    dp_column != target_mrrg_config.column &&
+                    rectangle_id == 1) {
+                  continue;
+                }
                 int rectangle_row =
                     dp_extra_rectangle_size[pattern][rectangle_id][0];
                 int rectangle_col =
@@ -486,6 +541,18 @@ std::pair<bool, entity::Mapping> remapper::Remapper::DPElasticRemapping(
                   } else if (rectangle_id == 1) {
                     new_result.op.column += mapping_column;
                   }
+
+                  if (target_mrrg_config.memory_io ==
+                          entity::MRRGMemoryIOType::kBothEnds &&
+                      dp_column == target_mrrg_config.column &&
+                      rectangle_id == 1) {
+                    new_result.op.row =
+                        rectangle_row - 1 - result.op.row + mapping_row;
+                    new_result.op.column =
+                        rectangle_col - 1 - result.op.column + mapping_column;
+                    new_result.op.rotate_op = Rotate180(result.op.rotate_op);
+                  }
+
                   dp_result[dp_row][dp_column][dp_context].push_back(
                       new_result);
                 }
