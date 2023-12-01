@@ -31,6 +31,9 @@ std::pair<bool, entity::Mapping> mapper::GurobiILPMapper::Execution() {
     if (log_file_path_.has_value()) {
       model.set("LogFile", log_file_path_.value());
     }
+    if (timeout_s_.has_value()) {
+      model.set(GRB_DoubleParam_TimeLimit, timeout_s_.value());
+    }
 
     int dfg_node_num = dfg_ptr_->GetNodeNum();
     int mrrg_node_num = mrrg_ptr_->GetNodeNum();
@@ -330,4 +333,8 @@ void mapper::GurobiILPMapper::SetLogFilePath(const std::string& log_file_path) {
   log_file.close();
   return;
 }
+
+void mapper::GurobiILPMapper::SetTimeOut(double timeout_s) {
+  timeout_s_ = timeout_s;
+  return;
 }
