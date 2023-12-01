@@ -315,7 +315,7 @@ void mapper::GurobiILPMapper::SetLogFilePath(const std::string& log_file_path) {
 
   std::ofstream log_file;
   const auto mrrg_config = mrrg_ptr_->GetMRRGConfig();
-  log_file.open(log_file_path_.value());
+  log_file.open(log_file_path_.value(), std::ios::app);
 
   log_file << "-- CGRA setting --" << std::endl;
   log_file << "row: " << mrrg_config.row << std::endl;

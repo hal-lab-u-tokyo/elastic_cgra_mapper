@@ -69,7 +69,7 @@ std::shared_ptr<entity::DFG> AddDFG(
 }
 
 int main(int argc, char* argv[]) {
-  if (argc != 5) {
+  if (argc != 7) {
     std::cerr << "invalid arguments" << std::endl;
     abort();
   }
@@ -82,7 +82,7 @@ int main(int argc, char* argv[]) {
   int parallel_num = std::stoi(argv[6]);
 
   std::ofstream log_file;
-  log_file.open(log_file_path);
+  log_file.open(log_file_path, std::ios::app);
   log_file << "-- mapping input --" << std::endl;
   log_file << "dfg file: " << dfg_dot_file_path << std::endl;
   log_file << "mrrg file: " << mrrg_file_path << std::endl;
@@ -90,6 +90,7 @@ int main(int argc, char* argv[]) {
   log_file << "log_file_path file: " << log_file_path << std::endl;
   log_file << "timeout (s): " << timeout_s << std::endl;
   log_file << "parallel num: " << parallel_num << std::endl;
+  log_file.close();
 
   std::shared_ptr<entity::DFG> dfg_ptr = std::make_shared<entity::DFG>();
   std::shared_ptr<entity::DFG> dfg_ptr_to_add = std::make_shared<entity::DFG>();
@@ -99,9 +100,8 @@ int main(int argc, char* argv[]) {
   *dfg_ptr = *dfg_ptr_to_add;
   *mrrg_ptr = io::ReadMRRGFromJsonFile(mrrg_file_path);
 
-  for(int i = 1; i < parallel_num; i++) {
-    dfg_ptr = AddDFG(dfg_ptr, dfg_ptr_to_add,
-                     dfg_ptr_to_add->GetNodeNum() * i);
+  for (int i = 1; i < parallel_num; i++) {
+    dfg_ptr = AddDFG(dfg_ptr, dfg_ptr_to_add, dfg_ptr_to_add->GetNodeNum() * i);
   }
 
   mapper::GurobiILPMapper* mapper;
