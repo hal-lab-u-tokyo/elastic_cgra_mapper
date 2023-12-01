@@ -16,6 +16,6 @@ class GurobiILPMapper : public IILPMapper {
  private:
   std::shared_ptr<entity::DFG> dfg_ptr_;
   std::shared_ptr<entity::MRRG> mrrg_ptr_;
-  std::string log_file_path_;
+  std::optional<std::string> log_file_path_;
 };
 }  // namespace mapper

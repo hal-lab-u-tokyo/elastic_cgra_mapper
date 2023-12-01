@@ -8,7 +8,7 @@
 mapper::GurobiILPMapper::GurobiILPMapper(
     const std::shared_ptr<entity::DFG> dfg_ptr,
     const std::shared_ptr<entity::MRRG> mrrg_ptr)
-    : dfg_ptr_(dfg_ptr), mrrg_ptr_(mrrg_ptr), log_file_path_("") {}
+    : dfg_ptr_(dfg_ptr), mrrg_ptr_(mrrg_ptr) {}
 
 mapper::GurobiILPMapper* mapper::GurobiILPMapper::CreateMapper(
     const std::shared_ptr<entity::DFG> dfg_ptr,
@@ -28,7 +28,9 @@ std::pair<bool, entity::Mapping> mapper::GurobiILPMapper::Execution() {
 
     // create an empty model
     GRBModel model = GRBModel(env);
-    model.set("LogFile", log_file_path_);
+    if (log_file_path_.has_value()) {
+      model.set("LogFile", log_file_path_.value());
+    }
 
     int dfg_node_num = dfg_ptr_->GetNodeNum();
     int mrrg_node_num = mrrg_ptr_->GetNodeNum();
@@ -310,7 +312,7 @@ void mapper::GurobiILPMapper::SetLogFilePath(const std::string& log_file_path) {
 
   std::ofstream log_file;
   const auto mrrg_config = mrrg_ptr_->GetMRRGConfig();
-  log_file.open(log_file_path_);
+  log_file.open(log_file_path_.value());
 
   log_file << "-- CGRA setting --" << std::endl;
   log_file << "row: " << mrrg_config.row << std::endl;
@@ -326,4 +328,6 @@ void mapper::GurobiILPMapper::SetLogFilePath(const std::string& log_file_path) {
            << std::endl;
 
   log_file.close();
+  return;
+}
 }
