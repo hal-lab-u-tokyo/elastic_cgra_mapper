@@ -12,10 +12,12 @@ class GurobiILPMapper : public IILPMapper {
                                 const std::shared_ptr<entity::MRRG> mmrg_ptr);
   std::pair<bool, entity::Mapping> Execution();
   void SetLogFilePath(const std::string& log_file_dir);
+  void SetTimeOut(double time_out_s);
 
  private:
   std::shared_ptr<entity::DFG> dfg_ptr_;
   std::shared_ptr<entity::MRRG> mrrg_ptr_;
-  std::string log_file_path_;
+  std::optional<std::string> log_file_path_;
+  std::optional<double> timeout_s_;
 };
 }  // namespace mapper

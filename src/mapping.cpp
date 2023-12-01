@@ -1,13 +1,75 @@
 #include <time.h>
 
+#include <fstream>
 #include <io/architecture_io.hpp>
 #include <io/dfg_io.hpp>
 #include <io/mapping_io.hpp>
 #include <iostream>
 #include <mapper/gurobi_mapper.hpp>
 
+std::string FixOpName(std::string op_name, int node_offset) {
+  std::string result = "";
+  std::string number_str = "";
+
+  const auto AddNumber = [&]() {
+    if (number_str != "") {
+      int number = std::stoi(number_str);
+      number += node_offset;
+      result += std::to_string(number);
+      number_str = "";
+    }
+  };
+
+  for (const auto c : op_name) {
+    if (c >= '0' && c <= '9') {
+      number_str += c;
+    } else {
+      AddNumber();
+      result += c;
+    }
+  }
+  AddNumber();
+  return result;
+};
+
+std::shared_ptr<entity::DFG> AddDFG(
+    std::shared_ptr<entity::DFG> original_dfg_ptr,
+    std::shared_ptr<entity::DFG> dfg_ptr_to_add, int node_offset) {
+  entity::DFGGraph g_to_add = dfg_ptr_to_add->GetGraph();
+  entity::DFGGraph result_graph = original_dfg_ptr->GetGraph();
+
+  std::unordered_map<int, size_t> dfg_id_map = {};
+  for (int i = 0; i < dfg_ptr_to_add->GetNodeNum(); i++) {
+    auto tmp_node_property = dfg_ptr_to_add->GetNodeProperty(i);
+    auto v = boost::add_vertex(result_graph);
+    result_graph[v].op = tmp_node_property.op;
+    result_graph[v].op_name = FixOpName(tmp_node_property.op_name, node_offset);
+    result_graph[v].op_str = tmp_node_property.op_str;
+    result_graph[v].const_value = tmp_node_property.const_value;
+
+    dfg_id_map[i] = v;
+  }
+
+  entity::DFGGraph::edge_iterator ei, ei_end;
+  bool found;
+  for (std::tie(ei, ei_end) = boost::edges(g_to_add); ei != ei_end; ++ei) {
+    entity::DFGGraph::edge_descriptor e = *ei;
+    entity::DFGGraph::vertex_descriptor u = boost::source(e, g_to_add),
+                                        v = boost::target(e, g_to_add);
+    entity::DFGGraph::vertex_descriptor new_u = dfg_id_map[u],
+                                        new_v = dfg_id_map[v];
+
+    boost::tie(e, found) = boost::add_edge(new_u, new_v, result_graph);
+    result_graph[e].operand = dfg_ptr_to_add->GetEdgeProperty(e).operand;
+  }
+
+  std::shared_ptr<entity::DFG> result_dfg_ptr =
+      std::make_shared<entity::DFG>(entity::DFG(result_graph));
+  return result_dfg_ptr;
+}
+
 int main(int argc, char* argv[]) {
-  if (argc != 5) {
+  if (argc != 7) {
     std::cerr << "invalid arguments" << std::endl;
     abort();
   }
@@ -16,23 +78,44 @@ int main(int argc, char* argv[]) {
   std::string mrrg_file_path = argv[2];
   std::string output_mapping_path = argv[3];
   std::string log_file_path = argv[4];
+  double timeout_s = std::stod(argv[5]);
+  int parallel_num = std::stoi(argv[6]);
+
+  std::ofstream log_file;
+  log_file.open(log_file_path, std::ios::app);
+  log_file << "-- mapping input --" << std::endl;
+  log_file << "dfg file: " << dfg_dot_file_path << std::endl;
+  log_file << "mrrg file: " << mrrg_file_path << std::endl;
+  log_file << "output mapping file: " << output_mapping_path << std::endl;
+  log_file << "log_file_path file: " << log_file_path << std::endl;
+  log_file << "timeout (s): " << timeout_s << std::endl;
+  log_file << "parallel num: " << parallel_num << std::endl;
+  log_file.close();
 
   std::shared_ptr<entity::DFG> dfg_ptr = std::make_shared<entity::DFG>();
+  std::shared_ptr<entity::DFG> dfg_ptr_to_add = std::make_shared<entity::DFG>();
   std::shared_ptr<entity::MRRG> mrrg_ptr = std::make_shared<entity::MRRG>();
 
-  *dfg_ptr = io::ReadDFGDotFile(dfg_dot_file_path);
+  *dfg_ptr_to_add = io::ReadDFGDotFile(dfg_dot_file_path);
+  *dfg_ptr = *dfg_ptr_to_add;
   *mrrg_ptr = io::ReadMRRGFromJsonFile(mrrg_file_path);
+
+  for (int i = 1; i < parallel_num; i++) {
+    dfg_ptr = AddDFG(dfg_ptr, dfg_ptr_to_add, dfg_ptr_to_add->GetNodeNum() * i);
+  }
 
   mapper::GurobiILPMapper* mapper;
   mapper = mapper::GurobiILPMapper().CreateMapper(dfg_ptr, mrrg_ptr);
   mapper->SetLogFilePath(log_file_path);
+  mapper->SetTimeOut(timeout_s);
 
   std::shared_ptr<entity::Mapping> mapping_ptr =
       std::make_shared<entity::Mapping>();
   bool is_success = false;
   std::tie(is_success, *mapping_ptr) = mapper->Execution();
 
-  io::WriteMappingFile(output_mapping_path, mapping_ptr,
-                       mrrg_ptr->GetMRRGConfig());
-
+  if (is_success) {
+    io::WriteMappingFile(output_mapping_path, mapping_ptr,
+                         mrrg_ptr->GetMRRGConfig());
+  }
 }
