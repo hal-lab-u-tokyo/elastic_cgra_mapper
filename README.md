@@ -19,7 +19,7 @@ set(ENV{GUROBI_HOME} /opt/gurobi911/linux64)
 ### mapping
 ```bash
 cd build
-./main
+./mapping
 ```
 
 ### visualizer 
@@ -27,6 +27,12 @@ cd build
 cd visualizer
 dot -Tpng {input/dotfile} -o {output/pngfile} # visualize dot file
 python3 main.py {input/mapping/json} # visualize mapping result
+```
+
+### experiment runner
+```bash
+cd experiment_runner
+python3 mapping_runner.py {nunber_of_process}
 ```
 
 ## 3.build

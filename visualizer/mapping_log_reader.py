@@ -69,7 +69,7 @@ def mapping_log_reader(file_path) -> MappingLogInfo:
             if line == "Model is infeasible\n":
                 log_info.mapping_succeed = False
 
-            if line.find("Optimal solution found(tolerance"):
+            if line.find("Optimal solution found(tolerance") != -1:
                 log_info.mapping_succeed = True
 
     return log_info
