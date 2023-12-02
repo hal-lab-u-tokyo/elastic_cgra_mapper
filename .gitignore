@@ -6,3 +6,4 @@ __pycache__/
 **/output/*
 **/obj_dir/*
 experiment_runner/log/*
+experiment_runner/tmp_cgra/*
