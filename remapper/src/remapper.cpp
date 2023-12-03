@@ -194,11 +194,19 @@ std::pair<bool, entity::Mapping> remapper::Remapper::FullSearchElasticRemapping(
 };
 
 struct MappingRectangle {
-  MappingRectangle(int _id, const Eigen::MatrixXi& _matrix) {
+  MappingRectangle(int _id, const Eigen::MatrixXi& _matrix,
+                   const entity::Mapping& mapping) {
     row = _matrix.rows();
     column = _matrix.cols();
     config = _matrix.maxCoeff();
-    op_rate = (double)_matrix.sum() / (row * column * config);
+    int op_num_without_routing = 0;
+    for (const auto& config : mapping.GetConfigMap()) {
+      if (config.second.operation_type != entity::OpType::NOP &&
+          config.second.operation_type != entity::OpType::ROUTE) {
+        op_num_without_routing++;
+      }
+    }
+    op_rate = (double)op_num_without_routing / (row * column * config);
     id = _id;
   }
   int row;
@@ -216,7 +224,7 @@ std::pair<bool, entity::Mapping> remapper::Remapper::NaiveElasticRemapping(
   for (size_t i = 0; i < mapping_vec.size(); i++) {
     const auto& mapping = mapping_vec[i];
     const auto mapping_matrix = CreateMatrixForElastic(mapping);
-    mapping_rectangle_vec.emplace_back(i, mapping_matrix);
+    mapping_rectangle_vec.emplace_back(i, mapping_matrix, mapping);
   }
   auto compare = [&](MappingRectangle left, MappingRectangle right) {
     return left.op_rate > right.op_rate;
@@ -319,7 +327,7 @@ std::pair<bool, entity::Mapping> remapper::Remapper::DPElasticRemapping(
   for (size_t i = 0; i < mapping_vec.size(); i++) {
     const auto& mapping = mapping_vec[i];
     const auto mapping_matrix = CreateMatrixForElastic(mapping);
-    mapping_rectangle_vec.emplace_back(i, mapping_matrix);
+    mapping_rectangle_vec.emplace_back(i, mapping_matrix, mapping);
   }
   auto compare = [&](MappingRectangle left, MappingRectangle right) {
     return left.op_rate > right.op_rate;
