@@ -108,6 +108,9 @@ def exec(command):
       break
     else:
       parallel_num = parallel_num - 1
+
+    if parallel_num == 0:
+      break
   
   os.remove(cgra_file)
 
@@ -148,10 +151,11 @@ if __name__ == "__main__":
           cgra_dict["context_size"] = context_size
 
           command_list.append([dfg_file_path, cgra_dict, benchmark])
-  
-  lock = multiprocessing.Lock()
-  pool = multiprocessing.Pool(process_num)
-  pool.map(exec, command_list)
+
+      lock = multiprocessing.Lock()
+      pool = multiprocessing.Pool(process_num)
+      pool.map(exec, command_list)
+      command_list = []
 
 
 
