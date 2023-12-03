@@ -17,24 +17,18 @@ std::vector<entity::MRRGConfig> GetMRRGToTest(int dfg_node_num) {
     for (int row_num = 2; row_num <= dfg_node_num_sqrt; row_num++) {
       int column_num = std::ceil(dfg_node_num / (context_size * row_num));
       if (column_num < row_num) break;
-      for (int cgra_type = 0; cgra_type < 2; cgra_type++) {
-        for (int memory_io_type = 0; memory_io_type < 2; memory_io_type++) {
-          for (int network_type = 0; network_type < 2; network_type++) {
-            entity::MRRGConfig mrrg_config;
-            mrrg_config.cgra_type =
-                static_cast<entity::MRRGCGRAType>(cgra_type);
-            mrrg_config.memory_io =
-                static_cast<entity::MRRGMemoryIOType>(memory_io_type);
-            mrrg_config.network_type =
-                static_cast<entity::MRRGNetworkType>(network_type);
-            mrrg_config.context_size = context_size;
-            mrrg_config.row = row_num;
-            mrrg_config.column = column_num;
-            mrrg_config.local_reg_size = 1;
+      for (int memory_io_type = 0; memory_io_type < 2; memory_io_type++) {
+        entity::MRRGConfig mrrg_config;
+        mrrg_config.cgra_type = entity::MRRGCGRAType::kElastic;
+        mrrg_config.memory_io =
+            static_cast<entity::MRRGMemoryIOType>(memory_io_type);
+        mrrg_config.network_type = entity::MRRGNetworkType::kOrthogonal;
+        mrrg_config.context_size = context_size;
+        mrrg_config.row = row_num;
+        mrrg_config.column = column_num;
+        mrrg_config.local_reg_size = 1;
 
-            mrrg_config_vec.push_back(mrrg_config);
-          }
-        }
+        mrrg_config_vec.push_back(mrrg_config);
       }
     }
   }
