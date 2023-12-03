@@ -12,8 +12,8 @@ int main(int argc, char* argv[]) {
   std::string mrrg_file_path = argv[2];
   std::string output_mapping_dir = argv[3];
   std::string output_log_dir = argv[4];
-
-  remapper::RemappingMode mode = remapper::RemappingMode::Naive;
+  remapper::RemappingMode mode =
+      static_cast<remapper::RemappingMode>(std::stoi(argv[5]));
 
   if (!std::filesystem::exists(output_mapping_dir)) {
     std::filesystem::create_directories(output_mapping_dir);
