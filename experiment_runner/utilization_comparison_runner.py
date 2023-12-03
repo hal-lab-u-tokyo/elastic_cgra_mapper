@@ -202,11 +202,11 @@ if __name__ == "__main__":
   network_type = "orthogonal"
   local_reg_size = 1
   context_size = 4
-  db_timeout_s = 900
+  db_timeout_s = 1800
   timeout_s = 3600
   build_dir_name = "build"
 
-  experiment_log_dir = "./log/utilization_comaprison_runner/"
+  experiment_log_dir = "./log/utilization_comparison_runner/"
   check_dir_availability(experiment_log_dir)
   experiment_log_file_path = experiment_log_dir + "log_" + get_time_string() + ".log"
   
