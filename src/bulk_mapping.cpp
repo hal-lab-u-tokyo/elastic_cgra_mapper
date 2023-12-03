@@ -2,6 +2,7 @@
 
 #include <chrono>
 #include <filesystem>
+#include <fstream>
 #include <io/architecture_io.hpp>
 #include <io/dfg_io.hpp>
 #include <io/mapping_io.hpp>
@@ -42,7 +43,7 @@ std::vector<entity::MRRGConfig> GetMRRGToTest(int dfg_node_num) {
 }
 
 int main(int argc, char* argv[]) {
-  if (argc != 4) {
+  if (argc != 5) {
     std::cerr << "invalid arguments" << std::endl;
     abort();
   }
@@ -50,6 +51,7 @@ int main(int argc, char* argv[]) {
   const std::string dfg_dot_file_path = argv[1];
   const std::string output_mapping_dir = argv[2];
   const std::string log_file_dir = argv[3];
+  double timeout_s = std::stod(argv[4]);
 
   std::shared_ptr<entity::DFG> dfg_ptr = std::make_shared<entity::DFG>();
   *dfg_ptr = io::ReadDFGDotFile(dfg_dot_file_path);
@@ -74,16 +76,27 @@ int main(int argc, char* argv[]) {
 
       std::string log_file_path =
           log_file_dir + "log" + std::to_string(tmp_time) + ".log";
+      std::string output_mapping_path =
+          output_mapping_dir + "mapping_" + std::to_string(tmp_time) + ".json";
+
+      std::ofstream log_file;
+      log_file.open(log_file_path, std::ios::app);
+      log_file << "-- mapping input --" << std::endl;
+      log_file << "dfg file: " << dfg_dot_file_path << std::endl;
+      log_file << "output mapping file: " << output_mapping_path << std::endl;
+      log_file << "log_file_path file: " << log_file_path << std::endl;
+      log_file << "timeout (s): " << timeout_s << std::endl;
+      log_file << "parallel num: " << 1 << std::endl;
+      log_file.close();
       mapper::GurobiILPMapper* mapper;
       mapper = mapper::GurobiILPMapper().CreateMapper(dfg_ptr, mrrg_ptr);
       mapper->SetLogFilePath(log_file_path);
+      mapper->SetTimeOut(timeout_s);
 
       std::shared_ptr<entity::Mapping> mapping_ptr =
           std::make_shared<entity::Mapping>();
       std::tie(is_success, *mapping_ptr) = mapper->Execution();
 
-      std::string output_mapping_path =
-          output_mapping_dir + "mapping_" + std::to_string(tmp_time) + ".json";
       if (is_success) {
         io::WriteMappingFile(output_mapping_path, mapping_ptr,
                              mrrg_ptr->GetMRRGConfig());
