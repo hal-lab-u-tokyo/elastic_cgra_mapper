@@ -26,6 +26,11 @@ set_property(TARGET mapping PROPERTY CXX_STANDARD 17)
 target_compile_options(mapping INTERFACE -Wall -Wextra -Wno-deprecated)
 target_link_libraries(mapping PRIVATE io entity mapper cpp_simulator)
 
+add_executable(sub_cgra_mapping src/sub_cgra_mapping.cpp)
+set_property(TARGET sub_cgra_mapping PROPERTY CXX_STANDARD 17)
+target_compile_options(sub_cgra_mapping INTERFACE -Wall -Wextra -Wno-deprecated)
+target_link_libraries(sub_cgra_mapping PRIVATE io entity mapper cpp_simulator)
+
 add_executable(bulk_mapping src/bulk_mapping.cpp)
 set_property(TARGET bulk_mapping PROPERTY CXX_STANDARD 17)
 target_compile_options(bulk_mapping INTERFACE -Wall -Wextra -Wno-deprecated)
