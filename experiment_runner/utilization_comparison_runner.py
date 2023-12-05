@@ -5,8 +5,10 @@ import time
 import subprocess
 import json
 import sys
+import networkx as nx
 
 global experiment_result_dir
+global experiment_log_file_path
 global db_timeout_s
 global build_dir_name
 
@@ -48,17 +50,25 @@ def succeed_mapping(log_file):
 
 def create_db(command):
   dfg_file = command[0]
-  benchmark = command[1]
+  cgra_dict = command[1]
+  benchmark = command[2]
 
   mapping_dir_path = experiment_result_dir + benchmark + "/database/mapping/" 
   mapping_log_dir_path = experiment_result_dir + benchmark + "/database/log/" 
+  cgra_dir_path = experiment_result_dir + benchmark + "/database/"
 
   lock.acquire()
   try:
     check_dir_availability(mapping_dir_path)
     check_dir_availability(mapping_log_dir_path)
+    cgra_file = cgra_dir_path + str(int(time.time())) + ".json"
+    time.sleep(1)
   finally:
     lock.release()
+
+  file = open(cgra_file, mode="w")
+  json.dump(cgra_dict, file)
+  file.close()
   
   lock.acquire()
   try:
@@ -72,7 +82,7 @@ def create_db(command):
   finally:
     lock.release()
 
-  subprocess.run(["../"+ build_dir_name +"/bulk_mapping", dfg_file, mapping_dir_path, mapping_log_dir_path, str(db_timeout_s)])
+  subprocess.run(["../"+ build_dir_name +"/sub_cgra_mapping", dfg_file, cgra_file, mapping_dir_path, mapping_log_dir_path, str(db_timeout_s)])
 
 def loop_unrolling(command):
   dfg_file = command[0]
@@ -221,17 +231,26 @@ if __name__ == "__main__":
 
 
   # create database
-  for benchmark in benchmark_list:
-    dfg_file_path = "../benchmark/kernel/" + benchmark + ".dot"
+  for memory_io in memory_io_list:
+    for benchmark in benchmark_list:
+      dfg_file_path = "../benchmark/kernel/" + benchmark + ".dot"
+      
+      cgra_dict = {} 
+      cgra_dict["row"] = str(cgra_size)
+      cgra_dict["column"] = str(cgra_size)
+      cgra_dict["memory_io"] = memory_io
+      cgra_dict["CGRA_type"] = cgra_type
+      cgra_dict["network_type"] = network_type
+      cgra_dict["local_reg_size"] = local_reg_size
+      cgra_dict["context_size"] = context_size
 
-    command_list.append([dfg_file_path, benchmark])
+      command_list.append([dfg_file_path, cgra_dict, benchmark])
 
   lock = multiprocessing.Lock()
   pool = multiprocessing.Pool(process_num)
   pool.map(create_db, command_list)
 
   command_list = []
-
   # multi mapping
   for memory_io in memory_io_list:
     for benchmark in benchmark_list:
