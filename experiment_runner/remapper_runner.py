@@ -5,6 +5,7 @@ import time
 import subprocess
 import json
 import sys
+import networkx as nx
 
 global experiment_result_dir
 global db_timeout_s
@@ -177,7 +178,13 @@ def remapper(command):
   finally:
     lock.release()
 
-  subprocess.run(["../"+ build_dir_name + "/remapping", database_dir_path, cgra_file, mapping_dir_path, mapping_log_dir_path])
+  mode_input = "0"
+  if mode == "naive":
+    mode_input = "1"
+  elif mode == "dp":
+    mode_input = "2"
+
+  subprocess.run(["../"+ build_dir_name + "/remapping", database_dir_path, cgra_file, mapping_dir_path, mapping_log_dir_path, mode_input])
 
   os.remove(cgra_file)
 

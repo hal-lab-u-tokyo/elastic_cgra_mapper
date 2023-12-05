@@ -74,7 +74,7 @@ def create_db(command):
   try:
     experiment_log_file = open(experiment_log_file_path, "a")
     experiment_log_file.write("--- create database ---\n")
-    experiment_log_file.write("exec : ../" + build_dir_name+ "/bulk_mapping\n")
+    experiment_log_file.write("exec : ../" + build_dir_name+ "/sub_cgra_mapping\n")
     experiment_log_file.write("dfg_file: " + dfg_file + "\n")
     experiment_log_file.write("mapping_dir: " + mapping_dir_path + "\n")
     experiment_log_file.write("mapping_log_dir: " + mapping_log_dir_path + "\n")
@@ -183,11 +183,18 @@ def remapper(command):
     experiment_log_file.write("mapping_dir_path: " + database_dir_path + "\n")
     experiment_log_file.write("output_mapping_dir: " + mapping_dir_path + "\n")
     experiment_log_file.write("output_log_dir: " + mapping_log_dir_path + "\n")
+    experiment_log_file.write("mode: " + mode + "\n")
     experiment_log_file.close()
   finally:
     lock.release()
 
-  subprocess.run(["../"+ build_dir_name + "/remapping", database_dir_path, cgra_file, mapping_dir_path, mapping_log_dir_path])
+  mode_input = "0"
+  if mode == "naive":
+    mode_input = "1"
+  elif mode == "dp":
+    mode_input = "2"
+
+  subprocess.run(["../"+ build_dir_name + "/remapping", database_dir_path, cgra_file, mapping_dir_path, mapping_log_dir_path, mode_input])
 
   os.remove(cgra_file)
 
