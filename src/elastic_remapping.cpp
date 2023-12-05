@@ -32,10 +32,13 @@ int main(int argc, char* argv[]) {
   switch (mode) {
     case remapper::RemappingMode::FullSearch:
       log_file << "mode: FullSearch" << std::endl;
+      break;
     case remapper::RemappingMode::Greedy:
       log_file << "mode: Greedy" << std::endl;
+      break;
     case remapper::RemappingMode::DP:
       log_file << "mode: DP" << std::endl;
+      break;
   }
 
   std::vector<entity::Mapping> mapping_vec;
