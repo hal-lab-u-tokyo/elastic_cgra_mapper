@@ -206,7 +206,7 @@ if __name__ == "__main__":
   timeout_s = 3600
   build_dir_name = "build"
 
-  experiment_log_dir = "./log/utilization_comaprison_runner/"
+  experiment_log_dir = "./log/utilization_comparison_runner/"
   check_dir_availability(experiment_log_dir)
   experiment_log_file_path = experiment_log_dir + "log_" + get_time_string() + ".log"
   
