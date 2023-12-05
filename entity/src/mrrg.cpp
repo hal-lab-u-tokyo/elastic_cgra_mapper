@@ -33,6 +33,8 @@ entity::MRRGMemoryIOType entity::MRRGMemoryIOTypeFromString(
     return entity::MRRGMemoryIOType::kAll;
   } else if (memory_io_type_string == "both_ends") {
     return entity::MRRGMemoryIOType::kBothEnds;
+  } else if (memory_io_type_string == "one_end") {
+    return entity::MRRGMemoryIOType::kOneEnd;
   } else {
     assert("invalid Memory IO Type String");
     abort();
@@ -47,6 +49,9 @@ std::string entity::MRRGMemoryIoTypeToString(
       break;
     case entity::MRRGMemoryIOType::kBothEnds:
       return "both_ends";
+      break;
+    case entity::MRRGMemoryIOType::kOneEnd:
+      return "one_end";
       break;
     default:
       assert("invalid MRRG Memory IO Type");
@@ -162,6 +167,13 @@ entity::MRRG::MRRG(entity::MRRGConfig mrrg_config)
         } else if (mrrg_config.memory_io ==
                    entity::MRRGMemoryIOType::kBothEnds) {
           if (j == 0 || j == mrrg_config.column - 1) {
+            graph_[vertex_id].supported_operations = entity::GetAllOperations();
+          } else {
+            graph_[vertex_id].supported_operations =
+                entity::GetAllOperationsExceptMemoryAccess();
+          }
+        } else if (mrrg_config.memory_io == entity::MRRGMemoryIOType::kOneEnd) {
+          if (j == 0) {
             graph_[vertex_id].supported_operations = entity::GetAllOperations();
           } else {
             graph_[vertex_id].supported_operations =
