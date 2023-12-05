@@ -5,8 +5,10 @@ import time
 import subprocess
 import json
 import sys
+import networkx as nx
 
 global experiment_result_dir
+global experiment_log_file_path
 global db_timeout_s
 global build_dir_name
 
