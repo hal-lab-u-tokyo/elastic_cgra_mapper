@@ -32,10 +32,13 @@ int main(int argc, char* argv[]) {
   switch (mode) {
     case remapper::RemappingMode::FullSearch:
       log_file << "mode: FullSearch" << std::endl;
-    case remapper::RemappingMode::Naive:
-      log_file << "mode: Naive" << std::endl;
+      break;
+    case remapper::RemappingMode::Greedy:
+      log_file << "mode: Greedy" << std::endl;
+      break;
     case remapper::RemappingMode::DP:
       log_file << "mode: DP" << std::endl;
+      break;
   }
 
   std::vector<entity::Mapping> mapping_vec;
@@ -61,6 +64,9 @@ int main(int argc, char* argv[]) {
       continue;
     }
     if (mapping.GetMRRGConfig().network_type != mrrg_config.network_type) {
+      continue;
+    }
+    if (mapping.GetMRRGConfig().memory_io != mrrg_config.memory_io) {
       continue;
     }
     log_file << file.path() << std::endl;
