@@ -1,16 +1,31 @@
 from enum import Enum
+from typing import List
 
 class MemoryIOType(Enum):
     All = 0
     BothEnds = 1
+    OneEnd = 2
 
     def get_from_string(input: str):
         if input == "all":
             return MemoryIOType.All
         if input == "both_ends":
             return MemoryIOType.BothEnds
+        if input == "one_end":
+            return MemoryIOType.OneEnd
         else:
             print("ERROR: MemoryIOType get_from_string invalid input")
+            raise ValueError
+    
+    def to_string(input: str):
+        if input == MemoryIOType.All:
+            return "all"
+        if input == MemoryIOType.BothEnds:
+            return "both_ends"
+        if input == MemoryIOType.OneEnd:
+            return "one_end"
+        else:
+            print("ERROR: MemoryIOType to_string invalid input")
             raise ValueError
 
     def __int__(self):
@@ -28,6 +43,15 @@ class CGRAType(Enum):
         else:
             print("ERROR: CGRAType get_from_string invalid input")
             raise ValueError
+        
+    def to_string(input: str):
+        if input == CGRAType.Elastic:
+            return "elastic"
+        if input == CGRAType.Default:
+            return "default"
+        else:
+            print("ERROR: CGRAType to_string invalid input")
+            raise ValueError
 
 
 class NetworkType(Enum):
@@ -42,6 +66,15 @@ class NetworkType(Enum):
         else: 
             print("ERROR: NetworkType get_from_string invalid input")
             raise ValueError
+    
+    def to_string(input: str):
+        if input == NetworkType.Diagonal:
+            return "diagonal"
+        if input == NetworkType.Orthogonal:
+            return "orthogonal"
+        else:
+            print("ERROR: NetworkType to_string invalid input")
+            raise ValueError
 
 class OperationType(Enum):
     Add = 0
@@ -54,6 +87,8 @@ class OperationType(Enum):
     Store = 7
     Nop = 8
     Route = 9
+    Or = 10
+    Shift = 11
 
     def get_from_string(input: str):
         if input == "add":
@@ -76,6 +111,10 @@ class OperationType(Enum):
             return OperationType.Nop
         elif input == "route":
             return OperationType.Route
+        elif input == "or":
+            return OperationType.Or
+        elif input == "shift":
+            return OperationType.Shift
         else:
             print("ERROR: OperationType get_from_string invalid input")
             raise ValueError
@@ -101,10 +140,13 @@ class OperationType(Enum):
             return "nop"
         elif input == OperationType.Route:
             return "route"
+        elif input == OperationType.Or:
+            return "or"
+        elif input == OperationType.Shift:
+            return "shift"
         else:
             print("ERROR: OperationType to_string invalid input")
             raise ValueError
-
 
 
 class ConfigId:
@@ -117,15 +159,15 @@ class CGRAConfig:
     context_id: int
     operation_type: OperationType
     operation_name: str
-    to_config_id: list[ConfigId]
-    from_config_id: list[ConfigId]
+    to_config_id: List[ConfigId]
+    from_config_id: List[ConfigId]
 
 
 class PE:
     row_id: int
     column_id: int
     context_size: int
-    config_list: list[CGRAConfig]
+    config_list: List[CGRAConfig]
 
 
 class Mapping:
@@ -136,4 +178,4 @@ class Mapping:
     CGRA_type: CGRAType
     network_type: NetworkType
 
-    PE_array: list[list[PE]]
+    PE_array: List[List[PE]]

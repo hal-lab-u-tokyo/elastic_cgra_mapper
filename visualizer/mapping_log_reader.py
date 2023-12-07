@@ -14,8 +14,10 @@ class MappingLogInfo:
         self.cgra_type: CGRAType
         self.network_type: NetworkType
         self.mapping_succeed: bool = False
-        self.mapping_time: float
-        self.num_threads: int
+        self.mapping_time: float = -1
+        self.num_threads: int = -1
+        self.timeout: float = -1
+        self.parallel_num: int = -1
 
 
 def mapping_log_reader(file_path) -> MappingLogInfo:
@@ -23,6 +25,14 @@ def mapping_log_reader(file_path) -> MappingLogInfo:
     with open(file_path) as f:
         is_setting = -1
         for line in f:
+            parsed = parse.parse("timeout (s): {:d}\n", line)
+            if parsed != None:
+                log_info.timeout = parsed[0]
+
+            parsed = parse.parse("parallel num: {:d}\n", line)
+            if parsed != None:
+                log_info.parallel_num = parsed[0]                
+
             if line == "-- CGRA setting --\n":
                 is_setting = 0
                 continue
@@ -69,7 +79,7 @@ def mapping_log_reader(file_path) -> MappingLogInfo:
             if line == "Model is infeasible\n":
                 log_info.mapping_succeed = False
 
-            if line.find("Optimal solution found(tolerance") != -1:
+            if line.find("Optimal solution found (tolerance") != -1:
                 log_info.mapping_succeed = True
 
     return log_info
