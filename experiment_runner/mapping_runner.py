@@ -45,7 +45,7 @@ def succeed_mapping(log_file):
         if line == "Model is infeasible\n":
           return False
 
-        if line.find("Optimal solution found(tolerance") != -1:
+        if line.find("Optimal solution found (tolerance") != -1:
           return True
 
 def exec(command):
