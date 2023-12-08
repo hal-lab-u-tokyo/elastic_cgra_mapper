@@ -66,7 +66,17 @@ int main(int argc, char* argv[]) {
     if (mapping.GetMRRGConfig().network_type != mrrg_config.network_type) {
       continue;
     }
-    if (mapping.GetMRRGConfig().memory_io != mrrg_config.memory_io) {
+    bool mapping_io_is_both_ends_or_one_end =
+        mapping.GetMRRGConfig().memory_io ==
+            entity::MRRGMemoryIOType::kBothEnds ||
+        mapping.GetMRRGConfig().memory_io == entity::MRRGMemoryIOType::kOneEnd;
+    if (mrrg_config.memory_io == entity::MRRGMemoryIOType::kBothEnds &&
+        !mapping_io_is_both_ends_or_one_end) {
+      continue;
+    }
+    if (mrrg_config.memory_io == entity::MRRGMemoryIOType::kOneEnd &&
+        mapping.GetMRRGConfig().memory_io !=
+            entity::MRRGMemoryIOType::kOneEnd) {
       continue;
     }
     log_file << file.path() << std::endl;
