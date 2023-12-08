@@ -184,7 +184,11 @@ def remapper(command):
   elif mode == "dp":
     mode_input = "2"
 
-  subprocess.run(["../"+ build_dir_name + "/remapping", database_dir_path, cgra_file, mapping_dir_path, mapping_log_dir_path, mode_input])
+  run_result = subprocess.run(["../"+ build_dir_name + "/remapping", database_dir_path, cgra_file, mapping_dir_path, mapping_log_dir_path, mode_input])
+  if run_result.returncode != 0:
+    print("dfg_file: " + dfg_file)
+    print("cgra_dict: " + str(cgra_dict))
+    print("mode: " + mode)
 
   os.remove(cgra_file)
 
