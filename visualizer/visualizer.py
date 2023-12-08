@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
 import matplotlib.patches as pat
 import networkx as nx
-import pulp
 
 from mapping import *
 

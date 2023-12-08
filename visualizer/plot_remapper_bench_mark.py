@@ -4,6 +4,7 @@ import os
 import re
 import json
 import parse
+from mapping_log_reader import mapping_log_reader
 
 # param
 benchmark_list = ["fixed_convolution2d", "fixed_ellpack", "fixed_fft_pro", "fixed_fir_pro", "fixed_latnrm_pro", "fixed_stencil", "fixed_susan_pro", "convolution_no_loop", "fixed_matrixmultiply_const"]
@@ -65,7 +66,7 @@ if __name__ == "__main__":
   greedy_util = {}
   loop_unrolling_util = {}
 
-  memory_io_list = ["all", "both_ends"]
+  database_time = {}
 
   for benchmark in benchmark_list:
     dfg_file_path = kernel_dir_path + benchmark + ".dot"
@@ -73,6 +74,17 @@ if __name__ == "__main__":
     dfg_node_size = len(G.nodes())
 
     benchmark_node_num[benchmark] = dfg_node_size
+
+    # database_time
+    database_dir_path = "../output/utilization_comparison/20231205/" + benchmark + "/database/"
+    for file in os.listdir(database_dir_path + "mapping/"):
+      unix_time_str = re.findall(r"\d+", file)[0]
+      log_file_path = database_dir_path + "log/log" + unix_time_str + ".log"
+      mapping_log = mapping_log_reader(log_file_path)
+      if benchmark not in database_time.keys():
+        database_time[benchmark] = 0
+      database_time[benchmark] = database_time[benchmark] + mapping_log.mapping_time
+
 
     # dp
     log_dir_path = remapper_dir_path + benchmark +  "/dp/log/"
@@ -84,7 +96,7 @@ if __name__ == "__main__":
       parallel_num, remapper_time = get_remapper_log(log_file_path)
 
       dp_parallel_num[result_id] = parallel_num
-      dp_time[result_id] = remapper_time
+      dp_time[result_id] = remapper_time + database_time[benchmark]
       dp_util[result_id] = parallel_num * dfg_node_size / get_all_context_num(mapping_dir_path + file)
 
     # greedy
@@ -97,7 +109,7 @@ if __name__ == "__main__":
       parallel_num, remapper_time = get_remapper_log(log_file_path)
 
       greedy_parallel_num[result_id] = parallel_num
-      greedy_time[result_id] = remapper_time
+      greedy_time[result_id] = remapper_time + database_time[benchmark]
       greedy_util[result_id] = parallel_num * dfg_node_size / get_all_context_num(mapping_dir_path + file)
 
     # loop unrolling
@@ -112,7 +124,7 @@ if __name__ == "__main__":
       log_file_path = log_dir_path + "log_" + exp_time + ".log"
       parallel_num, mapping_time = get_unrolling_log(log_file_path)
       
-      if result_id in greedy_parallel_num.keys() and greedy_parallel_num[result_id] > parallel_num:
+      if result_id in loop_unrolling_parallel_num.keys() and loop_unrolling_parallel_num[result_id] > parallel_num:
         continue
       loop_unrolling_parallel_num[result_id] = parallel_num
       loop_unrolling_time[result_id] = mapping_time
@@ -176,6 +188,10 @@ if __name__ == "__main__":
     fig.savefig("./output/utilization_comparison/" + memory_io + "_time.png")
 
     for benchmark in benchmark_list:
+      dp_cgra_size = []
+      greedy_cgra_size = []
+      loop_unrolling_cgra_size = []
+
       dp_util_list = []
       greedy_util_list = []
       loop_unrolling_util_list = []
@@ -190,30 +206,24 @@ if __name__ == "__main__":
         if result_id in dp_time.keys():
           dp_util_list.append(dp_util[result_id])
           dp_time_list.append(dp_time[result_id])
-        else:
-          dp_util_list.append(0)
-          dp_time_list.append(0)
+          dp_cgra_size.append(cgra_size)
 
         if result_id in greedy_time.keys():
           greedy_util_list.append(greedy_util[result_id])
           greedy_time_list.append(greedy_time[result_id])
-        else:
-          greedy_util_list.append(0)
-          greedy_time_list.append(0)
+          greedy_cgra_size.append(cgra_size)
 
         if result_id in loop_unrolling_time.keys():
           tmp_util = loop_unrolling_util[result_id]
           tmp_time = loop_unrolling_time[result_id]
           loop_unrolling_util_list.append(tmp_util)
-          loop_unrolling_time_list.append(tmp_time)
-        else:
-          loop_unrolling_util_list.append(0)
-          loop_unrolling_time_list.append(0)
+          loop_unrolling_time_list.append(tmp_time) 
+          loop_unrolling_cgra_size.append(cgra_size)
       
       fig, ax = plt.subplots()
-      ax.plot(range(6,21), dp_util_list, label="dp")
-      ax.plot(range(6,21), greedy_util_list, label="greedy")
-      ax.plot(range(6,21), loop_unrolling_util_list, label="loop_unrolling")
+      ax.plot(dp_cgra_size, dp_util_list,marker=".", label="remapping:dp")
+      ax.plot(greedy_cgra_size, greedy_util_list,marker=".", label="remapping:greedy")
+      ax.plot(loop_unrolling_cgra_size, loop_unrolling_util_list,marker=".", label="not remapping")
       ax.set_xlabel("cgra size")
       ax.set_ylabel("utilization")
       ax.legend()
@@ -221,11 +231,11 @@ if __name__ == "__main__":
       fig.savefig("./output/utilization_comparison/"+memory_io+"_"+benchmark + "util.png")
 
       fig, ax = plt.subplots()
-      ax.plot(range(6,21), dp_time_list, label="dp")
-      ax.plot(range(6,21), greedy_time_list, label="greedy")
-      ax.plot(range(6,21), loop_unrolling_time_list, label="loop_unrolling")
+      ax.plot(dp_cgra_size, dp_time_list,marker=".", label="remapping:dp")
+      ax.plot(greedy_cgra_size, greedy_time_list,marker=".", label="remapping:greedy")
+      ax.plot(loop_unrolling_cgra_size, loop_unrolling_time_list,marker=".", label="not remapping")
       ax.set_xlabel("cgra size")
-      ax.set_ylabel("time")
+      ax.set_ylabel("time rate")
       ax.legend()
 
       fig.savefig("./output/utilization_comparison/"+memory_io+"_"+benchmark + "time.png")
