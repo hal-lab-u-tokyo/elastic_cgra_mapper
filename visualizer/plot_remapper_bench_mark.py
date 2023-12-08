@@ -124,7 +124,7 @@ if __name__ == "__main__":
       log_file_path = log_dir_path + "log_" + exp_time + ".log"
       parallel_num, mapping_time = get_unrolling_log(log_file_path)
       
-      if result_id in greedy_parallel_num.keys() and greedy_parallel_num[result_id] > parallel_num:
+      if result_id in loop_unrolling_parallel_num.keys() and loop_unrolling_parallel_num[result_id] > parallel_num:
         continue
       loop_unrolling_parallel_num[result_id] = parallel_num
       loop_unrolling_time[result_id] = mapping_time
