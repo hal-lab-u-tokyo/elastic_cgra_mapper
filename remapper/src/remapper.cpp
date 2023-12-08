@@ -254,7 +254,7 @@ bool IsAvailableRemapping(const entity::Mapping& mapping, int row_shift,
     }
 
     int column_id = config_id_and_config.first.column_id + column_shift;
-    if (column_id == 0 || column_id == target_mrrg_config.column - 1) {
+    if (column_id != 0 && column_id != target_mrrg_config.column - 1) {
       return false;
     }
   }
