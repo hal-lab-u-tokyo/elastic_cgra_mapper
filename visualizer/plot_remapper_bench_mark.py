@@ -188,6 +188,10 @@ if __name__ == "__main__":
     fig.savefig("./output/utilization_comparison/" + memory_io + "_time.png")
 
     for benchmark in benchmark_list:
+      dp_cgra_size = []
+      greedy_cgra_size = []
+      loop_unrolling_cgra_size = []
+
       dp_util_list = []
       greedy_util_list = []
       loop_unrolling_util_list = []
@@ -202,30 +206,24 @@ if __name__ == "__main__":
         if result_id in dp_time.keys():
           dp_util_list.append(dp_util[result_id])
           dp_time_list.append(dp_time[result_id])
-        else:
-          dp_util_list.append(0)
-          dp_time_list.append(0)
+          dp_cgra_size.append(cgra_size)
 
         if result_id in greedy_time.keys():
           greedy_util_list.append(greedy_util[result_id])
           greedy_time_list.append(greedy_time[result_id])
-        else:
-          greedy_util_list.append(0)
-          greedy_time_list.append(0)
+          greedy_cgra_size.append(cgra_size)
 
         if result_id in loop_unrolling_time.keys():
           tmp_util = loop_unrolling_util[result_id]
           tmp_time = loop_unrolling_time[result_id]
           loop_unrolling_util_list.append(tmp_util)
-          loop_unrolling_time_list.append(tmp_time)
-        else:
-          loop_unrolling_util_list.append(0)
-          loop_unrolling_time_list.append(0)
+          loop_unrolling_time_list.append(tmp_time) 
+          loop_unrolling_cgra_size.append(cgra_size)
       
       fig, ax = plt.subplots()
-      ax.plot(range(6,21), dp_util_list, label="dp")
-      ax.plot(range(6,21), greedy_util_list, label="greedy")
-      ax.plot(range(6,21), loop_unrolling_util_list, label="loop_unrolling")
+      ax.plot(dp_cgra_size, dp_util_list,marker=".", label="remapping:dp")
+      ax.plot(greedy_cgra_size, greedy_util_list,marker=".", label="remapping:greedy")
+      ax.plot(loop_unrolling_cgra_size, loop_unrolling_util_list,marker=".", label="not remapping")
       ax.set_xlabel("cgra size")
       ax.set_ylabel("utilization")
       ax.legend()
@@ -233,11 +231,11 @@ if __name__ == "__main__":
       fig.savefig("./output/utilization_comparison/"+memory_io+"_"+benchmark + "util.png")
 
       fig, ax = plt.subplots()
-      ax.plot(range(6,21), dp_time_list, label="dp")
-      ax.plot(range(6,21), greedy_time_list, label="greedy")
-      ax.plot(range(6,21), loop_unrolling_time_list, label="loop_unrolling")
+      ax.plot(dp_cgra_size, dp_time_list,marker=".", label="remapping:dp")
+      ax.plot(greedy_cgra_size, greedy_time_list,marker=".", label="remapping:greedy")
+      ax.plot(loop_unrolling_cgra_size, loop_unrolling_time_list,marker=".", label="not remapping")
       ax.set_xlabel("cgra size")
-      ax.set_ylabel("time")
+      ax.set_ylabel("time rate")
       ax.legend()
 
       fig.savefig("./output/utilization_comparison/"+memory_io+"_"+benchmark + "time.png")
