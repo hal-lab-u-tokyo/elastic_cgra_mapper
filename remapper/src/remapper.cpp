@@ -208,11 +208,32 @@ struct MappingRectangle {
     }
     op_rate = (double)op_num_without_routing / (row * column * config);
     id = _id;
+
+    if (mapping.GetMRRGConfig().memory_io == entity::MRRGMemoryIOType::kAll) {
+      num_waste_of_memory_io = 0;
+    } else {
+      if (mapping.GetMRRGConfig().memory_io ==
+          entity::MRRGMemoryIOType::kOneEnd) {
+        num_waste_of_memory_io = row * config;
+      } else if (mapping.GetMRRGConfig().memory_io ==
+                 entity::MRRGMemoryIOType::kBothEnds) {
+        num_waste_of_memory_io = 2 * row * column;
+      }
+
+      for (const auto& config : mapping.GetConfigMap()) {
+        if (config.second.operation_type == entity::OpType::LOAD ||
+            config.second.operation_type == entity::OpType::STORE ||
+            config.second.operation_type == entity::OpType::OUTPUT) {
+          num_waste_of_memory_io--;
+        }
+      }
+    }
   }
   int row;
   int column;
   int config;
   double op_rate;
+  double num_waste_of_memory_io;
   int id;
 };
 
@@ -250,11 +271,20 @@ std::pair<bool, entity::Mapping> remapper::Remapper::GreedyElasticRemapping(
     const auto mapping_matrix = CreateMatrixForElastic(mapping);
     mapping_rectangle_vec.emplace_back(i, mapping_matrix, mapping);
   }
-  auto compare = [&](MappingRectangle left, MappingRectangle right) {
+  auto compare_op_rate = [&](MappingRectangle left, MappingRectangle right) {
     return left.op_rate > right.op_rate;
   };
-  std::sort(mapping_rectangle_vec.begin(), mapping_rectangle_vec.end(),
-            compare);
+  auto compare_num_waste_of_memory_io = [&](MappingRectangle left,
+                                            MappingRectangle right) {
+    return left.num_waste_of_memory_io < right.num_waste_of_memory_io;
+  };
+  if (target_mrrg_config.memory_io == entity::MRRGMemoryIOType::kAll) {
+    std::sort(mapping_rectangle_vec.begin(), mapping_rectangle_vec.end(),
+              compare_op_rate);
+  } else {
+    std::sort(mapping_rectangle_vec.begin(), mapping_rectangle_vec.end(),
+              compare_num_waste_of_memory_io);
+  }
 
   Eigen::MatrixXi target_matrix =
       Eigen::MatrixXi::Zero(target_mrrg_config.row, target_mrrg_config.column);
