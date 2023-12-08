@@ -4,6 +4,7 @@ import os
 import re
 import json
 import parse
+from mapping_log_reader import mapping_log_reader
 
 # param
 benchmark_list = ["fixed_convolution2d", "fixed_ellpack", "fixed_fft_pro", "fixed_fir_pro", "fixed_latnrm_pro", "fixed_stencil", "fixed_susan_pro", "convolution_no_loop", "fixed_matrixmultiply_const"]
@@ -65,7 +66,7 @@ if __name__ == "__main__":
   greedy_util = {}
   loop_unrolling_util = {}
 
-  memory_io_list = ["all", "both_ends"]
+  database_time = {}
 
   for benchmark in benchmark_list:
     dfg_file_path = kernel_dir_path + benchmark + ".dot"
@@ -73,6 +74,17 @@ if __name__ == "__main__":
     dfg_node_size = len(G.nodes())
 
     benchmark_node_num[benchmark] = dfg_node_size
+
+    # database_time
+    database_dir_path = "../output/utilization_comparison/20231205/" + benchmark + "/database/"
+    for file in os.listdir(database_dir_path + "mapping/"):
+      unix_time_str = re.findall(r"\d+", file)[0]
+      log_file_path = database_dir_path + "log/log" + unix_time_str + ".log"
+      mapping_log = mapping_log_reader(log_file_path)
+      if benchmark not in database_time.keys():
+        database_time[benchmark] = 0
+      database_time[benchmark] = database_time[benchmark] + mapping_log.mapping_time
+
 
     # dp
     log_dir_path = remapper_dir_path + benchmark +  "/dp/log/"
@@ -84,7 +96,7 @@ if __name__ == "__main__":
       parallel_num, remapper_time = get_remapper_log(log_file_path)
 
       dp_parallel_num[result_id] = parallel_num
-      dp_time[result_id] = remapper_time
+      dp_time[result_id] = remapper_time + database_time[benchmark]
       dp_util[result_id] = parallel_num * dfg_node_size / get_all_context_num(mapping_dir_path + file)
 
     # greedy
@@ -97,7 +109,7 @@ if __name__ == "__main__":
       parallel_num, remapper_time = get_remapper_log(log_file_path)
 
       greedy_parallel_num[result_id] = parallel_num
-      greedy_time[result_id] = remapper_time
+      greedy_time[result_id] = remapper_time + database_time[benchmark]
       greedy_util[result_id] = parallel_num * dfg_node_size / get_all_context_num(mapping_dir_path + file)
 
     # loop unrolling
