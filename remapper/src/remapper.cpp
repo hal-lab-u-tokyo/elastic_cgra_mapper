@@ -248,7 +248,8 @@ bool IsAvailableRemapping(const entity::Mapping& mapping, int row_shift,
   for (const auto& config_id_and_config : config_map) {
     const auto& op = config_id_and_config.second.operation_type;
 
-    if (op != entity::OpType::LOAD && op != entity::OpType::OUTPUT) {
+    if (op != entity::OpType::LOAD && op != entity::OpType::OUTPUT &&
+        op != entity::OpType::STORE) {
       continue;
     }
 
