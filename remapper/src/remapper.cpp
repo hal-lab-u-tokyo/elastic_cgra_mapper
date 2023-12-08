@@ -410,17 +410,17 @@ std::pair<bool, entity::Mapping> remapper::Remapper::DPElasticRemapping(
         continue;
 
       const auto start_time = clock();
+      if (!IsAvailableRemapping(rotated_mapping, 0, 0,
+                                target_mrrg_config)) {
+        continue;
+      }
       for (int row_shift = 0; row_shift < target_mrrg_config.row -
                                               rotated_mapping_matrix.rows() + 1;
            row_shift++) {
         for (int col_shift = 0;
              col_shift <
              target_mrrg_config.column - rotated_mapping_matrix.cols() + 1;
-             col_shift++) {
-          if (!IsAvailableRemapping(rotated_mapping, row_shift, col_shift,
-                                    target_mrrg_config)) {
-            continue;
-          }
+             col_shift++) {          
           for (int context_shift = 0;
                context_shift < target_mrrg_config.context_size -
                                    rotated_mapping_matrix.maxCoeff() + 1;
@@ -536,21 +536,33 @@ std::pair<bool, entity::Mapping> remapper::Remapper::DPElasticRemapping(
                      dp_result[rectangle_row][rectangle_col]
                               [rectangle_context]) {
                   auto new_result = result;
-                  if (rectangle_id == 0) {
-                    new_result.op.row += mapping_row;
-                  } else if (rectangle_id == 1) {
-                    new_result.op.column += mapping_column;
-                  }
-
                   if (target_mrrg_config.memory_io ==
-                          entity::MRRGMemoryIOType::kBothEnds &&
-                      dp_column == target_mrrg_config.column &&
-                      rectangle_id == 1) {
-                    new_result.op.row =
-                        rectangle_row - 1 - result.op.row + mapping_row;
-                    new_result.op.column =
-                        rectangle_col - 1 - result.op.column + mapping_column;
-                    new_result.op.rotate_op = Rotate180(result.op.rotate_op);
+                      entity::MRRGMemoryIOType::kAll) {
+                    if (rectangle_id == 0) {
+                      new_result.op.row += mapping_row;
+                    } else if (rectangle_id == 1) {
+                      new_result.op.column += mapping_column;
+                    }
+                  } else if (target_mrrg_config.memory_io ==
+                             entity::MRRGMemoryIOType::kBothEnds) {
+                    if (rectangle_id == 0) {
+                      new_result.op.row += mapping_row;
+                    } else if (dp_column == target_mrrg_config.column &&
+                               rectangle_id == 1) {
+                      const auto& tmp_rotated_mapping =
+                          remapper::MappingRotater(mapping_vec[result.id],
+                                                   result.op.rotate_op);
+                      new_result.op.row = rectangle_row - 1 - result.op.row;
+                      new_result.op.column =
+                          rectangle_col - 1 - result.op.column + mapping_column;
+                      new_result.op.row =
+                          new_result.op.row -
+                          tmp_rotated_mapping.GetMRRGConfig().row + 1;
+                      new_result.op.column =
+                          new_result.op.column -
+                          tmp_rotated_mapping.GetMRRGConfig().column + 1;
+                      new_result.op.rotate_op = Rotate180(result.op.rotate_op);
+                    }
                   }
 
                   dp_result[dp_row][dp_column][dp_context].push_back(
