@@ -65,5 +65,16 @@ entity::Mapping remapper::MappingConcater(
     mapping_matrix += tmp_mapping_matrix;
   }
 
+  if (target_mrrg_config.memory_io == entity::MRRGMemoryIOType::kBothEnds) {
+    for (const auto& config : result_config_map) {
+      if (config.second.operation_type == entity::OpType::STORE ||
+          config.second.operation_type == entity::OpType::LOAD ||
+          config.second.operation_type == entity::OpType::OUTPUT) {
+        assert(config.first.column_id == 0 ||
+               config.first.column_id == target_mrrg_config.column - 1);
+      }
+    }
+  }
+
   return entity::Mapping(target_mrrg_config, result_config_map);
 }

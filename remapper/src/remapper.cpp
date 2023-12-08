@@ -208,11 +208,32 @@ struct MappingRectangle {
     }
     op_rate = (double)op_num_without_routing / (row * column * config);
     id = _id;
+
+    if (mapping.GetMRRGConfig().memory_io == entity::MRRGMemoryIOType::kAll) {
+      num_waste_of_memory_io = 0;
+    } else {
+      if (mapping.GetMRRGConfig().memory_io ==
+          entity::MRRGMemoryIOType::kOneEnd) {
+        num_waste_of_memory_io = row * config;
+      } else if (mapping.GetMRRGConfig().memory_io ==
+                 entity::MRRGMemoryIOType::kBothEnds) {
+        num_waste_of_memory_io = 2 * row * column;
+      }
+
+      for (const auto& config : mapping.GetConfigMap()) {
+        if (config.second.operation_type == entity::OpType::LOAD ||
+            config.second.operation_type == entity::OpType::STORE ||
+            config.second.operation_type == entity::OpType::OUTPUT) {
+          num_waste_of_memory_io--;
+        }
+      }
+    }
   }
   int row;
   int column;
   int config;
   double op_rate;
+  double num_waste_of_memory_io;
   int id;
 };
 
@@ -227,12 +248,13 @@ bool IsAvailableRemapping(const entity::Mapping& mapping, int row_shift,
   for (const auto& config_id_and_config : config_map) {
     const auto& op = config_id_and_config.second.operation_type;
 
-    if (op != entity::OpType::LOAD && op != entity::OpType::OUTPUT) {
+    if (op != entity::OpType::LOAD && op != entity::OpType::OUTPUT &&
+        op != entity::OpType::STORE) {
       continue;
     }
 
     int column_id = config_id_and_config.first.column_id + column_shift;
-    if (column_id == 0 || column_id == target_mrrg_config.column - 1) {
+    if (column_id != 0 && column_id != target_mrrg_config.column - 1) {
       return false;
     }
   }
@@ -250,11 +272,20 @@ std::pair<bool, entity::Mapping> remapper::Remapper::GreedyElasticRemapping(
     const auto mapping_matrix = CreateMatrixForElastic(mapping);
     mapping_rectangle_vec.emplace_back(i, mapping_matrix, mapping);
   }
-  auto compare = [&](MappingRectangle left, MappingRectangle right) {
+  auto compare_op_rate = [&](MappingRectangle left, MappingRectangle right) {
     return left.op_rate > right.op_rate;
   };
-  std::sort(mapping_rectangle_vec.begin(), mapping_rectangle_vec.end(),
-            compare);
+  auto compare_num_waste_of_memory_io = [&](MappingRectangle left,
+                                            MappingRectangle right) {
+    return left.num_waste_of_memory_io < right.num_waste_of_memory_io;
+  };
+  if (target_mrrg_config.memory_io == entity::MRRGMemoryIOType::kAll) {
+    std::sort(mapping_rectangle_vec.begin(), mapping_rectangle_vec.end(),
+              compare_op_rate);
+  } else {
+    std::sort(mapping_rectangle_vec.begin(), mapping_rectangle_vec.end(),
+              compare_num_waste_of_memory_io);
+  }
 
   Eigen::MatrixXi target_matrix =
       Eigen::MatrixXi::Zero(target_mrrg_config.row, target_mrrg_config.column);
@@ -410,17 +441,17 @@ std::pair<bool, entity::Mapping> remapper::Remapper::DPElasticRemapping(
         continue;
 
       const auto start_time = clock();
+      if (!IsAvailableRemapping(rotated_mapping, 0, 0,
+                                target_mrrg_config)) {
+        continue;
+      }
       for (int row_shift = 0; row_shift < target_mrrg_config.row -
                                               rotated_mapping_matrix.rows() + 1;
            row_shift++) {
         for (int col_shift = 0;
              col_shift <
              target_mrrg_config.column - rotated_mapping_matrix.cols() + 1;
-             col_shift++) {
-          if (!IsAvailableRemapping(rotated_mapping, row_shift, col_shift,
-                                    target_mrrg_config)) {
-            continue;
-          }
+             col_shift++) {          
           for (int context_shift = 0;
                context_shift < target_mrrg_config.context_size -
                                    rotated_mapping_matrix.maxCoeff() + 1;
@@ -536,21 +567,33 @@ std::pair<bool, entity::Mapping> remapper::Remapper::DPElasticRemapping(
                      dp_result[rectangle_row][rectangle_col]
                               [rectangle_context]) {
                   auto new_result = result;
-                  if (rectangle_id == 0) {
-                    new_result.op.row += mapping_row;
-                  } else if (rectangle_id == 1) {
-                    new_result.op.column += mapping_column;
-                  }
-
                   if (target_mrrg_config.memory_io ==
-                          entity::MRRGMemoryIOType::kBothEnds &&
-                      dp_column == target_mrrg_config.column &&
-                      rectangle_id == 1) {
-                    new_result.op.row =
-                        rectangle_row - 1 - result.op.row + mapping_row;
-                    new_result.op.column =
-                        rectangle_col - 1 - result.op.column + mapping_column;
-                    new_result.op.rotate_op = Rotate180(result.op.rotate_op);
+                      entity::MRRGMemoryIOType::kAll) {
+                    if (rectangle_id == 0) {
+                      new_result.op.row += mapping_row;
+                    } else if (rectangle_id == 1) {
+                      new_result.op.column += mapping_column;
+                    }
+                  } else if (target_mrrg_config.memory_io ==
+                             entity::MRRGMemoryIOType::kBothEnds) {
+                    if (rectangle_id == 0) {
+                      new_result.op.row += mapping_row;
+                    } else if (dp_column == target_mrrg_config.column &&
+                               rectangle_id == 1) {
+                      const auto& tmp_rotated_mapping =
+                          remapper::MappingRotater(mapping_vec[result.id],
+                                                   result.op.rotate_op);
+                      new_result.op.row = rectangle_row - 1 - result.op.row;
+                      new_result.op.column =
+                          rectangle_col - 1 - result.op.column + mapping_column;
+                      new_result.op.row =
+                          new_result.op.row -
+                          tmp_rotated_mapping.GetMRRGConfig().row + 1;
+                      new_result.op.column =
+                          new_result.op.column -
+                          tmp_rotated_mapping.GetMRRGConfig().column + 1;
+                      new_result.op.rotate_op = Rotate180(result.op.rotate_op);
+                    }
                   }
 
                   dp_result[dp_row][dp_column][dp_context].push_back(
