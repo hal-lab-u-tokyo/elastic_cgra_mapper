@@ -91,6 +91,9 @@ def loop_unrolling(command):
 
   G = nx.Graph(nx.nx_pydot.read_dot(dfg_file))
   dfg_node_size = len(G.nodes())
+  for node in G.nodes():
+    if node == "\n":
+      dfg_node_size = dfg_node_size - 1
 
   mapping_dir_path = experiment_result_dir + benchmark + "/loop_unrolling/mapping/"
   mapping_log_dir_path = experiment_result_dir + benchmark + "/loop_unrolling/log/"
