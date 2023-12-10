@@ -5,7 +5,7 @@ remapper::CombinationCounter::CombinationCounter(
     : max_num_vector_(max_num_vector), type_vector_(type_vector) {
   assert(max_num_vector_.size() == type_vector_.size());
   size_ = max_num_vector_.size();
-  for (size_t i = 0; i < size_; i++) {
+  for (std::size_t i = 0; i < size_; i++) {
     if (type_to_index_map.count(type_vector_[i]) == 0) {
       type_to_index_map.emplace(type_vector_[i], std::vector<int>({}));
     }
@@ -19,7 +19,7 @@ remapper::CombinationCounter::CombinationCounter(int max_num, int size)
   max_num_vector_ = std::vector<int>(size, max_num);
   type_vector_ = std::vector<int>(size, 0);
 
-  for (size_t i = 0; i < size_; i++) {
+  for (std::size_t i = 0; i < size_; i++) {
     if (type_to_index_map.count(type_vector_[i]) == 0) {
       type_to_index_map.emplace(type_vector_[i], std::vector<int>({}));
     }
@@ -33,7 +33,7 @@ void remapper::CombinationCounter::Initialize() {
 }
 
 bool remapper::CombinationCounter::Next() {
-  for (size_t i = 0; i < size_; i++) {
+  for (std::size_t i = 0; i < size_; i++) {
     if (i == 0) {
       tmp_combination_[i]++;
     }
@@ -47,7 +47,7 @@ bool remapper::CombinationCounter::Next() {
   for (auto itr = type_to_index_map.begin(); itr != type_to_index_map.end();
        itr++) {
     if (itr->second.size() == 1) continue;
-    for (size_t i = 0; i < itr->second.size() - 1; i++) {
+    for (std::size_t i = 0; i < itr->second.size() - 1; i++) {
       int tmp = itr->second[i];
       int next = itr->second[i + 1];
       if (tmp_combination_[tmp] <  tmp_combination_[next]) {
@@ -61,7 +61,7 @@ bool remapper::CombinationCounter::Next() {
 }
 
 bool remapper::CombinationCounter::Next(int id, int num) {
-  for (size_t i = static_cast<size_t>(id); i < size_; i++) {
+  for (std::size_t i = static_cast<std::size_t>(id); i < size_; i++) {
     if (i == id) {
       tmp_combination_[i] += num;
     }
@@ -75,7 +75,7 @@ bool remapper::CombinationCounter::Next(int id, int num) {
   for (auto itr = type_to_index_map.begin(); itr != type_to_index_map.end();
        itr++) {
     if (itr->second.size() == 1) continue;
-    for (size_t i = 0; i < itr->second.size() - 1; i++) {
+    for (std::size_t i = 0; i < itr->second.size() - 1; i++) {
       int tmp = itr->second[i];
       int next = itr->second[i + 1];
       if (tmp < next) {
