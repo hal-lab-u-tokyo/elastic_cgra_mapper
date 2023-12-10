@@ -7,3 +7,4 @@ __pycache__/
 **/obj_dir/*
 experiment_runner/log/*
 experiment_runner/tmp_cgra/*
+license/gurobi.lic
