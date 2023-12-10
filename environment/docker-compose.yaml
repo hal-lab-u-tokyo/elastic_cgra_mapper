@@ -13,3 +13,4 @@ services:
       - $HOME/elastic_cgra_mapper/:/home/elastic_cgra_mapper
       - $HOME/elastic_cgra_mapper/license/gurobi.lic:/opt/gurobi/gurobi.lic:ro
       - $HOME/.ssh/:/root/.ssh
+      - $HOME/.Xauthority:/root/.Xauthority

@@ -3,6 +3,9 @@ FROM gurobi/optimizer:9.1.1
 RUN apt-get update && \
     apt-get install -y wget
 
+ARG PROJECT_NAME=elastic_cgra_mapper
+ARG APPLICATION_DIRECTORY=/home/${PROJECT_NAME}
+
 RUN wget -qO- "https://cmake.org/files/v3.20/cmake-3.20.2-linux-x86_64.tar.gz" | tar --strip-components=1 -xz -C /usr/local
 
 RUN apt-get update && \
@@ -20,4 +23,7 @@ RUN apt-get install -y verilator
 ENV PATH="/home/verilator/bin:${PATH}"
 ENV GRB_LICENSE_FILE="/opt/gurobi/gurobi.lic"
 
-WORKDIR /home/elastic_cgra_mapper
+COPY ../requirements.txt ${APPLICATION_DIRECTORY}/requirements.txt
+RUN pip install -r ${APPLICATION_DIRECTORY}/requirements.txt
+
+WORKDIR ${APPLICATION_DIRECTORY}
