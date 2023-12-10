@@ -4,10 +4,12 @@ import sys
 import os
 import csv
 
+benchmark_list = ["fixed_convolution2d", "fixed_ellpack", "fixed_fft_pro", "fixed_fir_pro", "fixed_latnrm_pro", "fixed_stencil", "fixed_susan_pro", "convolution_no_loop", "fixed_matrixmultiply_const", "matrixmultiply"]
 
 class MappingLogInfo:
     def __init__(self):
         self.log_file_path = ""
+        self.benchmark = ""
         self.row: int = 0
         self.column: int = 0
         self.context_size: int = 0
@@ -21,12 +23,18 @@ class MappingLogInfo:
         self.parallel_num: int = -1
 
     def get_input_as_str(self):
-        return str(self.row) + "_" + str(self.column) + "_" + str(self.context_size) + "_" + str(self.memory_io.value) + "_" + str(self.cgra_type.value) + "_" + str(self.network_type.value) + str(self.num_threads) + "_" + str(self.timeout) + "_" + str(self.parallel_num)
+        return self.benchmark + str(self.row) + "_" + str(self.column) + "_" + str(self.context_size) + "_" + str(self.memory_io.value) + "_" + str(self.cgra_type.value) + "_" + str(self.network_type.value) + str(self.num_threads) + "_" + str(self.timeout) + "_" + str(self.parallel_num)
 
 
 def mapping_log_reader(file_path) -> MappingLogInfo:
     log_info = MappingLogInfo()
     log_info.log_file_path = file_path
+
+    dir_list = file_path.split("/")
+    for dir_name in dir_list:
+        if dir_name in benchmark_list:
+            log_info.benchmark = dir_name
+
     with open(file_path) as f:
         is_setting = -1
         for line in f:
