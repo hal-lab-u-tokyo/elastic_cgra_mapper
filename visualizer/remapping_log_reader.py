@@ -3,6 +3,8 @@ import parse
 from enum import Enum
 from json_reader import read_mapping_from_json
 
+benchmark_list = ["fixed_convolution2d", "fixed_ellpack", "fixed_fft_pro", "fixed_fir_pro", "fixed_latnrm_pro", "fixed_stencil", "fixed_susan_pro", "convolution_no_loop", "fixed_matrixmultiply_const", "matrixmultiply"]
+
 class RemapperType(Enum):
     FullSearch = 0
     Greedy = 1
@@ -31,6 +33,8 @@ class RemapperType(Enum):
 
 class RemapperLogInfo:
     def __init__(self):
+        self.log_file_path = ""
+        self.benchmark = ""
         self.row: int = 0
         self.column: int = 0
         self.context_size: int = 0
@@ -43,10 +47,15 @@ class RemapperLogInfo:
         self.remapper_mode: RemapperType
 
     def get_input_as_str(self):
-        return str(self.row) + "_" + str(self.column) + "_" + str(self.context_size) + "_" + str(self.memory_io.value) + "_" + str(self.cgra_type.value) + "_" + str(self.network_type.value) + "_" + str(self.parallel_num) + "_" + str(self.remapper_mode.value)
+        return self.benchmark + str(self.row) + "_" + str(self.column) + "_" + str(self.context_size) + "_" + str(self.memory_io.value) + "_" + str(self.cgra_type.value) + "_" + str(self.network_type.value) + "_" + str(self.parallel_num) + "_" + str(self.remapper_mode.value)
 
 def remapping_log_reader(log_file_path, mapping_file_path) -> RemapperLogInfo:
     remapper_log_info = RemapperLogInfo()
+    remapper_log_info.log_file_path = log_file_path
+    dir_list = log_file_path.split("/")
+    for dir_name in dir_list:
+        if dir_name in benchmark_list:
+            remapper_log_info.benchmark = dir_name
     with open(log_file_path) as f:
         read_mode = False
         for line in f:
