@@ -1,0 +1,15 @@
+version: '3.7'
+services:
+  gurobi:
+    build:
+      context: ../
+      dockerfile: environment/Dockerfile
+    tty: true
+    command: /bin/bash
+    stdin_open: true
+    ports: 
+      - 1000:1000
+    volumes:
+      - $HOME/elastic_cgra_mapper/:/home/elastic_cgra_mapper
+      - $HOME/elastic_cgra_mapper/license/gurobi.lic:/opt/gurobi/gurobi.lic:ro
+      - $HOME/.ssh/:/root/.ssh

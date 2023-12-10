@@ -10,9 +10,13 @@ gurobi = 9.1.1
 cmake >= 3.20.2
 
 ## 1.setup
-CMakeLists.txtの以下の部分を設定
-```cmake
-set(ENV{GUROBI_HOME} /opt/gurobi911/linux64)
+- clone this repository to your $HOME directory
+- place the gurobi WLS license file (gurobi.lic) to license folder
+
+```docker
+cd environment 
+docker compose build
+docker compose up -d
 ```
 
 ## 2.usage
