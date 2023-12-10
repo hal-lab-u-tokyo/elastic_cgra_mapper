@@ -33,6 +33,7 @@ def get_hms_from_unix(unixtime_str):
     sec = "0" + sec
   return hour + min + sec
 
+
 if __name__ == "__main__":
   output_dir_path = "./output/csv/"
   log_dir = "../output/"

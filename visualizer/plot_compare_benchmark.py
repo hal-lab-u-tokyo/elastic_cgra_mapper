@@ -9,8 +9,16 @@ from mapping_log_reader import mapping_log_reader
 # param
 benchmark_list = ["fixed_convolution2d", "fixed_ellpack", "fixed_fft_pro", "fixed_fir_pro", "fixed_latnrm_pro", "fixed_stencil", "fixed_susan_pro", "convolution_no_loop", "fixed_matrixmultiply_const"]
 benchmark_list_name = ["conv2d", "ellpack", "fft", "fir", "latnrm", "stencil", "susan", "conv1d", "matmul"]
+
 kernel_dir_path = "../benchmark/kernel/"
 remapper_dir_path = "../output/remapper/20231205/"
+memory_io_list = ["all", "both_ends"]
+database_dir_path = "../output/utilization_comparison/20231205/"
+loop_unrolling_date = "20231205"
+target_cgra_row = 6
+target_cgra_column = 6
+target_cgra_config_size = 4
+target_cgra_network_type = "orthogonal"
 
 def get_remapper_log(log_file_path):
   parallel_num = 0
@@ -76,10 +84,10 @@ if __name__ == "__main__":
     benchmark_node_num[benchmark] = dfg_node_size
 
     # database_time
-    database_dir_path = "../output/utilization_comparison/20231205/" + benchmark + "/database/"
-    for file in os.listdir(database_dir_path + "mapping/"):
+    benchmark_database_dir_path = database_dir_path + benchmark + "/database/"
+    for file in os.listdir(benchmark_database_dir_path + "mapping/"):
       unix_time_str = re.findall(r"\d+", file)[0]
-      log_file_path = database_dir_path + "log/log" + unix_time_str + ".log"
+      log_file_path = benchmark_database_dir_path + "log/log" + unix_time_str + ".log"
       mapping_log = mapping_log_reader(log_file_path)
       if benchmark not in database_time.keys():
         database_time[benchmark] = 0
@@ -113,8 +121,8 @@ if __name__ == "__main__":
       greedy_util[result_id] = parallel_num * dfg_node_size / get_all_context_num(mapping_dir_path + file)
 
     # loop unrolling
-    log_dir_path = "../output/log/" + benchmark +  "/20231203/"
-    mapping_dir_path = "../output/mapping/" + benchmark +  "/20231203/"
+    log_dir_path = "../output/log/" + benchmark +  "/"+ loop_unrolling_date +"/"
+    mapping_dir_path = "../output/mapping/" + benchmark +  "/"+ loop_unrolling_date +"/"
     if not os.path.exists(log_dir_path):
       continue
 
@@ -140,7 +148,7 @@ if __name__ == "__main__":
     loop_unrolling_time_list = []
 
     for benchmark in benchmark_list:
-      result_id = "6_6_4_" + memory_io + "_elastic_orthogonal_" + benchmark
+      result_id = target_cgra_row + "_" + target_cgra_column + "_" + target_cgra_config_size + memory_io + "_elastic_" + target_cgra_network_type + benchmark
       
       if result_id in dp_time.keys():
         dp_utilization.append(dp_util[result_id])
@@ -186,60 +194,6 @@ if __name__ == "__main__":
     ax.set_xlabel("benchmark")
     ax.set_ylabel("time")
     fig.savefig("./output/utilization_comparison/" + memory_io + "_time.png")
-
-    for benchmark in benchmark_list:
-      dp_cgra_size = []
-      greedy_cgra_size = []
-      loop_unrolling_cgra_size = []
-
-      dp_util_list = []
-      greedy_util_list = []
-      loop_unrolling_util_list = []
-
-      dp_time_list = []
-      greedy_time_list = []
-      loop_unrolling_time_list = []
-
-      for cgra_size in range(6,21):
-        result_id = str(cgra_size) + "_" + str(cgra_size) + "_4_" + memory_io + "_elastic_orthogonal_" + benchmark
-
-        if result_id in dp_time.keys():
-          dp_util_list.append(dp_util[result_id])
-          dp_time_list.append(dp_time[result_id])
-          dp_cgra_size.append(cgra_size)
-
-        if result_id in greedy_time.keys():
-          greedy_util_list.append(greedy_util[result_id])
-          greedy_time_list.append(greedy_time[result_id])
-          greedy_cgra_size.append(cgra_size)
-
-        if result_id in loop_unrolling_time.keys():
-          tmp_util = loop_unrolling_util[result_id]
-          tmp_time = loop_unrolling_time[result_id]
-          loop_unrolling_util_list.append(tmp_util)
-          loop_unrolling_time_list.append(tmp_time) 
-          loop_unrolling_cgra_size.append(cgra_size)
-      
-      fig, ax = plt.subplots()
-      ax.plot(dp_cgra_size, dp_util_list,marker=".", label="remapping:dp")
-      ax.plot(greedy_cgra_size, greedy_util_list,marker=".", label="remapping:greedy")
-      ax.plot(loop_unrolling_cgra_size, loop_unrolling_util_list,marker=".", label="not remapping")
-      ax.set_xlabel("cgra size")
-      ax.set_ylabel("utilization")
-      ax.legend()
-
-      fig.savefig("./output/utilization_comparison/"+memory_io+"_"+benchmark + "util.png")
-
-      fig, ax = plt.subplots()
-      ax.plot(dp_cgra_size, dp_time_list,marker=".", label="remapping:dp")
-      ax.plot(greedy_cgra_size, greedy_time_list,marker=".", label="remapping:greedy")
-      ax.plot(loop_unrolling_cgra_size, loop_unrolling_time_list,marker=".", label="not remapping")
-      ax.set_xlabel("cgra size")
-      ax.set_ylabel("time rate")
-      ax.legend()
-
-      fig.savefig("./output/utilization_comparison/"+memory_io+"_"+benchmark + "time.png")
-
 
 
 
