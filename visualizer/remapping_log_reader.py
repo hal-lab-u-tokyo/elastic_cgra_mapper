@@ -42,6 +42,9 @@ class RemapperLogInfo:
         self.parallel_num: int
         self.remapper_mode: RemapperType
 
+    def get_input_as_str(self):
+        return str(self.row) + "_" + str(self.column) + "_" + str(self.context_size) + "_" + str(self.memory_io.value) + "_" + str(self.cgra_type.value) + "_" + str(self.network_type.value) + "_" + str(self.parallel_num) + "_" + str(self.remapper_mode.value)
+
 def remapping_log_reader(log_file_path, mapping_file_path) -> RemapperLogInfo:
     remapper_log_info = RemapperLogInfo()
     with open(log_file_path) as f:

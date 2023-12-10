@@ -19,6 +19,9 @@ class MappingLogInfo:
         self.timeout: float = -1
         self.parallel_num: int = -1
 
+    def get_input_as_str(self):
+        return str(self.row) + "_" + str(self.column) + "_" + str(self.context_size) + "_" + str(self.memory_io.value) + "_" + str(self.cgra_type.value) + "_" + str(self.network_type.value) + str(self.num_threads) + "_" + str(self.timeout) + "_" + str(self.parallel_num)
+
 
 def mapping_log_reader(file_path) -> MappingLogInfo:
     log_info = MappingLogInfo()
