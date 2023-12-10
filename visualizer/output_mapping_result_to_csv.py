@@ -45,7 +45,6 @@ if __name__ == "__main__":
   unix_time_to_log_file_path = {}
   unix_time_to_mapping_file_path = {}
 
-  print("start reading log files")
   # create unix_time to file_path dictionary
   for path_name, dir_names, file_names in os.walk(log_dir):
     if len(file_names) == 0:
@@ -95,15 +94,17 @@ if __name__ == "__main__":
   mapping_writer = csv.writer(mapping_csv_file)
   mapping_writer.writerow(["log_file_path", "date", "time", "row", "column", "context_size", "memory_io", "cgra_type", "network_type", "mapping_succeed", "mapping_time", "num_threads", "timeout", "parallel_num"])
   for unix_time_and_info in mapping_input_str_to_unix_time_and_info.values():
+    unix_time = unix_time_and_info[0]
     log_info = unix_time_and_info[1]
-    mapping_writer.writerow([log_file_path, get_ymd_from_unix(unix_time), get_hms_from_unix(unix_time), mapping_log_info.row, mapping_log_info.column, mapping_log_info.context_size, mapping_log_info.memory_io.to_string(), mapping_log_info.cgra_type.to_string(), mapping_log_info.network_type.to_string(), mapping_log_info.mapping_succeed, mapping_log_info.mapping_time, mapping_log_info.num_threads, mapping_log_info.timeout, mapping_log_info.parallel_num])
+    mapping_writer.writerow([log_info.log_file_path, get_ymd_from_unix(unix_time), get_hms_from_unix(unix_time), log_info.row, log_info.column, log_info.context_size, log_info.memory_io.to_string(), log_info.cgra_type.to_string(), log_info.network_type.to_string(), log_info.mapping_succeed, log_info.mapping_time, log_info.num_threads, log_info.timeout, log_info.parallel_num])
   
   remapping_csv_file = open(remapping_output_file, "w")
   remapping_writer = csv.writer(remapping_csv_file)
   remapping_writer.writerow(["log_file_path", "date", "time", "row", "column", "context_size", "memory_io", "cgra_type", "network_type", "parallel_num", "remapper_mode", "remapper_time"])
   for unix_time_and_info in remapping_input_str_to_unix_time_and_info.values():
+    unix_time = unix_time_and_info[0]
     log_info = unix_time_and_info[1]
-    remapping_writer.writerow([log_file_path, get_ymd_from_unix(unix_time), get_hms_from_unix(unix_time), remapping_log_info.row, remapping_log_info.column, remapping_log_info.context_size, remapping_log_info.memory_io.to_string(), remapping_log_info.cgra_type.to_string(), remapping_log_info.network_type.to_string(), remapping_log_info.parallel_num, remapping_log_info.remapper_mode.to_string(), remapping_log_info.remapper_time])
+    remapping_writer.writerow([log_info.log_file_path, get_ymd_from_unix(unix_time), get_hms_from_unix(unix_time), log_info.row, log_info.column, log_info.context_size, log_info.memory_io.to_string(), log_info.cgra_type.to_string(), log_info.network_type.to_string(), log_info.parallel_num, log_info.remapper_mode.to_string(), log_info.remapper_time])
 
 
   mapping_csv_file.close()

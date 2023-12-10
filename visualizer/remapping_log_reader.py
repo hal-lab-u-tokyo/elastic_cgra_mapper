@@ -31,6 +31,7 @@ class RemapperType(Enum):
 
 class RemapperLogInfo:
     def __init__(self):
+        self.log_file_path = ""
         self.row: int = 0
         self.column: int = 0
         self.context_size: int = 0
@@ -47,6 +48,7 @@ class RemapperLogInfo:
 
 def remapping_log_reader(log_file_path, mapping_file_path) -> RemapperLogInfo:
     remapper_log_info = RemapperLogInfo()
+    remapper_log_info.log_file_path = log_file_path
     with open(log_file_path) as f:
         read_mode = False
         for line in f:

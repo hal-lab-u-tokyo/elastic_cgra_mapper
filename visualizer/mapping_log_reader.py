@@ -7,6 +7,7 @@ import csv
 
 class MappingLogInfo:
     def __init__(self):
+        self.log_file_path = ""
         self.row: int = 0
         self.column: int = 0
         self.context_size: int = 0
@@ -25,6 +26,7 @@ class MappingLogInfo:
 
 def mapping_log_reader(file_path) -> MappingLogInfo:
     log_info = MappingLogInfo()
+    log_info.log_file_path = file_path
     with open(file_path) as f:
         is_setting = -1
         for line in f:
