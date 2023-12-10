@@ -10,7 +10,6 @@ services:
     ports: 
       - 1000:1000
     volumes:
-      - $HOME/elastic_cgra_mapper/:/home/elastic_cgra_mapper
+      - $HOME/elastic_cgra_mapper/:/home/ubuntu/elastic_cgra_mapper
       - $HOME/elastic_cgra_mapper/license/gurobi.lic:/opt/gurobi/gurobi.lic:ro
-      - $HOME/.ssh/:/root/.ssh
       - $HOME/.Xauthority:/root/.Xauthority
