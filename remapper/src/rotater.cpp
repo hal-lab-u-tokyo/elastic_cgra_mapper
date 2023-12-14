@@ -86,3 +86,14 @@ entity::Mapping remapper::MappingRotater(const entity::Mapping& mapping,
 
   return entity::Mapping(rotated_mrrg_config, rotated_config_map);
 }
+
+remapper::RotateOp remapper::Rotate180(const remapper::RotateOp& tmp) {
+  if (tmp == remapper::RotateOp::TopIsTop)
+    return remapper::RotateOp::TopIsBottom;
+  if (tmp == remapper::RotateOp::TopIsBottom)
+    return remapper::RotateOp::TopIsTop;
+  if (tmp == remapper::RotateOp::TopIsRight)
+    return remapper::RotateOp::TopIsLeft;
+  if (tmp == remapper::RotateOp::TopIsLeft)
+    return remapper::RotateOp::TopIsRight;
+}

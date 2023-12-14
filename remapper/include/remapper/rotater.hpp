@@ -10,4 +10,6 @@ entity::Mapping MappingRotater(const entity::Mapping& mapping,
 
 entity::MRRGConfig MRRGConfigRotater(const entity::MRRGConfig& mrrg_config,
                                      const remapper::RotateOp& rotate_op);
+
+remapper::RotateOp Rotate180(const remapper::RotateOp& tmp);
 }  // namespace remapper
