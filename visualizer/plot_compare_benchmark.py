@@ -45,8 +45,12 @@ class AllDataToPlot:
       dp_utilization.append(self.data_of_each_benchmark[benchmark].utilization[MappingType.dp.value])
       greedy_utilization.append(self.data_of_each_benchmark[benchmark].utilization[MappingType.greedy.value])
       loop_unrolling_utilization.append(self.data_of_each_benchmark[benchmark].utilization[MappingType.loop_unrolling.value])
-      dp_time_list.append(self.data_of_each_benchmark[benchmark].time[MappingType.dp.value] / self.data_of_each_benchmark[benchmark].time[MappingType.loop_unrolling.value])
-      greedy_time_list.append(self.data_of_each_benchmark[benchmark].time[MappingType.greedy.value] / self.data_of_each_benchmark[benchmark].time[MappingType.loop_unrolling.value])  
+      if self.data_of_each_benchmark[benchmark].time[MappingType.loop_unrolling.value] == 0:
+        dp_time_list.append(-1)
+        greedy_time_list.append(-1)
+      else:
+        dp_time_list.append(self.data_of_each_benchmark[benchmark].time[MappingType.dp.value] / self.data_of_each_benchmark[benchmark].time[MappingType.loop_unrolling.value])
+        greedy_time_list.append(self.data_of_each_benchmark[benchmark].time[MappingType.greedy.value] / self.data_of_each_benchmark[benchmark].time[MappingType.loop_unrolling.value])
 
     fig, ax = plt.subplots() 
     loop_unrolling_pos = range(0, len(self.data_of_each_benchmark.keys()))
