@@ -4,6 +4,7 @@ import re
 import datetime
 from mapping_log_reader import mapping_log_reader
 from remapping_log_reader import remapping_log_reader
+from load_result_from_csv import *
 
 JST = datetime.timezone(datetime.timedelta(hours=+9), 'JST')
 
@@ -33,12 +34,22 @@ def get_hms_from_unix(unixtime_str):
     sec = "0" + sec
   return hour + min + sec
 
-
 if __name__ == "__main__":
   output_dir_path = "./output/csv/"
   log_dir = "../output/"
 
   check_dir_availability(output_dir_path)
+
+  # get max unix time
+  mapping_log_info_list, remapping_log_info_list = load_result_from_csv(output_dir_path, [], LoadCsvMode.All)
+  max_unix_time = 0
+  for mapping_log_info in mapping_log_info_list:
+    if max_unix_time < mapping_log_info.get_unix_time():
+      max_unix_time = mapping_log_info.get_unix_time()
+
+  for remapping_log_info in remapping_log_info_list:
+    if max_unix_time < remapping_log_info.get_unix_time():
+      max_unix_time = remapping_log_info.get_unix_time()
 
   mapping_output_file = output_dir_path + "mapping_result.csv"
   remapping_output_file = output_dir_path + "remapping_result.csv"
@@ -57,18 +68,27 @@ if __name__ == "__main__":
         if len(find_number) == 0:
           continue
         unix_time = find_number[0]
-        unix_time_to_log_file_path[unix_time] = file_path
+        if int(unix_time) > max_unix_time:
+          unix_time_to_log_file_path[unix_time] = file_path
       if "mapping" in file_name:
         file_path = path_name + "/" + file_name
         find_number = re.findall(r"\d+", file_name)
         if len(find_number) == 0:
           continue
         unix_time = find_number[0]
-        unix_time_to_mapping_file_path[unix_time] = file_path
+        if int(unix_time) > max_unix_time:
+          unix_time_to_mapping_file_path[unix_time] = file_path
 
   # summarize mapping and remapping result
   mapping_input_str_to_unix_time_and_info = {}
   remapping_input_str_to_unix_time_and_info = {}
+
+  for mapping_log_info in mapping_log_info_list:
+    mapping_input_str_to_unix_time_and_info[mapping_log_info.get_input_as_str()] = (mapping_log_info.get_unix_time(), mapping_log_info)
+  
+  for remapping_log_info in remapping_log_info_list:
+    remapping_input_str_to_unix_time_and_info[remapping_log_info.get_input_as_str()] = (remapping_log_info.get_unix_time(), remapping_log_info)
+
 
   for unix_time in unix_time_to_log_file_path.keys():
     log_file_path = unix_time_to_log_file_path[unix_time]
