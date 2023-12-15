@@ -3,6 +3,7 @@ import parse
 import sys
 import os
 import csv
+import re
 
 benchmark_list = ["fixed_convolution2d", "fixed_ellpack", "fixed_fft_pro", "fixed_fir_pro", "fixed_latnrm_pro", "fixed_stencil", "fixed_susan_pro", "convolution_no_loop", "fixed_matrixmultiply_const", "matrixmultiply"]
 
@@ -25,6 +26,12 @@ class MappingLogInfo:
     def get_input_as_str(self):
         return self.benchmark + str(self.row) + "_" + str(self.column) + "_" + str(self.context_size) + "_" + str(self.memory_io.value) + "_" + str(self.cgra_type.value) + "_" + str(self.network_type.value) + str(self.num_threads) + "_" + str(self.timeout) + "_" + str(self.parallel_num)
 
+    def get_unix_time(self):
+        file_name = os.path.basename(self.log_file_path)
+        find_number = re.findall(r"\d+", file_name)
+        if len(find_number) == 0:
+            return -1
+        return int(find_number[0])
 
 def mapping_log_reader(file_path) -> MappingLogInfo:
     log_info = MappingLogInfo()

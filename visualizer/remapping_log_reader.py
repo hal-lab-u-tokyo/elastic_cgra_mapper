@@ -2,6 +2,8 @@ from mapping import *
 import parse
 from enum import Enum
 from json_reader import read_mapping_from_json
+import os
+import re
 
 benchmark_list = ["fixed_convolution2d", "fixed_ellpack", "fixed_fft_pro", "fixed_fir_pro", "fixed_latnrm_pro", "fixed_stencil", "fixed_susan_pro", "convolution_no_loop", "fixed_matrixmultiply_const", "matrixmultiply"]
 
@@ -48,6 +50,13 @@ class RemapperLogInfo:
 
     def get_input_as_str(self):
         return self.benchmark + str(self.row) + "_" + str(self.column) + "_" + str(self.context_size) + "_" + str(self.memory_io.value) + "_" + str(self.cgra_type.value) + "_" + str(self.network_type.value) + "_" + str(self.parallel_num) + "_" + str(self.remapper_mode.value)
+    
+    def get_unix_time(self):
+        file_name = os.path.basename(self.log_file_path)
+        find_number = re.findall(r"\d+", file_name)
+        if len(find_number) == 0:
+            return -1
+        return int(find_number[0])
 
 def remapping_log_reader(log_file_path, mapping_file_path) -> RemapperLogInfo:
     remapper_log_info = RemapperLogInfo()
@@ -63,7 +72,8 @@ def remapping_log_reader(log_file_path, mapping_file_path) -> RemapperLogInfo:
                 parsed = parse.parse("mode: {:w}\n", line)
                 if parsed != None:
                     remapper_log_info.remapper_mode = RemapperType.from_string(parsed[0])
-                    continue    
+                    read_mode = True  
+                    continue  
             
             parsed = parse.parse("total {:d} parallel remapping time: {:f}\n", line)
             if parsed != None:
