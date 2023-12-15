@@ -168,9 +168,8 @@ if __name__ == "__main__":
     elif remapping_info.remapper_mode == RemapperType.Greedy:
       memory_io_to_all_data_to_plot[memory_io.to_string()].add_benchmark_data(benchmark_name, MappingType.greedy, utilization, time, remapping_info.get_unix_time())
   
-  for benchmark in remapper_config.get_benchmark_list():
-    memory_io_to_all_data_to_plot["all"].plot("all")
-    memory_io_to_all_data_to_plot["both_ends"].plot("both_ends")
+  memory_io_to_all_data_to_plot["all"].plot("all")
+  memory_io_to_all_data_to_plot["both_ends"].plot("both_ends")
 
 
 
