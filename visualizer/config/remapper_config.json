@@ -1,0 +1,63 @@
+{
+  "kernel_dir_path" : "../benchmark/kernel/",
+  "database_dir_path": "../output/utilization_comparison/20231205/",
+  "compare_benchmark_config": {
+    "row": 6,
+    "column": 6,
+    "context_size": 4,
+    "network_type": "orthogonal"
+  },
+  "compare_cgra_size_config": {
+    "min_size": 6,
+    "max_size": 20,
+    "context_size": 4,
+    "network_type": "orthogonal"
+  },
+  "benchmark_list": [
+    {
+      "kernel_name": "fixed_convolution2d",
+      "name": "conv2d",
+      "visualize": false
+    },
+    {
+      "kernel_name": "fixed_ellpack",
+      "name": "ellpack",
+      "visualize": true
+    },
+    {
+      "kernel_name": "fixed_fft_pro",
+      "name": "fft",
+      "visualize": true
+    },
+    {
+      "kernel_name": "fixed_fir_pro",
+      "name": "fir",
+      "visualize": true
+    },
+    {
+      "kernel_name": "fixed_latnrm_pro",
+      "name": "latnrm",
+      "visualize": true
+    },
+    {
+      "kernel_name": "fixed_stencil",
+      "name": "stencil",
+      "visualize": true
+    },
+    {
+      "kernel_name": "fixed_susan_pro",
+      "name": "susan",
+      "visualize": true
+    },
+    {
+      "kernel_name": "convolution_no_loop",
+      "name": "conv1d",
+      "visualize": false
+    },
+    {
+      "kernel_name": "fixed_matrixmultiply_const",
+      "name": "matmul",
+      "visualize": false
+    }
+  ]
+}
