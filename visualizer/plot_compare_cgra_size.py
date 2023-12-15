@@ -2,190 +2,195 @@ from matplotlib import pyplot as plt
 import networkx as nx
 import os
 import re
-import json
-import parse
+from load_remapper_config import *
+from load_result_from_csv import *
 from mapping_log_reader import mapping_log_reader
+from typing import List
+import enum
 
-# param
-benchmark = ["fixed_fft_pro"]
-benchmark_name = ["fft"]
+class MappingType(enum.Enum):
+  dp = 0
+  greedy = 1
+  loop_unrolling = 2
 
-kernel_dir_path = "../benchmark/kernel/"
-remapper_dir_path = "../output/remapper/20231205/"
-memory_io_list = ["all", "both_ends"]
-database_dir_path = "../output/utilization_comparison/20231205/"
-loop_unrolling_date = "20231208"
-cgra_size_list = range(6,21)
+class DataToPlot:
+  def __init__(self, cgra_num):
+    self.utilization = []
+    self.time = []
+    self.unix_time = []
+    for i in range(3):
+      self.utilization.append([])
+      self.time.append([])
+      self.unix_time.append([])
+      for _ in range(0, cgra_num):
+        self.utilization[i].append(-1)
+        self.time[i].append(-1)
+        self.unix_time[i].append(-1)
 
-def get_remapper_log(log_file_path):
-  parallel_num = 0
-  remapper_time = 0
-  with open(log_file_path) as f:
-    for line in f:
-      parsed = parse.parse(
-              "total {:d} parallel remapping time: {:f}\n", line)
-      if parsed != None:
-        parallel_num = parsed[0]
-        remapper_time = remapper_time + parsed[1]
-  return parallel_num, remapper_time
-        
-  
-def get_unrolling_log(log_file_path):
-  parallel_num = 0
-  mapping_time = 0
-  with open(log_file_path) as f:
-    for line in f:
-      parsed = parse.parse(
-              "parallel num: {:d}\n", line)
-      if parsed != None:
-        parallel_num = parsed[0]
-        continue
-      
-      parsed = parse.parse(
-                "Explored {:d} nodes ({:d} simplex iterations) in {:f} seconds\n", line)
-      if parsed != None:
-          mapping_time = parsed[2]
-  
-  return parallel_num, mapping_time
+class AllDataToPlot:
+  def __init__(self, min_cgra_size, max_cgra_size):
+    self.data_of_each_benchmark: dict = {}
+    self.min_cgra_size = min_cgra_size
+    self.max_cgra_size = max_cgra_size
 
+  def add_benchmark_data(self, benchmark_name, mapping_type, cgra_size, utilization, time, unix_time):
+    cgra_size_idx = cgra_size - self.min_cgra_size
+    if benchmark_name not in self.data_of_each_benchmark.keys():
+      self.data_of_each_benchmark[benchmark_name] = DataToPlot(self.max_cgra_size - self.min_cgra_size + 1)
+    if utilization < self.data_of_each_benchmark[benchmark_name].utilization[mapping_type.value][cgra_size_idx]:
+      return
+    if unix_time < self.data_of_each_benchmark[benchmark_name].unix_time[mapping_type.value][cgra_size_idx]:
+      return
+    self.data_of_each_benchmark[benchmark_name].utilization[mapping_type.value][cgra_size_idx] = utilization
+    self.data_of_each_benchmark[benchmark_name].time[mapping_type.value][cgra_size_idx] = time
+    self.data_of_each_benchmark[benchmark_name].unix_time[mapping_type.value][cgra_size_idx] = unix_time
 
-def create_cgra_id(mapping_file_path):
-  f = open(mapping_file_path, "r")
-  mapping = json.load(f)
-  return mapping["column"] + "_" + mapping["row"] + "_" + mapping["context_size"] + "_" + mapping["memory_io_type"] + "_" + mapping["cgra_type"] + "_" + mapping["network_type"]
-
-def get_all_context_num(mapping_file_path):
-  f = open(mapping_file_path, "r")
-  mapping = json.load(f)
-  return int(mapping["column"]) *  int(mapping["row"]) * int(mapping["context_size"])
-
-if __name__ == "__main__": 
-  benchmark_node_num = {}
-  dp_parallel_num = {}
-  greedy_parallel_num = {}
-  loop_unrolling_parallel_num = {}
-  dp_time = {}
-  greedy_time = {}
-  loop_unrolling_time = {}
-  dp_util = {}
-  greedy_util = {}
-  loop_unrolling_util = {}
-
-  database_time = {}
-
-  dfg_file_path = kernel_dir_path + benchmark + ".dot"
-  G = nx.Graph(nx.nx_pydot.read_dot(dfg_file_path))
-  dfg_node_size = len(G.nodes())
-
-  benchmark_node_num[benchmark] = dfg_node_size
-
-  # database_time
-  benchmark_database_dir_path = database_dir_path + benchmark + "/database/"
-  for file in os.listdir(benchmark_database_dir_path + "mapping/"):
-    unix_time_str = re.findall(r"\d+", file)[0]
-    log_file_path = benchmark_database_dir_path + "log/log" + unix_time_str + ".log"
-    mapping_log = mapping_log_reader(log_file_path)
-    if benchmark not in database_time.keys():
-      database_time[benchmark] = 0
-    database_time[benchmark] = database_time[benchmark] + mapping_log.mapping_time
-
-
-  # dp
-  log_dir_path = remapper_dir_path + benchmark +  "/dp/log/"
-  mapping_dir_path = remapper_dir_path + benchmark +  "/dp/mapping/"
-  for file in os.listdir(mapping_dir_path):
-    exp_time = result = re.findall(r"\d+", file)[0]
-    result_id = create_cgra_id(mapping_dir_path + file) + "_" + benchmark
-    log_file_path = log_dir_path + "log" + exp_time + "_mode2.log"
-    parallel_num, remapper_time = get_remapper_log(log_file_path)
-
-    dp_parallel_num[result_id] = parallel_num
-    dp_time[result_id] = remapper_time + database_time[benchmark]
-    dp_util[result_id] = parallel_num * dfg_node_size / get_all_context_num(mapping_dir_path + file)
-
-  # greedy
-  log_dir_path = remapper_dir_path + benchmark +  "/naive/log/"
-  mapping_dir_path = remapper_dir_path + benchmark +  "/naive/mapping/"
-  for file in os.listdir(mapping_dir_path):
-    exp_time = result = re.findall(r"\d+", file)[0]
-    result_id = create_cgra_id(mapping_dir_path + file) + "_" + benchmark
-    log_file_path = log_dir_path + "log" + exp_time + "_mode1.log"
-    parallel_num, remapper_time = get_remapper_log(log_file_path)
-
-    greedy_parallel_num[result_id] = parallel_num
-    greedy_time[result_id] = remapper_time + database_time[benchmark]
-    greedy_util[result_id] = parallel_num * dfg_node_size / get_all_context_num(mapping_dir_path + file)
-
-  # loop unrolling
-  log_dir_path = "../output/log/" + benchmark +  "/"+ loop_unrolling_date +"/"
-  mapping_dir_path = "../output/mapping/" + benchmark +  "/"+ loop_unrolling_date +"/"
-
-  for file in os.listdir(mapping_dir_path):
-    exp_time = result = re.findall(r"\d+", file)[0]
-    result_id = create_cgra_id(mapping_dir_path + file) + "_" + benchmark
-    log_file_path = log_dir_path + "log_" + exp_time + ".log"
-    parallel_num, mapping_time = get_unrolling_log(log_file_path)
-    
-    if result_id in loop_unrolling_parallel_num.keys() and loop_unrolling_parallel_num[result_id] > parallel_num:
-      continue
-    loop_unrolling_parallel_num[result_id] = parallel_num
-    loop_unrolling_time[result_id] = mapping_time
-    loop_unrolling_util[result_id] = parallel_num * dfg_node_size / get_all_context_num(mapping_dir_path + file)
-
-
-  for memory_io in memory_io_list:
-    dp_cgra_size = []
-    greedy_cgra_size = []
-    loop_unrolling_cgra_size = []
-
-    dp_util_list = []
-    greedy_util_list = []
-    loop_unrolling_util_list = []
-
-    dp_time_list = []
-    greedy_time_list = []
-    loop_unrolling_time_list = []
-
-    for cgra_size in cgra_size_list:
-      result_id = str(cgra_size) + "_" + str(cgra_size) + "_4_" + memory_io + "_elastic_orthogonal_" + benchmark
-
-      if result_id in dp_time.keys():
-        dp_util_list.append(dp_util[result_id])
-        dp_time_list.append(dp_time[result_id])
-        dp_cgra_size.append(cgra_size)
-
-      if result_id in greedy_time.keys():
-        greedy_util_list.append(greedy_util[result_id])
-        greedy_time_list.append(greedy_time[result_id])
-        greedy_cgra_size.append(cgra_size)
-
-      if result_id in loop_unrolling_time.keys():
-        tmp_util = loop_unrolling_util[result_id]
-        tmp_time = loop_unrolling_time[result_id]
-        loop_unrolling_util_list.append(tmp_util)
-        loop_unrolling_time_list.append(tmp_time) 
-        loop_unrolling_cgra_size.append(cgra_size)
-      
+  def plot(self, image_name):
+    label_list = ["remapping:dp", "remapping:greedy", "not remapping"]
+    for benchmark in self.data_of_each_benchmark.keys():
       fig, ax = plt.subplots()
-      ax.plot(dp_cgra_size, dp_util_list,marker=".", label="remapping:dp")
-      ax.plot(greedy_cgra_size, greedy_util_list,marker=".", label="remapping:greedy")
-      ax.plot(loop_unrolling_cgra_size, loop_unrolling_util_list,marker=".", label="not remapping")
+      for mapping_type in range(3):
+        util_list = []
+        cgra_size_list = []
+        for i in range(self.max_cgra_size - self.min_cgra_size + 1):
+          util = self.data_of_each_benchmark[benchmark].utilization[mapping_type][i]
+          if util != -1:
+            util_list.append(util)
+            cgra_size_list.append(i + self.min_cgra_size)
+        ax.plot(cgra_size_list, util_list, marker=".", label=label_list[mapping_type])
       ax.set_xlabel("cgra size")
       ax.set_ylabel("utilization")
       ax.legend()
 
-      fig.savefig("./output/utilization_comparison/"+memory_io+"_"+benchmark + "util.png")
+      fig.savefig("./output/utilization_comparison/" + image_name + "_"+ benchmark + "_util.png")
 
       fig, ax = plt.subplots()
-      ax.plot(dp_cgra_size, dp_time_list,marker=".", label="remapping:dp")
-      ax.plot(greedy_cgra_size, greedy_time_list,marker=".", label="remapping:greedy")
-      ax.plot(loop_unrolling_cgra_size, loop_unrolling_time_list,marker=".", label="not remapping")
+      for mapping_type in range(3):
+        time_list = []
+        cgra_size_list = []
+        for i in range(self.max_cgra_size - self.min_cgra_size + 1):
+          time = self.data_of_each_benchmark[benchmark].time[mapping_type][i]
+          if time != -1:
+            time_list.append(time)
+            cgra_size_list.append(i + self.min_cgra_size)
+        ax.plot(cgra_size_list, time_list, marker=".", label=label_list[mapping_type])
       ax.set_xlabel("cgra size")
-      ax.set_ylabel("time rate")
+      ax.set_ylabel("time")
       ax.legend()
 
-      fig.savefig("./output/utilization_comparison/"+memory_io+"_"+benchmark + "time.png")
+      fig.savefig("./output/utilization_comparison/" + image_name + "_" + benchmark + "_time.png")
 
+if __name__ == "__main__": 
+  args = sys.argv
+  config_path = args[1]
+
+  remapper_config = load_remapper_config(config_path)
+
+  mapping_info_list, remapping_info_list = load_result_from_csv("./output/csv/", remapper_config.get_benchmark_list())
+
+  benchmark_node_num = {}
+ 
+  database_time = {}
+
+  for benchmark in benchmark_list:
+    if benchmark not in remapper_config.get_benchmark_list():
+      continue
+
+    dfg_file_path = remapper_config.kernel_dir_path + benchmark + ".dot"
+    G = nx.Graph(nx.nx_pydot.read_dot(dfg_file_path))
+    dfg_node_size = len(G.nodes())
+
+    benchmark_node_num[benchmark] = dfg_node_size
+
+    # database_time
+    benchmark_database_dir_path = remapper_config.database_dir_path + benchmark + "/database/"
+    for file in os.listdir(benchmark_database_dir_path + "mapping/"):
+      unix_time_str = re.findall(r"\d+", file)[0]
+      log_file_path = benchmark_database_dir_path + "log/log" + unix_time_str + ".log"
+      mapping_log = mapping_log_reader(log_file_path)
+      if benchmark not in database_time.keys():
+        database_time[benchmark] = 0
+      database_time[benchmark] = database_time[benchmark] + mapping_log.mapping_time
+
+
+  memory_io_to_all_data_to_plot = {}
+  memory_io_to_all_data_to_plot["all"] = AllDataToPlot(remapper_config.compare_cgra_size_config.min_size, remapper_config.compare_cgra_size_config.max_size)
+  memory_io_to_all_data_to_plot["both_ends"] = AllDataToPlot(remapper_config.compare_cgra_size_config.min_size, remapper_config.compare_cgra_size_config.max_size)
+
+  for mapping_info in mapping_info_list:
+    row = mapping_info.row
+    column = mapping_info.column
+    context_size = mapping_info.context_size
+    memory_io = mapping_info.memory_io
+    cgra_type = mapping_info.cgra_type
+    network_type = mapping_info.network_type
+    mapping_succeed = mapping_info.mapping_succeed
+    benchmark = mapping_info.benchmark
+
+    if benchmark not in remapper_config.get_benchmark_list():
+      continue 
+    if row != column:
+      continue
+    if row < remapper_config.compare_cgra_size_config.min_size or remapper_config.compare_cgra_size_config.max_size < row:
+      continue
+    if column < remapper_config.compare_cgra_size_config.min_size or remapper_config.compare_cgra_size_config.max_size < column:
+      continue
+    if context_size != remapper_config.compare_benchmark_config.context_size:
+      continue
+    if network_type != remapper_config.compare_benchmark_config.network_type:
+      continue
+    if cgra_type != CGRAType.Elastic:
+      continue
+    if mapping_succeed == False:
+      continue
+    
+    all_context = row * column * context_size
+    utilization = mapping_info.parallel_num * benchmark_node_num[benchmark]/ all_context
+
+    memory_io_to_all_data_to_plot[memory_io.to_string()].add_benchmark_data(benchmark, MappingType.loop_unrolling, row, utilization, mapping_info.mapping_time, mapping_info.get_unix_time())
+
+  for remapping_info in remapping_info_list:
+    row = remapping_info.row
+    column = remapping_info.column
+    context_size = remapping_info.context_size
+    memory_io = remapping_info.memory_io
+    cgra_type = remapping_info.cgra_type
+    network_type = remapping_info.network_type
+    benchmark = remapping_info.benchmark
+
+    if benchmark not in remapper_config.get_benchmark_list():
+      continue 
+    if row != column:
+      continue
+    if row < remapper_config.compare_cgra_size_config.min_size or remapper_config.compare_cgra_size_config.max_size < row:
+      continue
+    if column < remapper_config.compare_cgra_size_config.min_size or remapper_config.compare_cgra_size_config.max_size < column:
+      continue
+    if context_size != remapper_config.compare_benchmark_config.context_size:
+      continue
+    if network_type != remapper_config.compare_benchmark_config.network_type:
+      continue
+    if cgra_type != CGRAType.Elastic:
+      continue
+
+    all_context = row * column * context_size
+    utilization = remapping_info.parallel_num * benchmark_node_num[benchmark]/ all_context
+    time = remapping_info.remapper_time + database_time[benchmark]
+
+    if remapping_info.remapper_mode == RemapperType.DP:
+      memory_io_to_all_data_to_plot[memory_io.to_string()].add_benchmark_data(benchmark, MappingType.dp, row, utilization, time, remapping_info.get_unix_time())
+    elif remapping_info.remapper_mode == RemapperType.Greedy:
+      memory_io_to_all_data_to_plot[memory_io.to_string()].add_benchmark_data(benchmark, MappingType.greedy, row, utilization, time, remapping_info.get_unix_time())
+  
+  for benchmark in remapper_config.get_benchmark_list():
+    memory_io_to_all_data_to_plot["all"].plot("all")
+    memory_io_to_all_data_to_plot["both_ends"].plot("both_ends")
+
+
+
+    
+
+    
 
 
 
