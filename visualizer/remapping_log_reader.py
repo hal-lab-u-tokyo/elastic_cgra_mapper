@@ -72,7 +72,8 @@ def remapping_log_reader(log_file_path, mapping_file_path) -> RemapperLogInfo:
                 parsed = parse.parse("mode: {:w}\n", line)
                 if parsed != None:
                     remapper_log_info.remapper_mode = RemapperType.from_string(parsed[0])
-                    continue    
+                    read_mode = True  
+                    continue  
             
             parsed = parse.parse("total {:d} parallel remapping time: {:f}\n", line)
             if parsed != None:
