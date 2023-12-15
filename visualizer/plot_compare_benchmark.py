@@ -45,16 +45,25 @@ class AllDataToPlot:
       dp_utilization.append(self.data_of_each_benchmark[benchmark].utilization[MappingType.dp.value])
       greedy_utilization.append(self.data_of_each_benchmark[benchmark].utilization[MappingType.greedy.value])
       loop_unrolling_utilization.append(self.data_of_each_benchmark[benchmark].utilization[MappingType.loop_unrolling.value])
-      dp_time_list.append(self.data_of_each_benchmark[benchmark].time[MappingType.dp.value] / self.data_of_each_benchmark[benchmark].time[MappingType.loop_unrolling.value])
-      greedy_time_list.append(self.data_of_each_benchmark[benchmark].time[MappingType.greedy.value] / self.data_of_each_benchmark[benchmark].time[MappingType.loop_unrolling.value])  
+      if self.data_of_each_benchmark[benchmark].time[MappingType.loop_unrolling.value] == 0:
+        dp_time_list.append(-1)
+        greedy_time_list.append(-1)
+      else:
+        dp_time_list.append(self.data_of_each_benchmark[benchmark].time[MappingType.dp.value] / self.data_of_each_benchmark[benchmark].time[MappingType.loop_unrolling.value])
+        greedy_time_list.append(self.data_of_each_benchmark[benchmark].time[MappingType.greedy.value] / self.data_of_each_benchmark[benchmark].time[MappingType.loop_unrolling.value])
 
     fig, ax = plt.subplots() 
-    ax.bar(self.data_of_each_benchmark.keys(), greedy_utilization, align="edge", width=0.3, label="no remapping")
-    ax.bar(self.data_of_each_benchmark.keys(), dp_utilization, align="edge", width=-0.3, label="remapping: dp")
-    ax.bar(self.data_of_each_benchmark.keys(), greedy_utilization, align="edge", width=0.3, label="remapping: greedy")
+    loop_unrolling_pos = range(0, len(self.data_of_each_benchmark.keys()))
+    greedy_pos = [pos + 0.3 for pos in loop_unrolling_pos]
+    dp_pos = [pos + 0.6 for pos in loop_unrolling_pos]
+    
+    ax.bar(loop_unrolling_pos, loop_unrolling_utilization, width=0.3, label="no remapping")
+    ax.bar(greedy_pos, greedy_utilization, width=0.3, label="remapping: greedy")
+    ax.bar(dp_pos, dp_utilization, width=-0.3, label="remapping: dp")
     ax.set_xlabel("benchmark")
     ax.set_ylabel("utilization")
     ax.legend()
+    plt.xticks(greedy_pos, self.data_of_each_benchmark.keys())
     fig.savefig("./output/utilization_comparison/" + image_name + "_util.png")
 
     fig, ax = plt.subplots()
@@ -159,9 +168,8 @@ if __name__ == "__main__":
     elif remapping_info.remapper_mode == RemapperType.Greedy:
       memory_io_to_all_data_to_plot[memory_io.to_string()].add_benchmark_data(benchmark_name, MappingType.greedy, utilization, time, remapping_info.get_unix_time())
   
-  for benchmark in remapper_config.get_benchmark_list():
-    memory_io_to_all_data_to_plot["all"].plot("all")
-    memory_io_to_all_data_to_plot["both_ends"].plot("both_ends")
+  memory_io_to_all_data_to_plot["all"].plot("all")
+  memory_io_to_all_data_to_plot["both_ends"].plot("both_ends")
 
 
 

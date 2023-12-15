@@ -40,19 +40,25 @@ if __name__ == "__main__":
 
   check_dir_availability(output_dir_path)
 
-  # get max unix time
-  mapping_log_info_list, remapping_log_info_list = load_result_from_csv(output_dir_path, [], LoadCsvMode.All)
-  max_unix_time = 0
-  for mapping_log_info in mapping_log_info_list:
-    if max_unix_time < mapping_log_info.get_unix_time():
-      max_unix_time = mapping_log_info.get_unix_time()
-
-  for remapping_log_info in remapping_log_info_list:
-    if max_unix_time < remapping_log_info.get_unix_time():
-      max_unix_time = remapping_log_info.get_unix_time()
-
   mapping_output_file = output_dir_path + "mapping_result.csv"
   remapping_output_file = output_dir_path + "remapping_result.csv"
+
+  file_exist = os.path.exists(mapping_output_file) and os.path.exists(remapping_output_file)
+
+  mapping_log_info_list = []
+  remapping_log_info_list = []
+  max_unix_time = 0
+  if file_exist:
+    # get max unix time
+    mapping_log_info_list, remapping_log_info_list = load_result_from_csv(output_dir_path, [], LoadCsvMode.All)
+    for mapping_log_info in mapping_log_info_list:
+      if max_unix_time < mapping_log_info.get_unix_time():
+        max_unix_time = mapping_log_info.get_unix_time()
+
+    for remapping_log_info in remapping_log_info_list:
+      if max_unix_time < remapping_log_info.get_unix_time():
+        max_unix_time = remapping_log_info.get_unix_time()
+
 
   unix_time_to_log_file_path = {}
   unix_time_to_mapping_file_path = {}
