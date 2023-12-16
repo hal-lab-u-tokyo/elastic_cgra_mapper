@@ -2,11 +2,7 @@ import csv
 from mapping_log_reader import *
 from remapping_log_reader import *
 
-class LoadCsvMode:
-  All = 0
-  SpecifyBenchmark = 1
-
-def load_result_from_csv(csv_dir_path, benchmark_list, mode=LoadCsvMode.SpecifyBenchmark):
+def load_result_from_csv(csv_dir_path, benchmark_list):
   mapping_csv_file_path = csv_dir_path + "mapping_result.csv"
   remapping_csv_file_path = csv_dir_path + "remapping_result.csv" 
 
@@ -19,12 +15,9 @@ def load_result_from_csv(csv_dir_path, benchmark_list, mode=LoadCsvMode.SpecifyB
     for row in reader:
       dir_list = row[0].split("/")
       benchmark = ""
-      if mode == LoadCsvMode.SpecifyBenchmark:
-        for dir_name in dir_list:
-          if dir_name in benchmark_list:
-            benchmark = dir_name
-        if benchmark == "":
-          continue
+      for dir_name in dir_list:
+        if dir_name in benchmark_list:
+          benchmark = dir_name
 
       mapping_log_info = MappingLogInfo()
       mapping_log_info.log_file_path = row[0]
@@ -49,12 +42,9 @@ def load_result_from_csv(csv_dir_path, benchmark_list, mode=LoadCsvMode.SpecifyB
     for row in reader:
       dir_list = row[0].split("/")
       benchmark = ""
-      if mode == LoadCsvMode.SpecifyBenchmark:
-        for dir_name in dir_list:
-          if dir_name in benchmark_list:
-            benchmark = dir_name
-        if benchmark == "":
-          continue
+      for dir_name in dir_list:
+        if dir_name in benchmark_list:
+          benchmark = dir_name
 
       remapping_log_info = RemapperLogInfo()
       remapping_log_info.log_file_path = row[0]

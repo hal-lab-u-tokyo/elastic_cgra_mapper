@@ -5,6 +5,7 @@ import datetime
 from mapping_log_reader import mapping_log_reader
 from remapping_log_reader import remapping_log_reader
 from load_result_from_csv import *
+from load_remapper_config import *
 
 JST = datetime.timezone(datetime.timedelta(hours=+9), 'JST')
 
@@ -35,6 +36,11 @@ def get_hms_from_unix(unixtime_str):
   return hour + min + sec
 
 if __name__ == "__main__":
+  args = sys.argv
+  config_path = args[1]
+
+  remapper_config = load_remapper_config(config_path)
+
   output_dir_path = "./output/csv/"
   log_dir = "../output/"
 
@@ -50,7 +56,7 @@ if __name__ == "__main__":
   max_unix_time = 0
   if file_exist:
     # get max unix time
-    mapping_log_info_list, remapping_log_info_list = load_result_from_csv(output_dir_path, [], LoadCsvMode.All)
+    mapping_log_info_list, remapping_log_info_list = load_result_from_csv(output_dir_path, remapper_config.get_all_benchmark_list())
     for mapping_log_info in mapping_log_info_list:
       if max_unix_time < mapping_log_info.get_unix_time():
         max_unix_time = mapping_log_info.get_unix_time()
@@ -73,16 +79,16 @@ if __name__ == "__main__":
         find_number = re.findall(r"\d+", file_name)
         if len(find_number) == 0:
           continue
-        unix_time = find_number[0]
-        if int(unix_time) > max_unix_time:
+        unix_time = int(find_number[0])
+        if unix_time > max_unix_time:
           unix_time_to_log_file_path[unix_time] = file_path
       if "mapping" in file_name:
         file_path = path_name + "/" + file_name
         find_number = re.findall(r"\d+", file_name)
         if len(find_number) == 0:
           continue
-        unix_time = find_number[0]
-        if int(unix_time) > max_unix_time:
+        unix_time = int(find_number[0])
+        if unix_time > max_unix_time:
           unix_time_to_mapping_file_path[unix_time] = file_path
 
   # summarize mapping and remapping result
@@ -99,7 +105,7 @@ if __name__ == "__main__":
   for unix_time in unix_time_to_log_file_path.keys():
     log_file_path = unix_time_to_log_file_path[unix_time]
     if is_mapping_log_file(log_file_path):
-      mapping_log_info = mapping_log_reader(log_file_path)
+      mapping_log_info = mapping_log_reader(log_file_path, remapper_config.get_all_benchmark_list())
       input_str = mapping_log_info.get_input_as_str()
       if input_str in mapping_input_str_to_unix_time_and_info.keys() and mapping_input_str_to_unix_time_and_info[input_str][0] > unix_time:
         continue
@@ -110,7 +116,7 @@ if __name__ == "__main__":
       else:
         continue
       
-      remapping_log_info = remapping_log_reader(log_file_path, mapping_file_path)
+      remapping_log_info = remapping_log_reader(log_file_path, mapping_file_path, remapper_config.get_all_benchmark_list())
       input_str = remapping_log_info.get_input_as_str()
       if input_str in remapping_input_str_to_unix_time_and_info.keys() and remapping_input_str_to_unix_time_and_info[input_str][0] > unix_time:
         continue
