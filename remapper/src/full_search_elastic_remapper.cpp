@@ -3,6 +3,7 @@
 #include <remapper/mapping_concater.hpp>
 #include <remapper/mapping_transform_op.hpp>
 #include <remapper/remapper.hpp>
+#include <remapper/rotater.hpp>
 
 remapper::MappingTransformOp CreateMappingTransformOpFromSearchId(
     const entity::Mapping& mapping,
@@ -38,6 +39,8 @@ std::pair<bool, entity::Mapping> remapper::FullSearchElasticRemapping(
     const entity::MRRGConfig& target_mrrg_config, const int target_parallel_num,
     std::ofstream& log_file) {
   std::vector<int> max_search_id(mapping_vec.size());
+  std::vector<std::vector<Eigen::MatrixXi>>
+      mapping_id_and_rotation_id_to_matrix;
 
   for (size_t i = 0; i < mapping_vec.size(); i++) {
     const auto& tmp_mapping_config = mapping_vec[i].GetMRRGConfig();
@@ -46,6 +49,18 @@ std::pair<bool, entity::Mapping> remapper::FullSearchElasticRemapping(
     const int column_search_width =
         target_mrrg_config.column - tmp_mapping_config.column + 1;
     max_search_id[i] = row_search_width * column_search_width * 4 - 1;
+  }
+
+  for (size_t mapping_id = 0; mapping_id < mapping_vec.size(); mapping_id++) {
+    std::vector<Eigen::MatrixXi> tmp_matrix_vec;
+    for (size_t rotate_id = 0; rotate_id < 4; rotate_id++) {
+      const auto rotated_mapping = remapper::MappingRotater(
+          mapping_vec[mapping_id], static_cast<remapper::RotateOp>(rotate_id));
+      const auto rotated_mapping_matrix =
+          remapper::CreateMatrixForElastic(rotated_mapping);
+      tmp_matrix_vec.push_back(rotated_mapping_matrix);
+    }
+    mapping_id_and_rotation_id_to_matrix.push_back(tmp_matrix_vec);
   }
 
   remapper::CombinationCounter selected_mapping_combination(
@@ -83,8 +98,13 @@ std::pair<bool, entity::Mapping> remapper::FullSearchElasticRemapping(
             selected_mapping_vec[i], target_mrrg_config,
             selected_search_id_vec[i]);
         transform_op_vec[i] = transform_op;
-        op_num_matrix += remapper::CreateMatrixForElastic(
-            selected_mapping_vec[i], target_mrrg_config, transform_op);
+
+        int rotate_id = static_cast<int>(transform_op.rotate_op);
+        auto tmp_matrix =
+            mapping_id_and_rotation_id_to_matrix[selected_mapping_id_vec[i]]
+                                                [rotate_id];
+        op_num_matrix.block(transform_op.row, transform_op.column,
+                            tmp_matrix.rows(), tmp_matrix.cols()) += tmp_matrix;
 
         int max_op_num = op_num_matrix.maxCoeff();
         over_context_size = max_op_num > target_mrrg_config.context_size;
