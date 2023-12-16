@@ -50,7 +50,7 @@ bool remapper::CombinationCounter::Next() {
     for (std::size_t i = 0; i < itr->second.size() - 1; i++) {
       int tmp = itr->second[i];
       int next = itr->second[i + 1];
-      if (tmp_combination_[tmp] <  tmp_combination_[next]) {
+      if (tmp_combination_[tmp] < tmp_combination_[next]) {
         int diff = tmp_combination_[next] - tmp_combination_[tmp];
         return Next(tmp, diff);
       }
@@ -67,8 +67,10 @@ bool remapper::CombinationCounter::Next(int id, int num) {
     }
     if (tmp_combination_[i] > max_num_vector_[i]) {
       if (i == size_ - 1) return false;
-      tmp_combination_[i] = 0;
-      tmp_combination_[i + 1]++;
+      int q = tmp_combination_[i] / (max_num_vector_[i] + 1);
+      int r = tmp_combination_[i] % (max_num_vector_[i] + 1);
+      tmp_combination_[i] = r;
+      tmp_combination_[i + 1] += q;
     }
   }
 
