@@ -5,8 +5,6 @@ from json_reader import read_mapping_from_json
 import os
 import re
 
-benchmark_list = ["fixed_convolution2d", "fixed_ellpack", "fixed_fft_pro", "fixed_fir_pro", "fixed_latnrm_pro", "fixed_stencil", "fixed_susan_pro", "convolution_no_loop", "fixed_matrixmultiply_const", "matrixmultiply"]
-
 class RemapperType(Enum):
     FullSearch = 0
     Greedy = 1
@@ -58,7 +56,7 @@ class RemapperLogInfo:
             return -1
         return int(find_number[0])
 
-def remapping_log_reader(log_file_path, mapping_file_path) -> RemapperLogInfo:
+def remapping_log_reader(log_file_path, mapping_file_path, benchmark_list=[]) -> RemapperLogInfo:
     remapper_log_info = RemapperLogInfo()
     remapper_log_info.log_file_path = log_file_path
     dir_list = log_file_path.split("/")

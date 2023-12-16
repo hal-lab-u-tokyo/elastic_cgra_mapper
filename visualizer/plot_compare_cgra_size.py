@@ -107,7 +107,7 @@ if __name__ == "__main__":
     for file in os.listdir(benchmark_database_dir_path + "mapping/"):
       unix_time_str = re.findall(r"\d+", file)[0]
       log_file_path = benchmark_database_dir_path + "log/log" + unix_time_str + ".log"
-      mapping_log = mapping_log_reader(log_file_path)
+      mapping_log = mapping_log_reader(log_file_path, remapper_config.get_benchmark_list())
       if benchmark not in database_time.keys():
         database_time[benchmark] = 0
       database_time[benchmark] = database_time[benchmark] + mapping_log.mapping_time

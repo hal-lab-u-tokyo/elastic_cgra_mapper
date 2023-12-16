@@ -39,6 +39,13 @@ class RemapperConfig:
 
     return benchmark_list
   
+  def get_all_benchmark_list(self):
+    benchmark_list = []
+    for benchmark in self.benchmark_list:
+      benchmark_list.append(benchmark.kernel_name)
+
+    return benchmark_list
+  
   def get_benchmark_name_list(self):
     benchmark_name_list = []
     for benchmark in self.benchmark_list:

@@ -5,8 +5,6 @@ import os
 import csv
 import re
 
-benchmark_list = ["fixed_convolution2d", "fixed_ellpack", "fixed_fft_pro", "fixed_fir_pro", "fixed_latnrm_pro", "fixed_stencil", "fixed_susan_pro", "convolution_no_loop", "fixed_matrixmultiply_const", "matrixmultiply"]
-
 class MappingLogInfo:
     def __init__(self):
         self.log_file_path = ""
@@ -33,7 +31,7 @@ class MappingLogInfo:
             return -1
         return int(find_number[0])
 
-def mapping_log_reader(file_path) -> MappingLogInfo:
+def mapping_log_reader(file_path, benchmark_list=[]) -> MappingLogInfo:
     log_info = MappingLogInfo()
     log_info.log_file_path = file_path
 
