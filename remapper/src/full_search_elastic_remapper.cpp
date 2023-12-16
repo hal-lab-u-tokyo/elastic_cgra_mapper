@@ -9,16 +9,25 @@ remapper::MappingTransformOp CreateMappingTransformOpFromSearchId(
     const entity::MRRGConfig& target_mrrg_config, int search_id) {
   const entity::MRRGConfig mrrg_config = mapping.GetMRRGConfig();
 
-  const int row_search_width = target_mrrg_config.row - mrrg_config.row + 1;
-  const int column_search_width =
+  int origin_row_search_width = target_mrrg_config.row - mrrg_config.row + 1;
+  int origin_column_search_width =
       target_mrrg_config.column - mrrg_config.column + 1;
+
+  const remapper::RotateOp rotation_op =
+      static_cast<remapper::RotateOp>(search_id % 4);
+  int row_search_width = origin_row_search_width;
+  int column_search_width = origin_column_search_width;
+  if (rotation_op == remapper::RotateOp::TopIsLeft ||
+      rotation_op == remapper::RotateOp::TopIsRight) {
+    row_search_width = origin_column_search_width;
+    column_search_width = origin_row_search_width;
+  }
 
   const int row_position = (search_id / (4 * column_search_width));
   assert(row_position < row_search_width);
 
   const int column_position = (search_id / 4) % column_search_width;
-  const remapper::RotateOp rotation_op =
-      static_cast<remapper::RotateOp>(search_id % 4);
+  assert(column_position < column_search_width);
 
   return remapper::MappingTransformOp(row_position, column_position,
                                       rotation_op);
