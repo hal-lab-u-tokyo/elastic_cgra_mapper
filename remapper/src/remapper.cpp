@@ -66,6 +66,10 @@ Eigen::MatrixXi remapper::CreateMatrixForElastic(
           break;
         }
       }
+      assert(i + transform_op.row >= 0 &&
+             i + transform_op.row < target_mrrg_config.row);
+      assert(j + transform_op.column >= 0 &&
+             j + transform_op.column < target_mrrg_config.column);
       matrix(i + transform_op.row, j + transform_op.column) = op_count;
     }
   }
