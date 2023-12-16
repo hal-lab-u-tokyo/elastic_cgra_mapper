@@ -66,6 +66,10 @@ Eigen::MatrixXi remapper::CreateMatrixForElastic(
           break;
         }
       }
+      assert(i + transform_op.row >= 0 &&
+             i + transform_op.row < target_mrrg_config.row);
+      assert(j + transform_op.column >= 0 &&
+             j + transform_op.column < target_mrrg_config.column);
       matrix(i + transform_op.row, j + transform_op.column) = op_count;
     }
   }
@@ -79,14 +83,14 @@ std::pair<bool, entity::Mapping> remapper::Remapper::ElasticRemapping(
     std::ofstream& log_file, remapper::RemappingMode mode) {
   switch (mode) {
     case RemappingMode::FullSearch:
-      return remapper::FullSearchElasticRemapping(mapping_vec, target_mrrg_config,
-                                        target_parallel_num, log_file);
+      return remapper::FullSearchElasticRemapping(
+          mapping_vec, target_mrrg_config, target_parallel_num, log_file);
     case RemappingMode::Greedy:
       return remapper::GreedyElasticRemapping(mapping_vec, target_mrrg_config,
-                                    target_parallel_num, log_file);
+                                              target_parallel_num, log_file);
     case RemappingMode::DP:
       return remapper::DPElasticRemapping(mapping_vec, target_mrrg_config,
-                                target_parallel_num, log_file);
+                                          target_parallel_num, log_file);
   }
 }
 
@@ -127,9 +131,9 @@ remapper::MappingRectangle::MappingRectangle(int _id,
   }
 }
 
-bool remapper::IsAvailableRemapping(const entity::Mapping& mapping, int row_shift,
-                          int column_shift,
-                          const entity::MRRGConfig& target_mrrg_config) {
+bool remapper::IsAvailableRemapping(
+    const entity::Mapping& mapping, int row_shift, int column_shift,
+    const entity::MRRGConfig& target_mrrg_config) {
   if (target_mrrg_config.memory_io == entity::MRRGMemoryIOType::kAll) {
     return true;
   }
