@@ -8,4 +8,4 @@ target_link_libraries(remapper INTERFACE entity gurobi::cxx stdc++fs
                                          Eigen3::Eigen)
 target_compile_options(remapper INTERFACE -Wall -Wextra -Wno-deprecated)
 target_sources(remapper INTERFACE remapper.cpp mapping_concater.cpp
-                                  combination_counter.cpp rotater.cpp full_search_elastic_remapper.cpp greedy_elastic_remapper.cpp dp_elastic_remapper.cpp)
+                                  combination_counter.cpp rotater.cpp algorithm/full_search_elastic_remapper.cpp algorithm/greedy_elastic_remapper.cpp algorithm/dp_elastic_remapper.cpp)

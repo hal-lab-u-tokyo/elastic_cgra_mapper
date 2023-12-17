@@ -1,4 +1,4 @@
-#include <remapper/dp_elastic_remapper.hpp>
+#include <remapper/algorithm/dp_elastic_remapper.hpp>
 #include <remapper/mapping_concater.hpp>
 #include <remapper/mapping_transform_op.hpp>
 #include <remapper/remapper.hpp>
