@@ -5,6 +5,7 @@
 #include <fstream>
 #include <io/architecture_io.hpp>
 #include <io/mapping_io.hpp>
+#include <remapper/mapping_concater.hpp>
 #include <remapper/remapper.hpp>
 
 int main(int argc, char* argv[]) {
@@ -94,9 +95,17 @@ int main(int argc, char* argv[]) {
   while (parallel_num > 0) {
     log_file << "parallel num: " << parallel_num << std::endl;
     const auto start_time = clock();
-    std::tie(is_success, *result_mapping) =
-        remapper::Remapper::ElasticRemapping(mapping_vec, mrrg_config,
-                                             parallel_num, log_file, mode);
+    const auto remapping_result = remapper::Remapper::ElasticRemapping(
+        mapping_vec, mrrg_config, parallel_num, log_file, mode);
+
+    std::vector<entity::Mapping> result_mapping_vec;
+    for (const auto& mapping_id : remapping_result.result_mapping_id_vec) {
+      result_mapping_vec.push_back(mapping_vec[mapping_id]);
+    }
+    *result_mapping = remapper::MappingConcater(
+        result_mapping_vec, remapping_result.result_transform_op_vec,
+        mrrg_config);
+
     const auto end_time = clock();
     log_file << "total " << parallel_num << " parallel remapping time: "
              << ((double)end_time - start_time) / CLOCKS_PER_SEC << std::endl;
