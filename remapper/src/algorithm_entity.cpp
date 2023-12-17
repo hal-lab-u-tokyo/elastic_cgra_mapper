@@ -33,9 +33,8 @@ remapper::MappingMatrix remapper::MappingMatrix::CreateDummyMappingMatrix(
       }
     }
   }
-  const auto result = MappingMatrix(
-      op_num_matrix, memory_op_num_matrix, _id, mrrg_config.row,
-      mrrg_config.column, mrrg_config.context_size, mrrg_config.memory_io);
+  const auto result =
+      MappingMatrix(op_num_matrix, memory_op_num_matrix, _id, mrrg_config);
   return result;
 }
 
@@ -109,25 +108,25 @@ remapper::MappingMatrix::MappingMatrix(const entity::Mapping& mapping, int _id)
 
 remapper::MappingMatrix::MappingMatrix(
     const Eigen::MatrixXi& op_num_matrix,
-    const Eigen::MatrixXi& memory_op_num_matrix, int _id, int _row_size,
-    int _column_size, int _context_size, entity::MRRGMemoryIOType memory_io)
+    const Eigen::MatrixXi& memory_op_num_matrix, int _id,
+    entity::MRRGConfig mrrg_config)
     : id(_id),
       op_num_matrix_(op_num_matrix),
       memory_op_num_matrix_(memory_op_num_matrix) {
-  mapping_ = entity::Mapping();
-  op_rate =
-      (double)(op_num_matrix.sum()) / _row_size * _column_size * _context_size;
+  mapping_ = entity::Mapping(mrrg_config);
+  op_rate = (double)(op_num_matrix.sum()) / mrrg_config.row *
+            mrrg_config.column * mrrg_config.context_size;
   num_waste_of_memory_io = 0;
-  if (memory_io == entity::MRRGMemoryIOType::kOneEnd) {
+  if (mrrg_config.memory_io == entity::MRRGMemoryIOType::kOneEnd) {
     num_waste_of_memory_io =
-        _row_size * _context_size - memory_op_num_matrix.sum();
-  } else if (memory_io == entity::MRRGMemoryIOType::kBothEnds) {
-    num_waste_of_memory_io =
-        2 * _row_size * _context_size - memory_op_num_matrix.sum();
+        mrrg_config.row * mrrg_config.context_size - memory_op_num_matrix.sum();
+  } else if (mrrg_config.memory_io == entity::MRRGMemoryIOType::kBothEnds) {
+    num_waste_of_memory_io = 2 * mrrg_config.row * mrrg_config.context_size -
+                             memory_op_num_matrix.sum();
   }
-  row_size = _row_size;
-  column_size = _column_size;
-  context_size = _context_size;
+  row_size = mrrg_config.row;
+  column_size = mrrg_config.column;
+  context_size = mrrg_config.context_size;
 }
 
 Eigen::MatrixXi remapper::MappingMatrix::GetRotatedMatrix(
