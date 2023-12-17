@@ -129,7 +129,6 @@ remapper::RemappingResult remapper::FullSearchElasticRemapping(
         const auto transform_op = CreateMappingTransformOpFromSearchId(
             selected_mapping_matrix_vec[i].GetMapping(),
             cgra_matrix.GetMRRGConfig(), search_id);
-        transform_op_vec.push_back(transform_op);
 
         int rotate_id = static_cast<int>(transform_op.rotate_op);
         auto tmp_matrix =
@@ -141,6 +140,7 @@ remapper::RemappingResult remapper::FullSearchElasticRemapping(
         int max_op_num = op_num_matrix.maxCoeff();
         over_context_size = max_op_num > cgra_matrix.context_size;
         if (over_context_size) break;
+        transform_op_vec.push_back(transform_op);
       }
 
       if (!over_context_size) {
