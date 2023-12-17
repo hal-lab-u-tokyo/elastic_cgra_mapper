@@ -58,5 +58,6 @@ class CGRAMatrix : public Rectangle {
 
  private:
   entity::MRRGConfig mrrg_config_;
+  Eigen::MatrixXi memory_accessible_matrix_;
 };
 }  // namespace remapper

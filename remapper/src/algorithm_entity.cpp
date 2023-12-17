@@ -19,7 +19,7 @@ remapper::MappingMatrix remapper::MappingMatrix::CreateDummyMappingMatrix(
       Eigen::MatrixXi::Zero(mrrg_config.row, mrrg_config.column);
   for (int row_id = 0; row_id < mrrg_config.row; row_id++) {
     for (int column_id = 0; column_id < mrrg_config.column; column_id++) {
-      op_num_matrix(row_id, column_id) = 1;
+      op_num_matrix(row_id, column_id) = mrrg_config.context_size;
       if (mrrg_config.memory_io == entity::MRRGMemoryIOType::kAll) {
         memory_op_num_matrix(row_id, column_id) = 1;
       } else if (mrrg_config.memory_io == entity::MRRGMemoryIOType::kOneEnd) {
@@ -149,11 +149,35 @@ remapper::CGRAMatrix::CGRAMatrix(const entity::MRRGConfig& mrrg_config)
   row_size = mrrg_config_.row;
   column_size = mrrg_config_.column;
   context_size = mrrg_config_.context_size;
+
+  memory_accessible_matrix_ = Eigen::MatrixXi::Zero(row_size, column_size);
+  for (int row_id = 0; row_id < row_size; row_id++) {
+    for (int column_id = 0; column_id < column_size; column_id++) {
+      if (mrrg_config.memory_io == entity::MRRGMemoryIOType::kAll) {
+        memory_accessible_matrix_(row_id, column_id) = 1;
+      } else if (mrrg_config.memory_io == entity::MRRGMemoryIOType::kOneEnd) {
+        if (column_id == 0) {
+          memory_accessible_matrix_(row_id, column_id) = 1;
+        }
+      } else if (mrrg_config.memory_io == entity::MRRGMemoryIOType::kBothEnds) {
+        if (column_id == 0 || column_id == column_size - 1) {
+          memory_accessible_matrix_(row_id, column_id) = 1;
+        }
+      }
+    }
+  }
 }
 
 bool remapper::CGRAMatrix::IsAvailableRemapping(
     const MappingMatrix& mapping_matrix,
     const MappingTransformOp& transform_op) const {
+  const auto rotated_matrix =
+      mapping_matrix.GetRotatedOpNumMatrix(transform_op.rotate_op);
+  if (rotated_matrix.rows() + transform_op.row > row_size ||
+      rotated_matrix.cols() + transform_op.column > column_size) {
+    return false;
+  }
+
   if (mrrg_config_.memory_io == entity::MRRGMemoryIOType::kAll) {
     return true;
   }
@@ -161,13 +185,15 @@ bool remapper::CGRAMatrix::IsAvailableRemapping(
   const auto& rotated_memory_op_num_matrix =
       mapping_matrix.GetRotatedMemoryOpNumMatrix(transform_op.rotate_op);
 
-  for (int row_id = 0; row_id < rotated_memory_op_num_matrix.rows(); row_id++) {
-    for (int column_id = 1; column_id < rotated_memory_op_num_matrix.cols() - 1;
-         column_id++) {
-      if (rotated_memory_op_num_matrix(row_id, column_id) > 0) {
-        return false;
-      }
-    }
+  const auto& cropped_not_memory_accesible_matrix =
+      Eigen::MatrixXi::Ones(rotated_matrix.rows(), rotated_matrix.cols()) -
+      memory_accessible_matrix_.block(transform_op.row, transform_op.column,
+                                      rotated_matrix.rows(),
+                                      rotated_matrix.cols());
+  if (cropped_not_memory_accesible_matrix
+          .cwiseProduct(rotated_memory_op_num_matrix)
+          .sum() > 0) {
+    return false;
   }
 
   return true;
