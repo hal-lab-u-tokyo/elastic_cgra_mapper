@@ -92,9 +92,7 @@ if __name__ == "__main__":
  
   database_time = {}
 
-  for benchmark in benchmark_list:
-    if benchmark not in remapper_config.get_benchmark_list():
-      continue
+  for benchmark in remapper_config.get_benchmark_list():
 
     dfg_file_path = remapper_config.kernel_dir_path + benchmark + ".dot"
     G = nx.Graph(nx.nx_pydot.read_dot(dfg_file_path))
