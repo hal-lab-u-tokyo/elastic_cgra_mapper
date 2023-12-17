@@ -129,7 +129,6 @@ remapper::RemappingResult remapper::FullSearchElasticRemapping(
         const auto transform_op = CreateMappingTransformOpFromSearchId(
             selected_mapping_matrix_vec[i].GetMapping(),
             cgra_matrix.GetMRRGConfig(), search_id);
-        transform_op_vec.push_back(transform_op);
 
         int rotate_id = static_cast<int>(transform_op.rotate_op);
         auto tmp_matrix =
@@ -141,9 +140,17 @@ remapper::RemappingResult remapper::FullSearchElasticRemapping(
         int max_op_num = op_num_matrix.maxCoeff();
         over_context_size = max_op_num > cgra_matrix.context_size;
         if (over_context_size) break;
+        transform_op_vec.push_back(transform_op);
       }
 
       if (!over_context_size) {
+        for (int i = 0; i < transform_op_vec.size(); i++) {
+          remapper::OutputToLogFile(
+              mapping_matrix_vec[selected_mapping_id_vec[i]]
+                  .GetMapping()
+                  .GetMRRGConfig(),
+              transform_op_vec[i], log_file);
+        }
         return remapper::RemappingResult(selected_mapping_id_vec,
                                          transform_op_vec);
       }
@@ -172,6 +179,14 @@ remapper::RemappingResult remapper::FullSearchElasticRemapping(
     }
 
     mapping_group_id++;
+  }
+  for (int i = 0; i < best_remapping_result.result_transform_op_vec.size();
+       i++) {
+    remapper::OutputToLogFile(
+        mapping_matrix_vec[best_remapping_result.result_mapping_id_vec[i]]
+            .GetMapping()
+            .GetMRRGConfig(),
+        best_remapping_result.result_transform_op_vec[i], log_file);
   }
   return best_remapping_result;
 };

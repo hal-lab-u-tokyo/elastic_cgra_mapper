@@ -24,12 +24,31 @@ remapper::RemappingResult remapper::GreedyElasticRemapping(
     std::sort(mapping_matrix_vec.begin(), mapping_matrix_vec.end(),
               compare_num_waste_of_memory_io);
   }
+  std::unordered_map<int, int> mapping_id_to_index;
+  for (size_t mapping_id = 0; mapping_id < mapping_matrix_vec.size();
+       mapping_id++) {
+    mapping_id_to_index[mapping_matrix_vec[mapping_id].id] = mapping_id;
+  }
 
   Eigen::MatrixXi target_matrix = Eigen::MatrixXi::Zero(
       cgra_matrix.GetMRRGConfig().row, cgra_matrix.GetMRRGConfig().column);
 
   std::vector<int> result_mapping_id_vec;
   std::vector<remapper::MappingTransformOp> result_transform_op_vec;
+
+  const auto OutputToLog([&](const std::vector<int>& result_mapping_id_vec,
+                             const std::vector<remapper::MappingTransformOp>&
+                                 result_transform_op_vec) {
+    for (size_t result_id = 0; result_id < result_mapping_id_vec.size();
+         result_id++) {
+      int mapping_id = result_mapping_id_vec[result_id];
+      int index = mapping_id_to_index[mapping_id];
+      const auto& mapping_mrrg_config =
+          mapping_matrix_vec[index].GetMapping().GetMRRGConfig();
+      remapper::OutputToLogFile(mapping_mrrg_config,
+                                result_transform_op_vec[result_id], log_file);
+    }
+  });
 
   int parallel_num = 0;
   for (const auto& mapping_matrix : mapping_matrix_vec) {
@@ -65,32 +84,11 @@ remapper::RemappingResult remapper::GreedyElasticRemapping(
             // success
             target_matrix = added_matrix;
             result_mapping_id_vec.push_back(mapping_matrix.id);
-            result_transform_op_vec.emplace_back(
-                row_shift, col_shift,
-                static_cast<remapper::RotateOp>(rotate_id));
+            result_transform_op_vec.push_back(transform_op);
             parallel_num++;
 
             if (parallel_num == target_parallel_num) {
-              for (size_t result_id = 0;
-                   result_id < result_mapping_id_vec.size(); result_id++) {
-                int mapping_id = result_mapping_id_vec[result_id];
-                const auto& mapping_mrrg_config =
-                    mapping_matrix_vec[mapping_id].GetMapping().GetMRRGConfig();
-                log_file << "----- mapping -----" << std::endl;
-                log_file << "row: " << mapping_mrrg_config.row << std::endl;
-                log_file << "column: " << mapping_mrrg_config.column
-                         << std::endl;
-                log_file << "context_size: " << mapping_mrrg_config.context_size
-                         << std::endl;
-                log_file << "row shift: "
-                         << result_transform_op_vec[result_id].row << std::endl;
-                log_file << "column shift: "
-                         << result_transform_op_vec[result_id].column
-                         << std::endl;
-                log_file << "rotation: "
-                         << result_transform_op_vec[result_id].rotate_op
-                         << std::endl;
-              }
+              OutputToLog(result_mapping_id_vec, result_transform_op_vec);
 
               return remapper::RemappingResult(result_mapping_id_vec,
                                                result_transform_op_vec);
@@ -104,6 +102,8 @@ remapper::RemappingResult remapper::GreedyElasticRemapping(
                << ((double)end_time - start_time) / CLOCKS_PER_SEC << std::endl;
     }
   };
+
+  OutputToLog(result_mapping_id_vec, result_transform_op_vec);
 
   return remapper::RemappingResult(result_mapping_id_vec,
                                    result_transform_op_vec);

@@ -57,6 +57,10 @@ remapper::RemappingResult remapper::DPElasticRemapping(
     return left.op_rate > right.op_rate;
   };
   std::sort(mapping_matrix_vec.begin(), mapping_matrix_vec.end(), compare);
+  std::unordered_map<int, int> mapping_id_to_index;
+  for (int i = 0; i < mapping_matrix_vec.size(); i++) {
+    mapping_id_to_index[mapping_matrix_vec[i].id] = i;
+  }
 
   struct MappingIdAndOp {
     MappingIdAndOp(int _id, remapper::MappingTransformOp _op)
@@ -81,7 +85,7 @@ remapper::RemappingResult remapper::DPElasticRemapping(
   }
 
   for (const auto& mapping_matrix : mapping_matrix_vec) {
-    for (int rotate_id = 0; rotate_id < 1; rotate_id++) {
+    for (int rotate_id = 0; rotate_id < 4; rotate_id++) {
       const auto start_time = clock();
       const auto rotated_transform_op = remapper::MappingTransformOp(
           0, 0, static_cast<remapper::RotateOp>(rotate_id));
@@ -166,9 +170,10 @@ remapper::RemappingResult remapper::DPElasticRemapping(
                       new_result.op.row += mapping_size.x();
                     } else if (dp_size.y() == cgra_matrix.column_size &&
                                rectangle_id == 1) {
+                      int index = mapping_id_to_index[result.id];
                       const auto& tmp_rotated_mapping_matrix =
-                          mapping_matrix_vec[result.id]
-                              .GetRotatedMemoryOpNumMatrix(result.op.rotate_op);
+                          mapping_matrix_vec[index].GetRotatedMemoryOpNumMatrix(
+                              result.op.rotate_op);
                       new_result.op.row = rectangle_row - 1 - result.op.row;
                       new_result.op.column = rectangle_col - 1 -
                                              result.op.column +
@@ -207,17 +212,12 @@ remapper::RemappingResult remapper::DPElasticRemapping(
       for (const auto& id_and_op :
            dp_result[cgra_matrix.row_size][cgra_matrix.column_size]
                     [cgra_matrix.context_size]) {
-        const auto& mapping = mapping_matrix_vec[id_and_op.id].GetMapping();
+        const auto index = mapping_id_to_index[id_and_op.id];
+        const auto& mapping = mapping_matrix_vec[index].GetMapping();
         result_mapping_id_vec.push_back(id_and_op.id);
         result_transform_op_vec.push_back(id_and_op.op);
-        log_file << "----- mapping -----" << std::endl;
-        log_file << "row: " << mapping.GetMRRGConfig().row << std::endl;
-        log_file << "column: " << mapping.GetMRRGConfig().column << std::endl;
-        log_file << "context_size: " << mapping.GetMRRGConfig().context_size
-                 << std::endl;
-        log_file << "row shift: " << id_and_op.op.row << std::endl;
-        log_file << "column shift: " << id_and_op.op.column << std::endl;
-        log_file << "rotation: " << id_and_op.op.rotate_op << std::endl;
+        remapper::OutputToLogFile(mapping.GetMRRGConfig(), id_and_op.op,
+                                  log_file);
       }
       return remapper::RemappingResult(result_mapping_id_vec,
                                        result_transform_op_vec);
@@ -230,17 +230,11 @@ remapper::RemappingResult remapper::DPElasticRemapping(
   for (const auto& id_and_op :
        dp_result[cgra_matrix.row_size][cgra_matrix.column_size]
                 [cgra_matrix.context_size]) {
-    const auto& mapping = mapping_matrix_vec[id_and_op.id].GetMapping();
+    const auto index = mapping_id_to_index[id_and_op.id];
+    const auto& mapping = mapping_matrix_vec[index].GetMapping();
     result_mapping_id_vec.push_back(id_and_op.id);
     result_transform_op_vec.push_back(id_and_op.op);
-    log_file << "----- mapping -----" << std::endl;
-    log_file << "row: " << mapping.GetMRRGConfig().row << std::endl;
-    log_file << "column: " << mapping.GetMRRGConfig().column << std::endl;
-    log_file << "context_size: " << mapping.GetMRRGConfig().context_size
-             << std::endl;
-    log_file << "row shift: " << id_and_op.op.row << std::endl;
-    log_file << "column shift: " << id_and_op.op.column << std::endl;
-    log_file << "rotation: " << id_and_op.op.rotate_op << std::endl;
+    remapper::OutputToLogFile(mapping.GetMRRGConfig(), id_and_op.op, log_file);
   }
   return remapper::RemappingResult(result_mapping_id_vec,
                                    result_transform_op_vec);

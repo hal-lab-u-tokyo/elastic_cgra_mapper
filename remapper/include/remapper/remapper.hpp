@@ -25,4 +25,10 @@ class Remapper {
       const int target_parallel_num, std::ofstream& log_file,
       RemappingMode mode);
 };
+
+void OutputToLogFile(
+    entity::MRRGConfig mapping_mrrg_config,
+    remapper::MappingTransformOp transform_op,
+    std::ofstream& log_file);
+
 }  // namespace remapper

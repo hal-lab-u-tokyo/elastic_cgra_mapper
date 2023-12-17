@@ -41,8 +41,7 @@ class MappingMatrix : public Rectangle {
  private:
   MappingMatrix(const Eigen::MatrixXi& op_num_matrix,
                 const Eigen::MatrixXi& memory_op_num_matrix, int _id,
-                int _row_size, int _column_size, int _context_size,
-                entity::MRRGMemoryIOType memory_io);
+                entity::MRRGConfig mrrg_config);
   Eigen::MatrixXi op_num_matrix_;
   Eigen::MatrixXi memory_op_num_matrix_;
   entity::Mapping mapping_;
@@ -59,5 +58,6 @@ class CGRAMatrix : public Rectangle {
 
  private:
   entity::MRRGConfig mrrg_config_;
+  Eigen::MatrixXi memory_accessible_matrix_;
 };
 }  // namespace remapper

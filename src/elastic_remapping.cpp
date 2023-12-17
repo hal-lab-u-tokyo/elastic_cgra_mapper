@@ -88,37 +88,29 @@ int main(int argc, char* argv[]) {
   size_t parallel_num = std::floor(max_config_num / min_mapping_op_num);
   // size_t parallel_num = 5;
 
-  bool is_success = false;
   std::shared_ptr<entity::Mapping> result_mapping =
       std::make_shared<entity::Mapping>();
 
-  while (parallel_num > 0) {
-    log_file << "parallel num: " << parallel_num << std::endl;
-    const auto start_time = clock();
-    const auto remapping_result = remapper::Remapper::ElasticRemapping(
-        mapping_vec, mrrg_config, parallel_num, log_file, mode);
+  log_file << "parallel num: " << parallel_num << std::endl;
+  const auto start_time = clock();
+  const auto remapping_result = remapper::Remapper::ElasticRemapping(
+      mapping_vec, mrrg_config, parallel_num, log_file, mode);
 
-    std::vector<entity::Mapping> result_mapping_vec;
-    for (const auto& mapping_id : remapping_result.result_mapping_id_vec) {
-      result_mapping_vec.push_back(mapping_vec[mapping_id]);
-    }
-    *result_mapping = remapper::MappingConcater(
-        result_mapping_vec, remapping_result.result_transform_op_vec,
-        mrrg_config);
-
-    const auto end_time = clock();
-    log_file << "total " << parallel_num << " parallel remapping time: "
-             << ((double)end_time - start_time) / CLOCKS_PER_SEC << std::endl;
-
-    if (is_success) break;
-
-    parallel_num--;
+  std::vector<entity::Mapping> result_mapping_vec;
+  for (const auto& mapping_id : remapping_result.result_mapping_id_vec) {
+    result_mapping_vec.push_back(mapping_vec[mapping_id]);
   }
+  *result_mapping = remapper::MappingConcater(
+      result_mapping_vec, remapping_result.result_transform_op_vec,
+      mrrg_config);
 
-  if (is_success) {
-    std::string output_mapping_path = output_mapping_dir + "mapping_" +
-                                      std::to_string(tmp_time) + "_mode" +
-                                      std::to_string(mode) + ".json";
-    io::WriteMappingFile(output_mapping_path, result_mapping, mrrg_config);
-  }
+  const auto end_time = clock();
+  log_file << "total " << remapping_result.result_mapping_id_vec.size()
+           << " parallel remapping time: "
+           << ((double)end_time - start_time) / CLOCKS_PER_SEC << std::endl;
+
+  std::string output_mapping_path = output_mapping_dir + "mapping_" +
+                                    std::to_string(tmp_time) + "_mode" +
+                                    std::to_string(mode) + ".json";
+  io::WriteMappingFile(output_mapping_path, result_mapping, mrrg_config);
 }
