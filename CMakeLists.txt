@@ -30,7 +30,7 @@ target_link_libraries(mapping PRIVATE io entity mapper cpp_simulator)
 add_executable(create_database src/create_database.cpp)
 set_property(TARGET create_database PROPERTY CXX_STANDARD 17)
 target_compile_options(create_database INTERFACE -Wall -Wextra -Wno-deprecated)
-target_link_libraries(create_database PRIVATE io entity mapper cpp_simulator)
+target_link_libraries(create_database PRIVATE io entity mapper cpp_simulator remapper)
 
 add_executable(bulk_mapping src/bulk_mapping.cpp)
 set_property(TARGET bulk_mapping PROPERTY CXX_STANDARD 17)
