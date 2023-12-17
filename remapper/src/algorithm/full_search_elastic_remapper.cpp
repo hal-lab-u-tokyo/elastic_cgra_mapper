@@ -144,6 +144,13 @@ remapper::RemappingResult remapper::FullSearchElasticRemapping(
       }
 
       if (!over_context_size) {
+        for (int i = 0; i < transform_op_vec.size(); i++) {
+          remapper::OutputToLogFile(
+              mapping_matrix_vec[selected_mapping_id_vec[i]]
+                  .GetMapping()
+                  .GetMRRGConfig(),
+              transform_op_vec[i], log_file);
+        }
         return remapper::RemappingResult(selected_mapping_id_vec,
                                          transform_op_vec);
       }
@@ -172,6 +179,14 @@ remapper::RemappingResult remapper::FullSearchElasticRemapping(
     }
 
     mapping_group_id++;
+  }
+  for (int i = 0; i < best_remapping_result.result_transform_op_vec.size();
+       i++) {
+    remapper::OutputToLogFile(
+        mapping_matrix_vec[best_remapping_result.result_mapping_id_vec[i]]
+            .GetMapping()
+            .GetMRRGConfig(),
+        best_remapping_result.result_transform_op_vec[i], log_file);
   }
   return best_remapping_result;
 };

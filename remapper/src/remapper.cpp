@@ -39,3 +39,15 @@ remapper::RemappingResult remapper::Remapper::ElasticRemapping(
                                           target_parallel_num, log_file);
   }
 }
+
+void remapper::OutputToLogFile(entity::MRRGConfig mapping_mrrg_config,
+                               remapper::MappingTransformOp transform_op,
+                               std::ofstream& log_file) {
+  log_file << "----- mapping -----" << std::endl;
+  log_file << "row: " << mapping_mrrg_config.row << std::endl;
+  log_file << "column: " << mapping_mrrg_config.column << std::endl;
+  log_file << "context_size: " << mapping_mrrg_config.context_size << std::endl;
+  log_file << "row shift: " << transform_op.row << std::endl;
+  log_file << "column shift: " << transform_op.column << std::endl;
+  log_file << "rotation: " << transform_op.rotate_op << std::endl;
+}
