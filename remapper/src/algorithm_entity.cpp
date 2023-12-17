@@ -11,6 +11,34 @@ remapper::MappingMatrix::MappingMatrix() : id(-1), op_rate(-1) {
   context_size = 0;
 }
 
+remapper::MappingMatrix remapper::MappingMatrix::CreateDummyMappingMatrix(
+    entity::MRRGConfig mrrg_config, int _id) {
+  Eigen::MatrixXi op_num_matrix =
+      Eigen::MatrixXi::Zero(mrrg_config.row, mrrg_config.column);
+  Eigen::MatrixXi memory_op_num_matrix =
+      Eigen::MatrixXi::Zero(mrrg_config.row, mrrg_config.column);
+  for (int row_id = 0; row_id < mrrg_config.row; row_id++) {
+    for (int column_id = 0; column_id < mrrg_config.column; column_id++) {
+      op_num_matrix(row_id, column_id) = 1;
+      if (mrrg_config.memory_io == entity::MRRGMemoryIOType::kAll) {
+        memory_op_num_matrix(row_id, column_id) = 1;
+      } else if (mrrg_config.memory_io == entity::MRRGMemoryIOType::kOneEnd) {
+        if (column_id == 0) {
+          memory_op_num_matrix(row_id, column_id) = 1;
+        }
+      } else if (mrrg_config.memory_io == entity::MRRGMemoryIOType::kBothEnds) {
+        if (column_id == 0 || column_id == mrrg_config.column - 1) {
+          memory_op_num_matrix(row_id, column_id) = 1;
+        }
+      }
+    }
+  }
+  const auto result = MappingMatrix(
+      op_num_matrix, memory_op_num_matrix, _id, mrrg_config.row,
+      mrrg_config.column, mrrg_config.context_size, mrrg_config.memory_io);
+  return result;
+}
+
 remapper::MappingMatrix::MappingMatrix(const entity::Mapping& mapping, int _id)
     : id(_id) {
   int min_row_id = mapping.GetMRRGConfig().row,
@@ -77,6 +105,29 @@ remapper::MappingMatrix::MappingMatrix(const entity::Mapping& mapping, int _id)
       num_waste_of_memory_io--;
     }
   }
+}
+
+remapper::MappingMatrix::MappingMatrix(
+    const Eigen::MatrixXi& op_num_matrix,
+    const Eigen::MatrixXi& memory_op_num_matrix, int _id, int _row_size,
+    int _column_size, int _context_size, entity::MRRGMemoryIOType memory_io)
+    : id(_id),
+      op_num_matrix_(op_num_matrix),
+      memory_op_num_matrix_(memory_op_num_matrix) {
+  mapping_ = entity::Mapping();
+  op_rate =
+      (double)(op_num_matrix.sum()) / _row_size * _column_size * _context_size;
+  num_waste_of_memory_io = 0;
+  if (memory_io == entity::MRRGMemoryIOType::kOneEnd) {
+    num_waste_of_memory_io =
+        _row_size * _context_size - memory_op_num_matrix.sum();
+  } else if (memory_io == entity::MRRGMemoryIOType::kBothEnds) {
+    num_waste_of_memory_io =
+        2 * _row_size * _context_size - memory_op_num_matrix.sum();
+  }
+  row_size = _row_size;
+  column_size = _column_size;
+  context_size = _context_size;
 }
 
 Eigen::MatrixXi remapper::MappingMatrix::GetRotatedMatrix(
