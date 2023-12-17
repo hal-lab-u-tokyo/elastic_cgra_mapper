@@ -85,7 +85,7 @@ remapper::RemappingResult remapper::DPElasticRemapping(
   }
 
   for (const auto& mapping_matrix : mapping_matrix_vec) {
-    for (int rotate_id = 0; rotate_id < 1; rotate_id++) {
+    for (int rotate_id = 0; rotate_id < 4; rotate_id++) {
       const auto start_time = clock();
       const auto rotated_transform_op = remapper::MappingTransformOp(
           0, 0, static_cast<remapper::RotateOp>(rotate_id));
