@@ -1,10 +1,11 @@
 #pragma once
 #include <entity/mapping.hpp>
 #include <fstream>
+#include <remapper/algorithm_entity.hpp>
 
 namespace remapper {
-std::pair<bool, entity::Mapping> GreedyElasticRemapping(
-      const std::vector<entity::Mapping>& mapping_vec,
-      const entity::MRRGConfig& target_mrrg_config,
-      const int target_parallel_num, std::ofstream& log_file);
-}  
+remapper::RemappingResult GreedyElasticRemapping(
+    const std::vector<remapper::MappingMatrix> mapping_matrix_vec,
+    const remapper::CGRAMatrix& cgra_matrix, const int target_parallel_num,
+    std::ofstream& log_file);
+}

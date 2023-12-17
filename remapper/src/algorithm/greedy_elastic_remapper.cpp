@@ -4,47 +4,37 @@
 #include <remapper/remapper.hpp>
 #include <remapper/rotater.hpp>
 
-std::pair<bool, entity::Mapping> remapper::GreedyElasticRemapping(
-    const std::vector<entity::Mapping>& mapping_vec,
-    const entity::MRRGConfig& target_mrrg_config, const int target_parallel_num,
+remapper::RemappingResult remapper::GreedyElasticRemapping(
+    const std::vector<remapper::MappingMatrix> mapping_matrix_vec,
+    const remapper::CGRAMatrix& cgra_matrix, const int target_parallel_num,
     std::ofstream& log_file) {
-  std::vector<remapper::MappingRectangle> mapping_rectangle_vec;
-  for (size_t i = 0; i < mapping_vec.size(); i++) {
-    const auto& mapping = mapping_vec[i];
-    const auto mapping_matrix = remapper::CreateMatrixForElastic(mapping);
-    mapping_rectangle_vec.emplace_back(i, mapping_matrix, mapping);
-  }
-  auto compare_op_rate = [&](remapper::MappingRectangle left,
-                             remapper::MappingRectangle right) {
+  auto compare_op_rate = [&](remapper::MappingMatrix left,
+                             remapper::MappingMatrix right) {
     return left.op_rate > right.op_rate;
   };
-  auto compare_num_waste_of_memory_io = [&](remapper::MappingRectangle left,
-                                            remapper::MappingRectangle right) {
+  auto compare_num_waste_of_memory_io = [&](remapper::MappingMatrix left,
+                                            remapper::MappingMatrix right) {
     return left.num_waste_of_memory_io < right.num_waste_of_memory_io;
   };
-  if (target_mrrg_config.memory_io == entity::MRRGMemoryIOType::kAll) {
-    std::sort(mapping_rectangle_vec.begin(), mapping_rectangle_vec.end(),
+  if (cgra_matrix.GetMRRGConfig().memory_io == entity::MRRGMemoryIOType::kAll) {
+    std::sort(mapping_matrix_vec.begin(), mapping_matrix_vec.end(),
               compare_op_rate);
   } else {
-    std::sort(mapping_rectangle_vec.begin(), mapping_rectangle_vec.end(),
+    std::sort(mapping_matrix_vec.begin(), mapping_matrix_vec.end(),
               compare_num_waste_of_memory_io);
   }
 
-  Eigen::MatrixXi target_matrix =
-      Eigen::MatrixXi::Zero(target_mrrg_config.row, target_mrrg_config.column);
+  Eigen::MatrixXi target_matrix = Eigen::MatrixXi::Zero(
+      cgra_matrix.GetMRRGConfig().row, cgra_matrix.GetMRRGConfig().column);
 
-  std::vector<entity::Mapping> result_mapping_vec;
+  std::vector<int> result_mapping_id_vec;
   std::vector<remapper::MappingTransformOp> result_transform_op_vec;
 
   int parallel_num = 0;
-  for (const auto& mapping_rectangle : mapping_rectangle_vec) {
-    const auto& mapping = mapping_vec[mapping_rectangle.id];
+  for (const auto& mapping_matrix : mapping_matrix_vec) {
     for (int rotate_id = 0; rotate_id < 4; rotate_id++) {
-      const auto rotated_mapping = remapper::MappingRotater(
-          mapping, static_cast<remapper::RotateOp>(rotate_id));
-
-      const auto rotated_mapping_matrix =
-          remapper::CreateMatrixForElastic(rotated_mapping);
+      const auto rotated_mapping_matrix = mapping_matrix.GetRotatedOpNumMatrix(
+          static_cast<remapper::RotateOp>(rotate_id));
       if (target_matrix.rows() < rotated_mapping_matrix.rows() ||
           target_matrix.cols() < rotated_mapping_matrix.cols())
         continue;
@@ -56,41 +46,40 @@ std::pair<bool, entity::Mapping> remapper::GreedyElasticRemapping(
              col_shift <
              target_matrix.cols() - rotated_mapping_matrix.cols() + 1;
              col_shift++) {
-          if (!remapper::IsAvailableRemapping(rotated_mapping, row_shift, col_shift,
-                                    target_mrrg_config)) {
+          const auto transform_op = remapper::MappingTransformOp(
+              row_shift, col_shift, static_cast<remapper::RotateOp>(rotate_id));
+          if (!cgra_matrix.IsAvailableRemapping(mapping_matrix, transform_op))
             continue;
-          }
+
           while (1) {
             Eigen::MatrixXi added_matrix = target_matrix;
             added_matrix.block(
                 row_shift, col_shift, rotated_mapping_matrix.rows(),
                 rotated_mapping_matrix.cols()) += rotated_mapping_matrix;
             // failed
-            if (added_matrix.maxCoeff() > target_mrrg_config.context_size)
+            if (added_matrix.maxCoeff() >
+                cgra_matrix.GetMRRGConfig().context_size)
               break;
 
             // success
             target_matrix = added_matrix;
-            result_mapping_vec.push_back(mapping);
+            result_mapping_id_vec.push_back(mapping_matrix.id);
             result_transform_op_vec.emplace_back(
                 row_shift, col_shift,
                 static_cast<remapper::RotateOp>(rotate_id));
             parallel_num++;
 
             if (parallel_num == target_parallel_num) {
-              for (size_t result_id = 0; result_id < result_mapping_vec.size();
-                   result_id++) {
+              for (size_t result_id = 0;
+                   result_id < result_mapping_id_vec.size(); result_id++) {
+                int mapping_id = result_mapping_id_vec[result_id];
+                const auto& mapping_mrrg_config =
+                    mapping_matrix_vec[mapping_id].GetMapping().GetMRRGConfig();
                 log_file << "----- mapping -----" << std::endl;
-                log_file << "row: "
-                         << result_mapping_vec[result_id].GetMRRGConfig().row
+                log_file << "row: " << mapping_mrrg_config.row << std::endl;
+                log_file << "column: " << mapping_mrrg_config.column
                          << std::endl;
-                log_file << "column: "
-                         << result_mapping_vec[result_id].GetMRRGConfig().column
-                         << std::endl;
-                log_file << "context_size: "
-                         << result_mapping_vec[result_id]
-                                .GetMRRGConfig()
-                                .context_size
+                log_file << "context_size: " << mapping_mrrg_config.context_size
                          << std::endl;
                 log_file << "row shift: "
                          << result_transform_op_vec[result_id].row << std::endl;
@@ -102,10 +91,8 @@ std::pair<bool, entity::Mapping> remapper::GreedyElasticRemapping(
                          << std::endl;
               }
 
-              const auto result_mapping = remapper::MappingConcater(
-                  result_mapping_vec, result_transform_op_vec,
-                  target_mrrg_config);
-              return {true, result_mapping};
+              return remapper::RemappingResult(result_mapping_id_vec,
+                                               result_transform_op_vec);
             }
           }
         }
@@ -118,5 +105,5 @@ std::pair<bool, entity::Mapping> remapper::GreedyElasticRemapping(
   };
 
   entity::Mapping empty;
-  return {false, empty};
+  return remapper::RemappingResult();
 }
