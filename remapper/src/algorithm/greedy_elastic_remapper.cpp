@@ -105,6 +105,6 @@ remapper::RemappingResult remapper::GreedyElasticRemapping(
     }
   };
 
-  entity::Mapping empty;
-  return remapper::RemappingResult();
+  return remapper::RemappingResult(result_mapping_id_vec,
+                                   result_transform_op_vec);
 }
