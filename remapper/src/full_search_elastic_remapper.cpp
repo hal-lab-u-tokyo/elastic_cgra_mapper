@@ -42,13 +42,38 @@ std::pair<bool, entity::Mapping> remapper::FullSearchElasticRemapping(
   std::vector<std::vector<Eigen::MatrixXi>>
       mapping_id_and_rotation_id_to_matrix;
 
-  for (size_t i = 0; i < mapping_vec.size(); i++) {
-    const auto& tmp_mapping_config = mapping_vec[i].GetMRRGConfig();
+  std::vector<std::vector<int>>
+      mapping_id_and_restricted_search_id_to_search_id;
+
+  for (size_t mapping_id = 0; mapping_id < mapping_vec.size(); mapping_id++) {
+    const auto& tmp_mapping_config = mapping_vec[mapping_id].GetMRRGConfig();
     const int row_search_width =
         target_mrrg_config.row - tmp_mapping_config.row + 1;
     const int column_search_width =
         target_mrrg_config.column - tmp_mapping_config.column + 1;
-    max_search_id[i] = row_search_width * column_search_width * 4 - 1;
+
+    max_search_id[mapping_id] = row_search_width * column_search_width * 4 - 1;
+    if (target_mrrg_config.memory_io == entity::MRRGMemoryIOType::kBothEnds) {
+      std::vector<int> restricted_search_id;
+      for (size_t search_id = 0; search_id < max_search_id[mapping_id];
+           search_id++) {
+        const auto transform_op = CreateMappingTransformOpFromSearchId(
+            mapping_vec[mapping_id], target_mrrg_config, search_id);
+        const auto rotated_mapping = remapper::MappingRotater(
+            mapping_vec[mapping_id], transform_op.rotate_op);
+        const auto rotated_mapping_matrix =
+            remapper::CreateMatrixForElastic(rotated_mapping);
+        bool is_available_mapping = remapper::IsAvailableRemapping(
+            rotated_mapping, transform_op.row, transform_op.column,
+            target_mrrg_config);
+        if (is_available_mapping) {
+          restricted_search_id.push_back(search_id);
+        }
+      }
+      mapping_id_and_restricted_search_id_to_search_id.push_back(
+          restricted_search_id);
+      max_search_id[mapping_id] = restricted_search_id.size() - 1;
+    }
   }
 
   for (size_t mapping_id = 0; mapping_id < mapping_vec.size(); mapping_id++) {
@@ -76,7 +101,6 @@ std::pair<bool, entity::Mapping> remapper::FullSearchElasticRemapping(
       selected_mapping_vec[i] = mapping_vec[selected_mapping_id_vec[i]];
       max_selected_search_id_vec[i] = max_search_id[selected_mapping_id_vec[i]];
     }
-    log_file << "mapping group id: " << mapping_group_id << std::endl;
 
     // shift and rotate mapping
     remapper::CombinationCounter selected_search_id_combination(
@@ -94,9 +118,15 @@ std::pair<bool, entity::Mapping> remapper::FullSearchElasticRemapping(
       int last_mapping_num = 0;
       for (int i = 0; i < target_parallel_num; i++) {
         last_mapping_num = i;
+        int search_id = selected_search_id_vec[i];
+        if (target_mrrg_config.memory_io ==
+            entity::MRRGMemoryIOType::kBothEnds) {
+          search_id = mapping_id_and_restricted_search_id_to_search_id
+                          [selected_mapping_id_vec[i]][search_id];
+        }
         const auto transform_op = CreateMappingTransformOpFromSearchId(
             selected_mapping_vec[i], target_mrrg_config,
-            selected_search_id_vec[i]);
+            search_id);
         transform_op_vec[i] = transform_op;
 
         int rotate_id = static_cast<int>(transform_op.rotate_op);
@@ -125,8 +155,6 @@ std::pair<bool, entity::Mapping> remapper::FullSearchElasticRemapping(
       }
     };
     const auto end_time = clock();
-    log_file << "mapping group search time: "
-             << ((double)end_time - start_time) / CLOCKS_PER_SEC << std::endl;
 
     // update selected mapping
     bool test_all_mapping_combination = !(selected_mapping_combination.Next());
