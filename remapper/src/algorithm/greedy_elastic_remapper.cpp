@@ -84,9 +84,7 @@ remapper::RemappingResult remapper::GreedyElasticRemapping(
             // success
             target_matrix = added_matrix;
             result_mapping_id_vec.push_back(mapping_matrix.id);
-            result_transform_op_vec.emplace_back(
-                row_shift, col_shift,
-                static_cast<remapper::RotateOp>(rotate_id));
+            result_transform_op_vec.push_back(transform_op);
             parallel_num++;
 
             if (parallel_num == target_parallel_num) {
