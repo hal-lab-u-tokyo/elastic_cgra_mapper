@@ -87,8 +87,17 @@ std::vector<entity::OpType> entity::GetAllOperations() {
 };
 
 std::vector<entity::OpType> entity::GetAllOperationsExceptMemoryAccess() {
-  return std::vector<OpType>({entity::OpType::ADD, entity::OpType::SUB,
-                              entity::OpType::MUL, entity::OpType::DIV,
-                              entity::OpType::CONST, entity::OpType::NOP,
-                              entity::OpType::ROUTE, entity::OpType::OR, entity::OpType::SHIFT});
+  return std::vector<OpType>(
+      {entity::OpType::ADD, entity::OpType::SUB, entity::OpType::MUL,
+       entity::OpType::DIV, entity::OpType::CONST, entity::OpType::NOP,
+       entity::OpType::ROUTE, entity::OpType::OR, entity::OpType::SHIFT});
+};
+
+bool entity::IsMemoryAccessOperation(OpType op) {
+  return (op == entity::OpType::LOAD || op == entity::OpType::STORE ||
+          op == entity::OpType::OUTPUT);
+};
+
+bool entity::IsDFGOp(OpType op) {
+  return !(op == entity::OpType::NOP || op == entity::OpType::ROUTE);
 };

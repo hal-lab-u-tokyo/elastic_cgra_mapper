@@ -4,9 +4,24 @@
 #include <vector>
 
 namespace entity {
-enum OpType { ADD, SUB, MUL, DIV, CONST, LOAD, OUTPUT, STORE, NOP, ROUTE, OR, SHIFT };
+enum OpType {
+  ADD,
+  SUB,
+  MUL,
+  DIV,
+  CONST,
+  LOAD,
+  OUTPUT,
+  STORE,
+  NOP,
+  ROUTE,
+  OR,
+  SHIFT
+};
 std::string OpTypeToString(OpType op);
 OpType OpTypeFromString(std::string op_string);
 std::vector<OpType> GetAllOperations();
 std::vector<OpType> GetAllOperationsExceptMemoryAccess();
+bool IsMemoryAccessOperation(OpType op);
+bool IsDFGOp(OpType op);
 }  // namespace entity
