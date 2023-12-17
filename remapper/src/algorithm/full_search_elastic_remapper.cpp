@@ -91,6 +91,8 @@ remapper::RemappingResult remapper::FullSearchElasticRemapping(
   remapper::CombinationCounter selected_mapping_combination(
       mapping_matrix_vec.size() - 1, target_parallel_num);
   int mapping_group_id = 0;
+
+  RemappingResult best_remapping_result;
   // select mapping
   while (1) {
     const auto selected_mapping_id_vec =
@@ -113,9 +115,8 @@ remapper::RemappingResult remapper::FullSearchElasticRemapping(
           selected_search_id_combination.GetCombination();
       Eigen::MatrixXi op_num_matrix =
           Eigen::MatrixXi::Zero(cgra_matrix.row_size, cgra_matrix.column_size);
-      std::vector<remapper::MappingTransformOp> transform_op_vec(
-          target_parallel_num);
       bool over_context_size = false;
+      std::vector<remapper::MappingTransformOp> transform_op_vec;
       int last_mapping_num = 0;
       for (int i = 0; i < target_parallel_num; i++) {
         last_mapping_num = i;
@@ -128,7 +129,7 @@ remapper::RemappingResult remapper::FullSearchElasticRemapping(
         const auto transform_op = CreateMappingTransformOpFromSearchId(
             selected_mapping_matrix_vec[i].GetMapping(),
             cgra_matrix.GetMRRGConfig(), search_id);
-        transform_op_vec[i] = transform_op;
+        transform_op_vec.push_back(transform_op);
 
         int rotate_id = static_cast<int>(transform_op.rotate_op);
         auto tmp_matrix =
@@ -147,6 +148,15 @@ remapper::RemappingResult remapper::FullSearchElasticRemapping(
                                          transform_op_vec);
       }
 
+      if (best_remapping_result.result_transform_op_vec.size() <
+          transform_op_vec.size()) {
+        std::vector<int> result_mapping_id_vec(
+            selected_mapping_id_vec.begin(),
+            selected_mapping_id_vec.begin() + transform_op_vec.size());
+        best_remapping_result =
+            remapper::RemappingResult(result_mapping_id_vec, transform_op_vec);
+      }
+
       // update search_id
       bool test_all_remapping =
           !(selected_search_id_combination.Next(last_mapping_num, 1));
@@ -163,5 +173,5 @@ remapper::RemappingResult remapper::FullSearchElasticRemapping(
 
     mapping_group_id++;
   }
-  return remapper::RemappingResult();
+  return best_remapping_result;
 };
