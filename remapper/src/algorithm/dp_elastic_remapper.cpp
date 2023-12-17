@@ -57,6 +57,10 @@ remapper::RemappingResult remapper::DPElasticRemapping(
     return left.op_rate > right.op_rate;
   };
   std::sort(mapping_matrix_vec.begin(), mapping_matrix_vec.end(), compare);
+  std::unordered_map<int, int> mapping_id_to_index;
+  for (int i = 0; i < mapping_matrix_vec.size(); i++) {
+    mapping_id_to_index[mapping_matrix_vec[i].id] = i;
+  }
 
   struct MappingIdAndOp {
     MappingIdAndOp(int _id, remapper::MappingTransformOp _op)
@@ -166,9 +170,10 @@ remapper::RemappingResult remapper::DPElasticRemapping(
                       new_result.op.row += mapping_size.x();
                     } else if (dp_size.y() == cgra_matrix.column_size &&
                                rectangle_id == 1) {
+                      int index = mapping_id_to_index[result.id];
                       const auto& tmp_rotated_mapping_matrix =
-                          mapping_matrix_vec[result.id]
-                              .GetRotatedMemoryOpNumMatrix(result.op.rotate_op);
+                          mapping_matrix_vec[index].GetRotatedMemoryOpNumMatrix(
+                              result.op.rotate_op);
                       new_result.op.row = rectangle_row - 1 - result.op.row;
                       new_result.op.column = rectangle_col - 1 -
                                              result.op.column +

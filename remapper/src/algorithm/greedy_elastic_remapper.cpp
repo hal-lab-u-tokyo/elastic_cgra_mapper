@@ -24,6 +24,11 @@ remapper::RemappingResult remapper::GreedyElasticRemapping(
     std::sort(mapping_matrix_vec.begin(), mapping_matrix_vec.end(),
               compare_num_waste_of_memory_io);
   }
+  std::unordered_map<int, int> mapping_id_to_index;
+  for (size_t mapping_id = 0; mapping_id < mapping_matrix_vec.size();
+       mapping_id++) {
+    mapping_id_to_index[mapping_matrix_vec[mapping_id].id] = mapping_id;
+  }
 
   Eigen::MatrixXi target_matrix = Eigen::MatrixXi::Zero(
       cgra_matrix.GetMRRGConfig().row, cgra_matrix.GetMRRGConfig().column);
