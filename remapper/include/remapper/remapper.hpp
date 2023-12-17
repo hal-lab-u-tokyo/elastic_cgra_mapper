@@ -7,34 +7,26 @@
 namespace remapper {
 enum RemappingMode { FullSearch, Greedy, DP };
 
+struct RemappingResult {
+  RemappingResult() : result_mapping_vec(), result_transform_op_vec(){};
+  RemappingResult(
+      const std::vector<int>& result_mapping_id_vec,
+      const std::vector<remapper::MappingTransformOp> result_transform_op_vec)
+      : result_mapping_vec(result_mapping_vec),
+        result_transform_op_vec(result_transform_op_vec) {
+    assert(result_mapping_vec.size() == result_transform_op_vec.size());
+  };
+
+  std::vector<int> result_mapping_vec;
+  std::vector<remapper::MappingTransformOp> result_transform_op_vec;
+};
+
 class Remapper {
  public:
-  static std::pair<bool, entity::Mapping> ElasticRemapping(
+  static RemappingResult ElasticRemapping(
       const std::vector<entity::Mapping>& mapping_vec,
       const entity::MRRGConfig& target_mrrg_config,
       const int target_parallel_num, std::ofstream& log_file,
       RemappingMode mode);
 };
-
-Eigen::MatrixXi CreateMatrixForElastic(const entity::Mapping& mapping);
-Eigen::MatrixXi CreateMatrixForElastic(
-    const entity::Mapping& mapping,
-    const entity::MRRGConfig& target_mrrg_config,
-    const remapper::MappingTransformOp transform_op);
-
-struct MappingRectangle {
-  int row;
-  int column;
-  int config;
-  double op_rate;
-  double num_waste_of_memory_io;
-  int id;
-
-  MappingRectangle(int _id, const Eigen::MatrixXi& _matrix,
-                   const entity::Mapping& mapping);
-};
-
-bool IsAvailableRemapping(const entity::Mapping& mapping, int row_shift,
-                          int column_shift,
-                          const entity::MRRGConfig& target_mrrg_config);
 }  // namespace remapper
