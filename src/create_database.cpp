@@ -30,36 +30,34 @@ std::vector<entity::MRRGConfig> GetMRRGOfSubCGRA(
                              (double)(context_size * row_num * column_num);
         if (utilization < utilization_min) break;
 
-        for (int memory_io_type = 0; memory_io_type < 2; memory_io_type++) {
-          entity::MRRGConfig mrrg_config;
-          mrrg_config.cgra_type = target_mrrg_config.cgra_type;
-          mrrg_config.memory_io = target_mrrg_config.memory_io;
-          if (target_mrrg_config.memory_io ==
-                  entity::MRRGMemoryIOType::kBothEnds &&
-              column_num < target_mrrg_config.column) {
-            mrrg_config.memory_io = entity::MRRGMemoryIOType::kOneEnd;
-          }
-
-          if (target_mrrg_config.memory_io != entity::MRRGMemoryIOType::kAll) {
-            int memory_access_pe_num = 0;
-            if (mrrg_config.memory_io == entity::kBothEnds) {
-              memory_access_pe_num = 2 * row_num * context_size;
-            } else if (mrrg_config.memory_io == entity::kOneEnd) {
-              memory_access_pe_num = row_num * context_size;
-            }
-            if (memory_access_pe_num < memory_access_node_num) {
-              continue;
-            }
-          }
-
-          mrrg_config.network_type = target_mrrg_config.network_type;
-          mrrg_config.context_size = context_size;
-          mrrg_config.row = row_num;
-          mrrg_config.column = column_num;
-          mrrg_config.local_reg_size = 1;
-
-          mrrg_config_vec.push_back(mrrg_config);
+        entity::MRRGConfig mrrg_config;
+        mrrg_config.cgra_type = target_mrrg_config.cgra_type;
+        mrrg_config.memory_io = target_mrrg_config.memory_io;
+        if (target_mrrg_config.memory_io ==
+                entity::MRRGMemoryIOType::kBothEnds &&
+            column_num < target_mrrg_config.column) {
+          mrrg_config.memory_io = entity::MRRGMemoryIOType::kOneEnd;
         }
+
+        if (target_mrrg_config.memory_io != entity::MRRGMemoryIOType::kAll) {
+          int memory_access_pe_num = 0;
+          if (mrrg_config.memory_io == entity::kBothEnds) {
+            memory_access_pe_num = 2 * row_num * context_size;
+          } else if (mrrg_config.memory_io == entity::kOneEnd) {
+            memory_access_pe_num = row_num * context_size;
+          }
+          if (memory_access_pe_num < memory_access_node_num) {
+            continue;
+          }
+        }
+
+        mrrg_config.network_type = target_mrrg_config.network_type;
+        mrrg_config.context_size = context_size;
+        mrrg_config.row = row_num;
+        mrrg_config.column = column_num;
+        mrrg_config.local_reg_size = 1;
+
+        mrrg_config_vec.push_back(mrrg_config);
 
         column_num++;
       }
@@ -150,25 +148,46 @@ int main(int argc, char* argv[]) {
       (target_mrrg_config.row * target_mrrg_config.column *
        target_mrrg_config.context_size) /
       dfg_node_num;
+  std::vector<int> evaluated_mapping_id_vec;
   while (1) {
-    const auto tmp_time = std::time(0);
+    int tmp_time = std::time(0);
     std::string remapper_log_file_path =
         log_file_dir + "log" + std::to_string(tmp_time) + ".log";
     std::ofstream remapper_log_file;
     remapper_log_file.open(remapper_log_file_path, std::ios::app);
     remapper_log_file << "-- remapper for create database --" << std::endl;
-    remapper_log_file.close();
     const auto start_remapping_time = std::chrono::system_clock::now();
+    std::vector<remapper::MappingMatrix> tmp_mapping_matrix_vec;
+    for (const auto& mapping_matrix : mapping_matrix_vec) {
+      bool is_failed;
+      if (std::find(evaluated_mapping_id_vec.begin(),
+                    evaluated_mapping_id_vec.end(),
+                    mapping_matrix.id) != evaluated_mapping_id_vec.end()) {
+        is_failed = true;
+      }
+
+      if (!is_failed) {
+        tmp_mapping_matrix_vec.push_back(mapping_matrix);
+      }
+    }
+    if (tmp_mapping_matrix_vec.size() == 0) {
+      break;
+    }
     const auto remapping_result =
-        remapper::DPElasticRemapping(mapping_matrix_vec, cgra_matrix,
+        remapper::DPElasticRemapping(tmp_mapping_matrix_vec, cgra_matrix,
                                      target_parallel_num, remapper_log_file);
     const auto end_remapping_time = std::chrono::system_clock::now();
-
     const auto remapper_time_s =
         std::chrono::duration_cast<std::chrono::milliseconds>(
             end_remapping_time - start_remapping_time)
             .count() /
         1000.0;
+    remapper_log_file << "total "
+                      << remapping_result.result_mapping_id_vec.size()
+                      << " parallel remapping time: " << remapper_time_s
+                      << std::endl;
+    remapper_log_file.close();
+
     db_timeout_s -= remapper_time_s;
     const auto sorted_mapping_id_vec =
         SortElementByFreqency(remapping_result.result_mapping_id_vec);
@@ -178,7 +197,9 @@ int main(int argc, char* argv[]) {
       std::shared_ptr<entity::MRRG> mrrg_ptr =
           std::make_shared<entity::MRRG>(tmp_mrrg_config);
 
-      const auto tmp_time = std::time(0);
+      if (tmp_time == std::time(0)) {
+        tmp_time = std::time(0) + 1;
+      };
       std::string tmp_mapping_log_file_path =
           log_file_dir + "log" + std::to_string(tmp_time) + ".log";
       std::string output_mapping_path =
@@ -213,6 +234,7 @@ int main(int argc, char* argv[]) {
           1000.0;
       db_timeout_s -= mapping_time_s;
 
+      evaluated_mapping_id_vec.push_back(mapping_id);
       if (is_success) {
         io::WriteMappingFile(output_mapping_path, mapping_ptr,
                              mrrg_ptr->GetMRRGConfig());
