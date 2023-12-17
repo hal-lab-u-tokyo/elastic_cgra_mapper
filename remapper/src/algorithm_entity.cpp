@@ -1,6 +1,16 @@
 #include <entity/architecture.hpp>
 #include <remapper/algorithm_entity.hpp>
 
+remapper::MappingMatrix::MappingMatrix() : id(-1), op_rate(-1) {
+  op_num_matrix_ = Eigen::MatrixXi::Zero(0, 0);
+  memory_op_num_matrix_ = Eigen::MatrixXi::Zero(0, 0);
+  mapping_ = entity::Mapping();
+
+  row_size = 0;
+  column_size = 0;
+  context_size = 0;
+}
+
 remapper::MappingMatrix::MappingMatrix(const entity::Mapping& mapping, int _id)
     : id(_id) {
   int min_row_id = mapping.GetMRRGConfig().row,

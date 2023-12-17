@@ -49,11 +49,11 @@ std::vector<std::vector<Eigen::Vector3d>> GetDPSplitedRectangleSize(
 }
 
 remapper::RemappingResult remapper::DPElasticRemapping(
-    const std::vector<remapper::MappingMatrix> mapping_matrix_vec,
+    std::vector<remapper::MappingMatrix> mapping_matrix_vec,
     const remapper::CGRAMatrix& cgra_matrix, const int target_parallel_num,
     std::ofstream& log_file) {
-  auto compare = [&](remapper::MappingMatrix left,
-                     remapper::MappingMatrix right) {
+  auto compare = [&](const remapper::MappingMatrix& left,
+                     const remapper::MappingMatrix& right) {
     return left.op_rate > right.op_rate;
   };
   std::sort(mapping_matrix_vec.begin(), mapping_matrix_vec.end(), compare);

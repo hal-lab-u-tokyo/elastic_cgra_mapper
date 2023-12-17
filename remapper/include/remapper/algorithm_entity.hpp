@@ -15,6 +15,7 @@ class Rectangle {
 
 class MappingMatrix : public Rectangle {
  public:
+  MappingMatrix();
   MappingMatrix(const entity::Mapping& mapping, int _id);
 
   double op_rate;
@@ -38,7 +39,7 @@ class MappingMatrix : public Rectangle {
  private:
   Eigen::MatrixXi op_num_matrix_;
   Eigen::MatrixXi memory_op_num_matrix_;
-  entity::Mapping& mapping_;
+  entity::Mapping mapping_;
   Eigen::MatrixXi GetRotatedMatrix(const Eigen::MatrixXi& matrix,
                                    remapper::RotateOp rotate_op) const;
 };

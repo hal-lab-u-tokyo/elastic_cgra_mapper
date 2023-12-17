@@ -5,17 +5,18 @@
 #include <remapper/rotater.hpp>
 
 remapper::RemappingResult remapper::GreedyElasticRemapping(
-    const std::vector<remapper::MappingMatrix> mapping_matrix_vec,
+    std::vector<remapper::MappingMatrix> mapping_matrix_vec,
     const remapper::CGRAMatrix& cgra_matrix, const int target_parallel_num,
     std::ofstream& log_file) {
-  auto compare_op_rate = [&](remapper::MappingMatrix left,
-                             remapper::MappingMatrix right) {
+  auto compare_op_rate = [&](const remapper::MappingMatrix& left,
+                             const remapper::MappingMatrix& right) {
     return left.op_rate > right.op_rate;
   };
-  auto compare_num_waste_of_memory_io = [&](remapper::MappingMatrix left,
-                                            remapper::MappingMatrix right) {
-    return left.num_waste_of_memory_io < right.num_waste_of_memory_io;
-  };
+  auto compare_num_waste_of_memory_io =
+      [&](const remapper::MappingMatrix& left,
+          const remapper::MappingMatrix& right) {
+        return left.num_waste_of_memory_io < right.num_waste_of_memory_io;
+      };
   if (cgra_matrix.GetMRRGConfig().memory_io == entity::MRRGMemoryIOType::kAll) {
     std::sort(mapping_matrix_vec.begin(), mapping_matrix_vec.end(),
               compare_op_rate);

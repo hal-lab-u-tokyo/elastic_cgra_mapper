@@ -35,7 +35,7 @@ remapper::MappingTransformOp CreateMappingTransformOpFromSearchId(
 }
 
 remapper::RemappingResult remapper::FullSearchElasticRemapping(
-    const std::vector<remapper::MappingMatrix>& mapping_matrix_vec,
+    std::vector<remapper::MappingMatrix> mapping_matrix_vec,
     const remapper::CGRAMatrix& cgra_matrix, const int target_parallel_num,
     std::ofstream& log_file) {
   std::vector<int> max_search_id(mapping_matrix_vec.size());
@@ -108,7 +108,6 @@ remapper::RemappingResult remapper::FullSearchElasticRemapping(
     remapper::CombinationCounter selected_search_id_combination(
         max_selected_search_id_vec, selected_mapping_id_vec);
 
-    const auto start_time = clock();
     while (1) {
       std::vector<int> selected_search_id_vec =
           selected_search_id_combination.GetCombination();
@@ -155,7 +154,6 @@ remapper::RemappingResult remapper::FullSearchElasticRemapping(
         break;
       }
     };
-    const auto end_time = clock();
 
     // update selected mapping
     bool test_all_mapping_combination = !(selected_mapping_combination.Next());
