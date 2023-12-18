@@ -59,7 +59,7 @@ class RemapperLogInfo:
 def remapping_log_reader(log_file_path, mapping_file_path, benchmark_list=[]) -> RemapperLogInfo:
     remapper_log_info = RemapperLogInfo()
     remapper_log_info.log_file_path = log_file_path
-    remapper_log_info.RemapperType = None
+    remapper_log_info.remapper_mode = None
     dir_list = log_file_path.split("/")
     for dir_name in dir_list:
         if dir_name in benchmark_list:
@@ -80,7 +80,7 @@ def remapping_log_reader(log_file_path, mapping_file_path, benchmark_list=[]) ->
                 remapper_log_info.remapper_time = remapper_log_info.remapper_time + parsed[1]
                 continue
 
-    if remapper_log_info.RemapperType == None:
+    if remapper_log_info.remapper_mode == None:
         raise ValueError("remapper log file is invalid")
 
     try:
