@@ -2,7 +2,7 @@ import csv
 import os
 import re
 import datetime
-from mapping_log_reader import mapping_log_reader
+from mapping_log_reader import *
 from remapping_log_reader import remapping_log_reader
 from load_result_from_csv import *
 from load_remapper_config import *
@@ -107,6 +107,14 @@ if __name__ == "__main__":
     if is_mapping_log_file(log_file_path):
       mapping_log_info = mapping_log_reader(log_file_path, remapper_config.get_all_benchmark_list())
       input_str = mapping_log_info.get_input_as_str()
+      if unix_time in unix_time_to_mapping_file_path.keys():
+        mapping_file_path = unix_time_to_mapping_file_path[unix_time]
+        try: 
+          read_mapping_from_json(mapping_file_path)
+        except AssertionError as e:
+          continue
+
+
       if input_str in mapping_input_str_to_unix_time_and_info.keys() and mapping_input_str_to_unix_time_and_info[input_str][0] > unix_time:
         continue
       mapping_input_str_to_unix_time_and_info[input_str] = (unix_time, mapping_log_info)
@@ -116,7 +124,10 @@ if __name__ == "__main__":
       else:
         continue
       
-      remapping_log_info = remapping_log_reader(log_file_path, mapping_file_path, remapper_config.get_all_benchmark_list())
+      try:
+        remapping_log_info = remapping_log_reader(log_file_path, mapping_file_path, remapper_config.get_all_benchmark_list())
+      except ValueError as e:
+        continue
       input_str = remapping_log_info.get_input_as_str()
       if input_str in remapping_input_str_to_unix_time_and_info.keys() and remapping_input_str_to_unix_time_and_info[input_str][0] > unix_time:
         continue
