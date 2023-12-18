@@ -49,23 +49,34 @@ def succeed_mapping(log_file):
 
 def create_db(command):
   dfg_file = command[0]
-  benchmark = command[1]
+  cgra_dict = command[1]
+  benchmark = command[2]
 
-  mapping_dir_path = experiment_result_dir + benchmark + "/database/mapping/" 
-  mapping_log_dir_path = experiment_result_dir + benchmark + "/database/log/" 
+  cgra_size_str = cgra_dict["row"] + "_" + cgra_dict["column"] + "_" + cgra_dict["context_size"]
+
+  mapping_dir_path = experiment_result_dir + cgra_size_str + "/" + benchmark + "/database/mapping/" 
+  mapping_log_dir_path = experiment_result_dir + cgra_size_str + "/" + benchmark + "/database/log/" 
+  cgra_dir_path = experiment_result_dir + cgra_size_str + "/" + benchmark + "/database/tmp_cgra/"
 
   lock.acquire()
   try:
     check_dir_availability(mapping_dir_path)
     check_dir_availability(mapping_log_dir_path)
+    check_dir_availability(cgra_dir_path)
+    cgra_file = cgra_dir_path + str(int(time.time())) + ".json"
+    time.sleep(1)
   finally:
     lock.release()
   
+  file = open(cgra_file, mode="w")
+  json.dump(cgra_dict, file)
+  file.close()
+
   lock.acquire()
   try:
     experiment_log_file = open(experiment_log_file_path, "a")
     experiment_log_file.write("--- create database ---\n")
-    experiment_log_file.write("exec : ../" + build_dir_name+ "/bulk_mapping\n")
+    experiment_log_file.write("exec : ../" + build_dir_name+ "/create_database\n")
     experiment_log_file.write("dfg_file: " + dfg_file + "\n")
     experiment_log_file.write("mapping_dir: " + mapping_dir_path + "\n")
     experiment_log_file.write("mapping_log_dir: " + mapping_log_dir_path + "\n")
@@ -73,7 +84,7 @@ def create_db(command):
   finally:
     lock.release()
 
-  subprocess.run(["../"+ build_dir_name +"/bulk_mapping", dfg_file, mapping_dir_path, mapping_log_dir_path, str(db_timeout_s)])
+  subprocess.run(["../"+ build_dir_name +"/create_database", dfg_file,cgra_file, mapping_dir_path, mapping_log_dir_path, str(db_timeout_s)])
 
 def loop_unrolling(command):
   dfg_file = command[0]
@@ -146,10 +157,12 @@ def remapper(command):
   benchmark = command[2]
   mode = command[3]
 
-  database_dir_path = experiment_result_dir + benchmark + "/database/mapping/" 
-  mapping_dir_path = experiment_result_dir + benchmark + "/" + mode + "/mapping/"
-  mapping_log_dir_path = experiment_result_dir + benchmark + "/" + mode + "/log/"
-  cgra_dir_path = experiment_result_dir + benchmark + "/" + mode + "/tmp_cgra/"
+  cgra_size_str = cgra_dict["row"] + "_" + cgra_dict["column"] + "_" + cgra_dict["context_size"]
+
+  database_dir_path = experiment_result_dir + cgra_size + "/" + benchmark + "/database/mapping/" 
+  mapping_dir_path = experiment_result_dir + cgra_size + "/" + benchmark + "/" + mode + "/mapping/"
+  mapping_log_dir_path = experiment_result_dir + cgra_size + "/" + benchmark + "/" + mode + "/log/"
+  cgra_dir_path = experiment_result_dir + cgra_size + "/" + benchmark + "/" + mode + "/tmp_cgra/"
 
   lock.acquire()
   try:
@@ -232,19 +245,29 @@ if __name__ == "__main__":
 
 
   # create database
-  for benchmark in benchmark_list:
-    dfg_file_path = "../benchmark/kernel/" + benchmark + ".dot"
-
-    command_list.append([dfg_file_path, benchmark])
-
-  lock = multiprocessing.Lock()
-  pool = multiprocessing.Pool(process_num)
-  pool.map(create_db, command_list)
-
-  command_list = []
-
-  # multi mapping
   for cgra_size in cgra_size_list:
+    for memory_io in memory_io_list:
+      for benchmark in benchmark_list:
+        dfg_file_path = "../benchmark/kernel/" + benchmark + ".dot"
+
+        cgra_dict = {} 
+        cgra_dict["row"] = str(cgra_size)
+        cgra_dict["column"] = str(cgra_size)
+        cgra_dict["memory_io"] = memory_io
+        cgra_dict["CGRA_type"] = cgra_type
+        cgra_dict["network_type"] = network_type
+        cgra_dict["local_reg_size"] = local_reg_size
+        cgra_dict["context_size"] = str(context_size)
+
+        command_list.append([dfg_file_path, cgra_dict, benchmark])
+
+    lock = multiprocessing.Lock()
+    pool = multiprocessing.Pool(process_num)
+    pool.map(create_db, command_list)
+
+    command_list = []
+
+    # multi mapping
     for memory_io in memory_io_list:
       for benchmark in benchmark_list:
         for mode in mode_list:
@@ -257,11 +280,11 @@ if __name__ == "__main__":
           cgra_dict["CGRA_type"] = cgra_type
           cgra_dict["network_type"] = network_type
           cgra_dict["local_reg_size"] = local_reg_size
-          cgra_dict["context_size"] = context_size
+          cgra_dict["context_size"] = str(context_size)
 
           command_list.append([dfg_file_path, cgra_dict, benchmark, mode])
 
-  pool.map(exec, command_list)
+    pool.map(exec, command_list)
 
 
 
