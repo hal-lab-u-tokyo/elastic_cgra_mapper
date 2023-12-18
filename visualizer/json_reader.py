@@ -54,6 +54,23 @@ def read_mapping_from_json(file_name: str) -> Mapping:
 
         for PE_config_dict in df["PE_config"]:
             PE_ele: PE = read_PE_from_dict(PE_config_dict, result.context_size)
-            result.PE_array[PE_ele.row_id][PE_ele.column_id] = PE_ele
 
+            have_memory_access_op = False
+            for config in PE_ele.config_list:
+                if config.operation_type.is_memory_access_op():
+                    have_memory_access_op = True
+                    break
+
+            if result.memory_io_type == MemoryIOType.BothEnds:
+                is_memory_accecible_PE = False
+                if PE_ele.column_id == 0 or PE_ele.column_id == result.column_num - 1:
+                    is_memory_accecible_PE = True
+                assert is_memory_accecible_PE == True or have_memory_access_op == False
+            elif result.memory_io_type == MemoryIOType.OneEnd:
+                is_memory_accecible_PE = False
+                if PE_ele.column_id == 0:
+                    is_memory_accecible_PE = True
+                assert is_memory_accecible_PE == True or have_memory_access_op == False
+
+            result.PE_array[PE_ele.row_id][PE_ele.column_id] = PE_ele
     return result

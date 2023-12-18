@@ -148,6 +148,13 @@ class OperationType(Enum):
             print("ERROR: OperationType to_string invalid input")
             raise ValueError
 
+    def is_memory_access_op(self) -> bool:
+        if self == OperationType.Load or self == OperationType.Store or self == OperationType.Output:
+            return True
+        else:
+            return False
+
+
 
 class ConfigId:
     row_id: int
