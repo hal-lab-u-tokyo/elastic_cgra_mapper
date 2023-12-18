@@ -12,7 +12,8 @@
 
 std::vector<entity::MRRGConfig> GetMRRGOfSubCGRA(
     int dfg_node_num, int memory_access_node_num,
-    const entity::MRRGConfig& target_mrrg_config, double utilization_min) {
+    const entity::MRRGConfig& target_mrrg_config,
+    const double utilization_min) {
   std::vector<entity::MRRGConfig> mrrg_config_vec;
   for (int context_size = 1; context_size <= target_mrrg_config.context_size;
        context_size++) {
@@ -47,7 +48,7 @@ std::vector<entity::MRRGConfig> GetMRRGOfSubCGRA(
             memory_access_pe_num = row_num * context_size;
           }
           if (memory_access_pe_num < memory_access_node_num) {
-            continue;
+            break;
           }
         }
 
@@ -149,6 +150,7 @@ int main(int argc, char* argv[]) {
        target_mrrg_config.context_size) /
       dfg_node_num;
   std::vector<int> evaluated_mapping_id_vec;
+  std::cout << "target_parallel_num: " << target_parallel_num << std::endl;
   while (1) {
     int tmp_time = std::time(0);
     std::string remapper_log_file_path =
@@ -159,17 +161,21 @@ int main(int argc, char* argv[]) {
     const auto start_remapping_time = std::chrono::system_clock::now();
     std::vector<remapper::MappingMatrix> tmp_mapping_matrix_vec;
     for (const auto& mapping_matrix : mapping_matrix_vec) {
-      bool is_failed;
+      bool is_evaluated = false;
       if (std::find(evaluated_mapping_id_vec.begin(),
                     evaluated_mapping_id_vec.end(),
                     mapping_matrix.id) != evaluated_mapping_id_vec.end()) {
-        is_failed = true;
+        is_evaluated = true;
       }
+      remapper_log_file << mapping_matrix.id << ":" << is_evaluated
+                        << std::endl;
 
-      if (!is_failed) {
+      if (!is_evaluated) {
         tmp_mapping_matrix_vec.push_back(mapping_matrix);
       }
     }
+    remapper_log_file << "tmp_mapping_matrix_vec.size(): "
+                      << tmp_mapping_matrix_vec.size() << std::endl;
     if (tmp_mapping_matrix_vec.size() == 0) {
       break;
     }
