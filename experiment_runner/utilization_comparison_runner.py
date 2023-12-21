@@ -82,7 +82,7 @@ def create_db(command):
   finally:
     lock.release()
 
-  subprocess.run(["../"+ build_dir_name +"/sub_cgra_mapping", dfg_file, cgra_file, mapping_dir_path, mapping_log_dir_path, str(db_timeout_s)])
+  subprocess.run(["../"+ build_dir_name +"/create_database", dfg_file, cgra_file, mapping_dir_path, mapping_log_dir_path, str(db_timeout_s)])
 
 def loop_unrolling(command):
   dfg_file = command[0]
