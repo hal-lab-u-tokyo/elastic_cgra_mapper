@@ -157,12 +157,12 @@ def remapper(command):
   benchmark = command[2]
   mode = command[3]
 
-  cgra_size_str = cgra_dict["row"] + "_" + cgra_dict["column"] + "_" + cgra_dict["context_size"]
+  cgra_str = cgra_dict["row"] + "_" + cgra_dict["column"] + "_" + cgra_dict["context_size"] + cgra_dict["memory_io"]
 
-  database_dir_path = experiment_result_dir + cgra_size + "/" + benchmark + "/database/mapping/" 
-  mapping_dir_path = experiment_result_dir + cgra_size + "/" + benchmark + "/" + mode + "/mapping/"
-  mapping_log_dir_path = experiment_result_dir + cgra_size + "/" + benchmark + "/" + mode + "/log/"
-  cgra_dir_path = experiment_result_dir + cgra_size + "/" + benchmark + "/" + mode + "/tmp_cgra/"
+  database_dir_path = experiment_result_dir + cgra_str + "/" + benchmark + "/database/mapping/" 
+  mapping_dir_path = experiment_result_dir + cgra_str + "/" + benchmark + "/" + mode + "/mapping/"
+  mapping_log_dir_path = experiment_result_dir + cgra_str + "/" + benchmark + "/" + mode + "/log/"
+  cgra_dir_path = experiment_result_dir + cgra_str + "/" + benchmark + "/" + mode + "/tmp_cgra/"
 
   lock.acquire()
   try:
