@@ -1,5 +1,5 @@
 import json
-from mapping import *
+from entity import *
 from typing import Dict
 
 

@@ -1,4 +1,4 @@
-from mapping import *
+from entity import *
 import parse
 import sys
 import os

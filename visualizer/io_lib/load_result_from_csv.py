@@ -1,6 +1,6 @@
 import csv
-from mapping_log_reader import *
-from remapping_log_reader import *
+from .mapping_log_reader import *
+from .remapping_log_reader import *
 
 def load_result_from_csv(csv_dir_path, benchmark_list):
   mapping_csv_file_path = csv_dir_path + "mapping_result.csv"

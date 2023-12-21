@@ -1,7 +1,7 @@
-from mapping import *
+from entity import *
 import parse
 from enum import Enum
-from json_reader import read_mapping_from_json
+from .mapping_json_reader import *
 import os
 import re
 

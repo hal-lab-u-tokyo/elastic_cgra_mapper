@@ -2,10 +2,7 @@ import csv
 import os
 import re
 import datetime
-from mapping_log_reader import *
-from remapping_log_reader import remapping_log_reader
-from load_result_from_csv import *
-from load_remapper_config import *
+from io_lib import *
 
 JST = datetime.timezone(datetime.timedelta(hours=+9), 'JST')
 
