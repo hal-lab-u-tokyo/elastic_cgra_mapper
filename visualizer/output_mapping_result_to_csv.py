@@ -64,6 +64,7 @@ if __name__ == "__main__":
     for remapping_log_info in remapping_log_info_list:
       if max_unix_time < remapping_log_info.get_unix_time():
         max_unix_time = remapping_log_info.get_unix_time()
+    max_unix_time = max_unix_time - 24 * 3600
 
 
   unix_time_to_log_file_path = {}
