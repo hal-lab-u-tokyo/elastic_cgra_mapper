@@ -81,6 +81,40 @@ class AllDataToPlot:
 
       fig.savefig("./output/utilization_comparison/" + image_name + "_" + benchmark + "_time.png")
 
+class DatabaseManager:
+  def __init__(self):
+    self.remapper_database_dir_to_time = {}
+
+  def get_database_time(self, remapper_log_file_path, remapper_mode):
+    result = 0
+
+    remapper_mode_dir_name = "dp"
+    if remapper_mode == RemapperType.DP:
+      remapper_mode_dir_name = "dp"
+    elif remapper_mode == RemapperType.Greedy:
+      remapper_mode_dir_name = "naive"
+    elif remapper_mode == RemapperType.FullSearch:
+      remapper_mode_dir_name = "full_search"
+
+    benchmark_database_dir_path = os.path.dirname(remapper_log_file_path).replace(remapper_mode_dir_name, "database") + "/"
+
+    if benchmark_database_dir_path in self.remapper_database_dir_to_time.keys():
+      return self.remapper_database_dir_to_time[benchmark_database_dir_path]
+
+    if not os.path.exists(benchmark_database_dir_path):
+      return -100000
+
+    for file in os.listdir(benchmark_database_dir_path):
+      log_file_path = benchmark_database_dir_path + file
+      mapping_log = mapping_log_reader(log_file_path, remapper_config.get_benchmark_list())
+      if benchmark_database_dir_path not in self.remapper_database_dir_to_time.keys():
+        self.remapper_database_dir_to_time[benchmark_database_dir_path] = 0
+        result = result + mapping_log.mapping_time
+
+    self.remapper_database_dir_to_time[benchmark_database_dir_path] = result
+
+    return result
+
 if __name__ == "__main__": 
   args = sys.argv
   config_path = args[1]
@@ -91,7 +125,7 @@ if __name__ == "__main__":
 
   benchmark_node_num = {}
  
-  database_time = {}
+  db_manager = DatabaseManager()
 
   for benchmark in remapper_config.get_benchmark_list():
 
@@ -100,17 +134,6 @@ if __name__ == "__main__":
     dfg_node_size = len(G.nodes())
 
     benchmark_node_num[benchmark] = dfg_node_size
-
-    # database_time
-    benchmark_database_dir_path = remapper_config.database_dir_path + benchmark + "/database/"
-    for file in os.listdir(benchmark_database_dir_path + "mapping/"):
-      unix_time_str = re.findall(r"\d+", file)[0]
-      log_file_path = benchmark_database_dir_path + "log/log" + unix_time_str + ".log"
-      mapping_log = mapping_log_reader(log_file_path, remapper_config.get_benchmark_list())
-      if benchmark not in database_time.keys():
-        database_time[benchmark] = 0
-      database_time[benchmark] = database_time[benchmark] + mapping_log.mapping_time
-
 
   memory_io_to_all_data_to_plot = {}
   memory_io_to_all_data_to_plot["all"] = AllDataToPlot(remapper_config.compare_cgra_size_config.min_size, remapper_config.compare_cgra_size_config.max_size)
@@ -174,7 +197,12 @@ if __name__ == "__main__":
 
     all_context = row * column * context_size
     utilization = remapping_info.parallel_num * benchmark_node_num[benchmark]/ all_context
-    time = remapping_info.remapper_time + database_time[benchmark]
+
+    if benchmark not in database_time.keys():
+      database_time[benchmark] = get_database_time(remapping_info.log_file_path, remapping_info.remapper_mode)
+
+    database_time = db_manager.get_database_time(remapping_info.log_file_path, remapping_info.remapper_mode)
+    time = remapping_info.remapper_time + database_time
 
     if remapping_info.remapper_mode == RemapperType.DP:
       memory_io_to_all_data_to_plot[memory_io.to_string()].add_benchmark_data(benchmark, MappingType.dp, row, utilization, time, remapping_info.get_unix_time())
