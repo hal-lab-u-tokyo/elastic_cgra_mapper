@@ -2,9 +2,7 @@ from matplotlib import pyplot as plt
 import networkx as nx
 import sys
 from typing import List
-from mapping_log_reader import *
-from load_remapper_config import *
-from load_result_from_csv import *
+from io_lib import *
 import re
 import enum
 

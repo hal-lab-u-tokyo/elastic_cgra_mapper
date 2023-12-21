@@ -1,6 +1,6 @@
 import sys
 from mapping import Mapping
-from json_reader import read_mapping_from_json
+from io_lib import *
 from visualizer import Visualizer
 import os
 
