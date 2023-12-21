@@ -18,7 +18,9 @@ std::vector<entity::MRRGConfig> GetMRRGOfSubCGRA(
   for (int context_size = 1; context_size <= target_mrrg_config.context_size;
        context_size++) {
     for (int row_num = 1; row_num <= target_mrrg_config.row; row_num++) {
-      int column_num = std::ceil(dfg_node_num / (context_size * row_num));
+      int column_num =
+          int(std::ceil(double(dfg_node_num) / (context_size * row_num)));
+
       if (target_mrrg_config.memory_io == entity::MRRGMemoryIOType::kAll &&
           column_num < row_num) {
         break;
@@ -35,9 +37,12 @@ std::vector<entity::MRRGConfig> GetMRRGOfSubCGRA(
         mrrg_config.cgra_type = target_mrrg_config.cgra_type;
         mrrg_config.memory_io = target_mrrg_config.memory_io;
         if (target_mrrg_config.memory_io ==
-                entity::MRRGMemoryIOType::kBothEnds &&
-            column_num < target_mrrg_config.column) {
-          mrrg_config.memory_io = entity::MRRGMemoryIOType::kOneEnd;
+            entity::MRRGMemoryIOType::kBothEnds) {
+          if (column_num < target_mrrg_config.column) {
+            mrrg_config.memory_io = entity::MRRGMemoryIOType::kOneEnd;
+          } else {
+            mrrg_config.memory_io = entity::MRRGMemoryIOType::kBothEnds;
+          }
         }
 
         if (target_mrrg_config.memory_io != entity::MRRGMemoryIOType::kAll) {
@@ -48,7 +53,8 @@ std::vector<entity::MRRGConfig> GetMRRGOfSubCGRA(
             memory_access_pe_num = row_num * context_size;
           }
           if (memory_access_pe_num < memory_access_node_num) {
-            break;
+            column_num++;
+            continue;
           }
         }
 
@@ -88,9 +94,7 @@ std::vector<int> SortElementByFreqency(const std::vector<int>& vec) {
 
   std::vector<int> result;
   for (const auto& [key, value] : mode_vec) {
-    for (int i = 0; i < value; i++) {
-      result.push_back(key);
-    }
+    result.push_back(key);
   }
 
   return result;
@@ -108,7 +112,7 @@ int main(int argc, char* argv[]) {
   const std::string log_file_dir = argv[4];
   double db_timeout_s = std::stod(argv[5]);
 
-  constexpr double kMinUtilization = 0.7;
+  constexpr double kMinUtilization = 0.5;
 
   std::shared_ptr<entity::DFG> dfg_ptr = std::make_shared<entity::DFG>();
   *dfg_ptr = io::ReadDFGDotFile(dfg_dot_file_path);
@@ -157,7 +161,9 @@ int main(int argc, char* argv[]) {
         log_file_dir + "log" + std::to_string(tmp_time) + ".log";
     std::ofstream remapper_log_file;
     remapper_log_file.open(remapper_log_file_path, std::ios::app);
+
     remapper_log_file << "-- remapper for create database --" << std::endl;
+    remapper_log_file << "-- min utilization :" << kMinUtilization << std::endl;
     const auto start_remapping_time = std::chrono::system_clock::now();
     std::vector<remapper::MappingMatrix> tmp_mapping_matrix_vec;
     for (const auto& mapping_matrix : mapping_matrix_vec) {
@@ -167,8 +173,11 @@ int main(int argc, char* argv[]) {
                     mapping_matrix.id) != evaluated_mapping_id_vec.end()) {
         is_evaluated = true;
       }
-      remapper_log_file << mapping_matrix.id << ":" << is_evaluated
-                        << std::endl;
+      remapper_log_file << mapping_matrix.id
+                        << "(row:" << mapping_matrix.row_size
+                        << ", column:" << mapping_matrix.column_size
+                        << ", context:" << mapping_matrix.context_size
+                        << "):" << is_evaluated << std::endl;
 
       if (!is_evaluated) {
         tmp_mapping_matrix_vec.push_back(mapping_matrix);
@@ -197,6 +206,11 @@ int main(int argc, char* argv[]) {
     db_timeout_s -= remapper_time_s;
     const auto sorted_mapping_id_vec =
         SortElementByFreqency(remapping_result.result_mapping_id_vec);
+    remapper_log_file.open(remapper_log_file_path, std::ios::app);
+    for (const auto mapping_id : sorted_mapping_id_vec) {
+      remapper_log_file << mapping_id << std::endl;
+    }
+    remapper_log_file.close();
 
     for (const auto mapping_id : sorted_mapping_id_vec) {
       const auto tmp_mrrg_config = mrrg_config_vec[mapping_id];
@@ -205,7 +219,9 @@ int main(int argc, char* argv[]) {
 
       if (tmp_time == std::time(0)) {
         tmp_time = std::time(0) + 1;
-      };
+      } else {
+        tmp_time = std::time(0);
+      }
       std::string tmp_mapping_log_file_path =
           log_file_dir + "log" + std::to_string(tmp_time) + ".log";
       std::string output_mapping_path =

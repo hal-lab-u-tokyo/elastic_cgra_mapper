@@ -1,5 +1,7 @@
 #include <time.h>
 
+#include <chrono>
+#include <filesystem>
 #include <fstream>
 #include <io/architecture_io.hpp>
 #include <io/dfg_io.hpp>
@@ -76,10 +78,23 @@ int main(int argc, char* argv[]) {
 
   std::string dfg_dot_file_path = argv[1];
   std::string mrrg_file_path = argv[2];
-  std::string output_mapping_path = argv[3];
-  std::string log_file_path = argv[4];
+  std::string output_mapping_dir = argv[3];
+  std::string log_file_dir = argv[4];
   double timeout_s = std::stod(argv[5]);
   int parallel_num = std::stoi(argv[6]);
+
+  if (!std::filesystem::exists(output_mapping_dir)) {
+    std::filesystem::create_directories(output_mapping_dir);
+  };
+  if (!std::filesystem::exists(log_file_dir)) {
+    std::filesystem::create_directories(log_file_dir);
+  }
+
+  const auto tmp_time = std::time(0);
+  std::string log_file_path =
+      log_file_dir + "log" + std::to_string(tmp_time) + ".log";
+  std::string output_mapping_path =
+      output_mapping_dir + "mapping_" + std::to_string(tmp_time) + ".json";
 
   std::ofstream log_file;
   log_file.open(log_file_path, std::ios::app);
