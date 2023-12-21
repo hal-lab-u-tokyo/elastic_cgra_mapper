@@ -196,9 +196,6 @@ if __name__ == "__main__":
     all_context = row * column * context_size
     utilization = remapping_info.parallel_num * benchmark_node_num[benchmark]/ all_context
 
-    if benchmark not in database_time.keys():
-      database_time[benchmark] = get_database_time(remapping_info.log_file_path, remapping_info.remapper_mode)
-
     database_time = db_manager.get_database_time(remapping_info.log_file_path, remapping_info.remapper_mode)
     time = remapping_info.remapper_time + database_time
 
