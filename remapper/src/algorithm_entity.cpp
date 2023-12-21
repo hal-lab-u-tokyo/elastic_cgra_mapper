@@ -40,13 +40,10 @@ remapper::MappingMatrix remapper::MappingMatrix::CreateDummyMappingMatrix(
 
 remapper::MappingMatrix::MappingMatrix(const entity::Mapping& mapping, int _id)
     : id(_id) {
-  int min_row_id = mapping.GetMRRGConfig().row,
-      min_column_id = mapping.GetMRRGConfig().column;
-  int max_row_id = 0, max_column_id = 0;
-  Eigen::MatrixXi op_num_matrix = Eigen::MatrixXi::Zero(
-      mapping.GetMRRGConfig().row, mapping.GetMRRGConfig().column);
-  Eigen::MatrixXi memory_op_num_matrix = Eigen::MatrixXi::Zero(
-      mapping.GetMRRGConfig().row, mapping.GetMRRGConfig().column);
+  op_num_matrix_ = Eigen::MatrixXi::Zero(mapping.GetMRRGConfig().row,
+                                         mapping.GetMRRGConfig().column);
+  memory_op_num_matrix_ = Eigen::MatrixXi::Zero(mapping.GetMRRGConfig().row,
+                                                mapping.GetMRRGConfig().column);
   int op_num_without_routing = 0;
   for (int row_id = 0; row_id < mapping.GetMRRGConfig().row; row_id++) {
     for (int column_id = 0; column_id < mapping.GetMRRGConfig().column;
@@ -67,24 +64,14 @@ remapper::MappingMatrix::MappingMatrix(const entity::Mapping& mapping, int _id)
           pe_memory_op_count++;
         }
       }
-      if (pe_op_count > 0) {
-        min_row_id = std::min(row_id, min_row_id);
-        max_row_id = std::max(row_id, max_row_id);
-        min_column_id = std::min(column_id, min_column_id);
-        max_column_id = std::max(column_id, max_column_id);
-      }
-      op_num_matrix(row_id, column_id) = pe_op_count;
-      memory_op_num_matrix(row_id, column_id) = pe_memory_op_count;
+      op_num_matrix_(row_id, column_id) = pe_op_count;
+      memory_op_num_matrix_(row_id, column_id) = pe_memory_op_count;
     }
   }
 
-  row_size = max_row_id - min_row_id + 1;
-  column_size = max_column_id - min_column_id + 1;
+  row_size = mapping.GetMRRGConfig().row;
+  column_size = mapping.GetMRRGConfig().column;
 
-  op_num_matrix_ =
-      op_num_matrix.block(min_row_id, min_column_id, row_size, column_size);
-  memory_op_num_matrix_ = memory_op_num_matrix.block(min_row_id, min_column_id,
-                                                     row_size, column_size);
   mapping_ = mapping;
   context_size = op_num_matrix_.maxCoeff();
 
