@@ -64,9 +64,6 @@ def load_remapper_config(config_path):
   # kernel dir path
   remapper_config.kernel_dir_path = json_dict["kernel_dir_path"]
 
-  # database dir path
-  remapper_config.database_dir_path = json_dict["database_dir_path"]
-
   # compare benchmark config
   remapper_config.compare_benchmark_config.row = json_dict["compare_benchmark_config"]["row"]
   remapper_config.compare_benchmark_config.column = json_dict["compare_benchmark_config"]["column"]

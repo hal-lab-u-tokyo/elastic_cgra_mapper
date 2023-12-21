@@ -64,11 +64,12 @@ if __name__ == "__main__":
     for remapping_log_info in remapping_log_info_list:
       if max_unix_time < remapping_log_info.get_unix_time():
         max_unix_time = remapping_log_info.get_unix_time()
-    max_unix_time = max_unix_time - 24 * 3600
+    max_unix_time = max_unix_time
 
 
-  unix_time_to_log_file_path = {}
-  unix_time_to_mapping_file_path = {}
+  # id =  dir (without log or mapping) , unixtime
+  id_to_log_file_path = {}
+  id_to_mapping_file_path = {}
 
   # create unix_time to file_path dictionary
   for path_name, dir_names, file_names in os.walk(log_dir):
@@ -81,16 +82,18 @@ if __name__ == "__main__":
         if len(find_number) == 0:
           continue
         unix_time = int(find_number[0])
+        id = path_name.replace("log", "")
         if unix_time > max_unix_time:
-          unix_time_to_log_file_path[unix_time] = file_path
+          id_to_log_file_path[(id, unix_time)] = file_path
       if "mapping" in file_name:
         file_path = path_name + "/" + file_name
         find_number = re.findall(r"\d+", file_name)
         if len(find_number) == 0:
           continue
         unix_time = int(find_number[0])
+        id = path_name.replace("mapping", "")
         if unix_time > max_unix_time:
-          unix_time_to_mapping_file_path[unix_time] = file_path
+          id_to_mapping_file_path[(id, unix_time)] = file_path
 
   # summarize mapping and remapping result
   mapping_input_str_to_unix_time_and_info = {}
@@ -102,14 +105,14 @@ if __name__ == "__main__":
   for remapping_log_info in remapping_log_info_list:
     remapping_input_str_to_unix_time_and_info[remapping_log_info.get_input_as_str()] = (remapping_log_info.get_unix_time(), remapping_log_info)
 
-
-  for unix_time in unix_time_to_log_file_path.keys():
-    log_file_path = unix_time_to_log_file_path[unix_time]
+  for id in id_to_log_file_path.keys():
+    unix_time = id[1]
+    log_file_path = id_to_log_file_path[id]
     if is_mapping_log_file(log_file_path):
       mapping_log_info = mapping_log_reader(log_file_path, remapper_config.get_all_benchmark_list())
       input_str = mapping_log_info.get_input_as_str()
-      if unix_time in unix_time_to_mapping_file_path.keys():
-        mapping_file_path = unix_time_to_mapping_file_path[unix_time]
+      if id in id_to_mapping_file_path.keys():
+        mapping_file_path = id_to_mapping_file_path[id]
         try: 
           read_mapping_from_json(mapping_file_path)
         except AssertionError as e:
@@ -120,8 +123,8 @@ if __name__ == "__main__":
         continue
       mapping_input_str_to_unix_time_and_info[input_str] = (unix_time, mapping_log_info)
     else:
-      if unix_time in unix_time_to_mapping_file_path.keys():
-        mapping_file_path = unix_time_to_mapping_file_path[unix_time]
+      if id in id_to_mapping_file_path.keys():
+        mapping_file_path = id_to_mapping_file_path[id]
       else:
         continue
       
