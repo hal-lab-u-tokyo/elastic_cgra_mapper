@@ -83,7 +83,7 @@ class AllDataToPlot:
     ax.bar(dp_pos, dp_time_list, width=0.3, label="dp")
     ax.bar(greedy_pos, greedy_time_list, width=0.3, label="greedy")
     ax.set_xlabel("benchmark")
-    ax.set_ylabel("time(s)")
+    ax.set_ylabel("time")
     ax.legend()
     plt.xticks(greedy_pos, self.data_of_each_benchmark.keys())
     fig.savefig("./output/utilization_comparison/" + image_name + "_time.png")
