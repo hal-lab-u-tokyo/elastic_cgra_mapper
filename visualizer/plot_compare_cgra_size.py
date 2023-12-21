@@ -11,14 +11,15 @@ import enum
 class MappingType(enum.Enum):
   dp = 0
   greedy = 1
-  loop_unrolling = 2
+  full_search = 2
+  loop_unrolling = 3
 
 class DataToPlot:
   def __init__(self, cgra_num):
     self.utilization = []
     self.time = []
     self.unix_time = []
-    for i in range(3):
+    for i in range(4):
       self.utilization.append([])
       self.time.append([])
       self.unix_time.append([])
@@ -46,10 +47,10 @@ class AllDataToPlot:
     self.data_of_each_benchmark[benchmark_name].unix_time[mapping_type.value][cgra_size_idx] = unix_time
 
   def plot(self, image_name):
-    label_list = ["remapping:dp", "remapping:greedy", "not remapping"]
+    label_list = ["remapping:dp", "remapping:greedy", "remapping: full_search" , "not remapping"]
     for benchmark in self.data_of_each_benchmark.keys():
       fig, ax = plt.subplots()
-      for mapping_type in range(3):
+      for mapping_type in range(4):
         util_list = []
         cgra_size_list = []
         for i in range(self.max_cgra_size - self.min_cgra_size + 1):
@@ -65,7 +66,7 @@ class AllDataToPlot:
       fig.savefig("./output/utilization_comparison/" + image_name + "_"+ benchmark + "_util.png")
 
       fig, ax = plt.subplots()
-      for mapping_type in range(3):
+      for mapping_type in range(4):
         time_list = []
         cgra_size_list = []
         for i in range(self.max_cgra_size - self.min_cgra_size + 1):
