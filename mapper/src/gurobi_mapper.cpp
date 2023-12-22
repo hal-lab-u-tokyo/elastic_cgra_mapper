@@ -329,25 +329,6 @@ mapper::MappingResult mapper::GurobiILPMapper::Execution() {
 
 void mapper::GurobiILPMapper::SetLogFilePath(const std::string& log_file_path) {
   log_file_path_ = log_file_path;
-
-  std::ofstream log_file;
-  const auto mrrg_config = mrrg_ptr_->GetMRRGConfig();
-  log_file.open(log_file_path_.value(), std::ios::app);
-
-  log_file << "-- CGRA setting --" << std::endl;
-  log_file << "row: " << mrrg_config.row << std::endl;
-  log_file << "column: " << mrrg_config.column << std::endl;
-  log_file << "context_size: " << mrrg_config.context_size << std::endl;
-  log_file << "memory_io: "
-           << entity::MRRGMemoryIoTypeToString(mrrg_config.memory_io)
-           << std::endl;
-  log_file << "cgra_type: "
-           << entity::MRRGCGRATypeToString(mrrg_config.cgra_type) << std::endl;
-  log_file << "network_type: "
-           << entity::MRRGNetworkTypeToString(mrrg_config.network_type)
-           << std::endl;
-
-  log_file.close();
   return;
 }
 
