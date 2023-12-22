@@ -19,7 +19,8 @@ mapper::GurobiILPMapper* mapper::GurobiILPMapper::CreateMapper(
   return result;
 }
 
-std::pair<bool, entity::Mapping> mapper::GurobiILPMapper::Execution() {
+mapper::MappingResult mapper::GurobiILPMapper::Execution() {
+  const auto start_time = std::chrono::system_clock::now();
   try {
     // create gurobi env
     GRBEnv env = GRBEnv(true);
@@ -299,14 +300,30 @@ std::pair<bool, entity::Mapping> mapper::GurobiILPMapper::Execution() {
       }
     }
 
-    return std::make_pair(
-        true, entity::Mapping(*mrrg_ptr_, *dfg_ptr_, dfg_node_to_mrrg_node,
-                              dfg_output_to_mrrg_reg));
+    const auto end_time = std::chrono::system_clock::now();
+    const double mapping_time =
+        std::chrono::duration_cast<std::chrono::milliseconds>(end_time -
+                                                              start_time)
+            .count() /
+        1000.0;
+    return MappingResult(
+        true,
+        entity::Mapping(*mrrg_ptr_, *dfg_ptr_, dfg_node_to_mrrg_node,
+                        dfg_output_to_mrrg_reg),
+        mapping_time);
   } catch (GRBException e) {
     std::cout << "Error code = " << e.getErrorCode() << std::endl;
     std::cout << e.getMessage() << std::endl;
 
-    return std::make_pair(false, entity::Mapping(mrrg_ptr_->GetMRRGConfig()));
+    const auto end_time = std::chrono::system_clock::now();
+    const double mapping_time =
+        std::chrono::duration_cast<std::chrono::milliseconds>(end_time -
+                                                              start_time)
+            .count() /
+        1000.0;
+
+    return MappingResult(false, entity::Mapping(mrrg_ptr_->GetMRRGConfig()),
+                         mapping_time);
   }
 }
 

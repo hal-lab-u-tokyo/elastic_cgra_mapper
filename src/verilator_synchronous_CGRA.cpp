@@ -48,11 +48,9 @@ int main(int argc, char** argv) {
 
   mapper::IILPMapper* mapper;
   mapper = mapper::GurobiILPMapper().CreateMapper(dfg_ptr, mrrg_ptr);
-  std::shared_ptr<entity::Mapping> mapping_ptr =
-      std::make_shared<entity::Mapping>();
-  bool is_success = false;
-  std::tie(is_success, *mapping_ptr) = mapper->Execution();
-  io::WriteMappingFile(mapping_file_path, mapping_ptr,
+
+  const auto mapping_result = mapper->Execution();
+  io::WriteMappingFile(mapping_file_path, mapping_result.mapping_ptr,
                        mrrg_ptr->GetMRRGConfig());
 
   // verilog simulator
@@ -116,7 +114,8 @@ int main(int argc, char** argv) {
         int row_id = (cycle - 1) / (context_size * column_size);
 
         entity::ConfigId config_id(row_id, column_id, context_id);
-        entity::CGRAConfig cgra_config = mapping_ptr->GetConfig(config_id);
+        entity::CGRAConfig cgra_config =
+            mapping_result.mapping_ptr->GetConfig(config_id);
 
         cgra->write_config_data = 1;
         cgra->config_PE_row_index = row_id;
