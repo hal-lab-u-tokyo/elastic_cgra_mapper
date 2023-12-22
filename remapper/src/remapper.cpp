@@ -9,6 +9,17 @@
 #include "remapper/algorithm_entity.hpp"
 #include "time.h"
 
+std::string remapper::RemappingModeToString(RemappingMode mode) {
+  switch (mode) {
+    case RemappingMode::FullSearch:
+      return "full_search";
+    case RemappingMode::Greedy:
+      return "greedy";
+    case RemappingMode::DP:
+      return "dp";
+  }
+}
+
 remapper::RemappingResult::RemappingResult(
     const std::vector<int>& result_mapping_id_vec,
     const std::vector<remapper::MappingTransformOp> result_transform_op_vec)

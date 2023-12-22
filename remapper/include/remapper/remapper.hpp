@@ -3,9 +3,12 @@
 #include <entity/mapping.hpp>
 #include <fstream>
 #include <remapper/mapping_transform_op.hpp>
+#include <string>
 
 namespace remapper {
 enum RemappingMode { FullSearch, Greedy, DP };
+
+std::string RemappingModeToString(RemappingMode mode);
 
 struct RemappingResult {
   RemappingResult()
@@ -30,9 +33,8 @@ class Remapper {
       RemappingMode mode);
 };
 
-void OutputToLogFile(
-    entity::MRRGConfig mapping_mrrg_config,
-    remapper::MappingTransformOp transform_op,
-    std::ofstream& log_file);
+void OutputToLogFile(entity::MRRGConfig mapping_mrrg_config,
+                     remapper::MappingTransformOp transform_op,
+                     std::ofstream& log_file);
 
 }  // namespace remapper
