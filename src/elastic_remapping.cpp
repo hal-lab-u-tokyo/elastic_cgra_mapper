@@ -5,42 +5,28 @@
 #include <fstream>
 #include <io/architecture_io.hpp>
 #include <io/mapping_io.hpp>
+#include <io/output_to_log_file.hpp>
 #include <remapper/mapping_concater.hpp>
 #include <remapper/remapper.hpp>
 
 int main(int argc, char* argv[]) {
   std::string mapping_dir_path = argv[1];
   std::string mrrg_file_path = argv[2];
-  std::string output_mapping_dir = argv[3];
-  std::string output_log_dir = argv[4];
+  std::string output_dir = argv[3];
   remapper::RemappingMode mode =
-      static_cast<remapper::RemappingMode>(std::stoi(argv[5]));
+      static_cast<remapper::RemappingMode>(std::stoi(argv[4]));
 
-  if (!std::filesystem::exists(output_mapping_dir)) {
-    std::filesystem::create_directories(output_mapping_dir);
+  if (!std::filesystem::exists(output_dir)) {
+    std::filesystem::create_directories(output_dir);
   };
-  if (!std::filesystem::exists(output_log_dir)) {
-    std::filesystem::create_directories(output_log_dir);
-  }
-  const auto tmp_time = std::time(0);
-  std::string log_file_path = output_log_dir + "log" +
-                              std::to_string(tmp_time) + "_mode" +
-                              std::to_string(mode) + ".log";
 
-  std::ofstream log_file;
-  log_file.open(log_file_path);
-
-  switch (mode) {
-    case remapper::RemappingMode::FullSearch:
-      log_file << "mode: FullSearch" << std::endl;
-      break;
-    case remapper::RemappingMode::Greedy:
-      log_file << "mode: Greedy" << std::endl;
-      break;
-    case remapper::RemappingMode::DP:
-      log_file << "mode: DP" << std::endl;
-      break;
-  }
+  io::RemapperLogger logger;
+  io::RemapperInput input;
+  input.mapping_dir_path = mapping_dir_path;
+  input.cgra_file_path = mrrg_file_path;
+  input.output_dir_path = output_dir;
+  input.remapper_mode = remapper::RemappingModeToString(mode);
+  logger.LogRemapperInput(input);
 
   std::vector<entity::Mapping> mapping_vec;
   const auto mrrg_config =
@@ -80,7 +66,6 @@ int main(int argc, char* argv[]) {
             entity::MRRGMemoryIOType::kOneEnd) {
       continue;
     }
-    log_file << file.path() << std::endl;
     min_mapping_op_num = std::min(min_mapping_op_num, mapping.GetOpNum());
     mapping_vec.push_back(mapping);
   }
@@ -91,10 +76,10 @@ int main(int argc, char* argv[]) {
   std::shared_ptr<entity::Mapping> result_mapping =
       std::make_shared<entity::Mapping>();
 
-  log_file << "parallel num: " << parallel_num << std::endl;
-  const auto start_time = clock();
+  std::ofstream remapper_exec_file =
+      std::ofstream(logger.GetRemapperExecLogFilePath());
   const auto remapping_result = remapper::Remapper::ElasticRemapping(
-      mapping_vec, mrrg_config, parallel_num, log_file, mode);
+      mapping_vec, mrrg_config, parallel_num, remapper_exec_file, mode);
 
   std::vector<entity::Mapping> result_mapping_vec;
   for (const auto& mapping_id : remapping_result.result_mapping_id_vec) {
@@ -104,13 +89,10 @@ int main(int argc, char* argv[]) {
       result_mapping_vec, remapping_result.result_transform_op_vec,
       mrrg_config);
 
-  const auto end_time = clock();
-  log_file << "total " << remapping_result.result_mapping_id_vec.size()
-           << " parallel remapping time: "
-           << ((double)end_time - start_time) / CLOCKS_PER_SEC << std::endl;
-
-  std::string output_mapping_path = output_mapping_dir + "mapping_" +
-                                    std::to_string(tmp_time) + "_mode" +
-                                    std::to_string(mode) + ".json";
-  io::WriteMappingFile(output_mapping_path, result_mapping, mrrg_config);
+  io::RemapperOutput output;
+  output.remapping_time_s = remapping_result.remapping_time_s;
+  output.mapping_ptr = result_mapping;
+  output.mrrg_config = mrrg_config;
+  output.parallel_num = parallel_num;
+  logger.LogRemapperOutput(output);
 }

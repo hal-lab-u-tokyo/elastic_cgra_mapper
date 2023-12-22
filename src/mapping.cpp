@@ -6,6 +6,7 @@
 #include <io/architecture_io.hpp>
 #include <io/dfg_io.hpp>
 #include <io/mapping_io.hpp>
+#include <io/output_to_log_file.hpp>
 #include <iostream>
 #include <mapper/gurobi_mapper.hpp>
 
@@ -71,41 +72,22 @@ std::shared_ptr<entity::DFG> AddDFG(
 }
 
 int main(int argc, char* argv[]) {
-  if (argc != 7) {
+  if (argc != 6) {
     std::cerr << "invalid arguments" << std::endl;
     abort();
   }
 
+  io::MappingLogger logger;
+
   std::string dfg_dot_file_path = argv[1];
   std::string mrrg_file_path = argv[2];
-  std::string output_mapping_dir = argv[3];
-  std::string log_file_dir = argv[4];
-  double timeout_s = std::stod(argv[5]);
-  int parallel_num = std::stoi(argv[6]);
+  std::string output_dir = argv[3];
+  double timeout_s = std::stod(argv[4]);
+  int parallel_num = std::stoi(argv[5]);
 
-  if (!std::filesystem::exists(output_mapping_dir)) {
-    std::filesystem::create_directories(output_mapping_dir);
+  if (!std::filesystem::exists(output_dir)) {
+    std::filesystem::create_directories(output_dir);
   };
-  if (!std::filesystem::exists(log_file_dir)) {
-    std::filesystem::create_directories(log_file_dir);
-  }
-
-  const auto tmp_time = std::time(0);
-  std::string log_file_path =
-      log_file_dir + "log" + std::to_string(tmp_time) + ".log";
-  std::string output_mapping_path =
-      output_mapping_dir + "mapping_" + std::to_string(tmp_time) + ".json";
-
-  std::ofstream log_file;
-  log_file.open(log_file_path, std::ios::app);
-  log_file << "-- mapping input --" << std::endl;
-  log_file << "dfg file: " << dfg_dot_file_path << std::endl;
-  log_file << "mrrg file: " << mrrg_file_path << std::endl;
-  log_file << "output mapping file: " << output_mapping_path << std::endl;
-  log_file << "log_file_path file: " << log_file_path << std::endl;
-  log_file << "timeout (s): " << timeout_s << std::endl;
-  log_file << "parallel num: " << parallel_num << std::endl;
-  log_file.close();
 
   std::shared_ptr<entity::DFG> dfg_ptr = std::make_shared<entity::DFG>();
   std::shared_ptr<entity::DFG> dfg_ptr_to_add = std::make_shared<entity::DFG>();
@@ -115,22 +97,29 @@ int main(int argc, char* argv[]) {
   *dfg_ptr = *dfg_ptr_to_add;
   *mrrg_ptr = io::ReadMRRGFromJsonFile(mrrg_file_path);
 
+  io::MappingInput input;
+  input.dfg_dot_file_path = dfg_dot_file_path;
+  input.mrrg_config = mrrg_ptr->GetMRRGConfig();  
+  input.output_dir_path = output_dir;
+  input.timeout_s = timeout_s;
+  input.parallel_num = parallel_num;
+  logger.LogMappingInput(input);
+
   for (int i = 1; i < parallel_num; i++) {
     dfg_ptr = AddDFG(dfg_ptr, dfg_ptr_to_add, dfg_ptr_to_add->GetNodeNum() * i);
   }
 
   mapper::GurobiILPMapper* mapper;
   mapper = mapper::GurobiILPMapper().CreateMapper(dfg_ptr, mrrg_ptr);
-  mapper->SetLogFilePath(log_file_path);
+  mapper->SetLogFilePath(logger.GetGurobiLogFilePath());
   mapper->SetTimeOut(timeout_s);
 
-  std::shared_ptr<entity::Mapping> mapping_ptr =
-      std::make_shared<entity::Mapping>();
-  bool is_success = false;
-  std::tie(is_success, *mapping_ptr) = mapper->Execution();
+  const auto result = mapper->Execution();
 
-  if (is_success) {
-    io::WriteMappingFile(output_mapping_path, mapping_ptr,
-                         mrrg_ptr->GetMRRGConfig());
-  }
+  io::MappingOutput output;
+  output.mapping_time_s = result.mapping_time_s;
+  output.is_success = result.is_success;
+  output.mapping_ptr = result.mapping_ptr;
+  output.mrrg_config = mrrg_ptr->GetMRRGConfig();
+  logger.LogMappingOutput(output);
 }
