@@ -1,6 +1,7 @@
 #include "remapper/remapper.hpp"
 
 #include <Eigen/Eigen>
+#include <chrono>
 
 #include "remapper/algorithm/dp_elastic_remapper.hpp"
 #include "remapper/algorithm/full_search_elastic_remapper.hpp"
@@ -13,6 +14,7 @@ remapper::RemappingResult::RemappingResult(
     const std::vector<remapper::MappingTransformOp> result_transform_op_vec)
     : result_mapping_id_vec(result_mapping_id_vec),
       result_transform_op_vec(result_transform_op_vec) {
+  remapping_time_s = -1;
   assert(result_mapping_id_vec.size() == result_transform_op_vec.size());
 };
 
@@ -27,17 +29,30 @@ remapper::RemappingResult remapper::Remapper::ElasticRemapping(
   }
   remapper::CGRAMatrix cgra_matrix(target_mrrg_config);
 
+  RemappingResult result;
+  const auto start_time = std::chrono::system_clock::now();
   switch (mode) {
     case RemappingMode::FullSearch:
-      return remapper::FullSearchElasticRemapping(
+      result = remapper::FullSearchElasticRemapping(
           mapping_matrix_vec, cgra_matrix, target_parallel_num, log_file);
+      break;
     case RemappingMode::Greedy:
-      return remapper::GreedyElasticRemapping(mapping_matrix_vec, cgra_matrix,
-                                              target_parallel_num, log_file);
+      result = remapper::GreedyElasticRemapping(mapping_matrix_vec, cgra_matrix,
+                                                target_parallel_num, log_file);
+      break;
     case RemappingMode::DP:
-      return remapper::DPElasticRemapping(mapping_matrix_vec, cgra_matrix,
-                                          target_parallel_num, log_file);
+      result = remapper::DPElasticRemapping(mapping_matrix_vec, cgra_matrix,
+                                            target_parallel_num, log_file);
+      break;
   }
+  const auto end_time = std::chrono::system_clock::now();
+  result.remapping_time_s =
+      std::chrono::duration_cast<std::chrono::milliseconds>(end_time -
+                                                            start_time)
+          .count() /
+      1000.0;
+
+  return result;
 }
 
 void remapper::OutputToLogFile(entity::MRRGConfig mapping_mrrg_config,
