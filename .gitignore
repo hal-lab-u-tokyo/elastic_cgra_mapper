@@ -8,3 +8,4 @@ __pycache__/
 experiment_runner/log/*
 experiment_runner/tmp_cgra/*
 license/gurobi.lic
+garbage/*

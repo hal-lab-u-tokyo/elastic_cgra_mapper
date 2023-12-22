@@ -38,12 +38,11 @@ TEST(SimulatorTest, simulator_default_result_test) {
   mapper = mapper::GurobiILPMapper().CreateMapper(dfg_ptr, mrrg_ptr);
   std::shared_ptr<entity::Mapping> mapping_ptr =
       std::make_shared<entity::Mapping>();
-  bool is_success = false;
-  std::tie(is_success, *mapping_ptr) = mapper->Execution();
+  const auto result = mapper->Execution();
 
   std::cout << "start cgra constructor" << std::endl;
   simulator::CGRA cgra(mrrg_ptr->GetMRRGConfig());
-  cgra.SetConfig(mapping_ptr);
+  cgra.SetConfig(result.mapping_ptr);
 
   std::cout << "setup memory data" << std::endl;
   // A[0][i] = i, A[i][0] = 2i

@@ -16,7 +16,7 @@ TEST(IOTest, maping_io_test) {
     g[v1].op_name = node_name;
     g[v1].op = all_op[i];
     g[v1].op_str = entity::OpTypeToString(all_op[i]);
-    if(v1 < 5) {
+    if (v1 < 5) {
       g[v1].const_value = i;
     }
   }
@@ -50,9 +50,9 @@ TEST(IOTest, maping_io_test) {
   auto mapper_ptr = mapper::GurobiILPMapper().CreateMapper(dfg_ptr, mrrg_ptr);
   entity::Mapping input_mapping;
   bool is_succeed;
-  std::tie(is_succeed, input_mapping) = mapper_ptr->Execution();
+  const auto result = mapper_ptr->Execution();
 
-  EXPECT_EQ(is_succeed, true);
+  EXPECT_EQ(result.is_success, true);
 
   // write mapping
   std::string file_name = "./mapping_data.json";

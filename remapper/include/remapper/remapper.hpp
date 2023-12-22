@@ -3,16 +3,23 @@
 #include <entity/mapping.hpp>
 #include <fstream>
 #include <remapper/mapping_transform_op.hpp>
+#include <string>
 
 namespace remapper {
 enum RemappingMode { FullSearch, Greedy, DP };
 
+std::string RemappingModeToString(RemappingMode mode);
+
 struct RemappingResult {
-  RemappingResult() : result_mapping_id_vec(), result_transform_op_vec(){};
+  RemappingResult()
+      : remapping_time_s(0),
+        result_mapping_id_vec(),
+        result_transform_op_vec(){};
   RemappingResult(
       const std::vector<int>& result_mapping_id_vec,
       const std::vector<remapper::MappingTransformOp> result_transform_op_vec);
 
+  double remapping_time_s;
   std::vector<int> result_mapping_id_vec;
   std::vector<remapper::MappingTransformOp> result_transform_op_vec;
 };
@@ -26,9 +33,8 @@ class Remapper {
       RemappingMode mode);
 };
 
-void OutputToLogFile(
-    entity::MRRGConfig mapping_mrrg_config,
-    remapper::MappingTransformOp transform_op,
-    std::ofstream& log_file);
+void OutputToLogFile(entity::MRRGConfig mapping_mrrg_config,
+                     remapper::MappingTransformOp transform_op,
+                     std::ofstream& log_file);
 
 }  // namespace remapper

@@ -1,11 +1,11 @@
 #include <time.h>
 
-#include <chrono>
 #include <filesystem>
 #include <fstream>
 #include <io/architecture_io.hpp>
 #include <io/dfg_io.hpp>
 #include <io/mapping_io.hpp>
+#include <io/output_to_log_file.hpp>
 #include <iostream>
 #include <mapper/gurobi_mapper.hpp>
 #include <remapper/algorithm/dp_elastic_remapper.hpp>
@@ -101,16 +101,20 @@ std::vector<int> SortElementByFreqency(const std::vector<int>& vec) {
 }
 
 int main(int argc, char* argv[]) {
-  if (argc != 6) {
+  if (argc != 5) {
     std::cerr << "invalid arguments" << std::endl;
     abort();
   }
 
   const std::string dfg_dot_file_path = argv[1];
   const std::string mrrg_file_path = argv[2];
-  const std::string output_mapping_dir = argv[3];
-  const std::string log_file_dir = argv[4];
-  double db_timeout_s = std::stod(argv[5]);
+  const std::string output_dir = argv[3];
+  const double db_timeout_s = std::stod(argv[4]);
+  double creating_db_time_s = 0;
+
+  assert(std::filesystem::path(dfg_dot_file_path).is_absolute());
+  assert(std::filesystem::path(mrrg_file_path).is_absolute());
+  assert(std::filesystem::path(output_dir).is_absolute());
 
   constexpr double kMinUtilization = 0.5;
 
@@ -120,13 +124,6 @@ int main(int argc, char* argv[]) {
       std::make_shared<entity::MRRG>();
   *target_mrrg_ptr = io::ReadMRRGFromJsonFile(mrrg_file_path);
   const auto target_mrrg_config = target_mrrg_ptr->GetMRRGConfig();
-
-  if (!std::filesystem::exists(output_mapping_dir)) {
-    std::filesystem::create_directories(output_mapping_dir);
-  };
-  if (!std::filesystem::exists(log_file_dir)) {
-    std::filesystem::create_directories(log_file_dir);
-  }
 
   const int dfg_node_num = dfg_ptr->GetNodeNum();
   int memory_access_node_num = 0;
@@ -154,17 +151,11 @@ int main(int argc, char* argv[]) {
        target_mrrg_config.context_size) /
       dfg_node_num;
   std::vector<int> evaluated_mapping_id_vec;
-  std::cout << "target_parallel_num: " << target_parallel_num << std::endl;
-  while (1) {
-    int tmp_time = std::time(0);
-    std::string remapper_log_file_path =
-        log_file_dir + "log" + std::to_string(tmp_time) + ".log";
-    std::ofstream remapper_log_file;
-    remapper_log_file.open(remapper_log_file_path, std::ios::app);
 
-    remapper_log_file << "-- remapper for create database --" << std::endl;
-    remapper_log_file << "-- min utilization :" << kMinUtilization << std::endl;
-    const auto start_remapping_time = std::chrono::system_clock::now();
+  io::CreateDatabaseLogger logger;
+  logger.LogCreateDatabaseInput({dfg_dot_file_path, mrrg_file_path, output_dir,
+                                 db_timeout_s, kMinUtilization});
+  while (1) {
     std::vector<remapper::MappingMatrix> tmp_mapping_matrix_vec;
     for (const auto& mapping_matrix : mapping_matrix_vec) {
       bool is_evaluated = false;
@@ -173,96 +164,56 @@ int main(int argc, char* argv[]) {
                     mapping_matrix.id) != evaluated_mapping_id_vec.end()) {
         is_evaluated = true;
       }
-      remapper_log_file << mapping_matrix.id
-                        << "(row:" << mapping_matrix.row_size
-                        << ", column:" << mapping_matrix.column_size
-                        << ", context:" << mapping_matrix.context_size
-                        << "):" << is_evaluated << std::endl;
 
       if (!is_evaluated) {
         tmp_mapping_matrix_vec.push_back(mapping_matrix);
       }
     }
-    remapper_log_file << "tmp_mapping_matrix_vec.size(): "
-                      << tmp_mapping_matrix_vec.size() << std::endl;
+
     if (tmp_mapping_matrix_vec.size() == 0) {
       break;
     }
+
+    std::ofstream remapper_log_file(logger.GetSelectionLogFilePath());
     const auto remapping_result =
         remapper::DPElasticRemapping(tmp_mapping_matrix_vec, cgra_matrix,
                                      target_parallel_num, remapper_log_file);
-    const auto end_remapping_time = std::chrono::system_clock::now();
-    const auto remapper_time_s =
-        std::chrono::duration_cast<std::chrono::milliseconds>(
-            end_remapping_time - start_remapping_time)
-            .count() /
-        1000.0;
-    remapper_log_file << "total "
-                      << remapping_result.result_mapping_id_vec.size()
-                      << " parallel remapping time: " << remapper_time_s
-                      << std::endl;
-    remapper_log_file.close();
 
-    db_timeout_s -= remapper_time_s;
+    creating_db_time_s += remapping_result.remapping_time_s;
     const auto sorted_mapping_id_vec =
         SortElementByFreqency(remapping_result.result_mapping_id_vec);
-    remapper_log_file.open(remapper_log_file_path, std::ios::app);
-    for (const auto mapping_id : sorted_mapping_id_vec) {
-      remapper_log_file << mapping_id << std::endl;
-    }
-    remapper_log_file.close();
 
     for (const auto mapping_id : sorted_mapping_id_vec) {
       const auto tmp_mrrg_config = mrrg_config_vec[mapping_id];
       std::shared_ptr<entity::MRRG> mrrg_ptr =
           std::make_shared<entity::MRRG>(tmp_mrrg_config);
 
-      if (tmp_time == std::time(0)) {
-        tmp_time = std::time(0) + 1;
-      } else {
-        tmp_time = std::time(0);
-      }
-      std::string tmp_mapping_log_file_path =
-          log_file_dir + "log" + std::to_string(tmp_time) + ".log";
-      std::string output_mapping_path =
-          output_mapping_dir + "mapping_" + std::to_string(tmp_time) + ".json";
-
-      std::ofstream tmp_mapping_log_file;
-      tmp_mapping_log_file.open(tmp_mapping_log_file_path, std::ios::app);
-      tmp_mapping_log_file << "-- mapping input --" << std::endl;
-      tmp_mapping_log_file << "dfg file: " << dfg_dot_file_path << std::endl;
-      tmp_mapping_log_file << "output mapping file: " << output_mapping_path
-                           << std::endl;
-      tmp_mapping_log_file << "log_file_path file: "
-                           << tmp_mapping_log_file_path << std::endl;
-      tmp_mapping_log_file << "timeout (s): " << db_timeout_s / 2 << std::endl;
-      tmp_mapping_log_file << "parallel num: " << 1 << std::endl;
-      tmp_mapping_log_file.close();
+      double mapping_time_out_s = (db_timeout_s - creating_db_time_s) / 2;
       mapper::GurobiILPMapper* mapper;
       mapper = mapper::GurobiILPMapper().CreateMapper(dfg_ptr, mrrg_ptr);
-      mapper->SetLogFilePath(tmp_mapping_log_file_path);
-      mapper->SetTimeOut(db_timeout_s / 2);
+      mapper->SetLogFilePath(logger.GetNextGurobiMappingPath(
+          mapping_time_out_s, mrrg_ptr->GetMRRGConfig()));
+      mapper->SetTimeOut(mapping_time_out_s);
 
-      bool is_success = false;
-      std::shared_ptr<entity::Mapping> mapping_ptr =
-          std::make_shared<entity::Mapping>();
-      const auto start_mapping_time = std::chrono::system_clock::now();
-      std::tie(is_success, *mapping_ptr) = mapper->Execution();
-      const auto end_mapping_time = std::chrono::system_clock::now();
-      const auto mapping_time_s =
-          std::chrono::duration_cast<std::chrono::milliseconds>(
-              end_mapping_time - start_mapping_time)
-              .count() /
-          1000.0;
-      db_timeout_s -= mapping_time_s;
+      const auto mapping_result = mapper->Execution();
+      creating_db_time_s += mapping_result.mapping_time_s;
 
       evaluated_mapping_id_vec.push_back(mapping_id);
-      if (is_success) {
-        io::WriteMappingFile(output_mapping_path, mapping_ptr,
-                             mrrg_ptr->GetMRRGConfig());
+      if (mapping_result.is_success) {
+        io::MappingOutput mapping_output;
+        mapping_output.mapping_time_s = mapping_result.mapping_time_s;
+        mapping_output.is_success = mapping_result.is_success;
+        mapping_output.mapping_ptr = mapping_result.mapping_ptr;
+        mapping_output.mrrg_config = mrrg_ptr->GetMRRGConfig();
+
+        logger.LogMapping(mapping_output);
       } else {
         break;
       }
     }
   }
+
+  io::CreateDatabaseOutput db_output;
+  db_output.creating_db_time_s = creating_db_time_s;
+  logger.LogCreateDatabaseOutput(db_output);
 }
