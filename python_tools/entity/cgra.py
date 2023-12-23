@@ -1,3 +1,5 @@
+import json
+
 class CGRA:
   def __init__(self, cgra_type, row, column, context_size, memory_io_type, network_type, local_reg_size):
     self.row = row

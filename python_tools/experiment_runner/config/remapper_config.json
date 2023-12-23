@@ -1,5 +1,5 @@
 {
-  "exec_settings": {
+  "exec_setting": {
     "overwrite": false,
     "kernel_dir_path": "/home/ubuntu/elastic_cgra_mapper/benchmark/kernel",
     "output_dir_path": "/home/ubuntu/elastic_cgra_mapper/output",
@@ -7,7 +7,7 @@
     "database_timeout_s": 3600,
     "process_num": 8
   },
-  "remapping_settings": {
+  "remapping_setting": {
     "cgra_type": [
       "elastic"
     ],

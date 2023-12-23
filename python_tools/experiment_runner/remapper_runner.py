@@ -1,3 +1,15 @@
+import subprocess
+import time
+import json
+import os
+import datetime
+import sys
+import multiprocessing
+import networkx as nx
+from util import *
+sys.path.append(os.pardir)
+from entity import *
+from io_lib import *
 from exec import *
 
 class RemappingRunnerConfig:
@@ -36,19 +48,19 @@ class RemappingRunnerConfig:
     self.process_num = config_dict["exec_setting"]["process_num"]
 
     self.cgra_type_list = []
-    for cgra_type_str in config_dict["remapping_settings"]["cgra_type"]:
+    for cgra_type_str in config_dict["remapping_setting"]["cgra_type"]:
       self.cgra_type_list.append(CGRAType.get_from_string(cgra_type_str))
-    cgra_size_min = config_dict["remapping_settings"]["cgra_size"]["min"]
-    cgra_size_max = config_dict["remapping_settings"]["cgra_size"]["max"]
+    cgra_size_min = config_dict["remapping_setting"]["cgra_size"]["min"]
+    cgra_size_max = config_dict["remapping_setting"]["cgra_size"]["max"]
     self.cgra_size_list = list(range(cgra_size_min, cgra_size_max + 1))
     self.memory_io_list = []
-    for memory_io in config_dict["remapping_settings"]["memory_io"]:
-      self.memory_io_list.append(MemoryIO.get_from_string(memory_io))
+    for memory_io in config_dict["remapping_setting"]["memory_io"]:
+      self.memory_io_list.append(MemoryIOType.get_from_string(memory_io))
     self.network_type_list = []
-    for network_type in config_dict["remapping_settings"]["network_type"]:
+    for network_type in config_dict["remapping_setting"]["network_type"]:
       self.network_type_list.append(NetworkType.get_from_string(network_type))
-    self.local_reg_size = config_dict["remapping_settings"]["local_reg_size"]
-    self.context_size = config_dict["remapping_settings"]["context_size"]
+    self.local_reg_size = config_dict["remapping_setting"]["local_reg_size"]
+    self.context_size = config_dict["remapping_setting"]["context_size"]
 
     self.benchmark_name_list = config_dict["benchmark_name"]
 
@@ -91,23 +103,19 @@ class RemappingRunnerConfig:
   
 if __name__ == "__main__":
   args = sys.argv
-  config_path = int(args[1])
+  config_path = args[1]
 
   config = RemappingRunnerConfig()
   config.load(config_path)
 
   lock = multiprocessing.Lock()
-  pool = multiprocessing.Pool(config.process_num, initializer=init, initargs=(lock, "./log/remapping_runner/" + str(int(time.time())) + ".log"))
+
+  log_file_path = os.path.join(os.getcwd(), "log/remapper/" + str(int(time.time())) + ".log")
+  check_dir_availability(os.path.dirname(log_file_path))
+
+  pool = multiprocessing.Pool(config.process_num, initializer=init, initargs=(lock, log_file_path))
 
   if config.create_database:
     pool.map(create_database_exec, config.get_database_input_list())
 
   pool.map(remapper_exec, config.get_remapper_input_list(config.database_timeout_s))
-
- 
-
-
-
-
-
-

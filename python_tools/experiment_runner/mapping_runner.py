@@ -72,7 +72,7 @@ class MappingRunnerConfig:
       benchmark = mapping_input["benchmark_name"]
       timeout_s = self.timeout_s
       for parallel_num in mapping_input["parallel_num_list"]:
-        self.manual_mapping_list.append(MappingInput(dfg_file_path, output_dir_path, cgra, benchmark, timeout_s, parallel_num, self.overwrite))
+        self.manual_mapping_list.append(MappingInput(dfg_file_path, output_dir_path, cgra, timeout_s, parallel_num, self.overwrite))
 
   def get_mapping_input_list(self):
     mapping_input_list = []
@@ -82,7 +82,6 @@ class MappingRunnerConfig:
         dfg_file_path = os.path.join(self.kernel_dir_path, benchmark_name + ".dot")
         dfg_node_num = get_dfg_node_size(dfg_file_path)
         benchmark_output_dir_path = os.path.join(self.output_dir_path, benchmark_name)
-        
         for cgra_type in self.cgra_type_list:
           for cgra_size in self.cgra_size_list:
             max_parallel_num = int(int(cgra_size) * int(cgra_size) * self.context_size / dfg_node_num)
@@ -94,7 +93,7 @@ class MappingRunnerConfig:
                   benchmark = benchmark_name
                   timeout_s = self.timeout_s
                   
-                  mapping_input_list.append(MappingInput(dfg_file_path, benchmark_output_dir_path, cgra, benchmark, timeout_s, parallel_num, self.overwrite))
+                  mapping_input_list.append(MappingInput(dfg_file_path, benchmark_output_dir_path, cgra, timeout_s, parallel_num, self.overwrite))
     else:
       mapping_input_list = self.manual_mapping_list
 
@@ -108,11 +107,9 @@ if __name__ == "__main__":
   config.load(config_path)
 
   lock = multiprocessing.Lock()
-  pool = multiprocessing.Pool(config.process_num, initializer=init, initargs=(lock, "./log/mapping_runner/" + str(time.time()) + ".log"))
+
+  log_file_path = os.path.join(os.getcwd(), "log/mapping/" + str(int(time.time())) + ".log")
+  check_dir_availability(os.path.dirname(log_file_path))
+
+  pool = multiprocessing.Pool(config.process_num, initializer=init, initargs=(lock, log_file_path))
   pool.map(mapping_exec, config.get_mapping_input_list())
-
-
-
-
-
-
