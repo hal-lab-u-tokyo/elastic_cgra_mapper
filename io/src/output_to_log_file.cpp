@@ -5,9 +5,7 @@
 #include "io/mapping_io.hpp"
 #include "time.h"
 
-io::Logger::Logger() {
-  unixtime_ = std::time(0);
-}
+io::Logger::Logger() { unixtime_ = std::time(0); }
 
 void io::Logger::InitializePath(const std::filesystem::path& output_dir_path) {
   assert(output_dir_path.is_absolute());
