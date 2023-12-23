@@ -58,7 +58,7 @@ class Logger {
   std::filesystem::path log_file_path_;
   std::filesystem::path arch_file_path_;
   std::ofstream log_file_;
-  time_t unixtime_;
+  std::string log_id_;
 };
 
 class MappingLogger : public Logger {
@@ -102,7 +102,6 @@ class CreateDatabaseLogger : public Logger {
   void LogMapping(const MappingOutput& mapping_output);
 
  private:
-  time_t mapping_unixtime_;
   std::string database_id_;
   CreateDatabaseInput input_;
   MappingLogger mapping_logger_;
