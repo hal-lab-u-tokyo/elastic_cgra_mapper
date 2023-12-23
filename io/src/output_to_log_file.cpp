@@ -110,13 +110,13 @@ std::string GetCGRAId(const std::filesystem::path& cgra_file_path) {
       io::ReadMRRGFromJsonFile(cgra_file_path).GetMRRGConfig();
 
   std::string cgra_id = "";
-  cgra_id += "c" + std::to_string(mrrg_config.column);
-  cgra_id += "r" + std::to_string(mrrg_config.row);
+  cgra_id += std::to_string(mrrg_config.column);
+  cgra_id += "_" + std::to_string(mrrg_config.row);
+  cgra_id += "_" + std::to_string(mrrg_config.context_size);
   cgra_id += "_" + entity::MRRGMemoryIoTypeToString(mrrg_config.memory_io);
   cgra_id += "_" + entity::MRRGCGRATypeToString(mrrg_config.cgra_type);
   cgra_id += "_" + entity::MRRGNetworkTypeToString(mrrg_config.network_type);
-  cgra_id += "_l" + std::to_string(mrrg_config.local_reg_size);
-  cgra_id += "x" + std::to_string(mrrg_config.context_size);
+  cgra_id += "_" + std::to_string(mrrg_config.local_reg_size);
 
   return cgra_id;
 }
