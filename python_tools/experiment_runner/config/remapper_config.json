@@ -1,0 +1,44 @@
+{
+  "exec_settings": {
+    "overwrite": false,
+    "kernel_dir_path": "/home/ubuntu/elastic_cgra_mapper/benchmark/kernel",
+    "output_dir_path": "/home/ubuntu/elastic_cgra_mapper/output",
+    "create_database": true,
+    "database_timeout_s": 3600,
+    "process_num": 8
+  },
+  "remapping_settings": {
+    "cgra_type": [
+      "elastic"
+    ],
+    "cgra_size": {
+      "min": 6,
+      "max": 10
+    },
+    "memory_io": [
+      "all",
+      "both_ends"
+    ],
+    "context_size": "4",
+    "network_type": [
+      "orthogonal"
+    ],
+    "local_reg_size": "1"
+  },
+  "benchmark_name": [
+    "convolution_no_loop",
+    "fixed_convolution2d",
+    "fixed_ellpack",
+    "fixed_fft_pro",
+    "fixed_fir_pro",
+    "fixed_latnrm_pro",
+    "fixed_matrixmultiply_const",
+    "fixed_stencil",
+    "fixed_susan_pro"
+  ],
+  "remapper_mode": [
+    "dp",
+    "greedy",
+    "full_search"
+  ]
+}

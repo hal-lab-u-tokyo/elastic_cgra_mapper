@@ -1,290 +1,110 @@
-import datetime
-import multiprocessing
-import os
-import time
-import subprocess
-import json
-import sys
-import networkx as nx
+from exec import *
 
-global experiment_result_dir
-global db_timeout_s
-global build_dir_name
+class RemappingRunnerConfig:
+  def __init__(self):
+    # exec setting
+    self.overwrite = False
+    self.kernel_dir_path = ""
+    self.output_dir_path = ""
+    self.create_database = 0
+    self.database_timeout_s = 0
+    self.process_num = 32
 
-def check_dir_availability(dir_name):
-  if not os.path.exists(dir_name):
-    os.makedirs(dir_name)
+    # auto mapping
+    self.cgra_type_list = []
+    self.cgra_size_list = []
+    self.memory_io_list = []
+    self.network_type_list = []
+    self.local_reg_size = 0
+    self.context_size = 0
 
-def get_date_string():
-  dt = datetime.datetime.now()
-  year = str(dt.year)
-  month = str(dt.month)
-  if len(month) == 1:
-    month = "0" + month
-  day = str(dt.day)
-  if len(day) == 1:
-    day = "0" + day
+    self.benchmark_name_list = []
 
-  return year + month + day
+    # manual mapping
+    self.remapper_mode = []
 
-def get_time_string():
-  dt = datetime.datetime.now()
-  hour = str(dt.hour)
-  if len(hour) == 1:
-    hour = "0" + hour
-  minute = str(dt.minute)
-  if len(minute) == 1:
-    minute = "0" + minute
+  def load(self, config_path):
+    file = open(config_path, mode="r")
+    config_dict = json.load(file)
+    file.close()
 
-  return get_date_string() + hour + minute
+    self.overwrite = config_dict["exec_setting"]["overwrite"]
+    self.kernel_dir_path = config_dict["exec_setting"]["kernel_dir_path"]
+    self.output_dir_path = config_dict["exec_setting"]["output_dir_path"]
+    self.create_database = config_dict["exec_setting"]["create_database"]
+    self.database_timeout_s = config_dict["exec_setting"]["database_timeout_s"]
+    self.process_num = config_dict["exec_setting"]["process_num"]
 
-def succeed_mapping(log_file):
-    with open(log_file) as f:
-      for line in f:
-        if line == "Model is infeasible\n":
-          return False
+    self.cgra_type_list = []
+    for cgra_type_str in config_dict["remapping_settings"]["cgra_type"]:
+      self.cgra_type_list.append(CGRAType.get_from_string(cgra_type_str))
+    cgra_size_min = config_dict["remapping_settings"]["cgra_size"]["min"]
+    cgra_size_max = config_dict["remapping_settings"]["cgra_size"]["max"]
+    self.cgra_size_list = list(range(cgra_size_min, cgra_size_max + 1))
+    self.memory_io_list = []
+    for memory_io in config_dict["remapping_settings"]["memory_io"]:
+      self.memory_io_list.append(MemoryIO.get_from_string(memory_io))
+    self.network_type_list = []
+    for network_type in config_dict["remapping_settings"]["network_type"]:
+      self.network_type_list.append(NetworkType.get_from_string(network_type))
+    self.local_reg_size = config_dict["remapping_settings"]["local_reg_size"]
+    self.context_size = config_dict["remapping_settings"]["context_size"]
 
-        if line.find("Optimal solution found(tolerance") != -1:
-          return True
+    self.benchmark_name_list = config_dict["benchmark_name"]
 
-def create_db(command):
-  dfg_file = command[0]
-  cgra_dict = command[1]
-  benchmark = command[2]
+    self.remapper_mode = config_dict["remapper_mode"]
 
-  cgra_size_str = cgra_dict["row"] + "_" + cgra_dict["column"] + "_" + cgra_dict["context_size"]
+  def get_database_input_list(self):
+    input_list = []
 
-  mapping_dir_path = experiment_result_dir + cgra_size_str + "/" + benchmark + "/database/mapping/" 
-  mapping_log_dir_path = experiment_result_dir + cgra_size_str + "/" + benchmark + "/database/log/" 
-  cgra_dir_path = experiment_result_dir + cgra_size_str + "/" + benchmark + "/database/tmp_cgra/"
+    for benchmark_name in self.benchmark_name_list:
+      dfg_file_path = os.path.join(self.kernel_dir_path, benchmark_name + ".dot")
+      benchmark_output_dir_path = os.path.join(self.output_dir_path, benchmark_name)
 
-  lock.acquire()
-  try:
-    check_dir_availability(mapping_dir_path)
-    check_dir_availability(mapping_log_dir_path)
-    check_dir_availability(cgra_dir_path)
-    cgra_file = cgra_dir_path + str(int(time.time())) + ".json"
-    time.sleep(1)
-  finally:
-    lock.release()
-  
-  file = open(cgra_file, mode="w")
-  json.dump(cgra_dict, file)
-  file.close()
+      for cgra_type in self.cgra_type_list:
+        for cgra_size in self.cgra_size_list:
+          for memory_io in self.memory_io_list:
+            for network_type in self.network_type_list:
+              cgra = CGRA(cgra_type, cgra_size, cgra_size, self.context_size, memory_io, network_type, self.local_reg_size)
+              input = CreateDatabaseInput(dfg_file_path, benchmark_output_dir_path, cgra, self.database_timeout_s, self.overwrite)
+              input_list.append(input)
 
-  lock.acquire()
-  try:
-    experiment_log_file = open(experiment_log_file_path, "a")
-    experiment_log_file.write("--- create database ---\n")
-    experiment_log_file.write("exec : ../" + build_dir_name+ "/create_database\n")
-    experiment_log_file.write("dfg_file: " + dfg_file + "\n")
-    experiment_log_file.write("mapping_dir: " + mapping_dir_path + "\n")
-    experiment_log_file.write("mapping_log_dir: " + mapping_log_dir_path + "\n")
-    experiment_log_file.close()
-  finally:
-    lock.release()
+    return input_list
 
-  subprocess.run(["../"+ build_dir_name +"/create_database", dfg_file,cgra_file, mapping_dir_path, mapping_log_dir_path, str(db_timeout_s)])
+  def get_remapper_input_list(self, database_timeout_s):
+    input_list = []
 
-def loop_unrolling(command):
-  dfg_file = command[0]
-  cgra_dict = command[1]
-  benchmark = command[2]
+    for benchmark_name in self.benchmark_name_list:
+      benchmark_output_dir_path = os.path.join(self.output_dir_path, benchmark_name)
 
-  G = nx.Graph(nx.nx_pydot.read_dot(dfg_file))
-  dfg_node_size = len(G.nodes())
+      for cgra_type in self.cgra_type_list:
+        for cgra_size in self.cgra_size_list:
+          for memory_io in self.memory_io_list:
+            for network_type in self.network_type_list:
+              cgra = CGRA(cgra_type, cgra_size, cgra_size, self.context_size, memory_io, network_type, self.local_reg_size)
+              database_dir_path = os.path.join(benchmark_output_dir_path, "database/mapping/" + get_database_id(cgra, database_timeout_s) + "/mapping/mapping")
+              for mode in self.remapper_mode:
+                input = RemapperInput(database_dir_path, cgra, benchmark_output_dir_path, mode)
+                input_list.append(input)
 
-  mapping_dir_path = experiment_result_dir + benchmark + "/loop_unrolling/mapping/"
-  mapping_log_dir_path = experiment_result_dir + benchmark + "/loop_unrolling/log/"
-  cgra_dir_path = experiment_result_dir + benchmark + "/loop_unrolling/tmp_cgra/"
-
-  lock.acquire()
-  try:
-    check_dir_availability(mapping_dir_path)
-    check_dir_availability(mapping_log_dir_path)
-    check_dir_availability(cgra_dir_path)
-    cgra_file = cgra_dir_path + str(int(time.time())) + ".json"
-    time.sleep(1)
-  finally:
-    lock.release()
-
-
-  file = open(cgra_file, mode="w")
-  json.dump(cgra_dict, file)
-  file.close()
-
-  parallel_num = int(int(cgra_dict["row"]) * int(cgra_dict["column"]) * int(cgra_dict["context_size"]) / dfg_node_size)
-
-  while 1:
-    lock.acquire()
-    try:
-      unixtime_str = str(int(time.time()))
-      time.sleep(1)
-    finally:
-      lock.release()
-    mapping_file = mapping_dir_path + "mapping_" + unixtime_str + ".json"
-    mapping_log_file = mapping_log_dir_path + "log_" + unixtime_str + ".log"
-
-    lock.acquire()
-    try:
-      experiment_log_file = open(experiment_log_file_path, "a")
-      experiment_log_file.write("--- unrolling exec ---\n")
-      experiment_log_file.write("exec : ../"+build_dir_name+"/mapping\n")
-      experiment_log_file.write("dfg_file: " + dfg_file + "\n")
-      experiment_log_file.write("mapping_file: " + mapping_file + "\n")
-      experiment_log_file.write("mapping_log_file: " + mapping_log_file + "\n")
-      experiment_log_file.close()
-    finally:
-      lock.release()
-
-    subprocess.run(["../"+build_dir_name+ "/mapping", dfg_file, cgra_file, mapping_file, mapping_log_file, str(timeout_s), str(parallel_num)])
-
-    is_success = succeed_mapping(mapping_log_file)
-
-    if is_success:
-      break
-    else:
-      parallel_num = parallel_num - 1
-
-    if parallel_num == 0:
-      break
-  
-  os.remove(cgra_file)
-
-def remapper(command):
-  dfg_file = command[0]
-  cgra_dict = command[1]
-  benchmark = command[2]
-  mode = command[3]
-
-  cgra_str = cgra_dict["row"] + "_" + cgra_dict["column"] + "_" + cgra_dict["context_size"] + cgra_dict["memory_io"]
-
-  database_dir_path = experiment_result_dir + cgra_str + "/" + benchmark + "/database/mapping/" 
-  mapping_dir_path = experiment_result_dir + cgra_str + "/" + benchmark + "/" + mode + "/mapping/"
-  mapping_log_dir_path = experiment_result_dir + cgra_str + "/" + benchmark + "/" + mode + "/log/"
-  cgra_dir_path = experiment_result_dir + cgra_str + "/" + benchmark + "/" + mode + "/tmp_cgra/"
-
-  lock.acquire()
-  try:
-    check_dir_availability(mapping_dir_path)
-    check_dir_availability(mapping_log_dir_path)
-    check_dir_availability(cgra_dir_path)
-    cgra_file = cgra_dir_path + str(int(time.time())) + ".json"
-    time.sleep(1)
-  finally:
-    lock.release()
-
-
-  file = open(cgra_file, mode="w")
-  json.dump(cgra_dict, file)
-  file.close()
-
-  lock.acquire()
-  try:
-    experiment_log_file = open(experiment_log_file_path, "a")
-    experiment_log_file.write("--- remapper exec ---\n")
-    experiment_log_file.write("exec : ../"+ build_dir_name +"/remapping\n")
-    experiment_log_file.write("mapping_dir_path: " + database_dir_path + "\n")
-    experiment_log_file.write("output_mapping_dir: " + mapping_dir_path + "\n")
-    experiment_log_file.write("output_log_dir: " + mapping_log_dir_path + "\n")
-    experiment_log_file.close()
-  finally:
-    lock.release()
-
-  mode_input = "0"
-  if mode == "naive":
-    mode_input = "1"
-  elif mode == "dp":
-    mode_input = "2"
-
-  run_result = subprocess.run(["../"+ build_dir_name + "/remapping", database_dir_path, cgra_file, mapping_dir_path, mapping_log_dir_path, mode_input])
-  if run_result.returncode != 0:
-    print("dfg_file: " + dfg_file)
-    print("cgra_dict: " + str(cgra_dict))
-    print("mode: " + mode)
-
-  os.remove(cgra_file)
-
-def exec(command):
-  mode = command[3]
-
-  if mode == "loop_unrolling":
-    loop_unrolling(command)
-  else:
-    remapper(command)
-
-
+    return input_list
   
 if __name__ == "__main__":
   args = sys.argv
-  process_num = int(args[1])
+  config_path = int(args[1])
 
-  benchmark_list = ["fixed_convolution2d", "fixed_ellpack", "fixed_fft_pro", "fixed_fir_pro", "fixed_latnrm_pro", "fixed_stencil", "fixed_susan_pro", "convolution_no_loop", "fixed_matrixmultiply_const"]
-  cgra_size_list = range(6,21)
-  memory_io_list = ["all", "both_ends"]
-  cgra_type = "elastic"
-  network_type = "orthogonal"
-  local_reg_size = 1
-  context_size = 4
-  db_timeout_s = 900
-  timeout_s = 3600
-  build_dir_name = "build"
+  config = RemappingRunnerConfig()
+  config.load(config_path)
 
-  experiment_log_dir = "./log/remapper_runner/"
-  check_dir_availability(experiment_log_dir)
-  experiment_log_file_path = experiment_log_dir + "log_" + get_time_string() + ".log"
-  
-  experiment_date = get_date_string()
+  lock = multiprocessing.Lock()
+  pool = multiprocessing.Pool(config.process_num, initializer=init, initargs=(lock, "./log/remapping_runner/" + str(int(time.time())) + ".log"))
 
-  command_list = []
+  if config.create_database:
+    pool.map(create_database_exec, config.get_database_input_list())
 
-  experiment_result_dir = "../output/remapper/" + experiment_date + "/"
-  check_dir_availability(experiment_log_dir)
+  pool.map(remapper_exec, config.get_remapper_input_list(config.database_timeout_s))
 
-  mode_list = ["loop_unrolling", "full_search", "naive", "dp"]
-
-
-  # create database
-  for cgra_size in cgra_size_list:
-    for memory_io in memory_io_list:
-      for benchmark in benchmark_list:
-        dfg_file_path = "../benchmark/kernel/" + benchmark + ".dot"
-
-        cgra_dict = {} 
-        cgra_dict["row"] = str(cgra_size)
-        cgra_dict["column"] = str(cgra_size)
-        cgra_dict["memory_io"] = memory_io
-        cgra_dict["CGRA_type"] = cgra_type
-        cgra_dict["network_type"] = network_type
-        cgra_dict["local_reg_size"] = local_reg_size
-        cgra_dict["context_size"] = str(context_size)
-
-        command_list.append([dfg_file_path, cgra_dict, benchmark])
-
-    lock = multiprocessing.Lock()
-    pool = multiprocessing.Pool(process_num)
-    pool.map(create_db, command_list)
-
-    command_list = []
-
-    # multi mapping
-    for memory_io in memory_io_list:
-      for benchmark in benchmark_list:
-        for mode in mode_list:
-          dfg_file_path = "../benchmark/kernel/" + benchmark + ".dot"
-
-          cgra_dict = {} 
-          cgra_dict["row"] = str(cgra_size)
-          cgra_dict["column"] = str(cgra_size)
-          cgra_dict["memory_io"] = memory_io
-          cgra_dict["CGRA_type"] = cgra_type
-          cgra_dict["network_type"] = network_type
-          cgra_dict["local_reg_size"] = local_reg_size
-          cgra_dict["context_size"] = str(context_size)
-
-          command_list.append([dfg_file_path, cgra_dict, benchmark, mode])
-
-    pool.map(exec, command_list)
+ 
 
 
 
