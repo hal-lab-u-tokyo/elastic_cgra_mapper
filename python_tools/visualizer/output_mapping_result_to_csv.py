@@ -1,5 +1,7 @@
-import csv
+import sys
 import os
+sys.path.append(os.pardir)
+import csv
 import re
 import datetime
 from io_lib import *

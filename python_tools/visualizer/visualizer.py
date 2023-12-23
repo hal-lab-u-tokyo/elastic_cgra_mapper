@@ -1,8 +1,11 @@
+import sys
+import os
+sys.path.append(os.pardir)
 import matplotlib.pyplot as plt
 import matplotlib.patches as pat
 import networkx as nx
 
-from mapping import *
+from entity import *
 
 # reference: GenMap ConfDrawer.py
 # https://github.com/hal-lab-u-tokyo/GenMap/blob/master/ConfDrawer.py
