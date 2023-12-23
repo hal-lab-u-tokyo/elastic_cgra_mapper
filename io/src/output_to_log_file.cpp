@@ -28,16 +28,21 @@ void io::MappingLogger::LogMappingInput(const io::MappingInput& input) {
   InitializePath(input.output_dir_path);
   assert(input.dfg_dot_file_path.is_absolute());
 
-  log_file_path_ = output_dir_path_ / ("mapping/log/mapping_" +
-                                       std::to_string(unixtime_) + ".log");
-  arch_file_path_ = output_dir_path_ / ("mapping/cgra/cgra_" +
-                                        std::to_string(unixtime_) + ".json");
-  mapping_file_path_ = output_dir_path_ / ("mapping/mapping/mapping_" +
-                                           std::to_string(unixtime_) + ".json");
-  gurobi_log_file_path_ =
-      output_dir_path_ /
-      ("mapping/gurobi_log/gurobi_" + std::to_string(unixtime_) + ".log");
-
+  while (1) {
+    log_file_path_ = output_dir_path_ / ("mapping/log/mapping_" +
+                                         std::to_string(unixtime_) + ".log");
+    arch_file_path_ = output_dir_path_ / ("mapping/cgra/cgra_" +
+                                          std::to_string(unixtime_) + ".json");
+    mapping_file_path_ =
+        output_dir_path_ /
+        ("mapping/mapping/mapping_" + std::to_string(unixtime_) + ".json");
+    gurobi_log_file_path_ =
+        output_dir_path_ /
+        ("mapping/gurobi_log/gurobi_" + std::to_string(unixtime_) + ".log");
+        
+    if (!std::filesystem::exists(log_file_path_)) break;
+    unixtime_++;
+  }
   std::shared_ptr<entity::MRRG> mrrg_ptr =
       std::make_shared<entity::MRRG>(input.mrrg_config);
   io::WriteMRRGToJsonFile(arch_file_path_.string(), mrrg_ptr);
@@ -70,19 +75,26 @@ void io::RemapperLogger::LogRemapperInput(const io::RemapperInput& input) {
   assert(input.remapper_mode == "dp" || input.remapper_mode == "greedy" ||
          input.remapper_mode == "full_search");
 
-  log_file_path_ = output_dir_path_ /
-                   ("remapping/" + input.remapper_mode + "/log/remapping_" +
-                    std::to_string(unixtime_) + ".log");
-  arch_file_path_ =
-      output_dir_path_ / ("remapping/" + input.remapper_mode + "/cgra/cgra_" +
-                          std::to_string(unixtime_) + ".json");
-  mapping_file_path_ = output_dir_path_ / ("remapping/" + input.remapper_mode +
-                                           "/mapping/remapping_" +
-                                           std::to_string(unixtime_) + ".json");
-  remapper_exec_log_file_path =
-      output_dir_path_ /
-      ("remapping/" + input.remapper_mode + "/exec_log/exec_log_" +
-       std::to_string(unixtime_) + ".log");
+  while (1) {
+    log_file_path_ = output_dir_path_ /
+                     ("remapping/" + input.remapper_mode + "/log/remapping_" +
+                      std::to_string(unixtime_) + ".log");
+    arch_file_path_ =
+        output_dir_path_ / ("remapping/" + input.remapper_mode + "/cgra/cgra_" +
+                            std::to_string(unixtime_) + ".json");
+    mapping_file_path_ =
+        output_dir_path_ /
+        ("remapping/" + input.remapper_mode + "/mapping/remapping_" +
+         std::to_string(unixtime_) + ".json");
+    remapper_exec_log_file_path =
+        output_dir_path_ /
+        ("remapping/" + input.remapper_mode + "/exec_log/exec_log_" +
+         std::to_string(unixtime_) + ".log");
+    if (!std::filesystem::exists(log_file_path_)) {
+      break;
+    };
+    unixtime_++;
+  }
 
   CopyArchFile(input.cgra_file_path);
 
@@ -126,21 +138,25 @@ void io::CreateDatabaseLogger::LogCreateDatabaseInput(
   InitializePath(input.output_dir_path);
   assert(input.dfg_dot_file_path.is_absolute());
   assert(input.cgra_file_path.is_absolute());
-
   input_ = input;
-  log_file_path_ = output_dir_path_ /
-                   ("database/log/db_" + std::to_string(unixtime_) + ".log");
-  arch_file_path_ = output_dir_path_ / ("database/cgra/cgra_" +
-                                        std::to_string(unixtime_) + ".json");
 
-  CopyArchFile(input.cgra_file_path);
+  while (1) {
+    log_file_path_ = output_dir_path_ /
+                     ("database/log/db_" + std::to_string(unixtime_) + ".log");
+    arch_file_path_ = output_dir_path_ / ("database/cgra/cgra_" +
+                                          std::to_string(unixtime_) + ".json");
 
-  database_id_ = GetCGRAId(input.cgra_file_path) + "_" +
-                 std::to_string(static_cast<int>(input.db_timeout_s));
-  selection_log_file_path_ =
-      output_dir_path_ / ("database/selection_log/selection_log_" +
-                          std::to_string(unixtime_) + ".log");
+    database_id_ = GetCGRAId(input.cgra_file_path) + "_" +
+                   std::to_string(static_cast<int>(input.db_timeout_s));
+    selection_log_file_path_ =
+        output_dir_path_ / ("database/selection_log/selection_log_" +
+                            std::to_string(unixtime_) + ".log");
 
+    if (!std::filesystem::exists(log_file_path_)) {
+      break;
+    }
+    unixtime_++;
+  }
   log_file_.open(log_file_path_, std::ios::app);
   log_file_ << "-- create database input --" << std::endl;
   log_file_ << "dfg file: " << input.dfg_dot_file_path.string() << std::endl;
@@ -148,6 +164,7 @@ void io::CreateDatabaseLogger::LogCreateDatabaseInput(
   log_file_ << "output dir: " << output_dir_path_.string() << std::endl;
   log_file_ << "timeout (s): " << input.db_timeout_s << std::endl;
   log_file_ << "min utilization: " << input.min_utilization << std::endl;
+  CopyArchFile(input.cgra_file_path);
 }
 
 void io::CreateDatabaseLogger::LogCreateDatabaseOutput(
