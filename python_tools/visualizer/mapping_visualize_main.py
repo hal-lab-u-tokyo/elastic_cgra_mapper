@@ -1,8 +1,9 @@
 import sys
+import os
+sys.path.append(os.pardir)
 from mapping import Mapping
 from io_lib import *
 from visualizer import Visualizer
-import os
 
 if __name__ == "__main__":
     args = sys.argv

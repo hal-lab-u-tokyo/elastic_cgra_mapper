@@ -1,0 +1,59 @@
+{
+  "exec_setting": {
+    "overwrite": false,
+    "kernel_dir_path": "/home/ubuntu/elastic_cgra_mapper/benchmark/kernel",
+    "output_dir_path": "/home/ubuntu/elastic_cgra_mapper/output",
+    "experiment_log_dir_path": "/home/ubuntu/elastic_cgra_mapper/python_tools/experiment_runner/log/",
+    "auto_mapping": true,
+    "timeout_s": 10000000000,
+    "process_num": 8
+  },
+  "auto_mapping": {
+    "cgra_settings": {
+      "cgra_type": [
+        "elastic"
+      ],
+      "cgra_size": {
+        "min": 6,
+        "max": 6
+      },
+      "memory_io": [
+        "all",
+        "both_ends"
+      ],
+      "network_type": [
+        "orthogonal"
+      ],
+      "local_reg_size": 1,
+      "context_size": 4
+    },
+    "benchmark_name": [
+      "convolution_no_loop",
+      "fixed_convolution2d",
+      "fixed_ellpack",
+      "fixed_fft_pro",
+      "fixed_fir_pro",
+      "fixed_latnrm_pro",
+      "fixed_matrixmultiply_const",
+      "fixed_stencil",
+      "fixed_susan_pro"
+    ]
+  },
+  "manual_mapping": [
+    {
+      "benchmark_name": "fixed_fft_pro",
+      "parallel_num_list": [
+        4
+      ],
+      "cgra": {
+        "row": 6,
+        "column": 6,
+        "context_size": 4,
+        "memory_io": "all",
+        "cgra_type": "elastic",
+        "network_type": "orthogonal",
+        "local_reg_size": 1
+      }
+    }
+  ]
+}

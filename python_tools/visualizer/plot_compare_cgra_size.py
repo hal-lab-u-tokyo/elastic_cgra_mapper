@@ -1,6 +1,8 @@
+import sys
+import os
+sys.path.append(os.pardir)
 from matplotlib import pyplot as plt
 import networkx as nx
-import os
 import re
 from io_lib import *
 from typing import List

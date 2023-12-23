@@ -1,11 +1,10 @@
-from mapping_log_reader import * 
-from json_reader import *
-
 import sys
-import re
-
-import networkx as nx
 import os
+sys.path.append(os.pardir)
+
+from io_lib import * 
+import re
+import networkx as nx
 from matplotlib import pyplot as plt
 
 def estimate_parallel_num(mapping_file_path, dfg_node_num):

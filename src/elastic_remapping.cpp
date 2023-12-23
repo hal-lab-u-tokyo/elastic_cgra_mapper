@@ -16,6 +16,10 @@ int main(int argc, char* argv[]) {
   remapper::RemappingMode mode =
       static_cast<remapper::RemappingMode>(std::stoi(argv[4]));
 
+  assert(std::filesystem::path(mapping_dir_path).is_absolute());
+  assert(std::filesystem::path(mrrg_file_path).is_absolute());
+  assert(std::filesystem::path(output_dir).is_absolute());
+
   if (!std::filesystem::exists(output_dir)) {
     std::filesystem::create_directories(output_dir);
   };
