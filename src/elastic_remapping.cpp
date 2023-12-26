@@ -19,6 +19,8 @@ int main(int argc, char* argv[]) {
   assert(std::filesystem::path(mapping_dir_path).is_absolute());
   assert(std::filesystem::path(mrrg_file_path).is_absolute());
   assert(std::filesystem::path(output_dir).is_absolute());
+  assert(std::filesystem::exists(mapping_dir_path));
+  assert(std::filesystem::exists(mrrg_file_path));
 
   if (!std::filesystem::exists(output_dir)) {
     std::filesystem::create_directories(output_dir);

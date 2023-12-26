@@ -115,6 +115,8 @@ int main(int argc, char* argv[]) {
   assert(std::filesystem::path(dfg_dot_file_path).is_absolute());
   assert(std::filesystem::path(mrrg_file_path).is_absolute());
   assert(std::filesystem::path(output_dir).is_absolute());
+  assert(std::filesystem::exists(dfg_dot_file_path));
+  assert(std::filesystem::exists(mrrg_file_path));
 
   constexpr double kMinUtilization = 0.5;
 
