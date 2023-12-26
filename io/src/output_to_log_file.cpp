@@ -117,6 +117,11 @@ void io::RemapperLogger::LogRemapperInput(const io::RemapperInput& input) {
   log_file_.open(log_file_path_, std::ios::app);
   log_file_ << "-- remapping input --" << std::endl;
   log_file_ << "mapping dir: " << input.mapping_dir_path.string() << std::endl;
+
+  for(const auto& file : std::filesystem::directory_iterator(input.mapping_dir_path)) {
+    log_file_ << ">> mapping file: " << file.path().string() << std::endl;
+  }
+
   log_file_ << "cgra file: " << arch_file_path_.string() << std::endl;
   log_file_ << "output dir: " << output_dir_path_.string() << std::endl;
   log_file_ << "remapper mode: " << input.remapper_mode << std::endl;
