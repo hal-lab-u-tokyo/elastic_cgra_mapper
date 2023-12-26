@@ -21,10 +21,10 @@ class CreateDatabaseInput:
     self.overwrite = overwrite
 
 class RemapperInput:
-  def __init__(self, mapping_dir_path, cgra, output_dir, remapper_mode):
+  def __init__(self, mapping_dir_path, cgra, output_dir_path, remapper_mode):
     self.mapping_dir_path = mapping_dir_path
     self.cgra = cgra
-    self.output_dir = output_dir
+    self.output_dir_path = output_dir_path
     self.remapper_mode = remapper_mode
 
 def mapping_exec(input):
@@ -108,12 +108,14 @@ def remapper_exec(input):
     experiment_log_file.write("mapping_dir: " + input.mapping_dir_path + "\n")
     experiment_log_file.write("output_dir: " + input.output_dir_path + "\n")
     experiment_log_file.write("cgra: " + str(input.cgra.get_cgra_dict()) + "\n")
-    experiment_log_file.write("mode: " + input.mode.to_string() + "\n")
+    experiment_log_file.write("mode: " + input.remapper_mode.to_string() + "\n")
     experiment_log_file.close()
   finally:
     lock.release()
 
-  subprocess.run(["/home/ubuntu/elastic_cgra_mapper/build/remapper", input.dfg_file_path, cgra_file_path, input.output_dir_path, str(int(input.remapper_mode))])  
+  remapper_mode_int = remapping_type_to_int(input.remapper_mode)
+
+  subprocess.run(["/home/ubuntu/elastic_cgra_mapper/build/remapping", input.mapping_dir_path, cgra_file_path, input.output_dir_path, str(remapper_mode_int)])  
 
   os.remove(cgra_file_path)
 

@@ -10,6 +10,8 @@ enum RemappingMode { FullSearch, Greedy, DP };
 
 std::string RemappingModeToString(RemappingMode mode);
 
+RemappingMode RemappingModeFromString(const std::string& mode_str);
+
 struct RemappingResult {
   RemappingResult()
       : remapping_time_s(0),

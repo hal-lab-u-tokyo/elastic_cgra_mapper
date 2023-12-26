@@ -64,7 +64,9 @@ class RemappingRunnerConfig:
 
     self.benchmark_name_list = config_dict["benchmark_name"]
 
-    self.remapper_mode = config_dict["remapper_mode"]
+    self.remapper_mode = []
+    for mode in config_dict["remapper_mode"]:
+      self.remapper_mode.append(RemapperType.from_string(mode))
 
   def get_database_input_list(self):
     input_list = []

@@ -20,6 +20,19 @@ std::string remapper::RemappingModeToString(RemappingMode mode) {
   }
 }
 
+remapper::RemappingMode remapper::RemappingModeFromString(
+    const std::string& mode_str) {
+  if (mode_str == "full_search") {
+    return RemappingMode::FullSearch;
+  } else if (mode_str == "greedy") {
+    return RemappingMode::Greedy;
+  } else if (mode_str == "dp") {
+    return RemappingMode::DP;
+  } else {
+    assert(false);
+  }
+}
+
 remapper::RemappingResult::RemappingResult(
     const std::vector<int>& result_mapping_id_vec,
     const std::vector<remapper::MappingTransformOp> result_transform_op_vec)

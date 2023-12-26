@@ -1,6 +1,6 @@
 {
-  "kernel_dir_path" : "../benchmark/kernel/",
-  "database_dir_path": "../output/utilization_comparison/20231205/",
+  "kernel_dir_path": "../../benchmark/kernel/",
+  "output_dir_path": "../../output/",
   "compare_benchmark_config": {
     "row": 6,
     "column": 6,

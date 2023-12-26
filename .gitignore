@@ -5,7 +5,7 @@ benchmark/**/*.png
 __pycache__/
 **/output/*
 **/obj_dir/*
-experiment_runner/log/*
-experiment_runner/tmp_cgra/*
+python_tools/experiment_runner/log/*
+python_tools/experiment_runner/tmp_cgra/*
 license/gurobi.lic
 garbage/*

@@ -37,8 +37,8 @@
     "fixed_susan_pro"
   ],
   "remapper_mode": [
-    "dp",
-    "greedy",
-    "full_search"
+    "DP",
+    "Greedy",
+    "FullSearch"
   ]
 }
