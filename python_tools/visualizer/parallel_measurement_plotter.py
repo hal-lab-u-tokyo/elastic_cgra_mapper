@@ -31,7 +31,7 @@ if __name__ == "__main__":
   dfg_node_num = len(dfg)
   if "\\n" in dfg.nodes:
     dfg_node_num = dfg_node_num - 1
-
+œ
   files = os.listdir(mapping_dir_path)
   
   time_vec = [[], []] # [memory_type][parallel_num]

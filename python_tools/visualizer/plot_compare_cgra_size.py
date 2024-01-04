@@ -5,21 +5,28 @@ from matplotlib import pyplot as plt
 import networkx as nx
 import re
 from io_lib import *
+from entity import *
 from typing import List
+from db_manager import *
 import enum
 
+def check_dir_availability(dir_name):
+  if not os.path.exists(dir_name):
+    os.makedirs(dir_name)
+
 class MappingType(enum.Enum):
-  dp = 0
-  greedy = 1
-  full_search = 2
-  loop_unrolling = 3
+  database = 0
+  dp = 1
+  greedy = 2
+  full_search = 3
+  loop_unrolling = 4
 
 class DataToPlot:
   def __init__(self, cgra_num):
     self.utilization = []
     self.time = []
     self.unix_time = []
-    for i in range(4):
+    for i in range(5):
       self.utilization.append([])
       self.time.append([])
       self.unix_time.append([])
@@ -47,10 +54,11 @@ class AllDataToPlot:
     self.data_of_each_benchmark[benchmark_name].unix_time[mapping_type.value][cgra_size_idx] = unix_time
 
   def plot(self, image_name):
-    label_list = ["remapping:dp", "remapping:greedy", "remapping: full_search" , "not remapping"]
+    check_dir_availability("./output/utilization_comparison/")
+    label_list = ["remapping:database","remapping:dp", "remapping:greedy", "remapping: full_search" , "not remapping"]
     for benchmark in self.data_of_each_benchmark.keys():
       fig, ax = plt.subplots()
-      for mapping_type in range(4):
+      for mapping_type in range(1,5):
         util_list = []
         cgra_size_list = []
         for i in range(self.max_cgra_size - self.min_cgra_size + 1):
@@ -66,7 +74,7 @@ class AllDataToPlot:
       fig.savefig("./output/utilization_comparison/" + image_name + "_"+ benchmark + "_util.png")
 
       fig, ax = plt.subplots()
-      for mapping_type in range(4):
+      for mapping_type in range(5):
         time_list = []
         cgra_size_list = []
         for i in range(self.max_cgra_size - self.min_cgra_size + 1):
@@ -81,63 +89,31 @@ class AllDataToPlot:
 
       fig.savefig("./output/utilization_comparison/" + image_name + "_" + benchmark + "_time.png")
 
-class DatabaseManager:
-  def __init__(self):
-    self.remapper_database_dir_to_time = {}
-
-  def get_database_time(self, remapper_log_file_path, remapper_mode):
-    result = 0
-
-    remapper_mode_dir_name = "dp"
-    if remapper_mode == RemapperType.DP:
-      remapper_mode_dir_name = "dp"
-    elif remapper_mode == RemapperType.Greedy:
-      remapper_mode_dir_name = "naive"
-    elif remapper_mode == RemapperType.FullSearch:
-      remapper_mode_dir_name = "full_search"
-
-    benchmark_database_dir_path = os.path.dirname(remapper_log_file_path).replace(remapper_mode_dir_name, "database") + "/"
-
-    if benchmark_database_dir_path in self.remapper_database_dir_to_time.keys():
-      return self.remapper_database_dir_to_time[benchmark_database_dir_path]
-
-    if not os.path.exists(benchmark_database_dir_path):
-      return -100000
-
-    for file in os.listdir(benchmark_database_dir_path):
-      log_file_path = benchmark_database_dir_path + file
-      mapping_log = mapping_log_reader(log_file_path, remapper_config.get_benchmark_list())
-      if benchmark_database_dir_path not in self.remapper_database_dir_to_time.keys():
-        self.remapper_database_dir_to_time[benchmark_database_dir_path] = 0
-        result = result + mapping_log.mapping_time
-
-    self.remapper_database_dir_to_time[benchmark_database_dir_path] = result
-
-    return result
-
 if __name__ == "__main__": 
   args = sys.argv
   config_path = args[1]
 
-  remapper_config = load_remapper_config(config_path)
+  plotter_config = load_plotter_config(config_path)
 
-  mapping_info_list, remapping_info_list = load_result_from_csv("./output/csv/", remapper_config.get_benchmark_list())
+  mapping_info_list, remapping_info_list, database_info_list = load_result_from_csv("./output/csv/", plotter_config.get_benchmark_list())
 
   benchmark_node_num = {}
  
-  db_manager = DatabaseManager()
+  db_manager = DatabaseManager(database_info_list)
 
-  for benchmark in remapper_config.get_benchmark_list():
-
-    dfg_file_path = remapper_config.kernel_dir_path + benchmark + ".dot"
+  for benchmark in plotter_config.get_benchmark_list():
+    dfg_file_path = plotter_config.kernel_dir_path + benchmark + ".dot"
     G = nx.Graph(nx.nx_pydot.read_dot(dfg_file_path))
     dfg_node_size = len(G.nodes())
+    for node in G.nodes():
+      if len(node) == 2: # NOTE: skip "\n" node
+        dfg_node_size = dfg_node_size - 1
 
     benchmark_node_num[benchmark] = dfg_node_size
 
   memory_io_to_all_data_to_plot = {}
-  memory_io_to_all_data_to_plot["all"] = AllDataToPlot(remapper_config.compare_cgra_size_config.min_size, remapper_config.compare_cgra_size_config.max_size)
-  memory_io_to_all_data_to_plot["both_ends"] = AllDataToPlot(remapper_config.compare_cgra_size_config.min_size, remapper_config.compare_cgra_size_config.max_size)
+  memory_io_to_all_data_to_plot["all"] = AllDataToPlot(plotter_config.compare_cgra_size_config.min_size, plotter_config.compare_cgra_size_config.max_size)
+  memory_io_to_all_data_to_plot["both_ends"] = AllDataToPlot(plotter_config.compare_cgra_size_config.min_size, plotter_config.compare_cgra_size_config.max_size)
 
   for mapping_info in mapping_info_list:
     row = mapping_info.row
@@ -149,21 +125,21 @@ if __name__ == "__main__":
     mapping_succeed = mapping_info.mapping_succeed
     benchmark = mapping_info.benchmark
 
-    if benchmark not in remapper_config.get_benchmark_list():
+    if benchmark not in plotter_config.get_benchmark_list():
       continue 
     if row != column:
       continue
-    if row < remapper_config.compare_cgra_size_config.min_size or remapper_config.compare_cgra_size_config.max_size < row:
+    if row < plotter_config.compare_cgra_size_config.min_size or plotter_config.compare_cgra_size_config.max_size < row:
       continue
-    if column < remapper_config.compare_cgra_size_config.min_size or remapper_config.compare_cgra_size_config.max_size < column:
+    if column < plotter_config.compare_cgra_size_config.min_size or plotter_config.compare_cgra_size_config.max_size < column:
       continue
-    if context_size != remapper_config.compare_benchmark_config.context_size:
+    if context_size != plotter_config.compare_benchmark_config.context_size:
       continue
-    if network_type != remapper_config.compare_benchmark_config.network_type:
+    if network_type != plotter_config.compare_benchmark_config.network_type:
       continue
     if cgra_type != CGRAType.Elastic:
       continue
-    if mapping_succeed == False:
+    if mapping_succeed == "0":
       continue
     
     all_context = row * column * context_size
@@ -180,17 +156,17 @@ if __name__ == "__main__":
     network_type = remapping_info.network_type
     benchmark = remapping_info.benchmark
 
-    if benchmark not in remapper_config.get_benchmark_list():
+    if benchmark not in plotter_config.get_benchmark_list():
       continue 
     if row != column:
       continue
-    if row < remapper_config.compare_cgra_size_config.min_size or remapper_config.compare_cgra_size_config.max_size < row:
+    if row < plotter_config.compare_cgra_size_config.min_size or plotter_config.compare_cgra_size_config.max_size < row:
       continue
-    if column < remapper_config.compare_cgra_size_config.min_size or remapper_config.compare_cgra_size_config.max_size < column:
+    if column < plotter_config.compare_cgra_size_config.min_size or plotter_config.compare_cgra_size_config.max_size < column:
       continue
-    if context_size != remapper_config.compare_benchmark_config.context_size:
+    if context_size != plotter_config.compare_benchmark_config.context_size:
       continue
-    if network_type != remapper_config.compare_benchmark_config.network_type:
+    if network_type != plotter_config.compare_benchmark_config.network_type:
       continue
     if cgra_type != CGRAType.Elastic:
       continue
@@ -198,8 +174,10 @@ if __name__ == "__main__":
     all_context = row * column * context_size
     utilization = remapping_info.parallel_num * benchmark_node_num[benchmark]/ all_context
 
-    database_time = db_manager.get_database_time(remapping_info.log_file_path, remapping_info.remapper_mode)
-    time = remapping_info.remapper_time + database_time
+    database_info = db_manager.get_database_info(remapping_info)
+    if database_info.timeout != plotter_config.database_timeout:
+      continue
+    time = remapping_info.remapper_time + database_info.creating_time
 
     if remapping_info.remapper_mode == RemapperType.DP:
       memory_io_to_all_data_to_plot[memory_io.to_string()].add_benchmark_data(benchmark, MappingType.dp, row, utilization, time, remapping_info.get_unix_time())
@@ -208,7 +186,7 @@ if __name__ == "__main__":
     elif remapping_info.remapper_mode == RemapperType.FullSearch:
       memory_io_to_all_data_to_plot[memory_io.to_string()].add_benchmark_data(benchmark, MappingType.full_search, row, utilization, time, remapping_info.get_unix_time())
   
-  for benchmark in remapper_config.get_benchmark_list():
+  for benchmark in plotter_config.get_benchmark_list():
     memory_io_to_all_data_to_plot["all"].plot("all")
     memory_io_to_all_data_to_plot["both_ends"].plot("both_ends")
 
