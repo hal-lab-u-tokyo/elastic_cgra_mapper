@@ -6,6 +6,7 @@ from matplotlib import pyplot as plt
 import networkx as nx
 from typing import List
 from io_lib import *
+from db_manager import *
 import re
 import enum
 
@@ -14,12 +15,13 @@ class MappingType(enum.Enum):
   greedy = 1
   full_search = 2
   loop_unrolling = 3
+  database = 4
 
 class DataToPlot:
   def __init__(self):
-    self.utilization: List[float] = [0,0,0,0]
-    self.time: List[float] = [0,0,0,0]
-    self.unix_time: List[int] = [0,0,0,0]
+    self.utilization: List[float] = [0,0,0,0,0]
+    self.time: List[float] = [-1,-1,-1,-1,0]
+    self.unix_time: List[int] = [0,0,0,0,0]
 
 class AllDataToPlot:
   def __init__(self):
@@ -45,25 +47,24 @@ class AllDataToPlot:
     dp_time_list = []
     greedy_time_list = []
     full_search_time_list = []
+    db_time_list = []
     for benchmark in self.data_of_each_benchmark.keys():
       dp_utilization.append(self.data_of_each_benchmark[benchmark].utilization[MappingType.dp.value])
       greedy_utilization.append(self.data_of_each_benchmark[benchmark].utilization[MappingType.greedy.value])
       full_search_utilization.append(self.data_of_each_benchmark[benchmark].utilization[MappingType.full_search.value])
       loop_unrolling_utilization.append(self.data_of_each_benchmark[benchmark].utilization[MappingType.loop_unrolling.value])
-      if self.data_of_each_benchmark[benchmark].time[MappingType.loop_unrolling.value] == 0:
-        dp_time_list.append(-1)
-        greedy_time_list.append(-1)
-        full_search_utilization.append(-1)
-      else:
-        dp_time_list.append(self.data_of_each_benchmark[benchmark].time[MappingType.dp.value] / self.data_of_each_benchmark[benchmark].time[MappingType.loop_unrolling.value])
-        greedy_time_list.append(self.data_of_each_benchmark[benchmark].time[MappingType.greedy.value] / self.data_of_each_benchmark[benchmark].time[MappingType.loop_unrolling.value])
-        full_search_time_list.append(self.data_of_each_benchmark[benchmark].time[MappingType.full_search.value] / self.data_of_each_benchmark[benchmark].time[MappingType.loop_unrolling.value])
+
+      dp_time_list.append(self.data_of_each_benchmark[benchmark].time[MappingType.dp.value] / self.data_of_each_benchmark[benchmark].time[MappingType.loop_unrolling.value])
+      greedy_time_list.append(self.data_of_each_benchmark[benchmark].time[MappingType.greedy.value] / self.data_of_each_benchmark[benchmark].time[MappingType.loop_unrolling.value])
+      full_search_time_list.append(self.data_of_each_benchmark[benchmark].time[MappingType.full_search.value] / self.data_of_each_benchmark[benchmark].time[MappingType.loop_unrolling.value])
+      db_time_list.append(self.data_of_each_benchmark[benchmark].time[MappingType.database.value] / self.data_of_each_benchmark[benchmark].time[MappingType.loop_unrolling.value])
 
     fig, ax = plt.subplots() 
     loop_unrolling_pos = range(0, len(self.data_of_each_benchmark.keys()))
     full_search_pos = [pos + 0.2 for pos in loop_unrolling_pos]
     greedy_pos = [pos + 0.4 for pos in loop_unrolling_pos]
     dp_pos = [pos + 0.6 for pos in loop_unrolling_pos]
+    database_pos = [pos + 0.8 for pos in loop_unrolling_pos]
     label_pos = [pos + 0.3 for pos in loop_unrolling_pos]
 
     ax.bar(loop_unrolling_pos, loop_unrolling_utilization, width=0.2, label="no remapping")
@@ -77,66 +78,36 @@ class AllDataToPlot:
     fig.savefig("./output/utilization_comparison/" + image_name + "_util.png")
 
     fig, ax = plt.subplots()
-    full_search_pos = [pos + 0.3 for pos in loop_unrolling_pos]
-    greedy_pos = [pos + 0.6 for pos in loop_unrolling_pos]
-    dp_pos = [pos + 0.9 for pos in loop_unrolling_pos]
-    ax.bar(full_search_pos, full_search_time_list, width=0.3, label="full seasrch")
-    ax.bar(dp_pos, dp_time_list, width=0.3, label="dp")
-    ax.bar(greedy_pos, greedy_time_list, width=0.3, label="greedy")
+    full_search_pos = [pos + 0.2 for pos in loop_unrolling_pos]
+    greedy_pos = [pos + 0.4 for pos in loop_unrolling_pos]
+    dp_pos = [pos + 0.6 for pos in loop_unrolling_pos]
+    database_pos = [pos + 0.8 for pos in loop_unrolling_pos]
+
+
+    ax.bar(full_search_pos, full_search_time_list, width=0.2, label="full seasrch")
+    ax.bar(dp_pos, dp_time_list, width=0.2, label="dp")
+    ax.bar(greedy_pos, greedy_time_list, width=0.2, label="greedy")
+    ax.bar(database_pos, db_time_list, width=0.2, label="database")
     ax.set_xlabel("benchmark")
     ax.set_ylabel("time")
     ax.legend()
     plt.xticks(greedy_pos, self.data_of_each_benchmark.keys())
     fig.savefig("./output/utilization_comparison/" + image_name + "_time.png")
 
-class DatabaseManager:
-  def __init__(self):
-    self.remapper_database_dir_to_time = {}
-
-  def get_database_time(self, remapper_log_file_path, remapper_mode):
-    result = 0
-
-    remapper_mode_dir_name = "dp"
-    if remapper_mode == RemapperType.DP:
-      remapper_mode_dir_name = "dp"
-    elif remapper_mode == RemapperType.Greedy:
-      remapper_mode_dir_name = "naive"
-    elif remapper_mode == RemapperType.FullSearch:
-      remapper_mode_dir_name = "full_search"
-
-    benchmark_database_dir_path = os.path.dirname(remapper_log_file_path).replace(remapper_mode_dir_name, "database") + "/"
-
-    if benchmark_database_dir_path in self.remapper_database_dir_to_time.keys():
-      return self.remapper_database_dir_to_time[benchmark_database_dir_path]
-
-    if not os.path.exists(benchmark_database_dir_path):
-      return 0
-
-    for file in os.listdir(benchmark_database_dir_path):
-      log_file_path = benchmark_database_dir_path + file
-      mapping_log = mapping_log_reader(log_file_path, remapper_config.get_benchmark_list())
-      if benchmark_database_dir_path not in self.remapper_database_dir_to_time.keys():
-        self.remapper_database_dir_to_time[benchmark_database_dir_path] = 0
-        result = result + mapping_log.mapping_time
-
-    self.remapper_database_dir_to_time[benchmark_database_dir_path] = result
-
-    return result
-
 if __name__ == "__main__": 
   args = sys.argv
   config_path = args[1]
 
-  remapper_config = load_remapper_config(config_path)
+  plotter_config = load_plotter_config(config_path)
 
-  db_manager = DatabaseManager()
 
-  mapping_info_list, remapping_info_list = load_result_from_csv("./output/csv/", remapper_config.get_benchmark_list())
+  mapping_info_list, remapping_info_list, db_info_list = load_result_from_csv("./output/csv/", plotter_config.get_benchmark_list())
 
+  db_manager = DatabaseManager(db_info_list)
   benchmark_node_num = {}
 
-  for benchmark in remapper_config.get_benchmark_list():
-    dfg_file_path = remapper_config.kernel_dir_path + benchmark + ".dot"
+  for benchmark in plotter_config.get_benchmark_list():
+    dfg_file_path = plotter_config.kernel_dir_path + benchmark + ".dot"
     G = nx.Graph(nx.nx_pydot.read_dot(dfg_file_path))
     dfg_node_size = len(G.nodes())
 
@@ -148,7 +119,7 @@ if __name__ == "__main__":
   memory_io_to_all_data_to_plot = {}
   memory_io_to_all_data_to_plot["all"] = AllDataToPlot()
   memory_io_to_all_data_to_plot["both_ends"] = AllDataToPlot()
-  all_context = remapper_config.compare_benchmark_config.row * remapper_config.compare_benchmark_config.column * remapper_config.compare_benchmark_config.context_size
+  all_context = plotter_config.compare_benchmark_config.row * plotter_config.compare_benchmark_config.column * plotter_config.compare_benchmark_config.context_size
 
   for mapping_info in mapping_info_list:
     row = mapping_info.row
@@ -160,21 +131,21 @@ if __name__ == "__main__":
     mapping_succeed = mapping_info.mapping_succeed
     benchmark = mapping_info.benchmark
 
-    if benchmark not in remapper_config.get_benchmark_list():
+    if benchmark not in plotter_config.get_benchmark_list():
       continue 
-    if row != remapper_config.compare_benchmark_config.row or column != remapper_config.compare_benchmark_config.column or context_size != remapper_config.compare_benchmark_config.context_size:
+    if row != plotter_config.compare_benchmark_config.row or column != plotter_config.compare_benchmark_config.column or context_size != plotter_config.compare_benchmark_config.context_size:
       continue
-    if network_type != remapper_config.compare_benchmark_config.network_type:
+    if network_type != plotter_config.compare_benchmark_config.network_type:
       continue
     if cgra_type != CGRAType.Elastic:
       continue
-    if mapping_succeed == False:
+    if mapping_succeed == "0":
       continue
 
     utilization = mapping_info.parallel_num * benchmark_node_num[benchmark]/ all_context
 
-    benchmark_idx = remapper_config.get_benchmark_list().index(benchmark)
-    benchmark_name = remapper_config.get_benchmark_name_list()[benchmark_idx]
+    benchmark_idx = plotter_config.get_benchmark_list().index(benchmark)
+    benchmark_name = plotter_config.get_benchmark_name_list()[benchmark_idx]
 
     memory_io_to_all_data_to_plot[memory_io.to_string()].add_benchmark_data(benchmark_name, MappingType.loop_unrolling, utilization, mapping_info.mapping_time, mapping_info.get_unix_time())
 
@@ -187,29 +158,30 @@ if __name__ == "__main__":
     network_type = remapping_info.network_type
     benchmark = remapping_info.benchmark
 
-    if benchmark not in remapper_config.get_benchmark_list():
+    if benchmark not in plotter_config.get_benchmark_list():
       continue 
-    if row != remapper_config.compare_benchmark_config.row or column != remapper_config.compare_benchmark_config.column or context_size != remapper_config.compare_benchmark_config.context_size:
+    if row != plotter_config.compare_benchmark_config.row or column != plotter_config.compare_benchmark_config.column or context_size != plotter_config.compare_benchmark_config.context_size:
       continue
-    if network_type != remapper_config.compare_benchmark_config.network_type:
+    if network_type != plotter_config.compare_benchmark_config.network_type:
       continue
     if cgra_type != CGRAType.Elastic:
       continue
 
     utilization = remapping_info.parallel_num * benchmark_node_num[benchmark]/ all_context
 
-    database_time = db_manager.get_database_time(remapping_info.log_file_path, remapping_info.remapper_mode)
-    time = remapping_info.remapper_time + database_time
+    database_info = db_manager.get_database_info(remapping_info)
+    if database_info.timeout != plotter_config.database_timeout:
+      continue
+    time = remapping_info.remapper_time + database_info.creating_time
 
-    benchmark_idx = remapper_config.get_benchmark_list().index(benchmark)
-    benchmark_name = remapper_config.get_benchmark_name_list()[benchmark_idx]
+    benchmark_idx = plotter_config.get_benchmark_list().index(benchmark)
+    benchmark_name = plotter_config.get_benchmark_name_list()[benchmark_idx]
 
     if remapping_info.remapper_mode == RemapperType.FullSearch:
-      if benchmark == "fixed_susan_pro" and memory_io.to_string() == "both_ends":
-        continue
       memory_io_to_all_data_to_plot[memory_io.to_string()].add_benchmark_data(benchmark_name, MappingType.full_search, utilization, time, remapping_info.get_unix_time())
     elif remapping_info.remapper_mode == RemapperType.DP:
       memory_io_to_all_data_to_plot[memory_io.to_string()].add_benchmark_data(benchmark_name, MappingType.dp, utilization, time, remapping_info.get_unix_time())
+      memory_io_to_all_data_to_plot[memory_io.to_string()].add_benchmark_data(benchmark_name, MappingType.database, 0, database_info.creating_time, remapping_info.get_unix_time())
     elif remapping_info.remapper_mode == RemapperType.Greedy:
       memory_io_to_all_data_to_plot[memory_io.to_string()].add_benchmark_data(benchmark_name, MappingType.greedy, utilization, time, remapping_info.get_unix_time())
   

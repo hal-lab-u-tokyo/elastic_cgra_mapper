@@ -1,7 +1,7 @@
 import sys
 import os
 sys.path.append(os.pardir)
-from mapping import Mapping
+from entity import *
 from io_lib import *
 from visualizer import Visualizer
 

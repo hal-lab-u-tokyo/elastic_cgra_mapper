@@ -84,7 +84,7 @@ def create_database_exec(input):
   finally:
     lock.release()
 
-  subprocess.run(["/home/ubuntu/elastic_cgra_mapper/build/create_database", input.dfg_file_path, cgra_file_path, input.output_dir_path, str(input.db_timeout_s)])  
+  subprocess.run(["/home/ubuntu/elastic_cgra_mapper/build/create_database", input.dfg_file_path, cgra_file_path, input.output_dir_path, str(input.db_timeout_s), str(input.overwrite)])  
 
   os.remove(cgra_file_path)
 

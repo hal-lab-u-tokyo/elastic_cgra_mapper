@@ -25,9 +25,9 @@ class BenchmarkConfig:
 
 class PlotterConfig:
   def __init__(self):
-    self.kernel_dir_path: str = ""
-    self.output_dir_path: str = ""
-    self.visualizer_output_dir_path: str = ""
+    self.kernel_dir_path: str =  ""
+    self.database_dir_path: str = ""
+    self.database_timeout: float = 0
     self.compare_benchmark_config: CompareBenchmarkConfig = CompareBenchmarkConfig()
     self.compare_cgra_size_config: CompareCGRASizeConfig = CompareCGRASizeConfig()
     self.benchmark_list: List[BenchmarkConfig] = []
@@ -56,26 +56,29 @@ class PlotterConfig:
     return benchmark_name_list
 
 
-def load_remapper_config(config_path):
+def load_plotter_config(config_path):
   f = open(config_path, 'r')
   json_dict = json.load(f)
 
-  remapper_config = PlotterConfig()
+  plotter_config = PlotterConfig()
 
   # kernel dir path
-  remapper_config.kernel_dir_path = json_dict["kernel_dir_path"]
+  plotter_config.kernel_dir_path = json_dict["kernel_dir_path"]
+  plotter_config.output_dir_path = json_dict["output_dir_path"]
+  plotter_config.visualizer_output_dir_path = json_dict["visualizer_output_dir_path"]
+  plotter_config.database_timeout = json_dict["database_timeout"]
 
   # compare benchmark config
-  remapper_config.compare_benchmark_config.row = json_dict["compare_benchmark_config"]["row"]
-  remapper_config.compare_benchmark_config.column = json_dict["compare_benchmark_config"]["column"]
-  remapper_config.compare_benchmark_config.context_size = json_dict["compare_benchmark_config"]["context_size"]
-  remapper_config.compare_benchmark_config.network_type = NetworkType.get_from_string(json_dict["compare_benchmark_config"]["network_type"])
+  plotter_config.compare_benchmark_config.row = json_dict["compare_benchmark_config"]["row"]
+  plotter_config.compare_benchmark_config.column = json_dict["compare_benchmark_config"]["column"]
+  plotter_config.compare_benchmark_config.context_size = json_dict["compare_benchmark_config"]["context_size"]
+  plotter_config.compare_benchmark_config.network_type = NetworkType.get_from_string(json_dict["compare_benchmark_config"]["network_type"])
 
   # compare cgra size config
-  remapper_config.compare_cgra_size_config.min_size = json_dict["compare_cgra_size_config"]["min_size"]
-  remapper_config.compare_cgra_size_config.max_size = json_dict["compare_cgra_size_config"]["max_size"]
-  remapper_config.compare_cgra_size_config.context_size = json_dict["compare_cgra_size_config"]["context_size"]
-  remapper_config.compare_cgra_size_config.network_type = NetworkType.get_from_string(json_dict["compare_cgra_size_config"]["network_type"])
+  plotter_config.compare_cgra_size_config.min_size = json_dict["compare_cgra_size_config"]["min_size"]
+  plotter_config.compare_cgra_size_config.max_size = json_dict["compare_cgra_size_config"]["max_size"]
+  plotter_config.compare_cgra_size_config.context_size = json_dict["compare_cgra_size_config"]["context_size"]
+  plotter_config.compare_cgra_size_config.network_type = NetworkType.get_from_string(json_dict["compare_cgra_size_config"]["network_type"])
 
   # benchmark list
   for benchmark in json_dict["benchmark_list"]:
@@ -83,6 +86,6 @@ def load_remapper_config(config_path):
     benchmark_config.kernel_name = benchmark["kernel_name"]
     benchmark_config.name = benchmark["name"]
     benchmark_config.visualize = benchmark["visualize"]
-    remapper_config.benchmark_list.append(benchmark_config)
+    plotter_config.benchmark_list.append(benchmark_config)
 
-  return remapper_config
+  return plotter_config
