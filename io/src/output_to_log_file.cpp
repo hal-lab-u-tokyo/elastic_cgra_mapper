@@ -202,9 +202,14 @@ void io::CreateDatabaseLogger::LogCreateDatabaseOutput(
 
 int io::CreateDatabaseLogger::countMappingDataNum() const {
   int count = 0;
-  for (const auto& file : std::filesystem::directory_iterator(
-           output_dir_path_ /
-           ("database/mapping" + database_id_ + "mapping"))) {
+  std::filesystem::path mapping_dir_path =
+      output_dir_path_ / ("database/mapping/" + database_id_ + "/mapping");
+  if (!std::filesystem::exists(mapping_dir_path)) {
+    return 0;
+  }
+
+  for (const auto& file :
+       std::filesystem::directory_iterator(mapping_dir_path)) {
     if (file.path().extension() == ".json") {
       count++;
     }
@@ -213,8 +218,14 @@ int io::CreateDatabaseLogger::countMappingDataNum() const {
 }
 
 void io::CreateDatabaseLogger::DeleteAllMappingData() {
-  for (const auto& file : std::filesystem::directory_iterator(
-           output_dir_path_ / ("database/mapping" + database_id_))) {
+  std::filesystem::path database_dir_path =
+      output_dir_path_ / ("database/mapping/" + database_id_);
+  if (!std::filesystem::exists(database_dir_path)) {
+    return;
+  }
+
+  for (const auto& file :
+       std::filesystem::directory_iterator(database_dir_path)) {
     std::filesystem::remove(file.path());
   }
 }
