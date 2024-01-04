@@ -101,7 +101,7 @@ std::vector<int> SortElementByFreqency(const std::vector<int>& vec) {
 }
 
 int main(int argc, char* argv[]) {
-  if (argc != 5) {
+  if (argc != 6) {
     std::cerr << "invalid arguments" << std::endl;
     abort();
   }
@@ -110,6 +110,7 @@ int main(int argc, char* argv[]) {
   const std::string mrrg_file_path = argv[2];
   const std::string output_dir = argv[3];
   const double db_timeout_s = std::stod(argv[4]);
+  const bool overwrite = static_cast<bool>(std::stoi(argv[5]));
   double creating_db_time_s = 0;
 
   assert(std::filesystem::path(dfg_dot_file_path).is_absolute());
@@ -157,6 +158,11 @@ int main(int argc, char* argv[]) {
   io::CreateDatabaseLogger logger;
   logger.LogCreateDatabaseInput({dfg_dot_file_path, mrrg_file_path, output_dir,
                                  db_timeout_s, kMinUtilization});
+  if (logger.countMappingDataNum() != 0 && !overwrite) {
+    return 0;
+  } else if(overwrite){
+    logger.DeleteAllMappingData();    
+  }
   while (1) {
     std::vector<remapper::MappingMatrix> tmp_mapping_matrix_vec;
     for (const auto& mapping_matrix : mapping_matrix_vec) {
