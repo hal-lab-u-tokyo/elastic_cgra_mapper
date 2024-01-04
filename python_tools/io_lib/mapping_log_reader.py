@@ -4,34 +4,11 @@ import sys
 import os
 import csv
 import re
+from .cgra_json_reader import *
+from entity import *
+from typing import Tuple
 
-class MappingLogInfo:
-    def __init__(self):
-        self.log_file_path = ""
-        self.benchmark = ""
-        self.row: int = 0
-        self.column: int = 0
-        self.context_size: int = 0
-        self.memory_io: MemoryIOType
-        self.cgra_type: CGRAType
-        self.network_type: NetworkType
-        self.mapping_succeed: bool = False
-        self.mapping_time: float = -1
-        self.num_threads: int = -1
-        self.timeout: float = -1
-        self.parallel_num: int = -1
-
-    def get_input_as_str(self):
-        return self.benchmark + str(self.row) + "_" + str(self.column) + "_" + str(self.context_size) + "_" + str(self.memory_io.value) + "_" + str(self.cgra_type.value) + "_" + str(self.network_type.value) + str(self.num_threads) + "_" + str(self.timeout) + "_" + str(self.parallel_num)
-
-    def get_unix_time(self):
-        file_name = os.path.basename(self.log_file_path)
-        find_number = re.findall(r"\d+", file_name)
-        if len(find_number) == 0:
-            return -1
-        return int(find_number[0])
-
-def mapping_log_reader(file_path, benchmark_list=[]) -> MappingLogInfo:
+def mapping_log_reader(file_path, benchmark_list=[]) -> Tuple[bool, Tuple]:
     log_info = MappingLogInfo()
     log_info.log_file_path = file_path
 
@@ -41,66 +18,35 @@ def mapping_log_reader(file_path, benchmark_list=[]) -> MappingLogInfo:
             log_info.benchmark = dir_name
 
     with open(file_path) as f:
-        is_setting = -1
+        line_num = 1
         for line in f:
-            parsed = parse.parse("timeout (s): {:d}\n", line)
-            if parsed != None:
-                log_info.timeout = parsed[0]
+            if line_num == 3:
+                json_file_path = parse.parse("cgra file: {}\n", line)[0]
+                cgra = cgra_json_reader(json_file_path)
+                log_info.row = cgra.row
+                log_info.column = cgra.column
+                log_info.context_size = cgra.context_size
+                log_info.memory_io = cgra.memory_io_type
+                log_info.cgra_type = cgra.cgra_type
+                log_info.network_type = cgra.network_type
+            elif line_num == 5:
+                log_info.timeout = float(parse.parse("timeout (s): {}\n", line)[0])
+            elif line_num == 6:
+                log_info.parallel_num = parse.parse("parallel num: {:d}\n", line)[0]
+            elif line_num == 8:
+                log_info.mapping_time = float(parse.parse("mapping time (s): {}\n", line)[0])
+            elif line_num == 9:
+                log_info.mapping_succeed = parse.parse("is success: {:w}\n", line)[0]
+            elif line_num == 10:
+                log_info.mapping_file_path = parse.parse("mapping file: {}\n", line)[0]                     
 
-            parsed = parse.parse("parallel num: {:d}\n", line)
-            if parsed != None:
-                log_info.parallel_num = parsed[0]                
+            line_num = line_num + 1
 
-            if line == "-- CGRA setting --\n":
-                is_setting = 0
-                continue
+    if line_num < 11:
+        print("Mapping Log Reader Error: " + file_path)
+        return (False, log_info)
 
-            if is_setting >= 0:
-                if is_setting == 0:
-                    parsed = parse.parse("row: {:d}\n", line)
-                    log_info.row = int(parsed[0])
-                elif is_setting == 1:
-                    parsed = parse.parse("column: {:d}\n", line)
-                    log_info.column = int(parsed[0])
-                elif is_setting == 2:
-                    parsed = parse.parse("context_size: {:d}\n", line)
-                    log_info.context_size = int(parsed[0])
-                elif is_setting == 3:
-                    parsed = parse.parse("memory_io: {:w}\n", line)
-                    log_info.memory_io = MemoryIOType.get_from_string(
-                        parsed[0])
-                elif is_setting == 4:
-                    parsed = parse.parse("cgra_type: {:w}\n", line)
-                    log_info.cgra_type = CGRAType.get_from_string(parsed[0])
-                elif is_setting == 5:
-                    parsed = parse.parse("network_type: {:w}\n", line)
-                    log_info.network_type = NetworkType.get_from_string(
-                        parsed[0])
-
-                if is_setting != 5:
-                    is_setting = is_setting + 1
-                else:
-                    is_setting = -1
-
-                continue
-
-            parsed = parse.parse(
-                "Explored {:d} nodes ({:d} simplex iterations) in {:f} seconds\n", line)
-            if parsed != None:
-                log_info.mapping_time = parsed[2]
-
-            parsed = parse.parse(
-                "Thread count was {:d} (of {:d} available processors)\n", line)
-            if parsed != None:
-                log_info.num_threads = parsed[0]
-
-            if line == "Model is infeasible\n":
-                log_info.mapping_succeed = False
-
-            if line.find("Optimal solution found (tolerance") != -1:
-                log_info.mapping_succeed = True
-
-    return log_info
+    return (True, log_info)
 
 
 if __name__ == "__main__":
