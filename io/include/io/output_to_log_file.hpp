@@ -94,6 +94,8 @@ class CreateDatabaseLogger : public Logger {
   CreateDatabaseLogger() : Logger() {}
   void LogCreateDatabaseInput(const CreateDatabaseInput& input);
   void LogCreateDatabaseOutput(const CreateDatabaseOutput& output);
+  int countMappingDataNum() const;
+  void DeleteAllMappingData();
   std::string GetNextGurobiMappingPath(double mapping_timeout_s,
                                        const entity::MRRGConfig& mrrg_config);
   std::string GetSelectionLogFilePath() const {

@@ -118,7 +118,8 @@ void io::RemapperLogger::LogRemapperInput(const io::RemapperInput& input) {
   log_file_ << "-- remapping input --" << std::endl;
   log_file_ << "mapping dir: " << input.mapping_dir_path.string() << std::endl;
 
-  for(const auto& file : std::filesystem::directory_iterator(input.mapping_dir_path)) {
+  for (const auto& file :
+       std::filesystem::directory_iterator(input.mapping_dir_path)) {
     log_file_ << ">> mapping file: " << file.path().string() << std::endl;
   }
 
@@ -197,6 +198,25 @@ void io::CreateDatabaseLogger::LogCreateDatabaseOutput(
   log_file_ << "creating db time (s): " << output.creating_db_time_s
             << std::endl;
   log_file_.close();
+}
+
+int io::CreateDatabaseLogger::countMappingDataNum() const {
+  int count = 0;
+  for (const auto& file : std::filesystem::directory_iterator(
+           output_dir_path_ /
+           ("database/mapping" + database_id_ + "mapping"))) {
+    if (file.path().extension() == ".json") {
+      count++;
+    }
+  }
+  return count;
+}
+
+void io::CreateDatabaseLogger::DeleteAllMappingData() {
+  for (const auto& file : std::filesystem::directory_iterator(
+           output_dir_path_ / ("database/mapping" + database_id_))) {
+    std::filesystem::remove(file.path());
+  }
 }
 
 std::string io::CreateDatabaseLogger::GetNextGurobiMappingPath(
