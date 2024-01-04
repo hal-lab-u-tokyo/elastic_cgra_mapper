@@ -23,10 +23,11 @@ class BenchmarkConfig:
     self.name: str = ""
     self.visualize: bool = False
 
-class RemapperConfig:
+class PlotterConfig:
   def __init__(self):
-    self.kernel_dir_path: str =  ""
-    self.database_dir_path: str = ""
+    self.kernel_dir_path: str = ""
+    self.output_dir_path: str = ""
+    self.visualizer_output_dir_path: str = ""
     self.compare_benchmark_config: CompareBenchmarkConfig = CompareBenchmarkConfig()
     self.compare_cgra_size_config: CompareCGRASizeConfig = CompareCGRASizeConfig()
     self.benchmark_list: List[BenchmarkConfig] = []
@@ -59,7 +60,7 @@ def load_remapper_config(config_path):
   f = open(config_path, 'r')
   json_dict = json.load(f)
 
-  remapper_config = RemapperConfig()
+  remapper_config = PlotterConfig()
 
   # kernel dir path
   remapper_config.kernel_dir_path = json_dict["kernel_dir_path"]
