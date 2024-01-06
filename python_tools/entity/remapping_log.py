@@ -1,6 +1,7 @@
 from enum import Enum
 import os
 import re
+from .cgra import *
 
 class RemapperType(Enum):
     FullSearch = 0
@@ -39,6 +40,7 @@ class RemapperLogInfo:
         self.memory_io: MemoryIOType
         self.cgra_type: CGRAType
         self.network_type: NetworkType
+        self.local_reg_size: int = 0
         self.mapping_succeed: bool = False
         self.remapper_time: float = 0
         self.parallel_num: int
@@ -54,3 +56,6 @@ class RemapperLogInfo:
         if len(find_number) == 0:
             return -1
         return int(find_number[0])
+
+    def get_cgra(self):
+        return CGRA(self.cgra_type, self.row, self.column, self.context_size, self.memory_io, self.network_type, self.local_reg_size)

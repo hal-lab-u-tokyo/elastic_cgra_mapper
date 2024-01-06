@@ -29,6 +29,7 @@ def mapping_log_reader(file_path, benchmark_list=[]) -> Tuple[bool, Tuple]:
                 log_info.memory_io = cgra.memory_io_type
                 log_info.cgra_type = cgra.cgra_type
                 log_info.network_type = cgra.network_type
+                log_info.local_reg_size = cgra.local_reg_size
             elif line_num == 5:
                 log_info.timeout = float(parse.parse("timeout (s): {}\n", line)[0])
             elif line_num == 6:

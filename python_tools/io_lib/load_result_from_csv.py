@@ -33,12 +33,13 @@ def load_result_from_csv(csv_dir_path, benchmark_list):
       mapping_log_info.memory_io = MemoryIOType.get_from_string(row[6])
       mapping_log_info.cgra_type = CGRAType.get_from_string(row[7])
       mapping_log_info.network_type = NetworkType.get_from_string(row[8])
-      mapping_log_info.mapping_succeed = row[9]
-      mapping_log_info.mapping_time = float(row[10])
-      mapping_log_info.num_threads = int(row[11])
-      mapping_log_info.timeout = float(row[12]) 
-      mapping_log_info.parallel_num = int(row[13])
-      mapping_log_info.mapping_file_path = row[14]
+      mapping_log_info.local_reg_size = int(row[9])
+      mapping_log_info.mapping_succeed = row[10]
+      mapping_log_info.mapping_time = float(row[11])
+      mapping_log_info.num_threads = int(row[12])
+      mapping_log_info.timeout = float(row[13]) 
+      mapping_log_info.parallel_num = int(row[14])
+      mapping_log_info.mapping_file_path = row[15]
       mapping_log_info_list.append(mapping_log_info)
 
   
@@ -61,10 +62,13 @@ def load_result_from_csv(csv_dir_path, benchmark_list):
       remapping_log_info.memory_io = MemoryIOType.get_from_string(row[6])
       remapping_log_info.cgra_type = CGRAType.get_from_string(row[7])
       remapping_log_info.network_type = NetworkType.get_from_string(row[8])      
-      remapping_log_info.parallel_num = int(row[9])
-      remapping_log_info.remapper_mode = RemapperType.from_string(row[10])
-      remapping_log_info.remapper_time = float(row[11])
-      remapping_log_info.mapping_json_list = row[12].strip("[]").replace("'", "").split(", ")
+      remapping_log_info.local_reg_size = int(row[9])
+      remapping_log_info.parallel_num = int(row[10])
+      if remapping_log_info.parallel_num > 0:
+        remapping_log_info.mapping_succeed = True
+      remapping_log_info.remapper_mode = RemapperType.from_string(row[11])
+      remapping_log_info.remapper_time = float(row[12])
+      remapping_log_info.mapping_json_list = row[13].strip("[]").replace("'", "").split(", ")
       remapping_log_info_list.append(remapping_log_info)
 
   with open(db_csv_file_path) as f:
@@ -86,10 +90,11 @@ def load_result_from_csv(csv_dir_path, benchmark_list):
       db_log_info.memory_io = MemoryIOType.get_from_string(row[6])
       db_log_info.cgra_type = CGRAType.get_from_string(row[7])
       db_log_info.network_type = NetworkType.get_from_string(row[8])
-      db_log_info.timeout = float(row[9])
-      db_log_info.creating_time = float(row[10])
-      db_log_info.min_utilization = float(row[11])
-      db_log_info.mapping_log_file_list = row[12].strip("[]").replace("'", "").split(", ")
+      db_log_info.local_reg_size = int(row[9])
+      db_log_info.timeout = float(row[10])
+      db_log_info.creating_time = float(row[11])
+      db_log_info.min_utilization = float(row[12])
+      db_log_info.mapping_log_file_list = row[13].strip("[]").replace("'", "").split(", ")
       if db_log_info.mapping_log_file_list == [""]:
         db_log_info.mapping_log_file_list = []
       

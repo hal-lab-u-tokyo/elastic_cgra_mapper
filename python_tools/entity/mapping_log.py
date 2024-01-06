@@ -1,5 +1,6 @@
 import os
 import re
+from .cgra import *
 
 class MappingLogInfo:
     def __init__(self):
@@ -18,6 +19,7 @@ class MappingLogInfo:
         self.num_threads: int = -1
         self.timeout: float = -1
         self.parallel_num: int = -1
+        self.local_reg_size: int = 0
 
     def get_input_as_str(self):
         return self.benchmark + str(self.row) + "_" + str(self.column) + "_" + str(self.context_size) + "_" + str(self.memory_io.value) + "_" + str(self.cgra_type.value) + "_" + str(self.network_type.value) + str(self.num_threads) + "_" + str(self.timeout) + "_" + str(self.parallel_num)
@@ -28,3 +30,6 @@ class MappingLogInfo:
         if len(find_number) == 0:
             return -1
         return int(find_number[0])
+
+    def get_cgra(self):
+        return CGRA(self.cgra_type, self.row, self.column, self.context_size, self.memory_io, self.network_type, self.local_reg_size)
