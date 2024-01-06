@@ -112,7 +112,7 @@ if __name__ == "__main__":
   # output to csv 
   mapping_csv_file = open(mapping_output_file, "w")
   mapping_writer = csv.writer(mapping_csv_file)
-  mapping_writer.writerow(["log_file_path", "date", "time", "row", "column", "context_size", "memory_io", "cgra_type", "network_type", "local_reg_size" "mapping_succeed", "mapping_time", "num_threads", "timeout", "parallel_num", "mapping_file"])
+  mapping_writer.writerow(["log_file_path", "date", "time", "row", "column", "context_size", "memory_io", "cgra_type", "network_type", "local_reg_size", "mapping_succeed", "mapping_time", "num_threads", "timeout", "parallel_num", "mapping_file"])
   for log_info in mapping_log_info_list:
     mapping_writer.writerow([log_info.log_file_path, get_ymd_from_unix(unix_time), get_hms_from_unix(unix_time), log_info.row, log_info.column, log_info.context_size, log_info.memory_io.to_string(), log_info.cgra_type.to_string(), log_info.network_type.to_string(), log_info.local_reg_size,log_info.mapping_succeed, log_info.mapping_time, log_info.num_threads, log_info.timeout, log_info.parallel_num, log_info.mapping_file_path])
   mapping_csv_file.close()
