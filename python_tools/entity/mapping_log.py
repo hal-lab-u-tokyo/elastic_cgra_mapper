@@ -28,3 +28,6 @@ class MappingLogInfo:
         if len(find_number) == 0:
             return -1
         return int(find_number[0])
+
+    def get_cgra(self):
+        return CGRA(self.cgra_type, self.row, self.column, self.context_size, self.memory_io, self.network_type, self.local_reg_size)
