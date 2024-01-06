@@ -56,6 +56,7 @@ def remapping_log_reader(log_file_path, benchmark_list=[]) -> Tuple[bool, Remapp
                 remapping_time = float(parse.parse("remapping time (s): {}\n", line)[0])
             if line_num == mapping_file_num + 8:
                 remapper_log_info.parallel_num = get_parallel_num(log_file_path)
+                remapper_log_info.mapping_succeed = True
 
             line_num = line_num + 1
             
