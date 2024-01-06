@@ -77,6 +77,8 @@ if __name__ == "__main__":
     remapper_dir = os.path.join(plotter_config.output_dir_path, benchmark, "remapping")
     database_log_dir = os.path.join(plotter_config.output_dir_path, benchmark, "database/log")
 
+    if not os.path.exists(mapping_log_dir):
+      continue
     for file in os.listdir(mapping_log_dir):
       if file.endswith(".log"):
         file_path = os.path.join(mapping_log_dir, file)
