@@ -34,7 +34,7 @@ def load_result_from_csv(csv_dir_path, benchmark_list):
       mapping_log_info.cgra_type = CGRAType.get_from_string(row[7])
       mapping_log_info.network_type = NetworkType.get_from_string(row[8])
       mapping_log_info.local_reg_size = int(row[9])
-      mapping_log_info.mapping_succeed = row[10]
+      mapping_log_info.mapping_succeed = int(row[10])
       mapping_log_info.mapping_time = float(row[11])
       mapping_log_info.num_threads = int(row[12])
       mapping_log_info.timeout = float(row[13]) 
