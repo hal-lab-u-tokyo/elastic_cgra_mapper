@@ -48,6 +48,7 @@ def remapping_log_reader(log_file_path, benchmark_list=[]) -> Tuple[bool, Remapp
                 remapper_log_info.memory_io = cgra.memory_io_type
                 remapper_log_info.cgra_type = cgra.cgra_type
                 remapper_log_info.network_type = cgra.network_type
+                remapper_log_info.local_reg_size = cgra.local_reg_size
             if line_num == mapping_file_num + 5:
                 mode = parse.parse("remapper mode: {:w}\n", line)[0]
                 remapper_log_info.remapper_mode = RemapperType.from_string(mode)            

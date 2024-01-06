@@ -110,23 +110,23 @@ if __name__ == "__main__":
   # output to csv 
   mapping_csv_file = open(mapping_output_file, "w")
   mapping_writer = csv.writer(mapping_csv_file)
-  mapping_writer.writerow(["log_file_path", "date", "time", "row", "column", "context_size", "memory_io", "cgra_type", "network_type", "mapping_succeed", "mapping_time", "num_threads", "timeout", "parallel_num", "mapping_file"])
+  mapping_writer.writerow(["log_file_path", "date", "time", "row", "column", "context_size", "memory_io", "cgra_type", "network_type", "local_reg_size" "mapping_succeed", "mapping_time", "num_threads", "timeout", "parallel_num", "mapping_file"])
   for log_info in mapping_log_info_list:
-    mapping_writer.writerow([log_info.log_file_path, get_ymd_from_unix(unix_time), get_hms_from_unix(unix_time), log_info.row, log_info.column, log_info.context_size, log_info.memory_io.to_string(), log_info.cgra_type.to_string(), log_info.network_type.to_string(), log_info.mapping_succeed, log_info.mapping_time, log_info.num_threads, log_info.timeout, log_info.parallel_num, log_info.mapping_file_path])
+    mapping_writer.writerow([log_info.log_file_path, get_ymd_from_unix(unix_time), get_hms_from_unix(unix_time), log_info.row, log_info.column, log_info.context_size, log_info.memory_io.to_string(), log_info.cgra_type.to_string(), log_info.network_type.to_string(), log_info.local_reg_size,log_info.mapping_succeed, log_info.mapping_time, log_info.num_threads, log_info.timeout, log_info.parallel_num, log_info.mapping_file_path])
   mapping_csv_file.close()
   
   remapping_csv_file = open(remapping_output_file, "w")
   remapping_writer = csv.writer(remapping_csv_file)
-  remapping_writer.writerow(["log_file_path", "date", "time", "row", "column", "context_size", "memory_io", "cgra_type", "network_type", "parallel_num", "remapper_mode", "remapper_time", "mapping_json_list"])
+  remapping_writer.writerow(["log_file_path", "date", "time", "row", "column", "context_size", "memory_io", "cgra_type", "network_type", "local_reg_size", "parallel_num", "remapper_mode", "remapper_time", "mapping_json_list"])
   for log_info in remapping_log_info_list:
-    remapping_writer.writerow([log_info.log_file_path, get_ymd_from_unix(unix_time), get_hms_from_unix(unix_time), log_info.row, log_info.column, log_info.context_size, log_info.memory_io.to_string(), log_info.cgra_type.to_string(), log_info.network_type.to_string(), log_info.parallel_num, log_info.remapper_mode.to_string(), log_info.remapper_time, log_info.mapping_json_list])
+    remapping_writer.writerow([log_info.log_file_path, get_ymd_from_unix(unix_time), get_hms_from_unix(unix_time), log_info.row, log_info.column, log_info.context_size, log_info.memory_io.to_string(), log_info.cgra_type.to_string(), log_info.network_type.to_string(), log_info.local_reg_size, log_info.parallel_num, log_info.remapper_mode.to_string(), log_info.remapper_time, log_info.mapping_json_list])
   remapping_csv_file.close()
 
   database_csv_file = open(db_output_file, "w")
   database_writer = csv.writer(database_csv_file)
-  database_writer.writerow(["log_file_path", "date", "time", "row", "column", "context_size", "memory_io", "cgra_type", "network_type", "timeout", "creating_time", "min_utilization", "mapping_log_file_list"])
+  database_writer.writerow(["log_file_path", "date", "time", "row", "column", "context_size", "memory_io", "cgra_type", "network_type", "local_reg_size", "timeout", "creating_time", "min_utilization", "mapping_log_file_list"])
   for log_info in database_log_info_list:
-    database_writer.writerow([log_info.log_file_path, get_ymd_from_unix(unix_time), get_hms_from_unix(unix_time), log_info.row, log_info.column, log_info.context_size, log_info.memory_io.to_string(), log_info.cgra_type.to_string(), log_info.network_type.to_string(), log_info.timeout, log_info.creating_time, log_info.min_utilization, log_info.mapping_log_file_list])
+    database_writer.writerow([log_info.log_file_path, get_ymd_from_unix(unix_time), get_hms_from_unix(unix_time), log_info.row, log_info.column, log_info.context_size, log_info.memory_io.to_string(), log_info.cgra_type.to_string(), log_info.network_type.to_string(), log_info.local_reg_size, log_info.timeout, log_info.creating_time, log_info.min_utilization, log_info.mapping_log_file_list])
   database_csv_file.close()
 
 
