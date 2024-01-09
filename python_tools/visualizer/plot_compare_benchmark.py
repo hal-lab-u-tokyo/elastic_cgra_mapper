@@ -9,6 +9,7 @@ from io_lib import *
 from db_manager import *
 import re
 import enum
+import math
 
 def check_dir_availability(dir_name):
   if not os.path.exists(dir_name):
@@ -24,7 +25,7 @@ class MappingType(enum.Enum):
 class DataToPlot:
   def __init__(self):
     self.utilization: List[float] = [0,0,0,0,0]
-    self.time: List[float] = [-1,-1,-1,-1,0]
+    self.time: List[float] = [0,0,0,0,0]
     self.unix_time: List[int] = [0,0,0,0,0]
 
 class AllDataToPlot:
@@ -98,6 +99,39 @@ class AllDataToPlot:
     ax.legend()
     plt.xticks(greedy_pos, self.data_of_each_benchmark.keys())
     fig.savefig("./output/compare_benchmark/" + image_name + "_time.png")
+
+    fig, ax = plt.subplots()
+    full_search_pos = [pos + 0.2 for pos in loop_unrolling_pos]
+    greedy_pos = [pos + 0.4 for pos in loop_unrolling_pos]
+    dp_pos = [pos + 0.6 for pos in loop_unrolling_pos]
+    database_pos = [pos + 0.8 for pos in loop_unrolling_pos]
+
+    full_search_time_log_list = []
+    dp_time_log_list = []
+    greedy_time_log_list = []
+    database_time_log_list = []
+
+    def log(x):
+      if x == 0:
+        return 0
+      else:
+        return math.log(x)
+
+    for i in range(len(full_search_time_list)):
+      full_search_time_log_list.append(log(full_search_time_list[i]))
+      dp_time_log_list.append(log(dp_time_list[i]))
+      greedy_time_log_list.append(log(greedy_time_list[i]))
+      database_time_log_list.append(log(db_time_list[i]))
+
+    ax.bar(full_search_pos, full_search_time_log_list, width=0.2, label="full seasrch")
+    ax.bar(dp_pos, dp_time_log_list, width=0.2, label="dp")
+    ax.bar(greedy_pos, greedy_time_log_list, width=0.2, label="greedy")
+    ax.bar(database_pos, database_time_log_list, width=0.2, label="database")
+    ax.set_xlabel("benchmark")
+    ax.set_ylabel("time")
+    ax.legend()
+    plt.xticks(greedy_pos, self.data_of_each_benchmark.keys())
+    fig.savefig("./output/compare_benchmark/" + image_name + "_time_log.png")
 
 if __name__ == "__main__": 
   args = sys.argv
