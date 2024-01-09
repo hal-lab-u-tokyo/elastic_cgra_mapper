@@ -1,5 +1,6 @@
 from entity import *
 from .cgra_json_reader import *
+from .mapping_log_reader import *
 import parse
 
 def database_log_reader(file_path, benchmark_list=[]):
@@ -36,11 +37,25 @@ def database_log_reader(file_path, benchmark_list=[]):
           mapping_file_num = len(log_info.mapping_log_file_list)
         else:
           mapping_file_path = parsed[0]
+          if not os.path.exists(mapping_file_path):
+            return (False, log_info)
           log_info.mapping_log_file_list.append(mapping_file_path)
           mapping_file_num = mapping_file_num + 1
       if line_num == mapping_file_num + 8:
-        log_info.creating_time = parse.parse("creating db time (s): {:f}\n", line)[0]
+        parsed = parse.parse("creating db time (s): {:f}\n", line)
+        if parsed == None:
+          return (False, log_info)
+        log_info.creating_time = parsed[0]
 
       line_num = line_num + 1
 
-  return log_info
+    if log_info.creating_time < 0:
+      creating_time = 0
+      for mapping_file_path in log_info.mapping_log_file_list:
+        success, mapping_log_info = mapping_log_reader(mapping_file_path)
+        if not success:
+          return (False, log_info)
+        creating_time = creating_time + mapping_log_info.mapping_time
+      log_info.creating_time = creating_time
+
+  return (True, log_info)

@@ -106,8 +106,9 @@ if __name__ == "__main__":
         file_path = os.path.join(database_log_dir, file)
         unix_time = get_unix_time_from_file_path(file_path)
         if unix_time > max_unix_time:
-          db_log_info = database_log_reader(file_path)
-          database_log_info_list.append(db_log_info)              
+          success, db_log_info = database_log_reader(file_path)
+          if success:
+            database_log_info_list.append(db_log_info)              
 
   # output to csv 
   mapping_csv_file = open(mapping_output_file, "w")

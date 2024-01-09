@@ -16,6 +16,13 @@ class CompareCGRASizeConfig:
     self.context_size: int = 0
     self.network_type: NetworkType = NetworkType.Orthogonal
 
+class CompareDatabaseTimeout:
+  def __init__(self):
+    self.min_size: int = 0
+    self.max_size: int = 0
+    self.context_size: int = 0
+    self.network_type: NetworkType = NetworkType.Orthogonal
+    self.timeout_list = []
 
 class BenchmarkConfig: 
   def __init__(self):
@@ -30,6 +37,7 @@ class PlotterConfig:
     self.database_timeout: float = 0
     self.compare_benchmark_config: CompareBenchmarkConfig = CompareBenchmarkConfig()
     self.compare_cgra_size_config: CompareCGRASizeConfig = CompareCGRASizeConfig()
+    self.compare_database_timeout: CompareDatabaseTimeout = CompareDatabaseTimeout()
     self.benchmark_list: List[BenchmarkConfig] = []
 
   def get_benchmark_list(self):
@@ -79,6 +87,13 @@ def load_plotter_config(config_path):
   plotter_config.compare_cgra_size_config.max_size = json_dict["compare_cgra_size_config"]["max_size"]
   plotter_config.compare_cgra_size_config.context_size = json_dict["compare_cgra_size_config"]["context_size"]
   plotter_config.compare_cgra_size_config.network_type = NetworkType.get_from_string(json_dict["compare_cgra_size_config"]["network_type"])
+
+  # compare database timeout
+  plotter_config.compare_database_timeout.min_size = json_dict["compare_database_timeout"]["min_size"]
+  plotter_config.compare_database_timeout.max_size = json_dict["compare_database_timeout"]["max_size"]
+  plotter_config.compare_database_timeout.context_size = json_dict["compare_database_timeout"]["context_size"]
+  plotter_config.compare_database_timeout.network_type = NetworkType.get_from_string(json_dict["compare_database_timeout"]["network_type"])
+  plotter_config.compare_database_timeout.timeout_list = json_dict["compare_database_timeout"]["timeout_list"]
 
   # benchmark list
   for benchmark in json_dict["benchmark_list"]:

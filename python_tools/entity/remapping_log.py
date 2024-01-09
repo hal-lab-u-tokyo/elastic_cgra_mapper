@@ -42,7 +42,7 @@ class RemapperLogInfo:
         self.network_type: NetworkType
         self.local_reg_size: int = 0
         self.mapping_succeed: bool = False
-        self.remapper_time: float = 0
+        self.remapper_time: float = None
         self.parallel_num: int
         self.remapper_mode: RemapperType
         self.mapping_json_list = []

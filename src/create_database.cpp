@@ -160,8 +160,8 @@ int main(int argc, char* argv[]) {
                                  db_timeout_s, kMinUtilization});
   if (logger.countMappingDataNum() != 0 && !overwrite) {
     return 0;
-  } else if(overwrite){
-    logger.DeleteAllMappingData();    
+  } else if (overwrite) {
+    logger.DeleteAllMappingData();
   }
   while (1) {
     std::vector<remapper::MappingMatrix> tmp_mapping_matrix_vec;
@@ -183,9 +183,16 @@ int main(int argc, char* argv[]) {
     }
 
     std::ofstream remapper_log_file(logger.GetSelectionLogFilePath());
-    const auto remapping_result =
+    const auto dp_start_time = std::chrono::system_clock::now();
+    auto remapping_result =
         remapper::DPElasticRemapping(tmp_mapping_matrix_vec, cgra_matrix,
                                      target_parallel_num, remapper_log_file);
+    const auto dp_end_time = std::chrono::system_clock::now();
+    remapping_result.remapping_time_s =
+        std::chrono::duration_cast<std::chrono::milliseconds>(dp_end_time -
+                                                              dp_start_time)
+            .count() /
+        1000.0;
 
     creating_db_time_s += remapping_result.remapping_time_s;
     const auto sorted_mapping_id_vec =

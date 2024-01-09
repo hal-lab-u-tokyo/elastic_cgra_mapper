@@ -54,7 +54,7 @@ class AllDataToPlot:
     self.data_of_each_benchmark[benchmark_name].unix_time[mapping_type.value][cgra_size_idx] = unix_time
 
   def plot(self, image_name):
-    check_dir_availability("./output/utilization_comparison/")
+    check_dir_availability("./output/compare_cgra_size/")
     label_list = ["remapping:database","remapping:dp", "remapping:greedy", "remapping: full_search" , "not remapping"]
     for benchmark in self.data_of_each_benchmark.keys():
       fig, ax = plt.subplots()
@@ -71,7 +71,7 @@ class AllDataToPlot:
       ax.set_ylabel("utilization")
       ax.legend()
 
-      fig.savefig("./output/utilization_comparison/" + image_name + "_"+ benchmark + "_util.png")
+      fig.savefig("./output/compare_cgra_size/" + image_name + "_"+ benchmark + "_util.png")
 
       fig, ax = plt.subplots()
       for mapping_type in range(5):
@@ -87,7 +87,7 @@ class AllDataToPlot:
       ax.set_ylabel("time")
       ax.legend()
 
-      fig.savefig("./output/utilization_comparison/" + image_name + "_" + benchmark + "_time.png")
+      fig.savefig("./output/compare_cgra_size/" + image_name + "_" + benchmark + "_time.png")
 
 if __name__ == "__main__": 
   args = sys.argv
@@ -175,6 +175,8 @@ if __name__ == "__main__":
     utilization = remapping_info.parallel_num * benchmark_node_num[benchmark]/ all_context
 
     database_info = db_manager.get_database_info(remapping_info)
+    if database_info is None:
+      continue
     if database_info.timeout != plotter_config.database_timeout:
       continue
     time = remapping_info.remapper_time + database_info.creating_time
