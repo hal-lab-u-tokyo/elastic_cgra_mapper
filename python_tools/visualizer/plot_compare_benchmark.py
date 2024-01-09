@@ -170,6 +170,8 @@ if __name__ == "__main__":
     utilization = remapping_info.parallel_num * benchmark_node_num[benchmark]/ all_context
 
     database_info = db_manager.get_database_info(remapping_info)
+    if database_info == None:
+      continue
     if database_info.timeout != plotter_config.database_timeout:
       continue
     time = remapping_info.remapper_time + database_info.creating_time
