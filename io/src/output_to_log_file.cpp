@@ -225,8 +225,10 @@ void io::CreateDatabaseLogger::DeleteAllMappingData() {
   }
 
   for (const auto& file :
-       std::filesystem::directory_iterator(database_dir_path)) {
-    std::filesystem::remove(file.path());
+       std::filesystem::recursive_directory_iterator(database_dir_path)) {
+    if (!std::filesystem::is_directory(file.path())) {
+      std::filesystem::remove(file.path());
+    }
   }
 }
 
