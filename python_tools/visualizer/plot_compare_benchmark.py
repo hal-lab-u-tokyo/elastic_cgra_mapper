@@ -139,7 +139,7 @@ if __name__ == "__main__":
       continue
     if cgra_type != CGRAType.Elastic:
       continue
-    if mapping_succeed == "0":
+    if mapping_succeed == False:
       continue
 
     utilization = mapping_info.parallel_num * benchmark_node_num[benchmark]/ all_context
