@@ -10,6 +10,10 @@ from db_manager import *
 import re
 import enum
 
+def check_dir_availability(dir_name):
+  if not os.path.exists(dir_name):
+    os.makedirs(dir_name)
+
 class MappingType(enum.Enum):
   dp = 0
   greedy = 1
@@ -40,6 +44,7 @@ class AllDataToPlot:
     self.data_of_each_benchmark[benchmark_name].unix_time[mapping_type.value] = unix_time
 
   def plot(self, image_name):
+    check_dir_availability("./output/compare_benchmark/")
     dp_utilization = []
     greedy_utilization = []
     full_search_utilization = []
@@ -75,7 +80,7 @@ class AllDataToPlot:
     ax.set_ylabel("utilization")
     ax.legend()
     plt.xticks(label_pos, self.data_of_each_benchmark.keys())
-    fig.savefig("./output/utilization_comparison/" + image_name + "_util.png")
+    fig.savefig("./output/compare_benchmark/" + image_name + "_util.png")
 
     fig, ax = plt.subplots()
     full_search_pos = [pos + 0.2 for pos in loop_unrolling_pos]
@@ -92,7 +97,7 @@ class AllDataToPlot:
     ax.set_ylabel("time")
     ax.legend()
     plt.xticks(greedy_pos, self.data_of_each_benchmark.keys())
-    fig.savefig("./output/utilization_comparison/" + image_name + "_time.png")
+    fig.savefig("./output/compare_benchmark/" + image_name + "_time.png")
 
 if __name__ == "__main__": 
   args = sys.argv
