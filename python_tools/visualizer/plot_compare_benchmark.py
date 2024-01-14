@@ -25,12 +25,13 @@ class MappingType(enum.Enum):
 class DataToPlot:
   def __init__(self):
     self.utilization: List[float] = [0,0,0,0,0]
-    self.time: List[float] = [0,0,0,0,0]
+    self.time: List[float] = [0,0,0,-1,0]
     self.unix_time: List[int] = [0,0,0,0,0]
 
 class AllDataToPlot:
-  def __init__(self):
+  def __init__(self, color_settings):
     self.data_of_each_benchmark: dict = {}
+    self.color_settings: dict = color_settings
 
   def add_benchmark_data(self, benchmark_name, mapping_type, utilization, time, unix_time):
     if benchmark_name not in self.data_of_each_benchmark.keys():
@@ -65,18 +66,36 @@ class AllDataToPlot:
       full_search_time_list.append(self.data_of_each_benchmark[benchmark].time[MappingType.full_search.value] / self.data_of_each_benchmark[benchmark].time[MappingType.loop_unrolling.value])
       db_time_list.append(self.data_of_each_benchmark[benchmark].time[MappingType.database.value] / self.data_of_each_benchmark[benchmark].time[MappingType.loop_unrolling.value])
 
-    fig, ax = plt.subplots() 
-    loop_unrolling_pos = range(0, len(self.data_of_each_benchmark.keys()))
-    full_search_pos = [pos + 0.2 for pos in loop_unrolling_pos]
-    greedy_pos = [pos + 0.4 for pos in loop_unrolling_pos]
-    dp_pos = [pos + 0.6 for pos in loop_unrolling_pos]
-    database_pos = [pos + 0.8 for pos in loop_unrolling_pos]
-    label_pos = [pos + 0.3 for pos in loop_unrolling_pos]
+    fig, ax = plt.subplots()
+    width = 0.15
+    loop_unrolling_opt_pos = range(0, len(self.data_of_each_benchmark.keys()))
+    loop_unrolling_timeout_pos = [pos + width for pos in loop_unrolling_opt_pos]
+    full_search_pos = [pos + width * 2 for pos in loop_unrolling_opt_pos]
+    greedy_pos = [pos + width * 3 for pos in loop_unrolling_opt_pos]
+    dp_pos = [pos + width * 4 for pos in loop_unrolling_opt_pos]
+    label_pos = [pos + width * 2 for pos in loop_unrolling_opt_pos]
 
-    ax.bar(loop_unrolling_pos, loop_unrolling_utilization, width=0.2, label="no remapping")
-    ax.bar(full_search_pos, full_search_utilization, width=0.2, label="remapping: full search")
-    ax.bar(greedy_pos, greedy_utilization, width=0.2, label="remapping: greedy")
-    ax.bar(dp_pos, dp_utilization, width=-0.2, label="remapping: dp")
+    loop_unrolling_opt_utilization = []
+    for i in range(len(loop_unrolling_utilization)):
+      max_remapping = max(dp_utilization[i], greedy_utilization[i], full_search_utilization[i])
+      if loop_unrolling_utilization[i] < max_remapping:
+        loop_unrolling_opt_utilization.append(0)
+      else:
+        loop_unrolling_opt_utilization.append(loop_unrolling_utilization[i])
+
+    rects = ax.bar(loop_unrolling_opt_pos, loop_unrolling_opt_utilization, width=width, label="single-phase: optimal", color=self.color_settings["single-phase"]["optimal"])
+    for rect in rects:
+      height = rect.get_height()
+      if height == 0:
+        ax.annotate("✖️", xy=(rect.get_x() + rect.get_width() / 2, height), xytext=(0, 3), textcoords="offset points", ha="center", va="bottom")
+    ax.bar(loop_unrolling_timeout_pos, loop_unrolling_utilization, width=width, label="single-phase: timeout", color=self.color_settings["single-phase"]["timeout"])
+    rects = ax.bar(full_search_pos, full_search_utilization, width=width, label="two-phase: full search", color=self.color_settings["two-phase"]["full_search"])
+    for rect in rects:
+      height = rect.get_height()
+      if height == 0:
+        ax.annotate("✖️", xy=(rect.get_x() + rect.get_width() / 2, height), xytext=(0, 3), textcoords="offset points", ha="center", va="bottom")
+    ax.bar(greedy_pos, greedy_utilization, width=width, label="two-phase: greedy", color=self.color_settings["two-phase"]["greedy"])
+    ax.bar(dp_pos, dp_utilization, width=-width, label="two-phase: dp", color=self.color_settings["two-phase"]["dp"])
     ax.set_xlabel("benchmark")
     ax.set_ylabel("utilization")
     ax.legend()
@@ -84,16 +103,17 @@ class AllDataToPlot:
     fig.savefig("./output/compare_benchmark/" + image_name + "_util.png")
 
     fig, ax = plt.subplots()
+    loop_unrolling_pos = range(0, len(self.data_of_each_benchmark.keys()))
     full_search_pos = [pos + 0.2 for pos in loop_unrolling_pos]
     greedy_pos = [pos + 0.4 for pos in loop_unrolling_pos]
     dp_pos = [pos + 0.6 for pos in loop_unrolling_pos]
     database_pos = [pos + 0.8 for pos in loop_unrolling_pos]
 
 
-    ax.bar(full_search_pos, full_search_time_list, width=0.2, label="full seasrch")
-    ax.bar(dp_pos, dp_time_list, width=0.2, label="dp")
-    ax.bar(greedy_pos, greedy_time_list, width=0.2, label="greedy")
-    ax.bar(database_pos, db_time_list, width=0.2, label="database")
+    ax.bar(full_search_pos, full_search_time_list, width=0.2, label="full search", color=self.color_settings["two-phase"]["full_search"])
+    ax.bar(greedy_pos, greedy_time_list, width=0.2, label="greedy", color=self.color_settings["two-phase"]["greedy"])
+    ax.bar(dp_pos, dp_time_list, width=0.2, label="dp", color=self.color_settings["two-phase"]["dp"])
+    ax.bar(database_pos, db_time_list, width=0.2, label="database", color=self.color_settings["two-phase"]["database"])
     ax.set_xlabel("benchmark")
     ax.set_ylabel("time")
     ax.legend()
@@ -112,7 +132,7 @@ class AllDataToPlot:
     database_time_log_list = []
 
     def log(x):
-      if x == 0:
+      if x <= 0:
         return 0
       else:
         return math.log(x)
@@ -123,10 +143,10 @@ class AllDataToPlot:
       greedy_time_log_list.append(log(greedy_time_list[i]))
       database_time_log_list.append(log(db_time_list[i]))
 
-    ax.bar(full_search_pos, full_search_time_log_list, width=0.2, label="full seasrch")
-    ax.bar(dp_pos, dp_time_log_list, width=0.2, label="dp")
-    ax.bar(greedy_pos, greedy_time_log_list, width=0.2, label="greedy")
-    ax.bar(database_pos, database_time_log_list, width=0.2, label="database")
+    ax.bar(full_search_pos, full_search_time_log_list, width=0.2, label="full search", color=self.color_settings["two-phase"]["full_search"])
+    ax.bar(dp_pos, dp_time_log_list, width=0.2, label="dp", color=self.color_settings["two-phase"]["dp"])
+    ax.bar(greedy_pos, greedy_time_log_list, width=0.2, label="greedy", color=self.color_settings["two-phase"]["greedy"])
+    ax.bar(database_pos, database_time_log_list, width=0.2, label="database", color=self.color_settings["two-phase"]["database"])
     ax.set_xlabel("benchmark")
     ax.set_ylabel("time")
     ax.legend()
@@ -156,8 +176,8 @@ if __name__ == "__main__":
     benchmark_node_num[benchmark] = dfg_node_size
 
   memory_io_to_all_data_to_plot = {}
-  memory_io_to_all_data_to_plot["all"] = AllDataToPlot()
-  memory_io_to_all_data_to_plot["both_ends"] = AllDataToPlot()
+  memory_io_to_all_data_to_plot["all"] = AllDataToPlot(plotter_config.color_settings)
+  memory_io_to_all_data_to_plot["both_ends"] = AllDataToPlot(plotter_config.color_settings)
   all_context = plotter_config.compare_benchmark_config.row * plotter_config.compare_benchmark_config.column * plotter_config.compare_benchmark_config.context_size
 
   for mapping_info in mapping_info_list:
