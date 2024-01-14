@@ -199,6 +199,10 @@ int main(int argc, char* argv[]) {
         SortElementByFreqency(remapping_result.result_mapping_id_vec);
 
     for (const auto mapping_id : sorted_mapping_id_vec) {
+      if (creating_db_time_s > db_timeout_s) {
+        break;
+      }
+
       const auto tmp_mrrg_config = mrrg_config_vec[mapping_id];
       std::shared_ptr<entity::MRRG> mrrg_ptr =
           std::make_shared<entity::MRRG>(tmp_mrrg_config);
@@ -225,6 +229,9 @@ int main(int argc, char* argv[]) {
       } else {
         break;
       }
+    }
+    if (creating_db_time_s > db_timeout_s) {
+      break;
     }
   }
 
