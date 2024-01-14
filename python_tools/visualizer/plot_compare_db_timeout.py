@@ -116,8 +116,8 @@ if __name__ == "__main__":
     benchmark_node_num[benchmark] = dfg_node_size
 
   memory_io_to_all_data_to_plot = {}
-  memory_io_to_all_data_to_plot["all"] = AllDataToPlot(plotter_config.compare_cgra_size_config.min_size, plotter_config.compare_cgra_size_config.max_size, plotter_config.compare_database_timeout.timeout_list)
-  memory_io_to_all_data_to_plot["both_ends"] = AllDataToPlot(plotter_config.compare_cgra_size_config.min_size, plotter_config.compare_cgra_size_config.max_size, plotter_config.compare_database_timeout.timeout_list)
+  memory_io_to_all_data_to_plot["all"] = AllDataToPlot(plotter_config.compare_database_timeout.min_size, plotter_config.compare_database_timeout.max_size, plotter_config.compare_database_timeout.timeout_list)
+  memory_io_to_all_data_to_plot["both_ends"] = AllDataToPlot(plotter_config.compare_database_timeout.min_size, plotter_config.compare_database_timeout.max_size, plotter_config.compare_database_timeout.timeout_list)
 
   for remapping_info in remapping_info_list:
     row = remapping_info.row
@@ -132,13 +132,13 @@ if __name__ == "__main__":
       continue 
     if row != column:
       continue
-    if row < plotter_config.compare_cgra_size_config.min_size or plotter_config.compare_cgra_size_config.max_size < row:
+    if row < plotter_config.compare_database_timeout.min_size or plotter_config.compare_database_timeout.max_size < row:
       continue
-    if column < plotter_config.compare_cgra_size_config.min_size or plotter_config.compare_cgra_size_config.max_size < column:
+    if column < plotter_config.compare_database_timeout.min_size or plotter_config.compare_database_timeout.max_size < column:
       continue
-    if context_size != plotter_config.compare_benchmark_config.context_size:
+    if context_size != plotter_config.compare_database_timeout.context_size:
       continue
-    if network_type != plotter_config.compare_benchmark_config.network_type:
+    if network_type != plotter_config.compare_database_timeout.network_type:
       continue
     if cgra_type != CGRAType.Elastic:
       continue

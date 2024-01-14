@@ -2,6 +2,18 @@
   "kernel_dir_path": "/home/ubuntu/elastic_cgra_mapper/benchmark/kernel/",
   "output_dir_path": "/home/ubuntu/elastic_cgra_mapper/output/",
   "visualizer_output_dir_path": "/home/ubuntu/elastic_cgra_mapper/python_tools/visualizer/output/",
+  "color_settings": {
+    "single-phase": {
+      "optimal": "tab:red",
+      "timeout": "tab:blue"
+    },
+    "two-phase": {
+      "full_search": "tab:orange",
+      "greedy": "tab:green",
+      "dp": "tab:pink",
+      "database": "tab:purple"
+    }
+  },
   "compare_benchmark_config": {
     "row": 6,
     "column": 6,

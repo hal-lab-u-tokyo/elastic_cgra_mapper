@@ -32,6 +32,7 @@ class BenchmarkConfig:
 
 class PlotterConfig:
   def __init__(self):
+    self.color_settings: dict = {}
     self.kernel_dir_path: str =  ""
     self.database_dir_path: str = ""
     self.database_timeout: float = 0
@@ -71,6 +72,7 @@ def load_plotter_config(config_path):
   plotter_config = PlotterConfig()
 
   # kernel dir path
+  plotter_config.color_settings = json_dict["color_settings"]
   plotter_config.kernel_dir_path = json_dict["kernel_dir_path"]
   plotter_config.output_dir_path = json_dict["output_dir_path"]
   plotter_config.visualizer_output_dir_path = json_dict["visualizer_output_dir_path"]

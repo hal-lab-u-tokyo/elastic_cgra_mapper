@@ -55,7 +55,10 @@ class AllDataToPlot:
 
   def plot(self, image_name):
     check_dir_availability("./output/compare_cgra_size/")
-    label_list = ["remapping:database","remapping:dp", "remapping:greedy", "remapping: full_search" , "not remapping"]
+    label_list = ["two-phase: database","two-phase: dp", "two-phase: greedy", "two-phase: full_search" , "signle-phase"]
+    color_list = ["tab:purple","tab:pink","tab:green","tab:orange","tab:red"]
+    marker_list = [".","v","^","o","D"]
+
     for benchmark in self.data_of_each_benchmark.keys():
       fig, ax = plt.subplots()
       for mapping_type in range(1,5):
@@ -66,7 +69,7 @@ class AllDataToPlot:
           if util != -1:
             util_list.append(util)
             cgra_size_list.append(i + self.min_cgra_size)
-        ax.plot(cgra_size_list, util_list, marker=".", label=label_list[mapping_type])
+        ax.plot(cgra_size_list, util_list, marker=marker_list[mapping_type], label=label_list[mapping_type], color=color_list[mapping_type])
       ax.set_xlabel("cgra size")
       ax.set_ylabel("utilization")
       ax.legend()
@@ -82,7 +85,7 @@ class AllDataToPlot:
           if time != -1:
             time_list.append(time)
             cgra_size_list.append(i + self.min_cgra_size)
-        ax.plot(cgra_size_list, time_list, marker=".", label=label_list[mapping_type])
+        ax.plot(cgra_size_list, time_list, marker=marker_list[mapping_type], label=label_list[mapping_type], color=color_list[mapping_type])
       ax.set_xlabel("cgra size")
       ax.set_ylabel("time")
       ax.legend()
@@ -133,9 +136,9 @@ if __name__ == "__main__":
       continue
     if column < plotter_config.compare_cgra_size_config.min_size or plotter_config.compare_cgra_size_config.max_size < column:
       continue
-    if context_size != plotter_config.compare_benchmark_config.context_size:
+    if context_size != plotter_config.compare_cgra_size_config.context_size:
       continue
-    if network_type != plotter_config.compare_benchmark_config.network_type:
+    if network_type != plotter_config.compare_cgra_size_config.network_type:
       continue
     if cgra_type != CGRAType.Elastic:
       continue
@@ -164,9 +167,9 @@ if __name__ == "__main__":
       continue
     if column < plotter_config.compare_cgra_size_config.min_size or plotter_config.compare_cgra_size_config.max_size < column:
       continue
-    if context_size != plotter_config.compare_benchmark_config.context_size:
+    if context_size != plotter_config.compare_cgra_size_config.context_size:
       continue
-    if network_type != plotter_config.compare_benchmark_config.network_type:
+    if network_type != plotter_config.compare_cgra_size_config.network_type:
       continue
     if cgra_type != CGRAType.Elastic:
       continue
