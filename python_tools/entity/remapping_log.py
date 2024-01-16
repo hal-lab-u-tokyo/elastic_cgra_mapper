@@ -44,7 +44,7 @@ class RemapperLogInfo:
         self.mapping_succeed: bool = False
         self.remapper_time: float = None
         self.parallel_num: int
-        self.mapping_type_num: int
+        self.mapping_type_num: int = 0
         self.remapper_mode: RemapperType
         self.mapping_json_list = []
 
