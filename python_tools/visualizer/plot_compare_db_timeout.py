@@ -15,61 +15,69 @@ def check_dir_availability(dir_name):
     os.makedirs(dir_name)
 
 class MappingType(enum.Enum):
-  database = 0
-  dp = 1
-  greedy = 2
-  full_search = 3
+  dp = 0
+  greedy = 1
+
+  @staticmethod
+  def create_mapping_type(id):
+    if id == 0:
+      return MappingType.dp
+    elif id == 1:
+      return MappingType.greedy
 
 class DataToPlot:
-  def __init__(self, cgra_num):
+  def __init__(self, database_timeout_list):
     self.utilization = []
     self.time = []
     self.unix_time = []
-    for i in range(5):
+    self.timeout_to_index = {}
+    for i in range(2):
       self.utilization.append([])
       self.time.append([])
       self.unix_time.append([])
-      for _ in range(0, cgra_num):
+      for j, timeout in enumerate(database_timeout_list):
+        self.timeout_to_index[timeout] = j
         self.utilization[i].append(-1)
         self.time[i].append(-1)
         self.unix_time[i].append(-1)
 
-class AllDataToPlot:
-  def __init__(self, min_cgra_size, max_cgra_size, db_timeout_s_list):
-    self.data_of_each_benchmark_and_timeout: dict = {}
-    
-    self.min_cgra_size = min_cgra_size
-    self.max_cgra_size = max_cgra_size
+  def add_data(self, timeout, util, time, unix_time, mapping_type):
+    if unix_time < self.unix_time[mapping_type.value][self.timeout_to_index[timeout]]:
+      return
+    # if util < self.utilization[mapping_type.value][self.timeout_to_index[timeout]]:
+    #   return
+    self.utilization[mapping_type.value][self.timeout_to_index[timeout]] = util
+    self.time[mapping_type.value][self.timeout_to_index[timeout]] = time
+    self.unix_time[mapping_type.value][self.timeout_to_index[timeout]] = unix_time
 
-  def add_benchmark_data(self, benchmark_name, mapping_type, cgra_size, utilization, time, unix_time, db_timeout_s):
-    cgra_size_idx = cgra_size - self.min_cgra_size
-    if benchmark_name not in self.data_of_each_benchmark_and_timeout.keys():
-      self.data_of_each_benchmark_and_timeout[benchmark_name] = {}
-    if db_timeout_s not in self.data_of_each_benchmark_and_timeout[benchmark_name].keys():
-      self.data_of_each_benchmark_and_timeout[benchmark_name][db_timeout_s] = DataToPlot(self.max_cgra_size - self.min_cgra_size + 1)
-    if utilization < self.data_of_each_benchmark_and_timeout[benchmark_name][db_timeout_s].utilization[mapping_type.value][cgra_size_idx]:
-      return
-    if unix_time < self.data_of_each_benchmark_and_timeout[benchmark_name][db_timeout_s].unix_time[mapping_type.value][cgra_size_idx]:
-      return
-    self.data_of_each_benchmark_and_timeout[benchmark_name][db_timeout_s].utilization[mapping_type.value][cgra_size_idx] = utilization
-    self.data_of_each_benchmark_and_timeout[benchmark_name][db_timeout_s].time[mapping_type.value][cgra_size_idx] = time
-    self.data_of_each_benchmark_and_timeout[benchmark_name][db_timeout_s].unix_time[mapping_type.value][cgra_size_idx] = unix_time
+  def get_util(self, timeout, mapping_type):
+    return self.utilization[mapping_type.value][self.timeout_to_index[timeout]]
+  
+  def get_time(self, timeout, mapping_type):
+    return self.time[mapping_type.value][self.timeout_to_index[timeout]]
+
+class AllDataToPlot:
+  def __init__(self, db_timeout_s_list):
+    self.data_of_each_benchmark: dict = {}
+    self.db_timeout_s_list = db_timeout_s_list
+
+  def add_benchmark_data(self, benchmark_name, mapping_type, utilization, time, unix_time, db_timeout_s):
+    if benchmark_name not in self.data_of_each_benchmark.keys():
+      self.data_of_each_benchmark[benchmark_name] = DataToPlot(self.db_timeout_s_list)
+    self.data_of_each_benchmark[benchmark_name].add_data(db_timeout_s, utilization, time, unix_time, mapping_type)
 
   def plot(self, image_name):
     check_dir_availability("./output/compare_db_timeout/")
-    label_list = ["remapping:database","remapping:dp", "remapping:greedy", "remapping: full_search" , "not remapping"]
-    for benchmark in self.data_of_each_benchmark_and_timeout.keys():
+    label_list = ["remapping:dp", "remapping:greedy", "remapping: full_search"]
+    for benchmark in self.data_of_each_benchmark.keys():
       fig, ax = plt.subplots()
-      for timeout_s in self.data_of_each_benchmark_and_timeout[benchmark].keys():
-        for mapping_type in range(1,4):
-          util_list = []
-          cgra_size_list = []
-          for i in range(self.max_cgra_size - self.min_cgra_size + 1):
-            util = self.data_of_each_benchmark_and_timeout[benchmark][timeout_s].utilization[mapping_type][i]
-            if util != -1:
-              util_list.append(util)
-              cgra_size_list.append(i + self.min_cgra_size)
-          ax.plot(cgra_size_list, util_list, marker=".", label=str(int(timeout_s)) + ":" + label_list[mapping_type])
+      for mapping_type_idx in range(0,2):
+        mapping_type = MappingType.create_mapping_type(mapping_type_idx)
+        util_list = []
+        for timeout in self.db_timeout_s_list:
+          util = self.data_of_each_benchmark[benchmark].get_util(timeout, mapping_type)
+          util_list.append(util)
+        ax.plot(self.db_timeout_s_list, util_list, marker=".", label=label_list[mapping_type.value])
       ax.set_xlabel("cgra size")
       ax.set_ylabel("utilization")
       ax.legend()
@@ -77,16 +85,13 @@ class AllDataToPlot:
       fig.savefig("./output/compare_db_timeout/" + image_name + "_"+ benchmark + "_util.png")
 
       fig, ax = plt.subplots()
-      for timeout_s in self.data_of_each_benchmark_and_timeout[benchmark].keys():
-        for mapping_type in range(1,4):
-          time_list = []
-          cgra_size_list = []
-          for i in range(self.max_cgra_size - self.min_cgra_size + 1):
-            time = self.data_of_each_benchmark_and_timeout[benchmark][timeout_s].time[mapping_type][i]
-            if time != -1:
-              time_list.append(time)
-              cgra_size_list.append(i + self.min_cgra_size)
-          ax.plot(cgra_size_list, time_list, marker=".", label=str(int(timeout_s)) + ":" + label_list[mapping_type])
+      for mapping_type_idx in range(0,2):
+        mapping_type = MappingType.create_mapping_type(mapping_type_idx)
+        time_list = []
+        for timeout in self.db_timeout_s_list:
+          time = self.data_of_each_benchmark[benchmark].get_time(timeout, mapping_type)
+          time_list.append(time)
+        ax.plot(self.db_timeout_s_list, time_list, marker=".", label=label_list[mapping_type.value])
       ax.set_xlabel("cgra size")
       ax.set_ylabel("time")
       ax.legend()
@@ -116,8 +121,8 @@ if __name__ == "__main__":
     benchmark_node_num[benchmark] = dfg_node_size
 
   memory_io_to_all_data_to_plot = {}
-  memory_io_to_all_data_to_plot["all"] = AllDataToPlot(plotter_config.compare_database_timeout.min_size, plotter_config.compare_database_timeout.max_size, plotter_config.compare_database_timeout.timeout_list)
-  memory_io_to_all_data_to_plot["both_ends"] = AllDataToPlot(plotter_config.compare_database_timeout.min_size, plotter_config.compare_database_timeout.max_size, plotter_config.compare_database_timeout.timeout_list)
+  memory_io_to_all_data_to_plot["all"] = AllDataToPlot(plotter_config.compare_database_timeout.timeout_list)
+  memory_io_to_all_data_to_plot["both_ends"] = AllDataToPlot(plotter_config.compare_database_timeout.timeout_list)
 
   for remapping_info in remapping_info_list:
     row = remapping_info.row
@@ -130,12 +135,11 @@ if __name__ == "__main__":
 
     if benchmark not in plotter_config.get_benchmark_list():
       continue 
-    if row != column:
+
+    if row != plotter_config.compare_database_timeout.row:
       continue
-    if row < plotter_config.compare_database_timeout.min_size or plotter_config.compare_database_timeout.max_size < row:
-      continue
-    if column < plotter_config.compare_database_timeout.min_size or plotter_config.compare_database_timeout.max_size < column:
-      continue
+    if column != plotter_config.compare_database_timeout.column:
+      continue  
     if context_size != plotter_config.compare_database_timeout.context_size:
       continue
     if network_type != plotter_config.compare_database_timeout.network_type:
@@ -154,11 +158,9 @@ if __name__ == "__main__":
     time = remapping_info.remapper_time + database_info.creating_time
 
     if remapping_info.remapper_mode == RemapperType.DP:
-      memory_io_to_all_data_to_plot[memory_io.to_string()].add_benchmark_data(benchmark, MappingType.dp, row, utilization, time, remapping_info.get_unix_time(), database_info.timeout)
+      memory_io_to_all_data_to_plot[memory_io.to_string()].add_benchmark_data(benchmark, MappingType.dp, utilization, time, remapping_info.get_unix_time(), database_info.timeout)
     elif remapping_info.remapper_mode == RemapperType.Greedy:
-      memory_io_to_all_data_to_plot[memory_io.to_string()].add_benchmark_data(benchmark, MappingType.greedy, row, utilization, time, remapping_info.get_unix_time(), database_info.timeout)
-    elif remapping_info.remapper_mode == RemapperType.FullSearch:
-      memory_io_to_all_data_to_plot[memory_io.to_string()].add_benchmark_data(benchmark, MappingType.full_search, row, utilization, time, remapping_info.get_unix_time(), database_info.timeout)
+      memory_io_to_all_data_to_plot[memory_io.to_string()].add_benchmark_data(benchmark, MappingType.greedy, utilization, time, remapping_info.get_unix_time(), database_info.timeout)
   
   for benchmark in plotter_config.get_benchmark_list():
     memory_io_to_all_data_to_plot["all"].plot("all")
