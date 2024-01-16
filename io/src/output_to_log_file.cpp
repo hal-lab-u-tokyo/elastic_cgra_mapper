@@ -135,6 +135,7 @@ void io::RemapperLogger::LogRemapperOutput(const io::RemapperOutput& output) {
   log_file_ << "-- remapping output --" << std::endl;
   log_file_ << "remapping time (s): " << output.remapping_time_s << std::endl;
   log_file_ << "parallel num: " << output.parallel_num << std::endl;
+  log_file_ << "mapping type num: " << output.mapping_type_num << std::endl;
   log_file_ << "mapping file: " << mapping_file_path_.string() << std::endl;
   log_file_.close();
 }
