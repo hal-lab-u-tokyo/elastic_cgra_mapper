@@ -44,8 +44,8 @@ class DataToPlot:
   def add_data(self, timeout, util, time, unix_time, mapping_type):
     if unix_time < self.unix_time[mapping_type.value][self.timeout_to_index[timeout]]:
       return
-    # if util < self.utilization[mapping_type.value][self.timeout_to_index[timeout]]:
-    #   return
+    if util < self.utilization[mapping_type.value][self.timeout_to_index[timeout]]:
+      return
     self.utilization[mapping_type.value][self.timeout_to_index[timeout]] = util
     self.time[mapping_type.value][self.timeout_to_index[timeout]] = time
     self.unix_time[mapping_type.value][self.timeout_to_index[timeout]] = unix_time
@@ -68,7 +68,7 @@ class AllDataToPlot:
 
   def plot(self, image_name):
     check_dir_availability("./output/compare_db_timeout/")
-    label_list = ["remapping:dp", "remapping:greedy", "remapping: full_search"]
+    label_list = ["two-phase:dp", "two-phase:greedy", "two-phase: full_search"]
     for benchmark in self.data_of_each_benchmark.keys():
       fig, ax = plt.subplots()
       for mapping_type_idx in range(0,2):
@@ -78,7 +78,7 @@ class AllDataToPlot:
           util = self.data_of_each_benchmark[benchmark].get_util(timeout, mapping_type)
           util_list.append(util)
         ax.plot(self.db_timeout_s_list, util_list, marker=".", label=label_list[mapping_type.value])
-      ax.set_xlabel("cgra size")
+      ax.set_xlabel("db timeout (s)")
       ax.set_ylabel("utilization")
       ax.legend()
 
@@ -92,7 +92,7 @@ class AllDataToPlot:
           time = self.data_of_each_benchmark[benchmark].get_time(timeout, mapping_type)
           time_list.append(time)
         ax.plot(self.db_timeout_s_list, time_list, marker=".", label=label_list[mapping_type.value])
-      ax.set_xlabel("cgra size")
+      ax.set_xlabel("db timeout (s)")
       ax.set_ylabel("time")
       ax.legend()
 
