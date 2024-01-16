@@ -118,19 +118,48 @@ if __name__ == "__main__":
     mapping_writer.writerow([log_info.log_file_path, get_ymd_from_unix(unix_time), get_hms_from_unix(unix_time), log_info.row, log_info.column, log_info.context_size, log_info.memory_io.to_string(), log_info.cgra_type.to_string(), log_info.network_type.to_string(), log_info.local_reg_size,log_info.mapping_succeed, log_info.mapping_time, log_info.num_threads, log_info.timeout, log_info.parallel_num, log_info.mapping_file_path])
   mapping_csv_file.close()
   
+  database_csv_file = open(db_output_file, "w")
+  database_writer = csv.writer(database_csv_file)
+  database_writer.writerow(["log_file_path", "date", "time", "row", "column", "context_size", "memory_io", "cgra_type", "network_type", "local_reg_size", "timeout", "creating_time", "min_utilization", "mapping_log_file_list"])
+  mapping_json_path_to_db_log_path = {}
+  for log_info in database_log_info_list:
+    for mapping_log_path in log_info.mapping_log_file_list:
+      success, mapping_info = mapping_log_reader(mapping_log_path)
+      if not success:
+        print("ERROR: mapping log reader failed: " + mapping_log_path)
+        break
+      mapping_json_path_to_db_log_path[mapping_info.mapping_file_path] = log_info.log_file_path
+
+    database_writer.writerow([log_info.log_file_path, get_ymd_from_unix(unix_time), get_hms_from_unix(unix_time), log_info.row, log_info.column, log_info.context_size, log_info.memory_io.to_string(), log_info.cgra_type.to_string(), log_info.network_type.to_string(), log_info.local_reg_size, log_info.timeout, log_info.creating_time, log_info.min_utilization, log_info.mapping_log_file_list])
+  database_csv_file.close()
+
   remapping_csv_file = open(remapping_output_file, "w")
   remapping_writer = csv.writer(remapping_csv_file)
   remapping_writer.writerow(["log_file_path", "date", "time", "row", "column", "context_size", "memory_io", "cgra_type", "network_type", "local_reg_size", "parallel_num", "remapper_mode", "remapper_time", "mapping_json_list"])
   for log_info in remapping_log_info_list:
+    available_remapping = True
+    db_log_file_path_list = []
+    for mapping_json in log_info.mapping_json_list:
+      if not os.path.exists(mapping_json):
+        available_remapping = False
+        break
+      if not mapping_json in mapping_json_path_to_db_log_path.keys():
+        available_remapping = False
+        break
+      db_log_file_path_list.append(mapping_json_path_to_db_log_path[mapping_json])
+
+    if len(db_log_file_path_list) > 0:
+      init_db_log_file_path = db_log_file_path_list[0]
+      for db_log_file_path in db_log_file_path_list:
+        if init_db_log_file_path != db_log_file_path:
+          available_remapping = False
+          break
+      
+    if not available_remapping:
+      continue
+
     remapping_writer.writerow([log_info.log_file_path, get_ymd_from_unix(unix_time), get_hms_from_unix(unix_time), log_info.row, log_info.column, log_info.context_size, log_info.memory_io.to_string(), log_info.cgra_type.to_string(), log_info.network_type.to_string(), log_info.local_reg_size, log_info.parallel_num, log_info.remapper_mode.to_string(), log_info.remapper_time, log_info.mapping_json_list])
   remapping_csv_file.close()
-
-  database_csv_file = open(db_output_file, "w")
-  database_writer = csv.writer(database_csv_file)
-  database_writer.writerow(["log_file_path", "date", "time", "row", "column", "context_size", "memory_io", "cgra_type", "network_type", "local_reg_size", "timeout", "creating_time", "min_utilization", "mapping_log_file_list"])
-  for log_info in database_log_info_list:
-    database_writer.writerow([log_info.log_file_path, get_ymd_from_unix(unix_time), get_hms_from_unix(unix_time), log_info.row, log_info.column, log_info.context_size, log_info.memory_io.to_string(), log_info.cgra_type.to_string(), log_info.network_type.to_string(), log_info.local_reg_size, log_info.timeout, log_info.creating_time, log_info.min_utilization, log_info.mapping_log_file_list])
-  database_csv_file.close()
 
 
 

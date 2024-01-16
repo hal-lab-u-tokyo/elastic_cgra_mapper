@@ -9,6 +9,9 @@ from entity import *
 from typing import Tuple
 
 def mapping_log_reader(file_path, benchmark_list=[]) -> Tuple[bool, Tuple]:
+    if not os.path.exists(file_path):
+        print("Mapping Log Reader Error: " + file_path)
+        return (False, None)
     log_info = MappingLogInfo()
     log_info.log_file_path = file_path
 
