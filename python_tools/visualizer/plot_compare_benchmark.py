@@ -27,6 +27,7 @@ class DataToPlot:
     self.utilization: List[float] = [0,0,0,0,0]
     self.time: List[float] = [0,0,0,-1,0]
     self.parallel_num: List[int] = [0,0,0,1,0]
+    self.mapping_type_num: List[int] = [0,0,0,0,0]
     self.unix_time: List[int] = [0,0,0,0,0]
 
 class AllDataToPlot:
@@ -34,7 +35,7 @@ class AllDataToPlot:
     self.data_of_each_benchmark: dict = {}
     self.color_settings: dict = color_settings
 
-  def add_benchmark_data(self, benchmark_name, mapping_type, utilization, parallel_num, time, unix_time):
+  def add_benchmark_data(self, benchmark_name, mapping_type, utilization, parallel_num, mapping_type_num, time, unix_time):
     if benchmark_name not in self.data_of_each_benchmark.keys():
       self.data_of_each_benchmark[benchmark_name] = DataToPlot()
     if utilization < self.data_of_each_benchmark[benchmark_name].utilization[mapping_type.value]:
@@ -44,6 +45,7 @@ class AllDataToPlot:
     
     self.data_of_each_benchmark[benchmark_name].utilization[mapping_type.value] = utilization
     self.data_of_each_benchmark[benchmark_name].parallel_num[mapping_type.value] = parallel_num
+    self.data_of_each_benchmark[benchmark_name].mapping_type_num[mapping_type.value] = mapping_type_num
     self.data_of_each_benchmark[benchmark_name].time[mapping_type.value] = time
     self.data_of_each_benchmark[benchmark_name].unix_time[mapping_type.value] = unix_time
 
@@ -59,6 +61,9 @@ class AllDataToPlot:
     full_search_parallel_num_list = []
     loop_unrolling_parallel_num_list = []
 
+    dp_mapping_type_num_list = []
+    greedy_mapping_type_num_list = []
+
     dp_time_list = []
     greedy_time_list = []
     full_search_time_list = []
@@ -73,6 +78,9 @@ class AllDataToPlot:
       greedy_parallel_num_list.append(self.data_of_each_benchmark[benchmark].parallel_num[MappingType.greedy.value])
       full_search_parallel_num_list.append(self.data_of_each_benchmark[benchmark].parallel_num[MappingType.full_search.value])
       loop_unrolling_parallel_num_list.append(self.data_of_each_benchmark[benchmark].parallel_num[MappingType.loop_unrolling.value])
+
+      dp_mapping_type_num_list.append(self.data_of_each_benchmark[benchmark].mapping_type_num[MappingType.dp.value])
+      greedy_mapping_type_num_list.append(self.data_of_each_benchmark[benchmark].mapping_type_num[MappingType.greedy.value])
 
       dp_time_list.append(self.data_of_each_benchmark[benchmark].time[MappingType.dp.value] / self.data_of_each_benchmark[benchmark].time[MappingType.loop_unrolling.value])
       greedy_time_list.append(self.data_of_each_benchmark[benchmark].time[MappingType.greedy.value] / self.data_of_each_benchmark[benchmark].time[MappingType.loop_unrolling.value])
@@ -120,6 +128,7 @@ class AllDataToPlot:
     fig.savefig("./output/compare_benchmark/" + image_name + "_util.png")
 
     # plot parallel_num
+    fig, ax = plt.subplots()
     rects = ax.bar(loop_unrolling_opt_pos, loop_unrolling_opt_parallel_num, width=width, label="single-phase: optimal", color=self.color_settings["single-phase"]["optimal"])
     for rect in rects:
       height = rect.get_height()
@@ -138,6 +147,16 @@ class AllDataToPlot:
     ax.legend()
     plt.xticks(label_pos, self.data_of_each_benchmark.keys())
     fig.savefig("./output/compare_benchmark/" + image_name + "_parallel_num.png")
+
+    # plot mapping type num
+    fig, ax = plt.subplots()
+    ax.bar(greedy_pos, greedy_mapping_type_num_list, width=width, label="two-phase: greedy", color=self.color_settings["two-phase"]["greedy"])
+    ax.bar(dp_pos, dp_mapping_type_num_list, width=-width, label="two-phase: dp", color=self.color_settings["two-phase"]["dp"])
+    ax.set_xlabel("benchmark")
+    ax.set_ylabel("mapping type num")
+    ax.legend()
+    plt.xticks(label_pos, self.data_of_each_benchmark.keys())
+    fig.savefig("./output/compare_benchmark/" + image_name + "_mapping_type_num.png")
 
     # plot time
     fig, ax = plt.subplots()
@@ -244,7 +263,7 @@ if __name__ == "__main__":
     benchmark_idx = plotter_config.get_benchmark_list().index(benchmark)
     benchmark_name = plotter_config.get_benchmark_name_list()[benchmark_idx]
 
-    memory_io_to_all_data_to_plot[memory_io.to_string()].add_benchmark_data(benchmark_name, MappingType.loop_unrolling, utilization, mapping_info.parallel_num, mapping_info.mapping_time, mapping_info.get_unix_time())
+    memory_io_to_all_data_to_plot[memory_io.to_string()].add_benchmark_data(benchmark_name, MappingType.loop_unrolling, utilization, mapping_info.parallel_num, 0, mapping_info.mapping_time, mapping_info.get_unix_time())
 
   for remapping_info in remapping_info_list:
     row = remapping_info.row
@@ -277,12 +296,12 @@ if __name__ == "__main__":
     benchmark_name = plotter_config.get_benchmark_name_list()[benchmark_idx]
 
     if remapping_info.remapper_mode == RemapperType.FullSearch:
-      memory_io_to_all_data_to_plot[memory_io.to_string()].add_benchmark_data(benchmark_name, MappingType.full_search, utilization, remapping_info.parallel_num, mapping_info.parallel_num,time, remapping_info.get_unix_time())
+      memory_io_to_all_data_to_plot[memory_io.to_string()].add_benchmark_data(benchmark_name, MappingType.full_search, utilization, remapping_info.parallel_num, remapping_info.mapping_type_num, time, remapping_info.get_unix_time())
     elif remapping_info.remapper_mode == RemapperType.DP:
-      memory_io_to_all_data_to_plot[memory_io.to_string()].add_benchmark_data(benchmark_name, MappingType.dp, utilization, remapping_info.parallel_num, time, remapping_info.get_unix_time())
-      memory_io_to_all_data_to_plot[memory_io.to_string()].add_benchmark_data(benchmark_name, MappingType.database, 0, 0, database_info.creating_time, remapping_info.get_unix_time())
+      memory_io_to_all_data_to_plot[memory_io.to_string()].add_benchmark_data(benchmark_name, MappingType.dp, utilization, remapping_info.parallel_num, remapping_info.mapping_type_num, time, remapping_info.get_unix_time())
+      memory_io_to_all_data_to_plot[memory_io.to_string()].add_benchmark_data(benchmark_name, MappingType.database, 0, 0, 0, database_info.creating_time, remapping_info.get_unix_time())
     elif remapping_info.remapper_mode == RemapperType.Greedy:
-      memory_io_to_all_data_to_plot[memory_io.to_string()].add_benchmark_data(benchmark_name, MappingType.greedy, utilization, remapping_info.parallel_num, time, remapping_info.get_unix_time())
+      memory_io_to_all_data_to_plot[memory_io.to_string()].add_benchmark_data(benchmark_name, MappingType.greedy, utilization, remapping_info.parallel_num, remapping_info.mapping_type_num, time, remapping_info.get_unix_time())
   
   memory_io_to_all_data_to_plot["all"].plot("all")
   memory_io_to_all_data_to_plot["both_ends"].plot("both_ends")

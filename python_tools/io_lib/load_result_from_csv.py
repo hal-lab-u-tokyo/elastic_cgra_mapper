@@ -66,9 +66,10 @@ def load_result_from_csv(csv_dir_path, benchmark_list):
       remapping_log_info.parallel_num = int(row[10])
       if remapping_log_info.parallel_num > 0:
         remapping_log_info.mapping_succeed = True
-      remapping_log_info.remapper_mode = RemapperType.from_string(row[11])
-      remapping_log_info.remapper_time = float(row[12])
-      remapping_log_info.mapping_json_list = row[13].strip("[]").replace("'", "").split(", ")
+      remapping_log_info.mapping_type_num = int(row[11])
+      remapping_log_info.remapper_mode = RemapperType.from_string(row[12])
+      remapping_log_info.remapper_time = float(row[13])
+      remapping_log_info.mapping_json_list = row[14].strip("[]").replace("'", "").split(", ")
       remapping_log_info_list.append(remapping_log_info)
 
   with open(db_csv_file_path) as f:

@@ -135,7 +135,7 @@ if __name__ == "__main__":
 
   remapping_csv_file = open(remapping_output_file, "w")
   remapping_writer = csv.writer(remapping_csv_file)
-  remapping_writer.writerow(["log_file_path", "date", "time", "row", "column", "context_size", "memory_io", "cgra_type", "network_type", "local_reg_size", "parallel_num", "remapper_mode", "remapper_time", "mapping_json_list"])
+  remapping_writer.writerow(["log_file_path", "date", "time", "row", "column", "context_size", "memory_io", "cgra_type", "network_type", "local_reg_size", "parallel_num", "mapping_type_num","remapper_mode", "remapper_time", "mapping_json_list"])
   for log_info in remapping_log_info_list:
     available_remapping = True
     db_log_file_path_list = []
@@ -158,7 +158,7 @@ if __name__ == "__main__":
     if not available_remapping:
       continue
 
-    remapping_writer.writerow([log_info.log_file_path, get_ymd_from_unix(unix_time), get_hms_from_unix(unix_time), log_info.row, log_info.column, log_info.context_size, log_info.memory_io.to_string(), log_info.cgra_type.to_string(), log_info.network_type.to_string(), log_info.local_reg_size, log_info.parallel_num, log_info.remapper_mode.to_string(), log_info.remapper_time, log_info.mapping_json_list])
+    remapping_writer.writerow([log_info.log_file_path, get_ymd_from_unix(unix_time), get_hms_from_unix(unix_time), log_info.row, log_info.column, log_info.context_size, log_info.memory_io.to_string(), log_info.cgra_type.to_string(), log_info.network_type.to_string(), log_info.local_reg_size, log_info.parallel_num, log_info.mapping_type_num ,log_info.remapper_mode.to_string(), log_info.remapper_time, log_info.mapping_json_list])
   remapping_csv_file.close()
 
 
