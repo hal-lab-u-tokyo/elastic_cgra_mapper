@@ -27,12 +27,19 @@
     "network_type": "orthogonal"
   },
   "compare_database_timeout": {
-    "min_size": 6,
-    "max_size": 10,
+    "row": 10,
+    "column": 10,
     "context_size": 4,
     "timeout_list": [
-      900,
-      1800
+      100,
+      200,
+      300,
+      400,
+      500,
+      600,
+      700,
+      800,
+      900
     ],
     "network_type": "orthogonal"
   },
