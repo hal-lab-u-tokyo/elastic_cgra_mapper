@@ -7,16 +7,6 @@ import os
 import re
 from typing import Tuple
 
-def get_parallel_num(log_file):
-    exec_log_file = log_file.replace("/log/", "/exec_log/").replace("remapping_", "exec_log_")
-    parallel_num = 0
-    with open(exec_log_file) as f:
-        for line in f:
-            if line == "----- mapping -----\n":
-                parallel_num = parallel_num + 1
-
-    return parallel_num
-
 def remapping_log_reader(log_file_path, benchmark_list=[]) -> Tuple[bool, RemapperLogInfo]:
     remapper_log_info = RemapperLogInfo()
     remapper_log_info.log_file_path = log_file_path
@@ -57,6 +47,10 @@ def remapping_log_reader(log_file_path, benchmark_list=[]) -> Tuple[bool, Remapp
                 remapper_log_info.remapper_time = remapping_time
             if line_num == mapping_file_num + 8:
                 remapper_log_info.parallel_num = parse.parse("parallel num: {:d}\n", line)[0]
+            if line_num == mapping_file_num + 9:
+                parsed = parse.parse("mapping type num: {:d}\n", line)
+                if parsed != None:
+                    remapper_log_info.mapping_type_num = parsed[0]
 
             line_num = line_num + 1
 

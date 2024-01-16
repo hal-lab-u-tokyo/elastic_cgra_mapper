@@ -33,6 +33,7 @@ struct RemapperOutput {
   std::shared_ptr<entity::Mapping> mapping_ptr;
   entity::MRRGConfig mrrg_config;
   int parallel_num;
+  int mapping_type_num;
 };
 
 struct CreateDatabaseInput {

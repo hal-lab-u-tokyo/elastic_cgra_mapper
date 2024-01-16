@@ -87,8 +87,10 @@ int main(int argc, char* argv[]) {
   const auto remapping_result = remapper::Remapper::ElasticRemapping(
       mapping_vec, mrrg_config, parallel_num, remapper_exec_file, mode);
 
+  std::set<int> result_mapping_id_set;
   std::vector<entity::Mapping> result_mapping_vec;
   for (const auto& mapping_id : remapping_result.result_mapping_id_vec) {
+    result_mapping_id_set.insert(mapping_id);
     result_mapping_vec.push_back(mapping_vec[mapping_id]);
   }
   *result_mapping = remapper::MappingConcater(
@@ -100,5 +102,6 @@ int main(int argc, char* argv[]) {
   output.mapping_ptr = result_mapping;
   output.mrrg_config = mrrg_config;
   output.parallel_num = parallel_num;
+  output.mapping_type_num = result_mapping_id_set.size();
   logger.LogRemapperOutput(output);
 }
