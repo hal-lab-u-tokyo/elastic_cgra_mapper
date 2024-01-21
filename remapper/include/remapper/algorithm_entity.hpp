@@ -16,11 +16,12 @@ class Rectangle {
 class MappingMatrix : public Rectangle {
  public:
   MappingMatrix();
-  MappingMatrix(const entity::Mapping& mapping, int _id);
+  MappingMatrix(const entity::Mapping& mapping, int _id, const entity::MRRGConfig& target_mrrg_config);
   static MappingMatrix CreateDummyMappingMatrix(entity::MRRGConfig mrrg_config,
                                                 int _id);
 
   double op_rate;
+  int estimated_reallocate_num;
   double num_waste_of_memory_io;
   int id;
 
