@@ -82,7 +82,7 @@ class AllDataToPlot:
       ax.set_ylabel("utilization")
       ax.legend()
 
-      fig.savefig("./output/compare_db_timeout/" + image_name + "_"+ benchmark + "_util.png")
+      fig.savefig("./output/compare_db_timeout/" + image_name + "_"+ benchmark + "_util.pdf")
 
       fig, ax = plt.subplots()
       for mapping_type_idx in range(0,2):
@@ -96,7 +96,7 @@ class AllDataToPlot:
       ax.set_ylabel("time")
       ax.legend()
 
-      fig.savefig("./output/compare_db_timeout/" + image_name + "_" + benchmark + "_time.png")
+      fig.savefig("./output/compare_db_timeout/" + image_name + "_" + benchmark + "_time.pdf")
 
 if __name__ == "__main__": 
   args = sys.argv

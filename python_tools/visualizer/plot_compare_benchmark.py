@@ -125,7 +125,7 @@ class AllDataToPlot:
     ax.set_ylabel("utilization")
     ax.legend()
     plt.xticks(label_pos, self.data_of_each_benchmark.keys())
-    fig.savefig("./output/compare_benchmark/" + image_name + "_util.png")
+    fig.savefig("./output/compare_benchmark/" + image_name + "_util.pdf")
 
     # plot parallel_num
     fig, ax = plt.subplots()
@@ -146,7 +146,7 @@ class AllDataToPlot:
     ax.set_ylabel("parallel num")
     ax.legend()
     plt.xticks(label_pos, self.data_of_each_benchmark.keys())
-    fig.savefig("./output/compare_benchmark/" + image_name + "_parallel_num.png")
+    fig.savefig("./output/compare_benchmark/" + image_name + "_parallel_num.pdf")
 
     # plot mapping type num
     fig, ax = plt.subplots()
@@ -156,7 +156,7 @@ class AllDataToPlot:
     ax.set_ylabel("mapping type num")
     ax.legend()
     plt.xticks(label_pos, self.data_of_each_benchmark.keys())
-    fig.savefig("./output/compare_benchmark/" + image_name + "_mapping_type_num.png")
+    fig.savefig("./output/compare_benchmark/" + image_name + "_mapping_type_num.pdf")
 
     # plot time
     fig, ax = plt.subplots()
@@ -174,7 +174,7 @@ class AllDataToPlot:
     ax.set_ylabel("time rate")
     ax.legend()
     plt.xticks(greedy_pos, self.data_of_each_benchmark.keys())
-    fig.savefig("./output/compare_benchmark/" + image_name + "_time.png")
+    fig.savefig("./output/compare_benchmark/" + image_name + "_time.pdf")
 
     # plot time log
     fig, ax = plt.subplots()
@@ -208,7 +208,7 @@ class AllDataToPlot:
     ax.set_ylabel("log(time)")
     ax.legend()
     plt.xticks(greedy_pos, self.data_of_each_benchmark.keys())
-    fig.savefig("./output/compare_benchmark/" + image_name + "_time_log.png")
+    fig.savefig("./output/compare_benchmark/" + image_name + "_time_log.pdf")
 
 if __name__ == "__main__": 
   args = sys.argv

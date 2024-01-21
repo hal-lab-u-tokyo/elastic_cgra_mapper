@@ -74,7 +74,7 @@ class AllDataToPlot:
       ax.set_ylabel("utilization")
       ax.legend()
 
-      fig.savefig("./output/compare_cgra_size/" + image_name + "_"+ benchmark + "_util.png")
+      fig.savefig("./output/compare_cgra_size/" + image_name + "_"+ benchmark + "_util.pdf")
 
       fig, ax = plt.subplots()
       for mapping_type in range(5):
@@ -90,7 +90,7 @@ class AllDataToPlot:
       ax.set_ylabel("time")
       ax.legend()
 
-      fig.savefig("./output/compare_cgra_size/" + image_name + "_" + benchmark + "_time.png")
+      fig.savefig("./output/compare_cgra_size/" + image_name + "_" + benchmark + "_time.pdf")
 
 if __name__ == "__main__": 
   args = sys.argv
