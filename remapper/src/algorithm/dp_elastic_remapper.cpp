@@ -85,10 +85,10 @@ remapper::RemappingResult remapper::DPElasticRemapping(
   }
 
   for (const auto& mapping_matrix : mapping_matrix_vec) {
-    for (int rotate_id = 0; rotate_id < 4; rotate_id++) {
+    for (const auto rotate_op : remapper::kAllRotateOpVecWithoutMirror) {
       const auto start_time = clock();
       const auto rotated_transform_op = remapper::MappingTransformOp(
-          0, 0, static_cast<remapper::RotateOp>(rotate_id));
+          0, 0, rotate_op);
       if (!cgra_matrix.IsAvailableRemapping(mapping_matrix,
                                             rotated_transform_op)) {
         continue;
@@ -192,7 +192,7 @@ remapper::RemappingResult remapper::DPElasticRemapping(
                 }
               }
               remapper::MappingTransformOp transform_op(
-                  0, 0, static_cast<remapper::RotateOp>(rotate_id));
+                  0, 0, rotate_op);
               dp_result[dp_size.x()][dp_size.y()][dp_size.z()].emplace_back(
                   mapping_matrix.id, transform_op);
             }

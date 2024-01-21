@@ -15,11 +15,13 @@ remapper::MappingTransformOp CreateMappingTransformOpFromSearchId(
       target_mrrg_config.column - mrrg_config.column + 1;
 
   const remapper::RotateOp rotation_op =
-      static_cast<remapper::RotateOp>(search_id % 4);
+      static_cast<remapper::RotateOp>(search_id % remapper::kRotateOpNum);
   int row_search_width = origin_row_search_width;
   int column_search_width = origin_column_search_width;
   if (rotation_op == remapper::RotateOp::TopIsLeft ||
-      rotation_op == remapper::RotateOp::TopIsRight) {
+      rotation_op == remapper::RotateOp::TopIsRight ||
+      rotation_op == remapper::RotateOp::TopIsLeftMirror ||
+      rotation_op == remapper::RotateOp::TopIsRightMirror) {
     row_search_width = origin_column_search_width;
     column_search_width = origin_row_search_width;
   }
@@ -79,10 +81,9 @@ remapper::RemappingResult remapper::FullSearchElasticRemapping(
   for (size_t mapping_id = 0; mapping_id < mapping_matrix_vec.size();
        mapping_id++) {
     std::vector<Eigen::MatrixXi> tmp_matrix_vec;
-    for (size_t rotate_id = 0; rotate_id < 4; rotate_id++) {
+    for (const auto rotate_op : remapper::kAllRotateOpVec) {
       const auto rotated_mapping_matrix =
-          mapping_matrix_vec[mapping_id].GetRotatedOpNumMatrix(
-              static_cast<remapper::RotateOp>(rotate_id));
+          mapping_matrix_vec[mapping_id].GetRotatedOpNumMatrix(rotate_op);
       tmp_matrix_vec.push_back(rotated_mapping_matrix);
     }
     mapping_id_and_rotation_id_to_matrix.push_back(tmp_matrix_vec);
@@ -165,8 +166,8 @@ remapper::RemappingResult remapper::FullSearchElasticRemapping(
       }
 
       // update search_id
-      bool test_all_remapping =
-          !(selected_search_id_combination.Next(std::max(last_mapping_num - 1, 0), 1));
+      bool test_all_remapping = !(selected_search_id_combination.Next(
+          std::max(last_mapping_num - 1, 0), 1));
       if (test_all_remapping) {
         break;
       }

@@ -52,9 +52,9 @@ remapper::RemappingResult remapper::GreedyElasticRemapping(
 
   int parallel_num = 0;
   for (const auto& mapping_matrix : mapping_matrix_vec) {
-    for (int rotate_id = 0; rotate_id < 4; rotate_id++) {
-      const auto rotated_mapping_matrix = mapping_matrix.GetRotatedOpNumMatrix(
-          static_cast<remapper::RotateOp>(rotate_id));
+    for (const auto rotate_op : remapper::kAllRotateOpVec) {
+      const auto rotated_mapping_matrix =
+          mapping_matrix.GetRotatedOpNumMatrix(rotate_op);
       if (target_matrix.rows() < rotated_mapping_matrix.rows() ||
           target_matrix.cols() < rotated_mapping_matrix.cols())
         continue;
@@ -66,8 +66,8 @@ remapper::RemappingResult remapper::GreedyElasticRemapping(
              col_shift <
              target_matrix.cols() - rotated_mapping_matrix.cols() + 1;
              col_shift++) {
-          const auto transform_op = remapper::MappingTransformOp(
-              row_shift, col_shift, static_cast<remapper::RotateOp>(rotate_id));
+          const auto transform_op =
+              remapper::MappingTransformOp(row_shift, col_shift, rotate_op);
           if (!cgra_matrix.IsAvailableRemapping(mapping_matrix, transform_op))
             continue;
 
