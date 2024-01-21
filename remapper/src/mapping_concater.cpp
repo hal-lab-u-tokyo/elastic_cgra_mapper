@@ -3,7 +3,7 @@
 #include <Eigen/Eigen>
 #include <unordered_map>
 
-#include "remapper/rotater.hpp"
+#include "remapper/transform.hpp"
 
 entity::Mapping remapper::MappingConcater(
     const std::vector<entity::Mapping>& mapping_vec,

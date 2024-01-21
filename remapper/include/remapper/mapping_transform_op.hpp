@@ -1,7 +1,26 @@
 #pragma once
 
 namespace remapper {
-enum RotateOp { TopIsTop, TopIsRight, TopIsBottom, TopIsLeft };
+enum RotateOp {
+  TopIsTop,
+  TopIsRight,
+  TopIsBottom,
+  TopIsLeft,
+  TopIsTopMirror,
+  TopIsRightMirror,
+  TopIsBottomMirror,
+  TopIsLeftMirror
+};
+
+constexpr int kRotateOpNum = 8;
+const std::vector<RotateOp> kAllRotateOpVec = {
+    RotateOp::TopIsTop,          RotateOp::TopIsRight,
+    RotateOp::TopIsBottom,       RotateOp::TopIsLeft,
+    RotateOp::TopIsTopMirror,    RotateOp::TopIsRightMirror,
+    RotateOp::TopIsBottomMirror, RotateOp::TopIsLeftMirror};
+const std::vector<RotateOp> kAllRotateOpVecWithoutMirror = {
+    RotateOp::TopIsTop, RotateOp::TopIsRight, RotateOp::TopIsBottom,
+    RotateOp::TopIsLeft};
 
 struct MappingTransformOp {
   MappingTransformOp()

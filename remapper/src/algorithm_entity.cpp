@@ -126,6 +126,14 @@ Eigen::MatrixXi remapper::MappingMatrix::GetRotatedMatrix(
     return matrix.colwise().reverse().rowwise().reverse().eval();
   } else if (rotate_op == remapper::RotateOp::TopIsRight) {
     return matrix.colwise().reverse().transpose().eval();
+  } else if (rotate_op == remapper::RotateOp::TopIsTopMirror) {
+    return matrix.rowwise().reverse().eval();
+  } else if (rotate_op == remapper::RotateOp::TopIsLeftMirror) {
+    return matrix.transpose().colwise().reverse().rowwise().reverse().eval();
+  } else if (rotate_op == remapper::RotateOp::TopIsBottomMirror) {
+    return matrix.colwise().reverse().eval();
+  } else if (rotate_op == remapper::RotateOp::TopIsRightMirror) {
+    return matrix.transpose().eval();
   } else {
     assert(false);
   }

@@ -71,9 +71,9 @@ remapper::RemappingResult remapper::Remapper::ElasticRemapping(
   }
   const auto end_time = std::chrono::system_clock::now();
   result.remapping_time_s =
-      std::chrono::duration_cast<std::chrono::milliseconds>(end_time -
+      static_cast<double>(std::chrono::duration_cast<std::chrono::milliseconds>(end_time -
                                                             start_time)
-          .count() /
+          .count()) /
       1000.0;
 
   return result;

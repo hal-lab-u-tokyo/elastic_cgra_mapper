@@ -13,7 +13,7 @@ target_sources(
             mapping_concater.cpp
             algorithm_entity.cpp
             combination_counter.cpp
-            rotater.cpp
+            transform.cpp
             algorithm/full_search_elastic_remapper.cpp
             algorithm/greedy_elastic_remapper.cpp
             algorithm/dp_elastic_remapper.cpp)

@@ -1,4 +1,4 @@
-#include "remapper/rotater.hpp"
+#include "remapper/transform.hpp"
 
 entity::ConfigId RotateConfigId(const entity::ConfigId& config_id,
                                 const entity::MRRGConfig& target_mrrg_config,
@@ -23,6 +23,26 @@ entity::ConfigId RotateConfigId(const entity::ConfigId& config_id,
     case remapper::RotateOp::TopIsTop:
       rotated_row_id = config_id.row_id;
       rotated_column_id = config_id.column_id;
+      break;
+
+    case remapper::RotateOp::TopIsRightMirror:
+      rotated_row_id = config_id.column_id;
+      rotated_column_id = config_id.row_id;
+      break;
+
+    case remapper::RotateOp::TopIsBottomMirror:
+      rotated_row_id = target_mrrg_config.row - 1 - config_id.row_id;
+      rotated_column_id = config_id.column_id;
+      break;
+
+    case remapper::RotateOp::TopIsLeftMirror:
+      rotated_row_id = target_mrrg_config.column - 1 - config_id.column_id;
+      rotated_column_id = target_mrrg_config.row - 1 - config_id.row_id;
+      break;
+
+    case remapper::RotateOp::TopIsTopMirror:
+      rotated_row_id = config_id.row_id;
+      rotated_column_id = target_mrrg_config.column - 1 - config_id.column_id;
       break;
   }
 
@@ -51,6 +71,26 @@ entity::MRRGConfig RotateMRRGConfig(const entity::MRRGConfig& mrrg_config,
       break;
 
     case remapper::RotateOp::TopIsTop:
+      rotated_mrrg_config.column = mrrg_config.column;
+      rotated_mrrg_config.row = mrrg_config.row;
+      break;
+
+    case remapper::RotateOp::TopIsRightMirror:
+      rotated_mrrg_config.column = mrrg_config.row;
+      rotated_mrrg_config.row = mrrg_config.column;
+      break;
+
+    case remapper::RotateOp::TopIsBottomMirror:
+      rotated_mrrg_config.column = mrrg_config.column;
+      rotated_mrrg_config.row = mrrg_config.row;
+      break;
+
+    case remapper::RotateOp::TopIsLeftMirror:
+      rotated_mrrg_config.column = mrrg_config.row;
+      rotated_mrrg_config.row = mrrg_config.column;
+      break;
+
+    case remapper::RotateOp::TopIsTopMirror:
       rotated_mrrg_config.column = mrrg_config.column;
       rotated_mrrg_config.row = mrrg_config.row;
       break;
@@ -96,4 +136,12 @@ remapper::RotateOp remapper::Rotate180(const remapper::RotateOp& tmp) {
     return remapper::RotateOp::TopIsLeft;
   if (tmp == remapper::RotateOp::TopIsLeft)
     return remapper::RotateOp::TopIsRight;
+  if (tmp == remapper::RotateOp::TopIsTopMirror)
+    return remapper::RotateOp::TopIsBottomMirror;
+  if (tmp == remapper::RotateOp::TopIsBottomMirror)
+    return remapper::RotateOp::TopIsTopMirror;
+  if (tmp == remapper::RotateOp::TopIsRightMirror)
+    return remapper::RotateOp::TopIsLeftMirror;
+  if (tmp == remapper::RotateOp::TopIsLeftMirror)
+    return remapper::RotateOp::TopIsRightMirror;
 }
