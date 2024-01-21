@@ -166,7 +166,7 @@ remapper::RemappingResult remapper::FullSearchElasticRemapping(
 
       // update search_id
       bool test_all_remapping =
-          !(selected_search_id_combination.Next(last_mapping_num, 1));
+          !(selected_search_id_combination.Next(std::max(last_mapping_num - 1, 0), 1));
       if (test_all_remapping) {
         break;
       }
