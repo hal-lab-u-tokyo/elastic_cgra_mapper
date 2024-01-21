@@ -90,7 +90,7 @@ class AllDataToPlot:
     ax.set_ylabel("time")
     ax.legend()
     plt.xticks(greedy_pos, self.data_of_each_benchmark.keys())
-    fig.savefig("./output/same_parallel_num/" + image_name + "_time.png")
+    fig.savefig("./output/same_parallel_num/" + image_name + "_time.pdf")
 
     fig, ax = plt.subplots()
     full_search_time_log_list = []
@@ -114,7 +114,7 @@ class AllDataToPlot:
     ax.set_ylabel("time")
     ax.legend()
     plt.xticks(greedy_pos, self.data_of_each_benchmark.keys())
-    fig.savefig("./output/same_parallel_num/" + image_name + "_time_log.png")
+    fig.savefig("./output/same_parallel_num/" + image_name + "_time_log.pdf")
 
 if __name__ == "__main__": 
   args = sys.argv

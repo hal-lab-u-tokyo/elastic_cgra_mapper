@@ -29,7 +29,7 @@ class Visualizer():
         for context_id in range(mapping.context_size):
             Visualizer.visualize_mapping_one_context(mapping, context_id, fig)
 
-        plt.savefig(output_dir + "/result.png")
+        plt.savefig(output_dir + "/result.pdf")
 
     @staticmethod
     def visualize_mapping_one_context(mapping: Mapping, context_id: int, fig):

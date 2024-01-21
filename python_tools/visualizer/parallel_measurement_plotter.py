@@ -60,25 +60,25 @@ if __name__ == "__main__":
   ax.set_xlabel("parallel num")
   ax.set_ylabel("time [s]")
   ax.bar(time_vec_parallel_num[0], time_vec[0])
-  fig.savefig("./output/parallel_measurement/time_mamory_io_all.png")
+  fig.savefig("./output/parallel_measurement/time_mamory_io_all.pdf")
 
   fig, ax = plt.subplots()
   ax.set_xlabel("parallel num")
   ax.set_ylabel("time [s]")
   ax.bar(time_vec_parallel_num[1], time_vec[1])
-  fig.savefig("./output/parallel_measurement/time_mamory_io_bothends.png")
+  fig.savefig("./output/parallel_measurement/time_mamory_io_bothends.pdf")
 
   fig, ax = plt.subplots()
   ax.set_xlabel("parallel num")
   ax.set_ylabel("II / parallel_num")
   ax.bar(perf_vec_parallel_num[0], perf_vec[0])
-  fig.savefig("./output/parallel_measurement/perf_mamory_io_all.png")
+  fig.savefig("./output/parallel_measurement/perf_mamory_io_all.pdf")
 
   fig, ax = plt.subplots()
   ax.set_xlabel("parallel num")
   ax.set_ylabel("II / parallel_num")
   ax.bar(perf_vec_parallel_num[1], perf_vec[1])
-  fig.savefig("./output/parallel_measurement/perf_mamory_io_bothends.png")
+  fig.savefig("./output/parallel_measurement/perf_mamory_io_bothends.pdf")
 
 
 

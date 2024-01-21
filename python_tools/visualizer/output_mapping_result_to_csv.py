@@ -115,6 +115,7 @@ if __name__ == "__main__":
   mapping_writer = csv.writer(mapping_csv_file)
   mapping_writer.writerow(["log_file_path", "date", "time", "row", "column", "context_size", "memory_io", "cgra_type", "network_type", "local_reg_size", "mapping_succeed", "mapping_time", "num_threads", "timeout", "parallel_num", "mapping_file"])
   for log_info in mapping_log_info_list:
+    unix_time = get_unix_time_from_file_path(log_info.log_file_path)
     mapping_writer.writerow([log_info.log_file_path, get_ymd_from_unix(unix_time), get_hms_from_unix(unix_time), log_info.row, log_info.column, log_info.context_size, log_info.memory_io.to_string(), log_info.cgra_type.to_string(), log_info.network_type.to_string(), log_info.local_reg_size,log_info.mapping_succeed, log_info.mapping_time, log_info.num_threads, log_info.timeout, log_info.parallel_num, log_info.mapping_file_path])
   mapping_csv_file.close()
   
@@ -129,7 +130,7 @@ if __name__ == "__main__":
         print("ERROR: mapping log reader failed: " + mapping_log_path)
         break
       mapping_json_path_to_db_log_path[mapping_info.mapping_file_path] = log_info.log_file_path
-
+    unix_time = get_unix_time_from_file_path(log_info.log_file_path)
     database_writer.writerow([log_info.log_file_path, get_ymd_from_unix(unix_time), get_hms_from_unix(unix_time), log_info.row, log_info.column, log_info.context_size, log_info.memory_io.to_string(), log_info.cgra_type.to_string(), log_info.network_type.to_string(), log_info.local_reg_size, log_info.timeout, log_info.creating_time, log_info.min_utilization, log_info.mapping_log_file_list])
   database_csv_file.close()
 
@@ -157,7 +158,7 @@ if __name__ == "__main__":
       
     if not available_remapping:
       continue
-
+    unix_time = get_unix_time_from_file_path(log_info.log_file_path)
     remapping_writer.writerow([log_info.log_file_path, get_ymd_from_unix(unix_time), get_hms_from_unix(unix_time), log_info.row, log_info.column, log_info.context_size, log_info.memory_io.to_string(), log_info.cgra_type.to_string(), log_info.network_type.to_string(), log_info.local_reg_size, log_info.parallel_num, log_info.mapping_type_num ,log_info.remapper_mode.to_string(), log_info.remapper_time, log_info.mapping_json_list])
   remapping_csv_file.close()
 
