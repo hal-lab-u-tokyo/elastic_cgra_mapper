@@ -77,7 +77,6 @@ int main(int argc, char* argv[]) {
   }
 
   size_t parallel_num = std::floor(max_config_num / min_mapping_op_num);
-  // size_t parallel_num = 5;
 
   std::shared_ptr<entity::Mapping> result_mapping =
       std::make_shared<entity::Mapping>();
@@ -101,7 +100,7 @@ int main(int argc, char* argv[]) {
   output.remapping_time_s = remapping_result.remapping_time_s;
   output.mapping_ptr = result_mapping;
   output.mrrg_config = mrrg_config;
-  output.parallel_num = parallel_num;
+  output.parallel_num = remapping_result.result_mapping_id_vec.size();
   output.mapping_type_num = result_mapping_id_set.size();
   logger.LogRemapperOutput(output);
 }
