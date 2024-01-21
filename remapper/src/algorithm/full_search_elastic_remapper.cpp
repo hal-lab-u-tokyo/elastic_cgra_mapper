@@ -3,7 +3,7 @@
 #include <remapper/mapping_concater.hpp>
 #include <remapper/mapping_transform_op.hpp>
 #include <remapper/remapper.hpp>
-#include <remapper/rotater.hpp>
+#include <remapper/transform.hpp>
 
 remapper::MappingTransformOp CreateMappingTransformOpFromSearchId(
     const entity::Mapping& mapping,

@@ -2,7 +2,7 @@
 #include <remapper/mapping_concater.hpp>
 #include <remapper/mapping_transform_op.hpp>
 #include <remapper/remapper.hpp>
-#include <remapper/rotater.hpp>
+#include <remapper/transform.hpp>
 
 remapper::RemappingResult remapper::GreedyElasticRemapping(
     std::vector<remapper::MappingMatrix> mapping_matrix_vec,

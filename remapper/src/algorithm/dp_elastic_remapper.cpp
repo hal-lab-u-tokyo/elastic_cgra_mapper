@@ -2,7 +2,7 @@
 #include <remapper/mapping_concater.hpp>
 #include <remapper/mapping_transform_op.hpp>
 #include <remapper/remapper.hpp>
-#include <remapper/rotater.hpp>
+#include <remapper/transform.hpp>
 
 std::vector<std::vector<Eigen::Vector3d>> GetDPSplitedRectangleSize(
     const Eigen::Vector3d& dp_size, const Eigen::Vector3d& mapping_size) {
