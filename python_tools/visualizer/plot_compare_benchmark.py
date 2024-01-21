@@ -38,9 +38,9 @@ class AllDataToPlot:
   def add_benchmark_data(self, benchmark_name, mapping_type, utilization, parallel_num, mapping_type_num, time, unix_time):
     if benchmark_name not in self.data_of_each_benchmark.keys():
       self.data_of_each_benchmark[benchmark_name] = DataToPlot()
-    if utilization < self.data_of_each_benchmark[benchmark_name].utilization[mapping_type.value]:
+    if utilization < self.data_of_each_benchmark[benchmark_name].utilization[mapping_type.value] and mapping_type == MappingType.loop_unrolling:
       return
-    if unix_time < self.data_of_each_benchmark[benchmark_name].unix_time[mapping_type.value]:
+    if unix_time < self.data_of_each_benchmark[benchmark_name].unix_time[mapping_type.value] and mapping_type != MappingType.loop_unrolling:
       return
     
     self.data_of_each_benchmark[benchmark_name].utilization[mapping_type.value] = utilization
@@ -55,6 +55,7 @@ class AllDataToPlot:
     greedy_utilization = []
     full_search_utilization = []
     loop_unrolling_utilization = []
+    figsize = (10.0, 4.0)
 
     dp_parallel_num_list = []
     greedy_parallel_num_list = []
@@ -87,7 +88,9 @@ class AllDataToPlot:
       full_search_time_list.append(self.data_of_each_benchmark[benchmark].time[MappingType.full_search.value] / self.data_of_each_benchmark[benchmark].time[MappingType.loop_unrolling.value])
       db_time_list.append(self.data_of_each_benchmark[benchmark].time[MappingType.database.value] / self.data_of_each_benchmark[benchmark].time[MappingType.loop_unrolling.value])
 
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize = figsize)
+    box = ax.get_position()
+    ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
     width = 0.15
     loop_unrolling_opt_pos = range(0, len(self.data_of_each_benchmark.keys()))
     loop_unrolling_timeout_pos = [pos + width for pos in loop_unrolling_opt_pos]
@@ -123,12 +126,14 @@ class AllDataToPlot:
     ax.bar(dp_pos, dp_utilization, width=-width, label="two-phase: dp", color=self.color_settings["two-phase"]["dp"])
     ax.set_xlabel("benchmark")
     ax.set_ylabel("utilization")
-    ax.legend()
+    ax.legend(loc='upper left', bbox_to_anchor=(1, 1))
     plt.xticks(label_pos, self.data_of_each_benchmark.keys())
     fig.savefig("./output/compare_benchmark/" + image_name + "_util.pdf")
 
     # plot parallel_num
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize = figsize)
+    box = ax.get_position()
+    ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
     rects = ax.bar(loop_unrolling_opt_pos, loop_unrolling_opt_parallel_num, width=width, label="single-phase: optimal", color=self.color_settings["single-phase"]["optimal"])
     for rect in rects:
       height = rect.get_height()
@@ -144,22 +149,26 @@ class AllDataToPlot:
     ax.bar(dp_pos, dp_parallel_num_list, width=-width, label="two-phase: dp", color=self.color_settings["two-phase"]["dp"])
     ax.set_xlabel("benchmark")
     ax.set_ylabel("parallel num")
-    ax.legend()
+    ax.legend(loc='upper left', bbox_to_anchor=(1, 1))
     plt.xticks(label_pos, self.data_of_each_benchmark.keys())
     fig.savefig("./output/compare_benchmark/" + image_name + "_parallel_num.pdf")
 
     # plot mapping type num
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize = figsize)
+    box = ax.get_position()
+    ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
     ax.bar(greedy_pos, greedy_mapping_type_num_list, width=width, label="two-phase: greedy", color=self.color_settings["two-phase"]["greedy"])
     ax.bar(dp_pos, dp_mapping_type_num_list, width=-width, label="two-phase: dp", color=self.color_settings["two-phase"]["dp"])
     ax.set_xlabel("benchmark")
     ax.set_ylabel("mapping type num")
-    ax.legend()
+    ax.legend(loc='upper left', bbox_to_anchor=(1, 1))
     plt.xticks(label_pos, self.data_of_each_benchmark.keys())
     fig.savefig("./output/compare_benchmark/" + image_name + "_mapping_type_num.pdf")
 
     # plot time
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize = figsize)
+    box = ax.get_position()
+    ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
     loop_unrolling_pos = range(0, len(self.data_of_each_benchmark.keys()))
     full_search_pos = [pos + 0.2 for pos in loop_unrolling_pos]
     greedy_pos = [pos + 0.4 for pos in loop_unrolling_pos]
@@ -172,12 +181,14 @@ class AllDataToPlot:
     ax.bar(database_pos, db_time_list, width=0.2, label="database", color=self.color_settings["two-phase"]["database"])
     ax.set_xlabel("benchmark")
     ax.set_ylabel("time rate")
-    ax.legend()
+    ax.legend(loc='upper left', bbox_to_anchor=(1, 1))
     plt.xticks(greedy_pos, self.data_of_each_benchmark.keys())
     fig.savefig("./output/compare_benchmark/" + image_name + "_time.pdf")
 
     # plot time log
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize = figsize)
+    box = ax.get_position()
+    ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
     full_search_pos = [pos + 0.2 for pos in loop_unrolling_pos]
     greedy_pos = [pos + 0.4 for pos in loop_unrolling_pos]
     dp_pos = [pos + 0.6 for pos in loop_unrolling_pos]
@@ -206,7 +217,7 @@ class AllDataToPlot:
     ax.bar(database_pos, database_time_log_list, width=0.2, label="database", color=self.color_settings["two-phase"]["database"])
     ax.set_xlabel("benchmark")
     ax.set_ylabel("log(time)")
-    ax.legend()
+    ax.legend(loc='upper left', bbox_to_anchor=(1, 1))
     plt.xticks(greedy_pos, self.data_of_each_benchmark.keys())
     fig.savefig("./output/compare_benchmark/" + image_name + "_time_log.pdf")
 

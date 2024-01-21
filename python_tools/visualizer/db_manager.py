@@ -14,6 +14,7 @@ class DatabaseManager:
         success, mapping_info = mapping_log_reader(mapping_log_path)
         if not success:
           print("ERROR: mapping log reader failed: " + mapping_log_path)
+          continue
         self.mapping_json_path_to_db_log_path[mapping_info.mapping_file_path] = db_info.log_file_path
 
   def get_database_info(self, remapper_info):
