@@ -8,9 +8,12 @@ remapper::RemappingResult remapper::GreedyElasticRemapping(
     std::vector<remapper::MappingMatrix> mapping_matrix_vec,
     const remapper::CGRAMatrix& cgra_matrix, const int target_parallel_num,
     std::ofstream& log_file) {
-  auto compare_op_rate = [&](const remapper::MappingMatrix& left,
-                             const remapper::MappingMatrix& right) {
-    return left.op_rate > right.op_rate;
+  auto compare_parallel_num = [&](const remapper::MappingMatrix& left,
+                                  const remapper::MappingMatrix& right) {
+    if (left.estimated_reallocate_num == right.estimated_reallocate_num) {
+      return left.op_rate > right.op_rate;
+    }
+    return left.estimated_reallocate_num > right.estimated_reallocate_num;
   };
   auto compare_num_waste_of_memory_io =
       [&](const remapper::MappingMatrix& left,
@@ -19,7 +22,7 @@ remapper::RemappingResult remapper::GreedyElasticRemapping(
       };
   if (cgra_matrix.GetMRRGConfig().memory_io == entity::MRRGMemoryIOType::kAll) {
     std::sort(mapping_matrix_vec.begin(), mapping_matrix_vec.end(),
-              compare_op_rate);
+              compare_parallel_num);
   } else {
     std::sort(mapping_matrix_vec.begin(), mapping_matrix_vec.end(),
               compare_num_waste_of_memory_io);

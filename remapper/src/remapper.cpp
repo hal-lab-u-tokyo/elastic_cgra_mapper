@@ -49,7 +49,7 @@ remapper::RemappingResult remapper::Remapper::ElasticRemapping(
   std::vector<remapper::MappingMatrix> mapping_matrix_vec;
   for (size_t mapping_id = 0; mapping_id < mapping_vec.size(); ++mapping_id) {
     const auto& mapping = mapping_vec[mapping_id];
-    mapping_matrix_vec.emplace_back(mapping, static_cast<int>(mapping_id));
+    mapping_matrix_vec.emplace_back(mapping, static_cast<int>(mapping_id), target_mrrg_config); 
   }
   remapper::CGRAMatrix cgra_matrix(target_mrrg_config);
 

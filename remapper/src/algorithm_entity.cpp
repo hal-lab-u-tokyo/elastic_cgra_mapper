@@ -38,7 +38,7 @@ remapper::MappingMatrix remapper::MappingMatrix::CreateDummyMappingMatrix(
   return result;
 }
 
-remapper::MappingMatrix::MappingMatrix(const entity::Mapping& mapping, int _id)
+remapper::MappingMatrix::MappingMatrix(const entity::Mapping& mapping, int _id, const entity::MRRGConfig& target_mrrg_config)
     : id(_id) {
   op_num_matrix_ = Eigen::MatrixXi::Zero(mapping.GetMRRGConfig().row,
                                          mapping.GetMRRGConfig().column);
@@ -77,6 +77,7 @@ remapper::MappingMatrix::MappingMatrix(const entity::Mapping& mapping, int _id)
 
   op_rate =
       (double)op_num_without_routing / (row_size * column_size * context_size);
+  estimated_reallocate_num = (target_mrrg_config.row / mapping.GetMRRGConfig().row) * (target_mrrg_config.column / mapping.GetMRRGConfig().column) * (target_mrrg_config.context_size / mapping.GetMRRGConfig().context_size);
 
   // calculate num_waste_of_memory_io
   num_waste_of_memory_io = 0;
