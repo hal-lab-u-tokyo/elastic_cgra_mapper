@@ -77,7 +77,10 @@ remapper::MappingMatrix::MappingMatrix(const entity::Mapping& mapping, int _id, 
 
   op_rate =
       (double)op_num_without_routing / (row_size * column_size * context_size);
-  estimated_reallocate_num = (target_mrrg_config.row / mapping.GetMRRGConfig().row) * (target_mrrg_config.column / mapping.GetMRRGConfig().column) * (target_mrrg_config.context_size / mapping.GetMRRGConfig().context_size);
+  estimated_reallocate_num =
+      (target_mrrg_config.row / mapping.GetMRRGConfig().row) *
+      (target_mrrg_config.column / mapping.GetMRRGConfig().column) *
+      (target_mrrg_config.context_size / mapping.GetMRRGConfig().context_size);
 
   // calculate num_waste_of_memory_io
   num_waste_of_memory_io = 0;
@@ -104,6 +107,10 @@ remapper::MappingMatrix::MappingMatrix(
   mapping_ = entity::Mapping(mrrg_config);
   op_rate = (double)(op_num_matrix.sum()) / mrrg_config.row *
             mrrg_config.column * mrrg_config.context_size;
+  estimated_reallocate_num =
+      (target_mrrg_config.row / op_num_matrix.rows()) *
+      (target_mrrg_config.column / op_num_matrix.cols()) *
+      (target_mrrg_config.context_size / op_num_matrix.maxCoeff());
   num_waste_of_memory_io = 0;
   if (mrrg_config.memory_io == entity::MRRGMemoryIOType::kOneEnd) {
     num_waste_of_memory_io =
