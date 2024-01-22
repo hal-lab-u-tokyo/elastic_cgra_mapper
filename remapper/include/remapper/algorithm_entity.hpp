@@ -16,7 +16,9 @@ class Rectangle {
 class MappingMatrix : public Rectangle {
  public:
   MappingMatrix();
-  MappingMatrix(const entity::Mapping& mapping, int _id, const entity::MRRGConfig& target_mrrg_config);
+  MappingMatrix(const entity::Mapping& mapping, int _id,
+                const entity::MRRGConfig& target_mrrg_config,
+                int parallel_num = 1);
   static MappingMatrix CreateDummyMappingMatrix(entity::MRRGConfig mrrg_config,
                                                 int _id);
 
@@ -38,14 +40,18 @@ class MappingMatrix : public Rectangle {
     return GetRotatedMatrix(memory_op_num_matrix_, rotate_op);
   };
   entity::Mapping GetMapping() const { return mapping_; };
+  int GetParallelNum() const { return parallel_num_; };
 
  private:
   MappingMatrix(const Eigen::MatrixXi& op_num_matrix,
                 const Eigen::MatrixXi& memory_op_num_matrix, int _id,
-                entity::MRRGConfig mrrg_config);
+                const entity::MRRGConfig mrrg_config,
+                const entity::MRRGConfig& target_mrrg_config,
+                int parallel_num = 1);
   Eigen::MatrixXi op_num_matrix_;
   Eigen::MatrixXi memory_op_num_matrix_;
   entity::Mapping mapping_;
+  int parallel_num_;
   Eigen::MatrixXi GetRotatedMatrix(const Eigen::MatrixXi& matrix,
                                    remapper::RotateOp rotate_op) const;
 };
