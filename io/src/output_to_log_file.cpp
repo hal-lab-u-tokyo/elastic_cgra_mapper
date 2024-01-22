@@ -85,7 +85,7 @@ void io::RemapperLogger::LogRemapperInput(const io::RemapperInput& input) {
   assert(input.mapping_dir_path.is_absolute());
   assert(input.cgra_file_path.is_absolute());
   assert(input.remapper_mode == "dp" || input.remapper_mode == "greedy" ||
-         input.remapper_mode == "full_search");
+         input.remapper_mode == "full_search" || input.remapper_mode == "dp_and_full_search");
 
   log_file_path_ = output_dir_path_ / ("remapping/" + input.remapper_mode +
                                        "/log/remapping_" + log_id_ + ".log");
