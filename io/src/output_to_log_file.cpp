@@ -129,7 +129,7 @@ void io::RemapperLogger::LogRemapperInput(const io::RemapperInput& input) {
 }
 
 void io::RemapperLogger::LogRemapperOutput(const io::RemapperOutput& output) {
-  assert(output.remapping_time_s > 0);
+  assert(output.remapping_time_s >= 0);
   io::WriteMappingFile(mapping_file_path_, output.mapping_ptr,
                        output.mrrg_config);
   log_file_ << "-- remapping output --" << std::endl;
