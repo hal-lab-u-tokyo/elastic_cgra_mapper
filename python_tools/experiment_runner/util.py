@@ -39,5 +39,7 @@ def remapping_type_to_int(remapper_type):
     return 1
   elif remapper_type == RemapperType.DP:
     return 2
+  elif remapper_type == RemapperType.DPAndFullSearch:
+    return 3
   else:
     raise ValueError("invalid remapper type")

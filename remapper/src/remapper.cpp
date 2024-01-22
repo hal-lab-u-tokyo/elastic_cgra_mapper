@@ -3,6 +3,7 @@
 #include <Eigen/Eigen>
 #include <chrono>
 
+#include "remapper/algorithm/dp_and_full_search_elastic_remapper.hpp"
 #include "remapper/algorithm/dp_elastic_remapper.hpp"
 #include "remapper/algorithm/full_search_elastic_remapper.hpp"
 #include "remapper/algorithm/greedy_elastic_remapper.hpp"
@@ -17,6 +18,8 @@ std::string remapper::RemappingModeToString(RemappingMode mode) {
       return "greedy";
     case RemappingMode::DP:
       return "dp";
+    case RemappingMode::DPAndFullSearch:
+      return "dp_and_full_search";
   }
 }
 
@@ -28,6 +31,8 @@ remapper::RemappingMode remapper::RemappingModeFromString(
     return RemappingMode::Greedy;
   } else if (mode_str == "dp") {
     return RemappingMode::DP;
+  } else if (mode_str == "dp_and_full_search") {
+    return RemappingMode::DPAndFullSearch;
   } else {
     assert(false);
   }
@@ -49,7 +54,8 @@ remapper::RemappingResult remapper::Remapper::ElasticRemapping(
   std::vector<remapper::MappingMatrix> mapping_matrix_vec;
   for (size_t mapping_id = 0; mapping_id < mapping_vec.size(); ++mapping_id) {
     const auto& mapping = mapping_vec[mapping_id];
-    mapping_matrix_vec.emplace_back(mapping, static_cast<int>(mapping_id), target_mrrg_config); 
+    mapping_matrix_vec.emplace_back(mapping, static_cast<int>(mapping_id),
+                                    target_mrrg_config);
   }
   remapper::CGRAMatrix cgra_matrix(target_mrrg_config);
 
@@ -68,12 +74,16 @@ remapper::RemappingResult remapper::Remapper::ElasticRemapping(
       result = remapper::DPElasticRemapping(mapping_matrix_vec, cgra_matrix,
                                             target_parallel_num, log_file);
       break;
+    case RemappingMode::DPAndFullSearch:
+      result = remapper::DPAndFullSearchElasticRemapping(
+          mapping_matrix_vec, cgra_matrix, target_parallel_num, log_file);
+      break;
   }
   const auto end_time = std::chrono::system_clock::now();
   result.remapping_time_s =
-      static_cast<double>(std::chrono::duration_cast<std::chrono::milliseconds>(end_time -
-                                                            start_time)
-          .count()) /
+      static_cast<double>(std::chrono::duration_cast<std::chrono::milliseconds>(
+                              end_time - start_time)
+                              .count()) /
       1000.0;
 
   return result;

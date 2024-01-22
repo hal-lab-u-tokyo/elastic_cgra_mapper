@@ -1,18 +1,22 @@
 #pragma once
+#include <vector>
 
 namespace remapper {
 enum RotateOp {
-  TopIsTop,
-  TopIsRight,
-  TopIsBottom,
-  TopIsLeft,
-  TopIsTopMirror,
-  TopIsRightMirror,
-  TopIsBottomMirror,
-  TopIsLeftMirror
+  TopIsTop = 0,
+  TopIsRight = 1,
+  TopIsBottom = 2,
+  TopIsLeft = 3,
+  TopIsTopMirror = 4,
+  TopIsRightMirror = 5,
+  TopIsBottomMirror = 6,
+  TopIsLeftMirror = 7
 };
 
+RotateOp CombineRotateOp(const RotateOp& lhs, const RotateOp& rhs);
+
 constexpr int kRotateOpNum = 8;
+
 const std::vector<RotateOp> kAllRotateOpVec = {
     RotateOp::TopIsTop,          RotateOp::TopIsRight,
     RotateOp::TopIsBottom,       RotateOp::TopIsLeft,

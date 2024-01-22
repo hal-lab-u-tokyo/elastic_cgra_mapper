@@ -58,6 +58,11 @@ struct ConfigId {
            context_id == config_id.context_id;
   }
 
+  ConfigId operator+(const ConfigId& rhs) const {
+    return entity::ConfigId(row_id + rhs.row_id, column_id + rhs.column_id,
+                            context_id + rhs.context_id);
+  }
+
   PEPositionId GetPositionId() { return PEPositionId(row_id, column_id); }
 };
 

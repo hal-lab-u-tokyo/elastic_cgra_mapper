@@ -7,6 +7,7 @@ class RemapperType(Enum):
     FullSearch = 0
     Greedy = 1
     DP = 2
+    DPAndFullSearch = 3
 
     def to_string(self):
         if self == RemapperType.FullSearch:
@@ -15,6 +16,8 @@ class RemapperType(Enum):
             return "Greedy"
         elif self == RemapperType.DP:
             return "DP"
+        elif self == RemapperType.DPAndFullSearch:
+            return "DPAndFullSearch"
         else:
             return "Unknown"
         
@@ -26,6 +29,8 @@ class RemapperType(Enum):
             return RemapperType.Greedy
         elif input == "DP" or input == "dp":
             return RemapperType.DP
+        elif input == "DPAndFullSearch" or input == "dp_and_full_search":
+            return RemapperType.DPAndFullSearch
         else:
             return None
 

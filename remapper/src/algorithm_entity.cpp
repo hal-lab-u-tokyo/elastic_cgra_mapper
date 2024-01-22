@@ -33,12 +33,14 @@ remapper::MappingMatrix remapper::MappingMatrix::CreateDummyMappingMatrix(
       }
     }
   }
-  const auto result =
-      MappingMatrix(op_num_matrix, memory_op_num_matrix, _id, mrrg_config);
+  const auto result = MappingMatrix(op_num_matrix, memory_op_num_matrix, _id,
+                                    mrrg_config, mrrg_config);
   return result;
 }
 
-remapper::MappingMatrix::MappingMatrix(const entity::Mapping& mapping, int _id, const entity::MRRGConfig& target_mrrg_config)
+remapper::MappingMatrix::MappingMatrix(
+    const entity::Mapping& mapping, int _id,
+    const entity::MRRGConfig& target_mrrg_config, int parallel_num)
     : id(_id) {
   op_num_matrix_ = Eigen::MatrixXi::Zero(mapping.GetMRRGConfig().row,
                                          mapping.GetMRRGConfig().column);
@@ -57,7 +59,7 @@ remapper::MappingMatrix::MappingMatrix(const entity::Mapping& mapping, int _id, 
         if (config.operation_type != entity::OpType::NOP) {
           pe_op_count++;
         }
-        if (!entity::IsDFGOp(config.operation_type)) {
+        if (entity::IsDFGOp(config.operation_type)) {
           op_num_without_routing++;
         }
         if (entity::IsMemoryAccessOperation(config.operation_type)) {
@@ -74,10 +76,14 @@ remapper::MappingMatrix::MappingMatrix(const entity::Mapping& mapping, int _id, 
 
   mapping_ = mapping;
   context_size = op_num_matrix_.maxCoeff();
+  parallel_num_ = parallel_num;
 
   op_rate =
       (double)op_num_without_routing / (row_size * column_size * context_size);
-  estimated_reallocate_num = (target_mrrg_config.row / mapping.GetMRRGConfig().row) * (target_mrrg_config.column / mapping.GetMRRGConfig().column) * (target_mrrg_config.context_size / mapping.GetMRRGConfig().context_size);
+  estimated_reallocate_num =
+      (target_mrrg_config.row / mapping.GetMRRGConfig().row) *
+      (target_mrrg_config.column / mapping.GetMRRGConfig().column) *
+      (target_mrrg_config.context_size / mapping.GetMRRGConfig().context_size);
 
   // calculate num_waste_of_memory_io
   num_waste_of_memory_io = 0;
@@ -97,13 +103,19 @@ remapper::MappingMatrix::MappingMatrix(const entity::Mapping& mapping, int _id, 
 remapper::MappingMatrix::MappingMatrix(
     const Eigen::MatrixXi& op_num_matrix,
     const Eigen::MatrixXi& memory_op_num_matrix, int _id,
-    entity::MRRGConfig mrrg_config)
+    const entity::MRRGConfig mrrg_config,
+    const entity::MRRGConfig& target_mrrg_config, int parallel_num)
     : id(_id),
       op_num_matrix_(op_num_matrix),
       memory_op_num_matrix_(memory_op_num_matrix) {
   mapping_ = entity::Mapping(mrrg_config);
+  parallel_num_ = parallel_num;
   op_rate = (double)(op_num_matrix.sum()) / mrrg_config.row *
             mrrg_config.column * mrrg_config.context_size;
+  estimated_reallocate_num =
+      (target_mrrg_config.row / op_num_matrix.rows()) *
+      (target_mrrg_config.column / op_num_matrix.cols()) *
+      (target_mrrg_config.context_size / op_num_matrix.maxCoeff());
   num_waste_of_memory_io = 0;
   if (mrrg_config.memory_io == entity::MRRGMemoryIOType::kOneEnd) {
     num_waste_of_memory_io =
