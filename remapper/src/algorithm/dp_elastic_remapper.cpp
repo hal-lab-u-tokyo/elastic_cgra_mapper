@@ -119,7 +119,7 @@ remapper::RemappingResult remapper::DPElasticRemapping(
                     GetDPSplitedRectangleSize(dp_size, mapping_size);
 
             for (int pattern = 0; pattern < 6; pattern++) {
-              uint16_t new_dp_value = 1;
+              uint16_t new_dp_value = mapping_matrix.GetParallelNum();
               for (int rectangle_id = 0; rectangle_id < 3; rectangle_id++) {
                 if (cgra_matrix.GetMRRGConfig().memory_io ==
                         entity::MRRGMemoryIOType::kBothEnds &&
