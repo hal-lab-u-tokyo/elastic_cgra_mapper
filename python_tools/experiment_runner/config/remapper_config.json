@@ -39,6 +39,7 @@
   "remapper_mode": [
     "DP",
     "Greedy",
-    "FullSearch"
+    "FullSearch",
+    "DPAndFullSearch"
   ]
 }
