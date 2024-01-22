@@ -57,7 +57,7 @@ remapper::MappingMatrix::MappingMatrix(const entity::Mapping& mapping, int _id, 
         if (config.operation_type != entity::OpType::NOP) {
           pe_op_count++;
         }
-        if (!entity::IsDFGOp(config.operation_type)) {
+        if (entity::IsDFGOp(config.operation_type)) {
           op_num_without_routing++;
         }
         if (entity::IsMemoryAccessOperation(config.operation_type)) {
