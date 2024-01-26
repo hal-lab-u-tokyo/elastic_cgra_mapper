@@ -192,6 +192,8 @@ if __name__ == "__main__":
       memory_io_to_all_data_to_plot[memory_io.to_string()].add_benchmark_data(benchmark, MappingType.greedy, row, utilization, time, remapping_info.mapping_type_num, remapping_info.get_unix_time())
     elif remapping_info.remapper_mode == RemapperType.FullSearch:
       memory_io_to_all_data_to_plot[memory_io.to_string()].add_benchmark_data(benchmark, MappingType.full_search, row, utilization, time, remapping_info.mapping_type_num, remapping_info.get_unix_time())
+    elif remapping_info.remapper_mode == RemapperType.DPAndFullSearch:
+      memory_io_to_all_data_to_plot[memory_io.to_string()].add_benchmark_data(benchmark, MappingType.dp_and_full_search, row, utilization, time, remapping_info.mapping_type_num, remapping_info.get_unix_time())
   
   for mapping_info in mapping_info_list:
     row = mapping_info.row

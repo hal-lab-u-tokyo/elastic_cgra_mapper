@@ -88,7 +88,7 @@ if __name__ == "__main__":
           if success:
             mapping_log_info_list.append(mapping_log_info)
 
-    for mode in ["full_search", "greedy", "dp"]:
+    for mode in ["full_search", "greedy", "dp", "dp_and_full_search"]:
       remapper_mode_dir = os.path.join(remapper_dir, mode, "log")
       if not os.path.exists(remapper_mode_dir):
         continue
