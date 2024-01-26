@@ -9,13 +9,14 @@ struct NewMappingDBElement {
   NewMappingDBElement(
       int _mapping_id, std::vector<int> _element_mapping_id,
       std::vector<remapper::MappingTransformOp> _element_mapping_transform_op,
-      const entity::MRRGConfig& mrrg_config) {
+      const entity::MRRGConfig _mrrg_config) {
     assert(_element_mapping_id.size() == 2);
     assert(_element_mapping_transform_op.size() == 2);
 
     mapping_id = _mapping_id;
     element_mapping_id = _element_mapping_id;
     element_mapping_transform_op = _element_mapping_transform_op;
+    mrrg_config = _mrrg_config;
   }
 
   int mapping_id;
@@ -28,11 +29,6 @@ remapper::RemappingResult remapper::DPAndFullSearchElasticRemapping(
     std::vector<remapper::MappingMatrix> mapping_matrix_vec,
     const remapper::CGRAMatrix& cgra_matrix, const int target_parallel_num,
     std::ofstream& log_file) {
-  double min_op_rate = 1;
-  for (const auto mapping : mapping_matrix_vec) {
-    min_op_rate = std::min(mapping.op_rate, min_op_rate);
-  }
-
   std::unordered_map<int, NewMappingDBElement> id_to_new_db_element_map;
 
   for (size_t i = 0; i < mapping_matrix_vec.size(); i++) {
@@ -65,14 +61,16 @@ remapper::RemappingResult remapper::DPAndFullSearchElasticRemapping(
             if (row > cgra_matrix.row_size || col > cgra_matrix.column_size) {
               continue;
             }
-            
+
             // mapping i available
-            if ((row < mapping_i.row_size || col < mapping_i.column_size) && (row < mapping_i.column_size || col < mapping_i.row_size)) {
+            if ((row < mapping_i.row_size || col < mapping_i.column_size) &&
+                (row < mapping_i.column_size || col < mapping_i.row_size)) {
               continue;
             }
 
             // mapping j avalilable
-            if ((row < mapping_j.row_size || col < mapping_j.column_size) && (row < mapping_j.column_size || col < mapping_j.row_size)) {
+            if ((row < mapping_j.row_size || col < mapping_j.column_size) &&
+                (row < mapping_j.column_size || col < mapping_j.row_size)) {
               continue;
             }
 
@@ -86,7 +84,8 @@ remapper::RemappingResult remapper::DPAndFullSearchElasticRemapping(
                 mapping_i.op_rate * 2 * mapping_i.row_size *
                 mapping_i.column_size * mapping_i.context_size /
                 (row * col * context);
-            if (estimated_op_rate < min_op_rate) {
+            if (estimated_op_rate < mapping_i.op_rate &&
+                estimated_op_rate < mapping_j.op_rate) {
               continue;
             }
 
@@ -132,8 +131,13 @@ remapper::RemappingResult remapper::DPAndFullSearchElasticRemapping(
                                         mrrg_config_to_create_new_element, 2);
             mapping_matrix_vec.push_back(result_mapping_matrix);
 
+            std::vector<int> result_mapping_id_vec;
+            for (const auto mapping_index: remapping_result.result_mapping_id_vec) {
+              result_mapping_id_vec.push_back(mapping_vec_to_create_new_element[mapping_index].id);
+            }
+
             NewMappingDBElement new_mapping_db_element(
-                result_mapping_id, remapping_result.result_mapping_id_vec,
+                result_mapping_id, result_mapping_id_vec,
                 remapping_result.result_transform_op_vec,
                 mrrg_config_to_create_new_element);
 
@@ -178,19 +182,21 @@ remapper::RemappingResult remapper::DPAndFullSearchElasticRemapping(
             element_mapping_transform_op.row,
             element_mapping_transform_op.column, 0);
         auto transformed_config1 =
-            remapper::RotateConfigId(config1, db_element.mrrg_config,
-                                     element_mapping_transform_op.rotate_op) +
+            remapper::RotateConfigId(
+                config1, mapping_matrix.GetMapping().GetMRRGConfig(),
+                element_mapping_transform_op.rotate_op) +
             config_transform;
-        transformed_config1 = remapper::RotateConfigId(
-            transformed_config1, cgra_matrix.GetMRRGConfig(),
-            transform_op.rotate_op);
+        transformed_config1 = remapper::RotateConfigId(transformed_config1,
+                                                       db_element.mrrg_config,
+                                                       transform_op.rotate_op);
         auto transformed_config2 =
-            remapper::RotateConfigId(config2, db_element.mrrg_config,
-                                     element_mapping_transform_op.rotate_op) +
+            remapper::RotateConfigId(
+                config2, mapping_matrix.GetMapping().GetMRRGConfig(),
+                element_mapping_transform_op.rotate_op) +
             config_transform;
-        transformed_config2 = remapper::RotateConfigId(
-            transformed_config2, cgra_matrix.GetMRRGConfig(),
-            transform_op.rotate_op);
+        transformed_config2 = remapper::RotateConfigId(transformed_config2,
+                                                       db_element.mrrg_config,
+                                                       transform_op.rotate_op);
 
         remapper::MappingTransformOp new_transform_op;
         new_transform_op.rotate_op = new_rotate_op;
