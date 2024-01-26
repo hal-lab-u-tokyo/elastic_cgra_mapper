@@ -27,14 +27,17 @@ class DataToPlot:
   def __init__(self, cgra_num):
     self.utilization = []
     self.time = []
+    self.type_num = []
     self.unix_time = []
     for i in range(6):
       self.utilization.append([])
       self.time.append([])
+      self.type_num.append([])
       self.unix_time.append([])
       for _ in range(0, cgra_num):
         self.utilization[i].append(-1)
         self.time[i].append(-1)
+        self.type_num[i].append(0)
         self.unix_time[i].append(-1)
 
 class AllDataToPlot:
@@ -43,7 +46,7 @@ class AllDataToPlot:
     self.min_cgra_size = min_cgra_size
     self.max_cgra_size = max_cgra_size
 
-  def add_benchmark_data(self, benchmark_name, mapping_type, cgra_size, utilization, time, unix_time):
+  def add_benchmark_data(self, benchmark_name, mapping_type, cgra_size, utilization, time, type_num, unix_time):
     cgra_size_idx = cgra_size - self.min_cgra_size
     if benchmark_name not in self.data_of_each_benchmark.keys():
       self.data_of_each_benchmark[benchmark_name] = DataToPlot(self.max_cgra_size - self.min_cgra_size + 1)
@@ -61,6 +64,7 @@ class AllDataToPlot:
     self.data_of_each_benchmark[benchmark_name].utilization[mapping_type.value][cgra_size_idx] = utilization
     self.data_of_each_benchmark[benchmark_name].time[mapping_type.value][cgra_size_idx] = time
     self.data_of_each_benchmark[benchmark_name].unix_time[mapping_type.value][cgra_size_idx] = unix_time
+    self.data_of_each_benchmark[benchmark_name].type_num[mapping_type.value][cgra_size_idx] = type_num
 
   def plot(self, image_name):
     check_dir_availability("./output/compare_cgra_size/")
@@ -86,6 +90,24 @@ class AllDataToPlot:
       ax.legend()
 
       fig.savefig("./output/compare_cgra_size/" + image_name + "_"+ benchmark + "_util.pdf")
+
+      fig, ax = plt.subplots()
+      for mapping_type in range(1,3):
+        type_num_list = []
+        cgra_size_list = []
+        for i in range(self.max_cgra_size - self.min_cgra_size + 1):
+          type_num = self.data_of_each_benchmark[benchmark].type_num[mapping_type][i]
+          if type_num != -1:
+            type_num_list.append(type_num)
+            cgra_size_list.append(i + self.min_cgra_size)
+        ax.plot(cgra_size_list, type_num_list, marker=marker_list[mapping_type], label=label_list[mapping_type], color=color_list[mapping_type])
+      ax.set_xlabel("cgra size")
+      ax.set_ylabel("type num")
+      ax.xaxis.set_major_locator(MaxNLocator(integer=True))
+      ax.yaxis.set_major_locator(MaxNLocator(integer=True))
+      ax.legend()
+
+      fig.savefig("./output/compare_cgra_size/" + image_name + "_"+ benchmark + "_type_num.pdf")
 
       fig, ax = plt.subplots()
       for mapping_type in range(1,6):
@@ -165,11 +187,13 @@ if __name__ == "__main__":
     time = remapping_info.remapper_time + database_info.creating_time
 
     if remapping_info.remapper_mode == RemapperType.DP:
-      memory_io_to_all_data_to_plot[memory_io.to_string()].add_benchmark_data(benchmark, MappingType.dp, row, utilization, time, remapping_info.get_unix_time())
+      memory_io_to_all_data_to_plot[memory_io.to_string()].add_benchmark_data(benchmark, MappingType.dp, row, utilization, time, remapping_info.mapping_type_num, remapping_info.get_unix_time())
     elif remapping_info.remapper_mode == RemapperType.Greedy:
-      memory_io_to_all_data_to_plot[memory_io.to_string()].add_benchmark_data(benchmark, MappingType.greedy, row, utilization, time, remapping_info.get_unix_time())
+      memory_io_to_all_data_to_plot[memory_io.to_string()].add_benchmark_data(benchmark, MappingType.greedy, row, utilization, time, remapping_info.mapping_type_num, remapping_info.get_unix_time())
     elif remapping_info.remapper_mode == RemapperType.FullSearch:
-      memory_io_to_all_data_to_plot[memory_io.to_string()].add_benchmark_data(benchmark, MappingType.full_search, row, utilization, time, remapping_info.get_unix_time())
+      memory_io_to_all_data_to_plot[memory_io.to_string()].add_benchmark_data(benchmark, MappingType.full_search, row, utilization, time, remapping_info.mapping_type_num, remapping_info.get_unix_time())
+    elif remapping_info.remapper_mode == RemapperType.DPAndFullSearch:
+      memory_io_to_all_data_to_plot[memory_io.to_string()].add_benchmark_data(benchmark, MappingType.dp_and_full_search, row, utilization, time, remapping_info.mapping_type_num, remapping_info.get_unix_time())
   
   for mapping_info in mapping_info_list:
     row = mapping_info.row
@@ -201,7 +225,7 @@ if __name__ == "__main__":
     all_context = row * column * context_size
     utilization = mapping_info.parallel_num * benchmark_node_num[benchmark]/ all_context
 
-    memory_io_to_all_data_to_plot[memory_io.to_string()].add_benchmark_data(benchmark, MappingType.loop_unrolling, row, utilization, mapping_info.mapping_time, mapping_info.get_unix_time())
+    memory_io_to_all_data_to_plot[memory_io.to_string()].add_benchmark_data(benchmark, MappingType.loop_unrolling, row, utilization, mapping_info.mapping_time, 1, mapping_info.get_unix_time())
 
   for benchmark in plotter_config.get_benchmark_list():
     memory_io_to_all_data_to_plot["all"].plot("all")

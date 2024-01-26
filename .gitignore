@@ -1,5 +1,6 @@
 build/*
 output/*
+output_*/*
 .vscode/
 benchmark/**/*.png
 __pycache__/

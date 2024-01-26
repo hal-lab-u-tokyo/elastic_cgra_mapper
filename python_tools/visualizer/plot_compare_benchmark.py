@@ -10,6 +10,8 @@ from db_manager import *
 import re
 import enum
 import math
+from matplotlib.ticker import MaxNLocator 
+
 
 def check_dir_availability(dir_name):
   if not os.path.exists(dir_name):
@@ -149,6 +151,7 @@ class AllDataToPlot:
     ax.bar(dp_pos, dp_parallel_num_list, width=-width, label="two-phase: dp", color=self.color_settings["two-phase"]["dp"])
     ax.set_xlabel("benchmark")
     ax.set_ylabel("parallel num")
+    ax.yaxis.set_major_locator(MaxNLocator(integer=True))
     ax.legend(loc='upper left', bbox_to_anchor=(1, 1))
     plt.xticks(label_pos, self.data_of_each_benchmark.keys())
     fig.savefig("./output/compare_benchmark/" + image_name + "_parallel_num.pdf")
@@ -161,6 +164,7 @@ class AllDataToPlot:
     ax.bar(dp_pos, dp_mapping_type_num_list, width=-width, label="two-phase: dp", color=self.color_settings["two-phase"]["dp"])
     ax.set_xlabel("benchmark")
     ax.set_ylabel("mapping type num")
+    ax.yaxis.set_major_locator(MaxNLocator(integer=True))
     ax.legend(loc='upper left', bbox_to_anchor=(1, 1))
     plt.xticks(label_pos, self.data_of_each_benchmark.keys())
     fig.savefig("./output/compare_benchmark/" + image_name + "_mapping_type_num.pdf")
