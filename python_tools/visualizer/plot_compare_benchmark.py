@@ -11,6 +11,7 @@ import re
 import enum
 import math
 from matplotlib.ticker import MaxNLocator 
+import csv
 
 
 def check_dir_availability(dir_name):
@@ -24,6 +25,18 @@ class MappingType(enum.Enum):
   loop_unrolling = 3
   database = 4
 
+  def number_to_string(number):
+    if number == 0:
+      return "dp"
+    elif number == 1:
+      return "greedy"
+    elif number == 2:
+      return "full_search"
+    elif number == 3:
+      return "loop_unrolling"
+    
+    assert False
+    
 class DataToPlot:
   def __init__(self):
     self.utilization: List[float] = [0,0,0,0,0]
@@ -51,6 +64,24 @@ class AllDataToPlot:
     self.data_of_each_benchmark[benchmark_name].time[mapping_type.value] = time
     self.data_of_each_benchmark[benchmark_name].unix_time[mapping_type.value] = unix_time
 
+  def output_csv(self, file_name):
+    check_dir_availability("./output/compare_benchmark/")
+    f = open("./output/compare_benchmark/" + file_name + ".csv", 'w', encoding='utf-8', newline='')
+    data_writer = csv.writer(f)
+    data_writer.writerow(["benchmark_name", "type", "utilization", "parallel_num", "type_num", "time"])
+
+    for benchmark in self.data_of_each_benchmark.keys():
+      for type in range(0,4):
+        row = [benchmark]
+        row.append(MappingType.number_to_string(type))
+        row.append(self.data_of_each_benchmark[benchmark].utilization[type])
+        row.append(self.data_of_each_benchmark[benchmark].parallel_num[type])
+        row.append(self.data_of_each_benchmark[benchmark].mapping_type_num[type])
+        row.append(self.data_of_each_benchmark[benchmark].time[type])
+        data_writer.writerow(row)
+    
+    f.close()
+  
   def plot(self, image_name):
     check_dir_availability("./output/compare_benchmark/")
     dp_utilization = []
@@ -320,6 +351,9 @@ if __name__ == "__main__":
   
   memory_io_to_all_data_to_plot["all"].plot("all")
   memory_io_to_all_data_to_plot["both_ends"].plot("both_ends")
+
+  memory_io_to_all_data_to_plot["all"].output_csv("all")
+  memory_io_to_all_data_to_plot["both_ends"].output_csv("both_ends")
 
 
 
