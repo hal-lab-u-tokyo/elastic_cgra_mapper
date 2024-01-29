@@ -9,6 +9,7 @@ from entity import *
 from typing import List
 from db_manager import *
 import enum
+import csv
 
 def check_dir_availability(dir_name):
   if not os.path.exists(dir_name):
@@ -24,6 +25,12 @@ class MappingType(enum.Enum):
       return MappingType.dp
     elif id == 1:
       return MappingType.greedy
+  
+  def to_string(self):
+    if self == MappingType.dp:
+      return "dp"
+    elif self == MappingType.greedy:
+      return "greedy"
 
 class DataToPlot:
   def __init__(self, database_timeout_list):
@@ -65,6 +72,21 @@ class AllDataToPlot:
     if benchmark_name not in self.data_of_each_benchmark.keys():
       self.data_of_each_benchmark[benchmark_name] = DataToPlot(self.db_timeout_s_list)
     self.data_of_each_benchmark[benchmark_name].add_data(db_timeout_s, utilization, time, unix_time, mapping_type)
+
+  def output_csv(self, file_name):
+    check_dir_availability("./output/compare_db_timeout/")
+    f = open("./output/compare_db_timeout/" + file_name + ".csv", 'w', encoding='utf-8', newline='')
+    data_writer = csv.writer(f)
+    data_writer.writerow(["benchmark_name","type", "database_timeout", "utilization", "time"])
+    for benchmark in self.data_of_each_benchmark.keys():
+      for mapping_type_idx in range(0,2):
+        mapping_type = MappingType.create_mapping_type(mapping_type_idx)
+        for timeout in self.db_timeout_s_list:
+          row = [benchmark, mapping_type.to_string(), timeout]
+          row.append(self.data_of_each_benchmark[benchmark].get_util(timeout, mapping_type))
+          row.append(self.data_of_each_benchmark[benchmark].get_time(timeout, mapping_type))          
+          data_writer.writerow(row)
+    f.close()
 
   def plot(self, image_name):
     check_dir_availability("./output/compare_db_timeout/")
@@ -163,9 +185,11 @@ if __name__ == "__main__":
     elif remapping_info.remapper_mode == RemapperType.Greedy:
       memory_io_to_all_data_to_plot[memory_io.to_string()].add_benchmark_data(benchmark, MappingType.greedy, utilization, time, remapping_info.get_unix_time(), database_info.timeout)
   
-  for benchmark in plotter_config.get_benchmark_list():
-    memory_io_to_all_data_to_plot["all"].plot("all")
-    memory_io_to_all_data_to_plot["both_ends"].plot("both_ends")
+  memory_io_to_all_data_to_plot["all"].plot("all")
+  memory_io_to_all_data_to_plot["both_ends"].plot("both_ends")
+
+  memory_io_to_all_data_to_plot["all"].output_csv("all")
+  memory_io_to_all_data_to_plot["both_ends"].output_csv("both_ends")
 
 
 

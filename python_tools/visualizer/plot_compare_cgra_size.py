@@ -22,6 +22,39 @@ class MappingType(enum.Enum):
   full_search = 3
   loop_unrolling = 4
   loop_unrolling_same_parallel = 5
+  dp_and_full_search = 6
+
+  def to_string(self):
+    if self == MappingType.database:
+      return "database"
+    elif self == MappingType.dp:
+      return "dp"
+    elif self == MappingType.greedy:
+      return "greedy"
+    elif self == MappingType.full_search:
+      return "full_search"
+    elif self == MappingType.loop_unrolling:
+      return "loop_unrolling"
+    elif self == MappingType.loop_unrolling_same_parallel:
+      return "loop_unrolling_same_parallel"
+    elif self == MappingType.dp_and_full_search:
+      return "dp_and_full_search"
+    
+  def create_mapping_type(id):
+    if id == 0:
+      return MappingType.database
+    elif id == 1:
+      return MappingType.dp
+    elif id == 2:
+      return MappingType.greedy
+    elif id == 3:
+      return MappingType.full_search
+    elif id == 4:
+      return MappingType.loop_unrolling
+    elif id == 5:
+      return MappingType.loop_unrolling_same_parallel
+    elif id == 6:
+      return MappingType.dp_and_full_search
 
 class DataToPlot:
   def __init__(self, cgra_num):
@@ -29,7 +62,7 @@ class DataToPlot:
     self.time = []
     self.type_num = []
     self.unix_time = []
-    for i in range(6):
+    for i in range(7):
       self.utilization.append([])
       self.time.append([])
       self.type_num.append([])
@@ -65,6 +98,23 @@ class AllDataToPlot:
     self.data_of_each_benchmark[benchmark_name].time[mapping_type.value][cgra_size_idx] = time
     self.data_of_each_benchmark[benchmark_name].unix_time[mapping_type.value][cgra_size_idx] = unix_time
     self.data_of_each_benchmark[benchmark_name].type_num[mapping_type.value][cgra_size_idx] = type_num
+
+  def ouptut_csv(self, file_name):
+    check_dir_availability("./output/compare_cgra_size/")
+    f = open("./output/compare_cgra_size/" + file_name + ".csv", 'w', encoding='utf-8', newline='')
+    data_writer = csv.writer(f)
+    data_writer.writerow(["benchmark_name","type", "cgra_size", "utilization", "time", "type_num"])
+
+    for benchmark in self.data_of_each_benchmark.keys():
+      for mapping_type in range(1,7):
+        for i in range(self.max_cgra_size - self.min_cgra_size + 1):
+          row = [benchmark, MappingType.create_mapping_type(mapping_type).to_string(), i + self.min_cgra_size]
+          row.append(self.data_of_each_benchmark[benchmark].utilization[mapping_type][i])
+          row.append(self.data_of_each_benchmark[benchmark].time[mapping_type][i])
+          row.append(self.data_of_each_benchmark[benchmark].type_num[mapping_type][i])
+
+          data_writer.writerow(row)
+    f.close()
 
   def plot(self, image_name):
     check_dir_availability("./output/compare_cgra_size/")
@@ -227,9 +277,11 @@ if __name__ == "__main__":
 
     memory_io_to_all_data_to_plot[memory_io.to_string()].add_benchmark_data(benchmark, MappingType.loop_unrolling, row, utilization, mapping_info.mapping_time, 1, mapping_info.get_unix_time())
 
-  for benchmark in plotter_config.get_benchmark_list():
-    memory_io_to_all_data_to_plot["all"].plot("all")
-    memory_io_to_all_data_to_plot["both_ends"].plot("both_ends")
+  memory_io_to_all_data_to_plot["all"].plot("all")
+  memory_io_to_all_data_to_plot["both_ends"].plot("both_ends")
+
+  memory_io_to_all_data_to_plot["all"].ouptut_csv("all")
+  memory_io_to_all_data_to_plot["both_ends"].ouptut_csv("both_ends")
 
 
 
