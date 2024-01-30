@@ -204,7 +204,7 @@ void io::CreateDatabaseLogger::LogCreateDatabaseOutput(
 int io::CreateDatabaseLogger::countMappingDataNum() const {
   int count = 0;
   std::filesystem::path mapping_dir_path =
-      output_dir_path_ / ("database/mapping/" + database_id_ + "/mapping");
+      output_dir_path_ / ("database/mapping/" + database_id_ + "/mapping/mapping");
   if (!std::filesystem::exists(mapping_dir_path)) {
     return 0;
   }

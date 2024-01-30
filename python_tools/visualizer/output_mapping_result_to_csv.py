@@ -73,9 +73,9 @@ if __name__ == "__main__":
 
   # create unix_time to file_path dictionary
   for benchmark in plotter_config.get_all_benchmark_list():
-    mapping_log_dir = os.path.join(plotter_config.output_dir_path, benchmark, "mapping/log")
-    remapper_dir = os.path.join(plotter_config.output_dir_path, benchmark, "remapping")
-    database_log_dir = os.path.join(plotter_config.output_dir_path, benchmark, "database/log")
+    mapping_log_dir = os.path.join(plotter_config.mapping_output_dir_path, benchmark, "mapping/log")
+    remapper_dir = os.path.join(plotter_config.remapper_output_dir_path, benchmark, "remapping")
+    database_log_dir = os.path.join(plotter_config.remapper_output_dir_path, benchmark, "database/log")
 
     if not os.path.exists(mapping_log_dir):
       continue
