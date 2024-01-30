@@ -119,13 +119,13 @@ class AllDataToPlot:
   def plot(self, image_name):
     check_dir_availability("./output/compare_cgra_size/")
     
-    label_list = ["two_phase: db", "two-phase: dp", "two-phase: greedy", "two-phase: full_search" , "single-phase", "single-phase: two-phase util"]
-    color_list = ["tab:purple", "tab:pink","tab:green","tab:orange","tab:red", "tab:olive"]
-    marker_list = [".","v","^","o","D","p"]
+    label_list = ["two_phase: db", "two-phase: dp", "two-phase: greedy", "two-phase: full search" , "single-phase", "single-phase: two-phase util", "two-phase: dp and full search"]
+    color_list = ["tab:purple", "tab:pink","tab:green","tab:orange","tab:red", "tab:olive", "tab:blue"]
+    marker_list = [".","v","^","o","D","p", "*"]
 
     for benchmark in self.data_of_each_benchmark.keys():
       fig, ax = plt.subplots()
-      for mapping_type in range(1,5):
+      for mapping_type in range(1,7):
         util_list = []
         cgra_size_list = []
         for i in range(self.max_cgra_size - self.min_cgra_size + 1):
@@ -142,7 +142,7 @@ class AllDataToPlot:
       fig.savefig("./output/compare_cgra_size/" + image_name + "_"+ benchmark + "_util.pdf")
 
       fig, ax = plt.subplots()
-      for mapping_type in range(1,3):
+      for mapping_type in range(1,7):
         type_num_list = []
         cgra_size_list = []
         for i in range(self.max_cgra_size - self.min_cgra_size + 1):
@@ -160,7 +160,7 @@ class AllDataToPlot:
       fig.savefig("./output/compare_cgra_size/" + image_name + "_"+ benchmark + "_type_num.pdf")
 
       fig, ax = plt.subplots()
-      for mapping_type in range(1,6):
+      for mapping_type in range(1,7):
         time_list = []
         cgra_size_list = []
         for i in range(self.max_cgra_size - self.min_cgra_size + 1):
