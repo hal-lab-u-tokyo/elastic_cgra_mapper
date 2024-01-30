@@ -108,7 +108,7 @@ remapper::RemappingResult remapper::DPAndFullSearchElasticRemapping(
                 mrrg_config_to_create_new_element);
             const auto remapping_result = remapper::FullSearchElasticRemapping(
                 mapping_vec_to_create_new_element,
-                cgra_matrix_to_create_new_element, 2, log_file);
+                cgra_matrix_to_create_new_element, 2, log_file, std::numeric_limits<double>::max());
             if (remapping_result.result_mapping_id_vec.size() != 2) {
               continue;
             }

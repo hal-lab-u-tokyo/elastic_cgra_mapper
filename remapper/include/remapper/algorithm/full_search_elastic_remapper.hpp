@@ -8,5 +8,5 @@ namespace remapper {
 RemappingResult FullSearchElasticRemapping(
     std::vector<remapper::MappingMatrix> mapping_matrix_vec,
     const remapper::CGRAMatrix& cgra_matrix, const int target_parallel_num,
-    std::ofstream& log_file);
+    std::ofstream& log_file, double timeout_s);
 }

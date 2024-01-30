@@ -27,6 +27,7 @@ struct RemapperInput {
   std::filesystem::path cgra_file_path;
   std::filesystem::path output_dir_path;
   std::string remapper_mode;
+  double timeout_s;
 };
 struct RemapperOutput {
   double remapping_time_s;
