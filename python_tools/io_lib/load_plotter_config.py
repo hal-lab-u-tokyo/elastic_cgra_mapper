@@ -40,6 +40,9 @@ class PlotterConfig:
     self.compare_cgra_size_config: CompareCGRASizeConfig = CompareCGRASizeConfig()
     self.compare_database_timeout: CompareDatabaseTimeout = CompareDatabaseTimeout()
     self.benchmark_list: List[BenchmarkConfig] = []
+    self.mapping_output_dir_path: str = ""
+    self.remapper_output_dir_path: str = ""
+    self.visualizer_output_dir_path: str = ""
 
   def get_benchmark_list(self):
     benchmark_list = []
@@ -74,7 +77,8 @@ def load_plotter_config(config_path):
   # kernel dir path
   plotter_config.color_settings = json_dict["color_settings"]
   plotter_config.kernel_dir_path = json_dict["kernel_dir_path"]
-  plotter_config.output_dir_path = json_dict["output_dir_path"]
+  plotter_config.mapping_output_dir_path = json_dict["mapping_output_dir_path"]
+  plotter_config.remapper_output_dir_path = json_dict["remapper_output_dir_path"]
   plotter_config.visualizer_output_dir_path = json_dict["visualizer_output_dir_path"]
   plotter_config.database_timeout = json_dict["database_timeout"]
 

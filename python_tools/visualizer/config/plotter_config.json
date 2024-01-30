@@ -1,6 +1,7 @@
 {
   "kernel_dir_path": "/home/ubuntu/elastic_cgra_mapper/benchmark/kernel/",
-  "output_dir_path": "/home/ubuntu/elastic_cgra_mapper/output/",
+  "mapping_output_dir_path": "/home/ubuntu/elastic_cgra_mapper/output/",
+  "remapper_output_dir_path": "/home/ubuntu/elastic_cgra_mapper/output/",
   "visualizer_output_dir_path": "/home/ubuntu/elastic_cgra_mapper/python_tools/visualizer/output/",
   "color_settings": {
     "single-phase": {
