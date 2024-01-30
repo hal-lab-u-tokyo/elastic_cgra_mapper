@@ -20,6 +20,7 @@ class RemappingRunnerConfig:
     self.output_dir_path = ""
     self.create_database = 0
     self.database_timeout_s = 0
+    self.remapper_timeout_s = 0
     self.process_num = 32
 
     # auto mapping
@@ -45,6 +46,7 @@ class RemappingRunnerConfig:
     self.output_dir_path = config_dict["exec_setting"]["output_dir_path"]
     self.create_database = config_dict["exec_setting"]["create_database"]
     self.database_timeout_s = config_dict["exec_setting"]["database_timeout_s"]
+    self.remapper_timeout_s = config_dict["exec_setting"]["remapper_timeout_s"]
     self.process_num = config_dict["exec_setting"]["process_num"]
 
     self.cgra_type_list = []
@@ -98,7 +100,7 @@ class RemappingRunnerConfig:
               cgra = CGRA(cgra_type, cgra_size, cgra_size, self.context_size, memory_io, network_type, self.local_reg_size)
               database_dir_path = os.path.join(benchmark_output_dir_path, "database/mapping/" + get_database_id(cgra, database_timeout_s) + "/mapping/mapping")
               for mode in self.remapper_mode:
-                input = RemapperInput(database_dir_path, cgra, benchmark_output_dir_path, mode)
+                input = RemapperInput(database_dir_path, cgra, benchmark_output_dir_path, mode, self.remapper_timeout_s - self.database_timeout_s)
                 input_list.append(input)
 
     return input_list

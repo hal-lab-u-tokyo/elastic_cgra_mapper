@@ -1,3 +1,4 @@
+#include <chrono>
 #include <remapper/algorithm/full_search_elastic_remapper.hpp>
 #include <remapper/combination_counter.hpp>
 #include <remapper/mapping_concater.hpp>
@@ -51,13 +52,15 @@ CreateMappingTransformOpFromSearchId(
 remapper::RemappingResult remapper::FullSearchElasticRemapping(
     std::vector<remapper::MappingMatrix> mapping_matrix_vec,
     const remapper::CGRAMatrix& cgra_matrix, const int target_parallel_num,
-    std::ofstream& log_file) {
+    std::ofstream& log_file, double timeout_s) {
   std::vector<int> max_search_id(mapping_matrix_vec.size());
   std::vector<std::vector<Eigen::MatrixXi>>
       mapping_id_and_rotation_id_to_matrix;
 
   std::vector<std::vector<int>>
       mapping_id_and_restricted_search_id_to_search_id;
+
+  const auto start_time = std::chrono::system_clock::now();
 
   for (size_t mapping_id = 0; mapping_id < mapping_matrix_vec.size();
        mapping_id++) {
@@ -183,6 +186,15 @@ remapper::RemappingResult remapper::FullSearchElasticRemapping(
             selected_mapping_id_vec.begin() + transform_op_vec.size());
         best_remapping_result =
             remapper::RemappingResult(result_mapping_id_vec, transform_op_vec);
+      }
+
+      const auto tmp_time = std::chrono::system_clock::now();
+      const auto elapsed_time =
+          std::chrono::duration_cast<std::chrono::milliseconds>(tmp_time -
+                                                                 start_time)
+              .count() / 1000.0;
+      if (elapsed_time > timeout_s) {
+        return best_remapping_result;
       }
 
       // update search_id

@@ -50,7 +50,7 @@ remapper::RemappingResult::RemappingResult(
 remapper::RemappingResult remapper::Remapper::ElasticRemapping(
     const std::vector<entity::Mapping>& mapping_vec,
     const entity::MRRGConfig& target_mrrg_config, const int target_parallel_num,
-    std::ofstream& log_file, remapper::RemappingMode mode) {
+    std::ofstream& log_file, remapper::RemappingMode mode, double timeout_s) {
   std::vector<remapper::MappingMatrix> mapping_matrix_vec;
   for (size_t mapping_id = 0; mapping_id < mapping_vec.size(); ++mapping_id) {
     const auto& mapping = mapping_vec[mapping_id];
@@ -64,7 +64,8 @@ remapper::RemappingResult remapper::Remapper::ElasticRemapping(
   switch (mode) {
     case RemappingMode::FullSearch:
       result = remapper::FullSearchElasticRemapping(
-          mapping_matrix_vec, cgra_matrix, target_parallel_num, log_file);
+          mapping_matrix_vec, cgra_matrix, target_parallel_num, log_file,
+          timeout_s);
       break;
     case RemappingMode::Greedy:
       result = remapper::GreedyElasticRemapping(mapping_matrix_vec, cgra_matrix,

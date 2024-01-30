@@ -15,6 +15,7 @@ int main(int argc, char* argv[]) {
   std::string output_dir = argv[3];
   remapper::RemappingMode mode =
       static_cast<remapper::RemappingMode>(std::stoi(argv[4]));
+  const double timeout_s = std::stod(argv[5]);
 
   assert(std::filesystem::path(mapping_dir_path).is_absolute());
   assert(std::filesystem::path(mrrg_file_path).is_absolute());
@@ -32,6 +33,7 @@ int main(int argc, char* argv[]) {
   input.cgra_file_path = mrrg_file_path;
   input.output_dir_path = output_dir;
   input.remapper_mode = remapper::RemappingModeToString(mode);
+  input.timeout_s = timeout_s;
   logger.LogRemapperInput(input);
 
   std::vector<entity::Mapping> mapping_vec;
@@ -84,7 +86,7 @@ int main(int argc, char* argv[]) {
   std::ofstream remapper_exec_file =
       std::ofstream(logger.GetRemapperExecLogFilePath());
   const auto remapping_result = remapper::Remapper::ElasticRemapping(
-      mapping_vec, mrrg_config, parallel_num, remapper_exec_file, mode);
+      mapping_vec, mrrg_config, parallel_num, remapper_exec_file, mode, timeout_s);
 
   std::set<int> result_mapping_id_set;
   std::vector<entity::Mapping> result_mapping_vec;

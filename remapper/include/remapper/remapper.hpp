@@ -32,7 +32,7 @@ class Remapper {
       const std::vector<entity::Mapping>& mapping_vec,
       const entity::MRRGConfig& target_mrrg_config,
       const int target_parallel_num, std::ofstream& log_file,
-      RemappingMode mode);
+      RemappingMode mode, double timeout_s);
 };
 
 void OutputToLogFile(entity::MRRGConfig mapping_mrrg_config,

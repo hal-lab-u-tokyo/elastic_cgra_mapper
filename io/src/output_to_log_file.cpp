@@ -126,6 +126,7 @@ void io::RemapperLogger::LogRemapperInput(const io::RemapperInput& input) {
   log_file_ << "cgra file: " << arch_file_path_.string() << std::endl;
   log_file_ << "output dir: " << output_dir_path_.string() << std::endl;
   log_file_ << "remapper mode: " << input.remapper_mode << std::endl;
+  log_file_ << "timeout_s: " << input.timeout_s << std::endl;
 }
 
 void io::RemapperLogger::LogRemapperOutput(const io::RemapperOutput& output) {
