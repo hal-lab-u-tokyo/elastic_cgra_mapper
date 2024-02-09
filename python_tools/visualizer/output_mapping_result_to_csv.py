@@ -143,9 +143,11 @@ if __name__ == "__main__":
     for mapping_json in log_info.mapping_json_list:
       if not os.path.exists(mapping_json):
         available_remapping = False
+        print("ERROR: mapping json file not found: " + mapping_json)
         break
       if not mapping_json in mapping_json_path_to_db_log_path.keys():
         available_remapping = False
+        print("ERROR: mapping json file not found in database log: " + mapping_json) 
         break
       db_log_file_path_list.append(mapping_json_path_to_db_log_path[mapping_json])
 
