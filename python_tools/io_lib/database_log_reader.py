@@ -38,12 +38,14 @@ def database_log_reader(file_path, benchmark_list=[]):
         else:
           mapping_file_path = parsed[0]
           if not os.path.exists(mapping_file_path):
+            print("ERROR: mapping log file not found: " + mapping_file_path)
             return (False, log_info)
           log_info.mapping_log_file_list.append(mapping_file_path)
           mapping_file_num = mapping_file_num + 1
       if line_num == mapping_file_num + 8:
         parsed = parse.parse("creating db time (s): {:f}\n", line)
         if parsed == None:
+          print("ERROR: creating db time not found: " + file_path)
           return (False, log_info)
         log_info.creating_time = parsed[0]
 
@@ -54,8 +56,13 @@ def database_log_reader(file_path, benchmark_list=[]):
       for mapping_file_path in log_info.mapping_log_file_list:
         success, mapping_log_info = mapping_log_reader(mapping_file_path)
         if not success:
+          print("ERROR: mapping log reader failed: " + mapping_file_path)
           return (False, log_info)
         creating_time = creating_time + mapping_log_info.mapping_time
       log_info.creating_time = creating_time
 
   return (True, log_info)
+
+if __name__ == "__main__":
+  log_file_path = "/home/ubuntu/elastic_cgra_mapper/output_uni/convolution_no_loop/database/log/db_1706541777570898768.log"
+  success, log_info = database_log_reader(log_file_path, ["convolution_no_loop"])
