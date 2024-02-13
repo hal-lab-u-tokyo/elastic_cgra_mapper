@@ -77,15 +77,15 @@ class AllDataToPlot:
     check_dir_availability("./output/compare_db_timeout/")
     f = open("./output/compare_db_timeout/" + file_name + ".csv", 'w', encoding='utf-8', newline='')
     data_writer = csv.writer(f)
-    data_writer.writerow(["benchmark_name","type", "database_timeout", "utilization", "time"])
+    data_writer.writerow(["benchmark_name","database_timeout", "dp_util", "dp_time", "greedy_util", "greedy_time"])
     for benchmark in self.data_of_each_benchmark.keys():
-      for mapping_type_idx in range(0,2):
-        mapping_type = MappingType.create_mapping_type(mapping_type_idx)
-        for timeout in self.db_timeout_s_list:
-          row = [benchmark, mapping_type.to_string(), timeout]
+      for timeout in self.db_timeout_s_list:
+        row = [benchmark, timeout]
+        for mapping_type_idx in range(0,2):
+          mapping_type = MappingType.create_mapping_type(mapping_type_idx)
           row.append(self.data_of_each_benchmark[benchmark].get_util(timeout, mapping_type))
           row.append(self.data_of_each_benchmark[benchmark].get_time(timeout, mapping_type))          
-          data_writer.writerow(row)
+        data_writer.writerow(row)
     f.close()
 
   def plot(self, image_name):
@@ -190,7 +190,6 @@ if __name__ == "__main__":
 
   memory_io_to_all_data_to_plot["all"].output_csv("all")
   memory_io_to_all_data_to_plot["both_ends"].output_csv("both_ends")
-
 
 
     
