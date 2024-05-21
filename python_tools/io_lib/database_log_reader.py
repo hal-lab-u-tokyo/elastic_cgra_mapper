@@ -47,7 +47,7 @@ def database_log_reader(file_path, benchmark_list=[]):
         if parsed == None:
           print("ERROR: creating db time not found: " + file_path)
           return (False, log_info)
-        log_info.creating_time = parsed[0]
+        log_info.creating_time = float(parsed[0])
 
       line_num = line_num + 1
 
