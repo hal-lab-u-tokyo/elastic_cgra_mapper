@@ -49,7 +49,6 @@ TEST(IOTest, maping_io_test) {
   // exec mapping
   auto mapper_ptr = mapper::GurobiILPMapper().CreateMapper(dfg_ptr, mrrg_ptr);
   entity::Mapping input_mapping;
-  bool is_succeed;
   const auto result = mapper_ptr->Execution();
 
   EXPECT_EQ(result.is_success, true);
