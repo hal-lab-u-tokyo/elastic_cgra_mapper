@@ -42,13 +42,14 @@ repos:
         additional_dependencies: [pyyaml]
         types: [file]
         files: (\.cmake|CMakeLists.txt)(.in)?$
-  
+
   # CTest
   - repo: local
     hooks:
       - id: ctest
         name: ctest
-        entry: source /home/ubuntu/elastic_cgra_mapper/scripts/ctest.sh
+        entry: bash /home/ubuntu/elastic_cgra_mapper/scripts/test.sh
         stages:
           - "push"
         language: system
+        pass_filenames: false
