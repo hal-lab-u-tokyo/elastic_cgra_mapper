@@ -34,4 +34,3 @@ class DatabaseManager:
       return None
 
     return self.db_log_path_to_db_info[init_db_log_file_path]
-

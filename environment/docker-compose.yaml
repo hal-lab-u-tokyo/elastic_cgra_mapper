@@ -7,7 +7,7 @@ services:
     tty: true
     command: /bin/bash
     stdin_open: true
-    ports: 
+    ports:
       - 1000:1000
     volumes:
       - $HOME/elastic_cgra_mapper/:/home/ubuntu/elastic_cgra_mapper

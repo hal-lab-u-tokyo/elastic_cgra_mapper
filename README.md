@@ -3,7 +3,7 @@ mapping tool for Elastic CGRA
 
 
 ## requirement (currently confirmed to work)
-GCC >= 8.5.0 
+GCC >= 8.5.0
 
 gurobi = 9.1.1
 
@@ -14,7 +14,7 @@ cmake >= 3.20.2
 - place the gurobi WLS license file (gurobi.lic) to license folder
 
 ```docker
-cd environment 
+cd environment
 docker compose build
 docker compose up -d
 ```
@@ -26,7 +26,7 @@ cd build
 ./mapping
 ```
 
-### visualizer 
+### visualizer
 ```bash
 cd visualizer
 
@@ -34,7 +34,7 @@ cd visualizer
 dot -Tpng {input/dotfile} -o {output/pngfile} # visualize dot file
 python3 main.py {input/mapping/json} # visualize mapping result
 
-## output remapper evaluation 
+## output remapper evaluation
 python3 output_mapping_result_to_csv.py config/remapper_config.json # output csv cache data for plot
 python3 plot_compare_benchmark.py config/remapper_config.json # output images for benchmark comparison
 python3 plot_compare_cgra_size.py config/remapper_config.json # output images for cgra size comparison
@@ -59,5 +59,3 @@ cmake .. -GNinja && ninja
 cd build
 ctest
 ```
-
-

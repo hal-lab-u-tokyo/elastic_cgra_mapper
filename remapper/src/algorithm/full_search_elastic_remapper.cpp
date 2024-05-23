@@ -191,8 +191,9 @@ remapper::RemappingResult remapper::FullSearchElasticRemapping(
       const auto tmp_time = std::chrono::system_clock::now();
       const auto elapsed_time =
           std::chrono::duration_cast<std::chrono::milliseconds>(tmp_time -
-                                                                 start_time)
-              .count() / 1000.0;
+                                                                start_time)
+              .count() /
+          1000.0;
       if (elapsed_time > timeout_s) {
         return best_remapping_result;
       }

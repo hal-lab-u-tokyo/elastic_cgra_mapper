@@ -10,7 +10,7 @@ from db_manager import *
 import re
 import enum
 import math
-from matplotlib.ticker import MaxNLocator 
+from matplotlib.ticker import MaxNLocator
 import csv
 
 
@@ -34,9 +34,9 @@ class MappingType(enum.Enum):
       return "full_search"
     elif number == 3:
       return "loop_unrolling"
-    
+
     assert False
-    
+
 class DataToPlot:
   def __init__(self):
     self.utilization: List[float] = [0,0,0,0,0]
@@ -57,7 +57,7 @@ class AllDataToPlot:
       return
     if unix_time < self.data_of_each_benchmark[benchmark_name].unix_time[mapping_type.value] and mapping_type != MappingType.loop_unrolling:
       return
-    
+
     self.data_of_each_benchmark[benchmark_name].utilization[mapping_type.value] = utilization
     self.data_of_each_benchmark[benchmark_name].parallel_num[mapping_type.value] = parallel_num
     self.data_of_each_benchmark[benchmark_name].mapping_type_num[mapping_type.value] = mapping_type_num
@@ -79,9 +79,9 @@ class AllDataToPlot:
         row.append(self.data_of_each_benchmark[benchmark].mapping_type_num[type])
         row.append(self.data_of_each_benchmark[benchmark].time[type])
         data_writer.writerow(row)
-    
+
     f.close()
-  
+
   def plot(self, image_name):
     check_dir_availability("./output/compare_benchmark/")
     dp_utilization = []
@@ -256,7 +256,7 @@ class AllDataToPlot:
     plt.xticks(greedy_pos, self.data_of_each_benchmark.keys())
     fig.savefig("./output/compare_benchmark/" + image_name + "_time_log.pdf")
 
-if __name__ == "__main__": 
+if __name__ == "__main__":
   args = sys.argv
   config_path = args[1]
 
@@ -294,7 +294,7 @@ if __name__ == "__main__":
     benchmark = mapping_info.benchmark
 
     if benchmark not in plotter_config.get_benchmark_list():
-      continue 
+      continue
     if row != plotter_config.compare_benchmark_config.row or column != plotter_config.compare_benchmark_config.column or context_size != plotter_config.compare_benchmark_config.context_size:
       continue
     if network_type != plotter_config.compare_benchmark_config.network_type:
@@ -321,7 +321,7 @@ if __name__ == "__main__":
     benchmark = remapping_info.benchmark
 
     if benchmark not in plotter_config.get_benchmark_list():
-      continue 
+      continue
     if row != plotter_config.compare_benchmark_config.row or column != plotter_config.compare_benchmark_config.column or context_size != plotter_config.compare_benchmark_config.context_size:
       continue
     if network_type != plotter_config.compare_benchmark_config.network_type:
@@ -348,23 +348,9 @@ if __name__ == "__main__":
       memory_io_to_all_data_to_plot[memory_io.to_string()].add_benchmark_data(benchmark_name, MappingType.database, 0, 0, 0, database_info.creating_time, remapping_info.get_unix_time())
     elif remapping_info.remapper_mode == RemapperType.Greedy:
       memory_io_to_all_data_to_plot[memory_io.to_string()].add_benchmark_data(benchmark_name, MappingType.greedy, utilization, remapping_info.parallel_num, remapping_info.mapping_type_num, time, remapping_info.get_unix_time())
-  
+
   memory_io_to_all_data_to_plot["all"].plot("all")
   memory_io_to_all_data_to_plot["both_ends"].plot("both_ends")
 
   memory_io_to_all_data_to_plot["all"].output_csv("all")
   memory_io_to_all_data_to_plot["both_ends"].output_csv("both_ends")
-
-
-
-    
-
-    
-
-
-
-
-
-
-
-

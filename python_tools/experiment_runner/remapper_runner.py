@@ -104,7 +104,7 @@ class RemappingRunnerConfig:
                 input_list.append(input)
 
     return input_list
-  
+
 if __name__ == "__main__":
   args = sys.argv
   config_path = args[1]

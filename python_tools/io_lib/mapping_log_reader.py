@@ -42,7 +42,7 @@ def mapping_log_reader(file_path, benchmark_list=[]) -> Tuple[bool, Tuple]:
             elif line_num == 9:
                 log_info.mapping_succeed = parse.parse("is success: {:w}\n", line)[0]
             elif line_num == 10:
-                log_info.mapping_file_path = parse.parse("mapping file: {}\n", line)[0]                     
+                log_info.mapping_file_path = parse.parse("mapping file: {}\n", line)[0]
 
             line_num = line_num + 1
 

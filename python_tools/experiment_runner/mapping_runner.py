@@ -76,7 +76,7 @@ class MappingRunnerConfig:
 
   def get_mapping_input_list(self):
     mapping_input_list = []
-    
+
     if self.auto_mapping:
       for benchmark_name in self.benchmark_name_list:
         dfg_file_path = os.path.join(self.kernel_dir_path, benchmark_name + ".dot")
@@ -88,11 +88,11 @@ class MappingRunnerConfig:
             for memory_io in self.memory_io_list:
               for network_type in self.network_type_list:
                 for parallel_num in range(1, max_parallel_num + 1):
-                
+
                   cgra = CGRA(cgra_type, cgra_size, cgra_size, self.context_size, memory_io, network_type, self.local_reg_size)
                   benchmark = benchmark_name
                   timeout_s = self.timeout_s
-                  
+
                   mapping_input_list.append(MappingInput(dfg_file_path, benchmark_output_dir_path, cgra, timeout_s, parallel_num, self.overwrite))
     else:
       mapping_input_list = self.manual_mapping_list
@@ -102,7 +102,7 @@ class MappingRunnerConfig:
 if __name__ == "__main__":
   args = sys.argv
   config_path = args[1]
-  
+
   config = MappingRunnerConfig()
   config.load(config_path)
 

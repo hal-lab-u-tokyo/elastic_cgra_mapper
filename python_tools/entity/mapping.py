@@ -16,7 +16,7 @@ class MemoryIOType(Enum):
         else:
             print("ERROR: MemoryIOType get_from_string invalid input")
             raise ValueError
-    
+
     def to_string(input: str):
         if input == MemoryIOType.All:
             return "all"
@@ -43,7 +43,7 @@ class CGRAType(Enum):
         else:
             print("ERROR: CGRAType get_from_string invalid input")
             raise ValueError
-        
+
     def to_string(input: str):
         if input == CGRAType.Elastic:
             return "elastic"
@@ -63,10 +63,10 @@ class NetworkType(Enum):
             return NetworkType.Diagonal
         if input == "orthogonal":
             return NetworkType.Orthogonal
-        else: 
+        else:
             print("ERROR: NetworkType get_from_string invalid input")
             raise ValueError
-    
+
     def to_string(input: str):
         if input == NetworkType.Diagonal:
             return "diagonal"

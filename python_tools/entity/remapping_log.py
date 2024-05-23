@@ -20,7 +20,7 @@ class RemapperType(Enum):
             return "DPAndFullSearch"
         else:
             return "Unknown"
-        
+
     @staticmethod
     def from_string(input):
         if input == "FullSearch" or input == "full_search":
@@ -55,7 +55,7 @@ class RemapperLogInfo:
 
     def get_input_as_str(self):
         return self.benchmark + str(self.row) + "_" + str(self.column) + "_" + str(self.context_size) + "_" + str(self.memory_io.value) + "_" + str(self.cgra_type.value) + "_" + str(self.network_type.value) + "_" + str(self.parallel_num) + "_" + str(self.remapper_mode.value)
-    
+
     def get_unix_time(self):
         file_name = os.path.basename(self.log_file_path)
         find_number = re.findall(r"\d+", file_name)

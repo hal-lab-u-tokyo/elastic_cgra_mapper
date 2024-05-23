@@ -85,7 +85,8 @@ void io::RemapperLogger::LogRemapperInput(const io::RemapperInput& input) {
   assert(input.mapping_dir_path.is_absolute());
   assert(input.cgra_file_path.is_absolute());
   assert(input.remapper_mode == "dp" || input.remapper_mode == "greedy" ||
-         input.remapper_mode == "full_search" || input.remapper_mode == "dp_and_full_search");
+         input.remapper_mode == "full_search" ||
+         input.remapper_mode == "dp_and_full_search");
 
   log_file_path_ = output_dir_path_ / ("remapping/" + input.remapper_mode +
                                        "/log/remapping_" + log_id_ + ".log");
@@ -205,7 +206,8 @@ void io::CreateDatabaseLogger::LogCreateDatabaseOutput(
 int io::CreateDatabaseLogger::countMappingDataNum() const {
   int count = 0;
   std::filesystem::path mapping_dir_path =
-      output_dir_path_ / ("database/mapping/" + database_id_ + "/mapping/mapping");
+      output_dir_path_ /
+      ("database/mapping/" + database_id_ + "/mapping/mapping");
   if (!std::filesystem::exists(mapping_dir_path)) {
     return 0;
   }

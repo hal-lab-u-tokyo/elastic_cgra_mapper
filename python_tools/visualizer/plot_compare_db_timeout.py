@@ -25,7 +25,7 @@ class MappingType(enum.Enum):
       return MappingType.dp
     elif id == 1:
       return MappingType.greedy
-  
+
   def to_string(self):
     if self == MappingType.dp:
       return "dp"
@@ -59,7 +59,7 @@ class DataToPlot:
 
   def get_util(self, timeout, mapping_type):
     return self.utilization[mapping_type.value][self.timeout_to_index[timeout]]
-  
+
   def get_time(self, timeout, mapping_type):
     return self.time[mapping_type.value][self.timeout_to_index[timeout]]
 
@@ -84,7 +84,7 @@ class AllDataToPlot:
         for mapping_type_idx in range(0,2):
           mapping_type = MappingType.create_mapping_type(mapping_type_idx)
           row.append(self.data_of_each_benchmark[benchmark].get_util(timeout, mapping_type))
-          row.append(self.data_of_each_benchmark[benchmark].get_time(timeout, mapping_type))          
+          row.append(self.data_of_each_benchmark[benchmark].get_time(timeout, mapping_type))
         data_writer.writerow(row)
     f.close()
 
@@ -121,7 +121,7 @@ class AllDataToPlot:
 
       fig.savefig("./output/compare_db_timeout/" + image_name + "_" + benchmark + "_time.pdf")
 
-if __name__ == "__main__": 
+if __name__ == "__main__":
   args = sys.argv
   config_path = args[1]
 
@@ -130,7 +130,7 @@ if __name__ == "__main__":
   mapping_info_list, remapping_info_list, database_info_list = load_result_from_csv("./output/csv/", plotter_config.get_benchmark_list())
 
   benchmark_node_num = {}
- 
+
   db_manager = DatabaseManager(database_info_list)
 
   for benchmark in plotter_config.get_benchmark_list():
@@ -157,12 +157,12 @@ if __name__ == "__main__":
     benchmark = remapping_info.benchmark
 
     if benchmark not in plotter_config.get_benchmark_list():
-      continue 
+      continue
 
     if row != plotter_config.compare_database_timeout.row:
       continue
     if column != plotter_config.compare_database_timeout.column:
-      continue  
+      continue
     if context_size != plotter_config.compare_database_timeout.context_size:
       continue
     if network_type != plotter_config.compare_database_timeout.network_type:
@@ -184,22 +184,9 @@ if __name__ == "__main__":
       memory_io_to_all_data_to_plot[memory_io.to_string()].add_benchmark_data(benchmark, MappingType.dp, utilization, time, remapping_info.get_unix_time(), database_info.timeout)
     elif remapping_info.remapper_mode == RemapperType.Greedy:
       memory_io_to_all_data_to_plot[memory_io.to_string()].add_benchmark_data(benchmark, MappingType.greedy, utilization, time, remapping_info.get_unix_time(), database_info.timeout)
-  
+
   memory_io_to_all_data_to_plot["all"].plot("all")
   memory_io_to_all_data_to_plot["both_ends"].plot("both_ends")
 
   memory_io_to_all_data_to_plot["all"].output_csv("all")
   memory_io_to_all_data_to_plot["both_ends"].output_csv("both_ends")
-
-
-    
-
-    
-
-
-
-
-
-
-
-
