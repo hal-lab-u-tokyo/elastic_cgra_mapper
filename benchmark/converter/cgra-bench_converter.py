@@ -54,6 +54,3 @@ if __name__ == "__main__":
     dfg.addEdge(tmp_edge)
 
   dfg.output(output_file)
-
-
-  

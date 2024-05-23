@@ -9,7 +9,7 @@ from entity import *
 from typing import List
 from db_manager import *
 import enum
-from matplotlib.ticker import MaxNLocator 
+from matplotlib.ticker import MaxNLocator
 
 def check_dir_availability(dir_name):
   if not os.path.exists(dir_name):
@@ -39,7 +39,7 @@ class MappingType(enum.Enum):
       return "loop_unrolling_same_parallel"
     elif self == MappingType.dp_and_full_search:
       return "dp_and_full_search"
-    
+
   def create_mapping_type(id):
     if id == 0:
       return MappingType.database
@@ -118,7 +118,7 @@ class AllDataToPlot:
 
   def plot(self, image_name):
     check_dir_availability("./output/compare_cgra_size/")
-    
+
     label_list = ["two_phase: db", "two-phase: dp", "two-phase: greedy", "two-phase: full search" , "single-phase", "single-phase: two-phase util", "two-phase: dp and full search"]
     color_list = ["tab:purple", "tab:pink","tab:green","tab:orange","tab:red", "tab:olive", "tab:blue"]
     marker_list = [".","v","^","o","D","p", "*"]
@@ -176,7 +176,7 @@ class AllDataToPlot:
 
       fig.savefig("./output/compare_cgra_size/" + image_name + "_" + benchmark + "_time.pdf")
 
-if __name__ == "__main__": 
+if __name__ == "__main__":
   args = sys.argv
   config_path = args[1]
 
@@ -185,7 +185,7 @@ if __name__ == "__main__":
   mapping_info_list, remapping_info_list, database_info_list = load_result_from_csv("./output/csv/", plotter_config.get_benchmark_list())
 
   benchmark_node_num = {}
- 
+
   db_manager = DatabaseManager(database_info_list)
 
   for benchmark in plotter_config.get_benchmark_list():
@@ -212,7 +212,7 @@ if __name__ == "__main__":
     benchmark = remapping_info.benchmark
 
     if benchmark not in plotter_config.get_benchmark_list():
-      continue 
+      continue
     if row != column:
       continue
     if row < plotter_config.compare_cgra_size_config.min_size or plotter_config.compare_cgra_size_config.max_size < row:
@@ -244,7 +244,7 @@ if __name__ == "__main__":
       memory_io_to_all_data_to_plot[memory_io.to_string()].add_benchmark_data(benchmark, MappingType.full_search, row, utilization, time, remapping_info.mapping_type_num, remapping_info.get_unix_time())
     elif remapping_info.remapper_mode == RemapperType.DPAndFullSearch:
       memory_io_to_all_data_to_plot[memory_io.to_string()].add_benchmark_data(benchmark, MappingType.dp_and_full_search, row, utilization, time, remapping_info.mapping_type_num, remapping_info.get_unix_time())
-  
+
   for mapping_info in mapping_info_list:
     row = mapping_info.row
     column = mapping_info.column
@@ -256,7 +256,7 @@ if __name__ == "__main__":
     benchmark = mapping_info.benchmark
 
     if benchmark not in plotter_config.get_benchmark_list():
-      continue 
+      continue
     if row != column:
       continue
     if row < plotter_config.compare_cgra_size_config.min_size or plotter_config.compare_cgra_size_config.max_size < row:
@@ -271,7 +271,7 @@ if __name__ == "__main__":
       continue
     if mapping_succeed == 0:
       continue
-    
+
     all_context = row * column * context_size
     utilization = mapping_info.parallel_num * benchmark_node_num[benchmark]/ all_context
 
@@ -282,17 +282,3 @@ if __name__ == "__main__":
 
   memory_io_to_all_data_to_plot["all"].ouptut_csv("all")
   memory_io_to_all_data_to_plot["both_ends"].ouptut_csv("both_ends")
-
-
-
-    
-
-    
-
-
-
-
-
-
-
-

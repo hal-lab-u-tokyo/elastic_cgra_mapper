@@ -19,7 +19,7 @@ entity::MRRG io::ReadMRRGFromJsonFile(std::string file_name) {
   auto cgra_type_data = GetValueFromPTree<std::string>(ptree, "CGRA_type");
   auto network_type_data =
       GetValueFromPTree<std::string>(ptree, "network_type");
-      
+
   mrrg_config.memory_io = entity::MRRGMemoryIOTypeFromString(memory_io_data);
   mrrg_config.cgra_type = entity::MRRGCGRATypeFromString(cgra_type_data);
   mrrg_config.network_type =

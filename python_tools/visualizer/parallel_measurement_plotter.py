@@ -2,7 +2,7 @@ import sys
 import os
 sys.path.append(os.pardir)
 
-from io_lib import * 
+from io_lib import *
 import re
 import networkx as nx
 from matplotlib import pyplot as plt
@@ -31,9 +31,9 @@ if __name__ == "__main__":
   dfg_node_num = len(dfg)
   if "\\n" in dfg.nodes:
     dfg_node_num = dfg_node_num - 1
-œ
+
   files = os.listdir(mapping_dir_path)
-  
+
   time_vec = [[], []] # [memory_type][parallel_num]
   time_vec_parallel_num = [[], []] # [memory_type][parallel_num]
   perf_vec = [[], []] # [memory_type][parallel_num]
@@ -79,7 +79,3 @@ if __name__ == "__main__":
   ax.set_ylabel("II / parallel_num")
   ax.bar(perf_vec_parallel_num[1], perf_vec[1])
   fig.savefig("./output/parallel_measurement/perf_mamory_io_bothends.pdf")
-
-
-
-

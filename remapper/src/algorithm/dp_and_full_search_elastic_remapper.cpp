@@ -108,7 +108,8 @@ remapper::RemappingResult remapper::DPAndFullSearchElasticRemapping(
                 mrrg_config_to_create_new_element);
             const auto remapping_result = remapper::FullSearchElasticRemapping(
                 mapping_vec_to_create_new_element,
-                cgra_matrix_to_create_new_element, 2, log_file, std::numeric_limits<double>::max());
+                cgra_matrix_to_create_new_element, 2, log_file,
+                std::numeric_limits<double>::max());
             if (remapping_result.result_mapping_id_vec.size() != 2) {
               continue;
             }
@@ -132,8 +133,10 @@ remapper::RemappingResult remapper::DPAndFullSearchElasticRemapping(
             mapping_matrix_vec.push_back(result_mapping_matrix);
 
             std::vector<int> result_mapping_id_vec;
-            for (const auto mapping_index: remapping_result.result_mapping_id_vec) {
-              result_mapping_id_vec.push_back(mapping_vec_to_create_new_element[mapping_index].id);
+            for (const auto mapping_index :
+                 remapping_result.result_mapping_id_vec) {
+              result_mapping_id_vec.push_back(
+                  mapping_vec_to_create_new_element[mapping_index].id);
             }
 
             NewMappingDBElement new_mapping_db_element(

@@ -105,7 +105,7 @@ int main(int argc, char* argv[]) {
 
   io::MappingInput input;
   input.dfg_dot_file_path = dfg_dot_file_path;
-  input.mrrg_config = mrrg_ptr->GetMRRGConfig();  
+  input.mrrg_config = mrrg_ptr->GetMRRGConfig();
   input.output_dir_path = output_dir;
   input.timeout_s = timeout_s;
   input.parallel_num = parallel_num;

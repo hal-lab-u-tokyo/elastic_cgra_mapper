@@ -1,5 +1,5 @@
 import json
-from entity import * 
+from entity import *
 from typing import List
 
 class CompareBenchmarkConfig:
@@ -17,7 +17,7 @@ class CompareCGRASizeConfig:
     self.network_type: NetworkType = NetworkType.Orthogonal
 
 
-class BenchmarkConfig: 
+class BenchmarkConfig:
   def __init__(self):
     self.kernel_name: str = ""
     self.name: str = ""
@@ -39,14 +39,14 @@ class PlotterConfig:
         benchmark_list.append(benchmark.kernel_name)
 
     return benchmark_list
-  
+
   def get_all_benchmark_list(self):
     benchmark_list = []
     for benchmark in self.benchmark_list:
       benchmark_list.append(benchmark.kernel_name)
 
     return benchmark_list
-  
+
   def get_benchmark_name_list(self):
     benchmark_name_list = []
     for benchmark in self.benchmark_list:

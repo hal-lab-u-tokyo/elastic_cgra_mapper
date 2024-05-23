@@ -100,7 +100,7 @@ if __name__ == "__main__":
             success, remapping_log_info = remapping_log_reader(file_path)
             if success:
               remapping_log_info_list.append(remapping_log_info)
-    
+
     for file in os.listdir(database_log_dir):
       if file.endswith(".log"):
         file_path = os.path.join(database_log_dir, file)
@@ -108,9 +108,9 @@ if __name__ == "__main__":
         if unix_time > max_unix_time:
           success, db_log_info = database_log_reader(file_path)
           if success:
-            database_log_info_list.append(db_log_info)              
+            database_log_info_list.append(db_log_info)
 
-  # output to csv 
+  # output to csv
   mapping_csv_file = open(mapping_output_file, "w")
   mapping_writer = csv.writer(mapping_csv_file)
   mapping_writer.writerow(["log_file_path", "date", "time", "row", "column", "context_size", "memory_io", "cgra_type", "network_type", "local_reg_size", "mapping_succeed", "mapping_time", "num_threads", "timeout", "parallel_num", "mapping_file"])
@@ -118,7 +118,7 @@ if __name__ == "__main__":
     unix_time = get_unix_time_from_file_path(log_info.log_file_path)
     mapping_writer.writerow([log_info.log_file_path, get_ymd_from_unix(unix_time), get_hms_from_unix(unix_time), log_info.row, log_info.column, log_info.context_size, log_info.memory_io.to_string(), log_info.cgra_type.to_string(), log_info.network_type.to_string(), log_info.local_reg_size,log_info.mapping_succeed, log_info.mapping_time, log_info.num_threads, log_info.timeout, log_info.parallel_num, log_info.mapping_file_path])
   mapping_csv_file.close()
-  
+
   database_csv_file = open(db_output_file, "w")
   database_writer = csv.writer(database_csv_file)
   database_writer.writerow(["log_file_path", "date", "time", "row", "column", "context_size", "memory_io", "cgra_type", "network_type", "local_reg_size", "timeout", "creating_time", "min_utilization", "mapping_log_file_list"])
@@ -147,7 +147,7 @@ if __name__ == "__main__":
         break
       if not mapping_json in mapping_json_path_to_db_log_path.keys():
         available_remapping = False
-        print("ERROR: mapping json file not found in database log: " + mapping_json) 
+        print("ERROR: mapping json file not found in database log: " + mapping_json)
         break
       db_log_file_path_list.append(mapping_json_path_to_db_log_path[mapping_json])
 
@@ -157,13 +157,9 @@ if __name__ == "__main__":
         if init_db_log_file_path != db_log_file_path:
           available_remapping = False
           break
-      
+
     if not available_remapping:
       continue
     unix_time = get_unix_time_from_file_path(log_info.log_file_path)
     remapping_writer.writerow([log_info.log_file_path, get_ymd_from_unix(unix_time), get_hms_from_unix(unix_time), log_info.row, log_info.column, log_info.context_size, log_info.memory_io.to_string(), log_info.cgra_type.to_string(), log_info.network_type.to_string(), log_info.local_reg_size, log_info.parallel_num, log_info.mapping_type_num ,log_info.remapper_mode.to_string(), log_info.remapper_time, log_info.mapping_json_list])
   remapping_csv_file.close()
-
-
-
-    

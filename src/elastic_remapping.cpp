@@ -86,7 +86,8 @@ int main(int argc, char* argv[]) {
   std::ofstream remapper_exec_file =
       std::ofstream(logger.GetRemapperExecLogFilePath());
   const auto remapping_result = remapper::Remapper::ElasticRemapping(
-      mapping_vec, mrrg_config, parallel_num, remapper_exec_file, mode, timeout_s);
+      mapping_vec, mrrg_config, parallel_num, remapper_exec_file, mode,
+      timeout_s);
 
   std::set<int> result_mapping_id_set;
   std::vector<entity::Mapping> result_mapping_vec;

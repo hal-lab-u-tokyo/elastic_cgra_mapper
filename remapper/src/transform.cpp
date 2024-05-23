@@ -1,8 +1,9 @@
 #include "remapper/transform.hpp"
 
-entity::ConfigId remapper::RotateConfigId(const entity::ConfigId& config_id,
-                                const entity::MRRGConfig& target_mrrg_config,
-                                const remapper::RotateOp& rotate_op) {
+entity::ConfigId remapper::RotateConfigId(
+    const entity::ConfigId& config_id,
+    const entity::MRRGConfig& target_mrrg_config,
+    const remapper::RotateOp& rotate_op) {
   int rotated_row_id, rotated_column_id;
   switch (rotate_op) {
     case remapper::RotateOp::TopIsRight:
@@ -106,19 +107,19 @@ entity::Mapping remapper::MappingRotater(const entity::Mapping& mapping,
       RotateMRRGConfig(mapping.GetMRRGConfig(), rotate_op);
 
   for (const auto& cgra_config : mapping.GetConfigMap()) {
-    entity::ConfigId rotated_config_id =
-        remapper::RotateConfigId(cgra_config.first, mapping.GetMRRGConfig(), rotate_op);
+    entity::ConfigId rotated_config_id = remapper::RotateConfigId(
+        cgra_config.first, mapping.GetMRRGConfig(), rotate_op);
     entity::CGRAConfig rotated_cgra_config = cgra_config.second;
     rotated_cgra_config.to_config_id_vec.clear();
     for (const auto& to_config_id : cgra_config.second.to_config_id_vec) {
-      rotated_cgra_config.to_config_id_vec.push_back(
-          remapper::RotateConfigId(to_config_id, mapping.GetMRRGConfig(), rotate_op));
+      rotated_cgra_config.to_config_id_vec.push_back(remapper::RotateConfigId(
+          to_config_id, mapping.GetMRRGConfig(), rotate_op));
     }
 
     for (int i = 0; i < cgra_config.second.from_config_id_num; i++) {
       rotated_cgra_config.from_config_id_vec[i] =
           remapper::RotateConfigId(cgra_config.second.from_config_id_vec[i],
-                         mapping.GetMRRGConfig(), rotate_op);
+                                   mapping.GetMRRGConfig(), rotate_op);
     }
 
     rotated_config_map.emplace(rotated_config_id, rotated_cgra_config);

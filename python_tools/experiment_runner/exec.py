@@ -55,7 +55,7 @@ def mapping_exec(input):
   finally:
     lock.release()
 
-  subprocess.run(["/home/ubuntu/elastic_cgra_mapper/build/mapping", input.dfg_file_path, cgra_file_path, input.output_dir_path, str(input.timeout_s), str(input.parallel_num)])  
+  subprocess.run(["/home/ubuntu/elastic_cgra_mapper/build/mapping", input.dfg_file_path, cgra_file_path, input.output_dir_path, str(input.timeout_s), str(input.parallel_num)])
 
   os.remove(cgra_file_path)
 
@@ -85,7 +85,7 @@ def create_database_exec(input):
   finally:
     lock.release()
 
-  subprocess.run(["/home/ubuntu/elastic_cgra_mapper/build/create_database", input.dfg_file_path, cgra_file_path, input.output_dir_path, str(input.db_timeout_s), str(int(input.overwrite))])  
+  subprocess.run(["/home/ubuntu/elastic_cgra_mapper/build/create_database", input.dfg_file_path, cgra_file_path, input.output_dir_path, str(input.db_timeout_s), str(int(input.overwrite))])
 
   os.remove(cgra_file_path)
 
@@ -116,7 +116,7 @@ def remapper_exec(input):
 
   remapper_mode_int = remapping_type_to_int(input.remapper_mode)
 
-  subprocess.run(["/home/ubuntu/elastic_cgra_mapper/build/remapping", input.mapping_dir_path, cgra_file_path, input.output_dir_path, str(remapper_mode_int), str(input.timeout_s)])  
+  subprocess.run(["/home/ubuntu/elastic_cgra_mapper/build/remapping", input.mapping_dir_path, cgra_file_path, input.output_dir_path, str(remapper_mode_int), str(input.timeout_s)])
 
   os.remove(cgra_file_path)
 

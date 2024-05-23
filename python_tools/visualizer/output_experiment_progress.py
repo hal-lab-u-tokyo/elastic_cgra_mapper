@@ -22,7 +22,7 @@ class UtilizationExperimentProgress:
     if mapping_info.benchmark not in self.benchmark_list:
       return
     memory_io_type = mapping_info.memory_io
-    
+
     self.target_cgra.memory_io_type = memory_io_type
     info_cgra = mapping_info.get_cgra()
 
@@ -42,7 +42,7 @@ class UtilizationExperimentProgress:
     if remapping_info.benchmark not in self.benchmark_list:
       return
     memory_io_type = remapping_info.memory_io
-    
+
     self.target_cgra.memory_io_type = memory_io_type
     info_cgra = remapping_info.get_cgra()
 
@@ -135,9 +135,9 @@ class ScalabilityExperimentProgress:
       return
     if remapping_info.benchmark not in self.benchmark_list:
       return
-    
+
     memory_io_type = remapping_info.memory_io
-    
+
     self.target_cgra.row = mapping_info.row
     self.target_cgra.column = mapping_info.column
     self.target_cgra.memory_io_type = memory_io_type
@@ -159,7 +159,7 @@ class ScalabilityExperimentProgress:
   def output_to_csv(self, file_path):
     csv_file = open(file_path, "w")
     writer = csv.writer(csv_file)
-    row = ["memory_io", "benchmark", "remapper_mode", "size"] 
+    row = ["memory_io", "benchmark", "remapper_mode", "size"]
     for i in range(1, self.max_parallel_num + 1):
       row.append(i)
     writer.writerow(row)
@@ -214,5 +214,3 @@ if __name__ == "__main__":
 
   utilization_progress.output_to_csv(os.path.join(output_dir_path, "utilization_progress.csv"))
   scalability_progress.output_to_csv(os.path.join(output_dir_path, "scalability_progress.csv"))
-
-

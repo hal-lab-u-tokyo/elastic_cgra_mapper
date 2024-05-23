@@ -44,7 +44,7 @@ class AllDataToPlot:
           continue
         if unix_time < self.data_of_each_benchmark[benchmark_name].unrolling_unix_time[i]:
           return
-        
+
         self.data_of_each_benchmark[benchmark_name].unrolling_time[i] = time
         self.data_of_each_benchmark[benchmark_name].unrolling_unix_time[i] = unix_time
     elif mapping_type.value <= 2:
@@ -55,7 +55,7 @@ class AllDataToPlot:
         self.benchmark_to_parallel_num[benchmark_name] = [0,0,0]
       if parallel_num < self.benchmark_to_parallel_num[benchmark_name][mapping_type.value]:
         return
-      
+
       self.data_of_each_benchmark[benchmark_name].remapping_time[mapping_type.value] = time
       self.data_of_each_benchmark[benchmark_name].remapping_unix_time[mapping_type.value] = unix_time
       self.benchmark_to_parallel_num[benchmark_name][mapping_type.value] = parallel_num
@@ -116,7 +116,7 @@ class AllDataToPlot:
     plt.xticks(greedy_pos, self.data_of_each_benchmark.keys())
     fig.savefig("./output/same_parallel_num/" + image_name + "_time_log.pdf")
 
-if __name__ == "__main__": 
+if __name__ == "__main__":
   args = sys.argv
   config_path = args[1]
 
@@ -153,7 +153,7 @@ if __name__ == "__main__":
     benchmark = remapping_info.benchmark
 
     if benchmark not in plotter_config.get_benchmark_list():
-      continue 
+      continue
     if row != plotter_config.compare_benchmark_config.row or column != plotter_config.compare_benchmark_config.column or context_size != plotter_config.compare_benchmark_config.context_size:
       continue
     if network_type != plotter_config.compare_benchmark_config.network_type:
@@ -179,7 +179,7 @@ if __name__ == "__main__":
       memory_io_to_all_data_to_plot[memory_io.to_string()].add_benchmark_data(benchmark_name, MappingType.dp, utilization, time, remapping_info.get_unix_time())
     elif remapping_info.remapper_mode == RemapperType.Greedy:
       memory_io_to_all_data_to_plot[memory_io.to_string()].add_benchmark_data(benchmark_name, MappingType.greedy, utilization, time, remapping_info.get_unix_time())
-  
+
   for mapping_info in mapping_info_list:
     row = mapping_info.row
     column = mapping_info.column
@@ -191,7 +191,7 @@ if __name__ == "__main__":
     benchmark = mapping_info.benchmark
 
     if benchmark not in plotter_config.get_benchmark_list():
-      continue 
+      continue
     if row != plotter_config.compare_benchmark_config.row or column != plotter_config.compare_benchmark_config.column or context_size != plotter_config.compare_benchmark_config.context_size:
       continue
     if network_type != plotter_config.compare_benchmark_config.network_type:
@@ -210,17 +210,3 @@ if __name__ == "__main__":
 
   memory_io_to_all_data_to_plot["all"].plot("all")
   memory_io_to_all_data_to_plot["both_ends"].plot("both_ends")
-
-
-
-    
-
-    
-
-
-
-
-
-
-
-

@@ -11,9 +11,9 @@ def fix_op_str(input):
     return "mul"
   elif input == "STORE" or input == "STOREB" or input == "OSTORE":
     return "output"
-  
+
   return input
-  
+
 
 if __name__ == "__main__":
   args = sys.argv
@@ -22,7 +22,7 @@ if __name__ == "__main__":
   input_file = args[1]
   output_file = args[2]
 
-  tree = ET.parse(input_file)  
+  tree = ET.parse(input_file)
   root = tree.getroot()
 
   idx_to_node_map = {}
@@ -62,7 +62,3 @@ if __name__ == "__main__":
     dfg.addEdge(tmp_edge)
 
   dfg.output(output_file)
-
-
-
-    

@@ -23,4 +23,3 @@ if __name__ == "__main__":
         if mapping_file_path not in log_info.mapping_log_file_list:
           print("mapping file not found: " + file_path)
           break
-

@@ -27,7 +27,7 @@ def remapping_log_reader(log_file_path, benchmark_list=[]) -> Tuple[bool, Remapp
     for dir_name in dir_list:
         if dir_name in benchmark_list:
             remapper_log_info.benchmark = dir_name
-    
+
     with open(log_file_path) as f:
         read_mode = False
         line_num = 1
@@ -57,8 +57,8 @@ def remapping_log_reader(log_file_path, benchmark_list=[]) -> Tuple[bool, Remapp
             if line_num == offset + 6:
                 parsed = parse.parse("timeout_s: {:d}\n", line)
                 if parsed != None:
-                    remapper_timeout_s = parsed[0]            
-                    offset = offset + 1                    
+                    remapper_timeout_s = parsed[0]
+                    offset = offset + 1
             if line_num == offset + 7:
                 remapping_time = float(parse.parse("remapping time (s): {}\n", line)[0])
                 remapper_log_info.remapper_time = remapping_time
@@ -80,5 +80,3 @@ def remapping_log_reader(log_file_path, benchmark_list=[]) -> Tuple[bool, Remapp
         return (False, remapper_log_info)
 
     return (True, remapper_log_info)
-    
-    
