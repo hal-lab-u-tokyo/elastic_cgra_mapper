@@ -26,19 +26,29 @@ repos:
       - id: debug-statements
       - id: end-of-file-fixer
       - id: mixed-line-ending
-      - id: requirements-txt-fixer
       - id: trailing-whitespace
-  - repo: local
-    hooks:
-      - id: ctest
-        name: ctest
-        entry: /home/ubuntu/elastic_cgra_mapper/build & ctest -V
-        stages:
-          - "push"
-
   # Clang format
   - repo: https://github.com/pre-commit/mirrors-clang-format
     rev: v16.0.6
     hooks:
       - id: clang-format
         types_or: [c++, c, cuda]
+
+  # CMake formatting
+  - repo: https://github.com/cheshirekow/cmake-format-precommit
+    rev: v0.6.13
+    hooks:
+      - id: cmake-format
+        additional_dependencies: [pyyaml]
+        types: [file]
+        files: (\.cmake|CMakeLists.txt)(.in)?$
+  
+  # CTest
+  - repo: local
+    hooks:
+      - id: ctest
+        name: ctest
+        entry: source /home/ubuntu/elastic_cgra_mapper/scripts/ctest.sh
+        stages:
+          - "push"
+        language: system
