@@ -32,3 +32,5 @@ RUN pip install -r ${APPLICATION_DIRECTORY}/requirements.txt
 # USER ${USER_NAME}
 
 WORKDIR ${APPLICATION_DIRECTORY}
+COPY ../.pre-commit-config.yaml ${APPLICATION_DIRECTORY}/
+RUN git init . && pre-commit install-hooks
