@@ -1,9 +1,9 @@
 #include <entity/architecture.hpp>
 #include <remapper/algorithm_entity.hpp>
+#include <remapper/transform.hpp>
 
 remapper::MappingMatrix::MappingMatrix() : id(-1), op_rate(-1) {
   op_num_matrix_ = Eigen::MatrixXi::Zero(0, 0);
-  memory_op_num_matrix_ = Eigen::MatrixXi::Zero(0, 0);
   mapping_ = entity::Mapping();
 
   row_size = 0;
@@ -44,8 +44,6 @@ remapper::MappingMatrix::MappingMatrix(
     : id(_id) {
   op_num_matrix_ = Eigen::MatrixXi::Zero(mapping.GetMRRGConfig().row,
                                          mapping.GetMRRGConfig().column);
-  memory_op_num_matrix_ = Eigen::MatrixXi::Zero(mapping.GetMRRGConfig().row,
-                                                mapping.GetMRRGConfig().column);
   int op_num_without_routing = 0;
   for (int row_id = 0; row_id < mapping.GetMRRGConfig().row; row_id++) {
     for (int column_id = 0; column_id < mapping.GetMRRGConfig().column;
@@ -67,7 +65,6 @@ remapper::MappingMatrix::MappingMatrix(
         }
       }
       op_num_matrix_(row_id, column_id) = pe_op_count;
-      memory_op_num_matrix_(row_id, column_id) = pe_memory_op_count;
     }
   }
 
@@ -105,9 +102,7 @@ remapper::MappingMatrix::MappingMatrix(
     const Eigen::MatrixXi& memory_op_num_matrix, int _id,
     const entity::MRRGConfig mrrg_config,
     const entity::MRRGConfig& target_mrrg_config, int parallel_num)
-    : id(_id),
-      op_num_matrix_(op_num_matrix),
-      memory_op_num_matrix_(memory_op_num_matrix) {
+    : id(_id), op_num_matrix_(op_num_matrix) {
   mapping_ = entity::Mapping(mrrg_config);
   parallel_num_ = parallel_num;
   op_rate = (double)(op_num_matrix.sum()) / mrrg_config.row *
@@ -152,33 +147,16 @@ Eigen::MatrixXi remapper::MappingMatrix::GetRotatedMatrix(
   }
 }
 
-remapper::CGRAMatrix::CGRAMatrix(const entity::MRRGConfig& mrrg_config)
-    : mrrg_config_(mrrg_config) {
-  row_size = mrrg_config_.row;
-  column_size = mrrg_config_.column;
-  context_size = mrrg_config_.context_size;
-
-  memory_accessible_matrix_ = Eigen::MatrixXi::Zero(row_size, column_size);
-  for (int row_id = 0; row_id < row_size; row_id++) {
-    for (int column_id = 0; column_id < column_size; column_id++) {
-      if (mrrg_config.memory_io == entity::MRRGMemoryIOType::kAll) {
-        memory_accessible_matrix_(row_id, column_id) = 1;
-      } else if (mrrg_config.memory_io == entity::MRRGMemoryIOType::kOneEnd) {
-        if (column_id == 0) {
-          memory_accessible_matrix_(row_id, column_id) = 1;
-        }
-      } else if (mrrg_config.memory_io == entity::MRRGMemoryIOType::kBothEnds) {
-        if (column_id == 0 || column_id == column_size - 1) {
-          memory_accessible_matrix_(row_id, column_id) = 1;
-        }
-      }
-    }
-  }
+remapper::CGRAMatrix::CGRAMatrix(const entity::MRRGConfig& mrrg_config) {
+  row_size = mrrg_config.row;
+  column_size = mrrg_config.column;
+  context_size = mrrg_config.context_size;
+  mrrg_ = entity::MRRG(mrrg_config);
 }
 
 bool remapper::CGRAMatrix::IsAvailableRemapping(
     const MappingMatrix& mapping_matrix,
-    const MappingTransformOp& transform_op) const {
+    const MappingTransformOp& transform_op) {
   const auto rotated_matrix =
       mapping_matrix.GetRotatedOpNumMatrix(transform_op.rotate_op);
   if (rotated_matrix.rows() + transform_op.row > row_size ||
@@ -186,23 +164,34 @@ bool remapper::CGRAMatrix::IsAvailableRemapping(
     return false;
   }
 
-  if (mrrg_config_.memory_io == entity::MRRGMemoryIOType::kAll) {
-    return true;
+  const entity::Mapping& origin_mapping = mapping_matrix.GetMapping();
+
+  for (int row_id = 0; row_id < origin_mapping.GetMRRGConfig().row; row_id++) {
+    for (int column_id = 0; column_id < origin_mapping.GetMRRGConfig().column;
+         column_id++) {
+      for (int context_id = 0;
+           context_id < origin_mapping.GetMRRGConfig().context_size;
+           context_id++) {
+        const entity::ConfigId config_id(row_id, column_id, context_id);
+        const entity::CGRAConfig config = origin_mapping.GetConfig(config_id);
+        if (config.operation_type != entity::OpType::NOP) {
+          const entity::ConfigId& transformed_config_id =
+              remapper::TransformConfigId(config_id, mrrg_.GetMRRGConfig(),
+                                          transform_op);
+          entity::MRRGNodeProperty mrrg_node_property =
+              mrrg_.GetMRRGNodeProperty(transformed_config_id.row_id,
+                                        transformed_config_id.column_id,
+                                        transformed_config_id.context_id);
+          // check if the target node property support the operation
+          if (std::find(mrrg_node_property.supported_operations.begin(),
+                        mrrg_node_property.supported_operations.end(),
+                        config.operation_type) ==
+              mrrg_node_property.supported_operations.end()) {
+            return false;
+          }
+        }
+      }
+    }
   }
-
-  const auto& rotated_memory_op_num_matrix =
-      mapping_matrix.GetRotatedMemoryOpNumMatrix(transform_op.rotate_op);
-
-  const auto& cropped_not_memory_accesible_matrix =
-      Eigen::MatrixXi::Ones(rotated_matrix.rows(), rotated_matrix.cols()) -
-      memory_accessible_matrix_.block(transform_op.row, transform_op.column,
-                                      rotated_matrix.rows(),
-                                      rotated_matrix.cols());
-  if (cropped_not_memory_accesible_matrix
-          .cwiseProduct(rotated_memory_op_num_matrix)
-          .sum() > 0) {
-    return false;
-  }
-
   return true;
 }

@@ -29,15 +29,9 @@ class MappingMatrix : public Rectangle {
 
   entity::ConfigMap GetConfigMap() const { return mapping_.GetConfigMap(); };
   Eigen::MatrixXi GetOpNumMatrix() const { return op_num_matrix_; };
-  Eigen::MatrixXi GetMemoryOpNumMatrix() const {
-    return memory_op_num_matrix_;
-  };
+
   Eigen::MatrixXi GetRotatedOpNumMatrix(remapper::RotateOp rotate_op) const {
     return GetRotatedMatrix(op_num_matrix_, rotate_op);
-  };
-  Eigen::MatrixXi GetRotatedMemoryOpNumMatrix(
-      remapper::RotateOp rotate_op) const {
-    return GetRotatedMatrix(memory_op_num_matrix_, rotate_op);
   };
   entity::Mapping GetMapping() const { return mapping_; };
   int GetParallelNum() const { return parallel_num_; };
@@ -49,7 +43,6 @@ class MappingMatrix : public Rectangle {
                 const entity::MRRGConfig& target_mrrg_config,
                 int parallel_num = 1);
   Eigen::MatrixXi op_num_matrix_;
-  Eigen::MatrixXi memory_op_num_matrix_;
   entity::Mapping mapping_;
   int parallel_num_;
   Eigen::MatrixXi GetRotatedMatrix(const Eigen::MatrixXi& matrix,
@@ -60,11 +53,10 @@ class CGRAMatrix : public Rectangle {
  public:
   CGRAMatrix(const entity::MRRGConfig& mrrg_config);
   bool IsAvailableRemapping(const MappingMatrix& mapping_matrix,
-                            const MappingTransformOp& transform_op) const;
-  entity::MRRGConfig GetMRRGConfig() const { return mrrg_config_; };
+                            const MappingTransformOp& transform_op);
+  entity::MRRGConfig GetMRRGConfig() const { return mrrg_.GetMRRGConfig(); };
 
  private:
-  entity::MRRGConfig mrrg_config_;
-  Eigen::MatrixXi memory_accessible_matrix_;
+  entity::MRRG mrrg_;
 };
 }  // namespace remapper

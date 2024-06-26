@@ -8,6 +8,10 @@ namespace remapper {
 entity::ConfigId RotateConfigId(const entity::ConfigId& config_id,
                                 const entity::MRRGConfig& target_mrrg_config,
                                 const remapper::RotateOp& rotate_op);
+entity::ConfigId TransformConfigId(
+    const entity::ConfigId& config_id,
+    const entity::MRRGConfig& target_mrrg_config,
+    const remapper::MappingTransformOp& transform_op);
 entity::Mapping MappingRotater(const entity::Mapping& mapping,
                                const remapper::RotateOp& rotate_op);
 

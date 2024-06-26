@@ -100,6 +100,19 @@ entity::MRRGConfig RotateMRRGConfig(const entity::MRRGConfig& mrrg_config,
   return rotated_mrrg_config;
 }
 
+entity::ConfigId remapper::TransformConfigId(
+    const entity::ConfigId& config_id,
+    const entity::MRRGConfig& target_mrrg_config,
+    const remapper::MappingTransformOp& transform_op) {
+  entity::ConfigId rotated_config_id =
+      RotateConfigId(config_id, target_mrrg_config, transform_op.rotate_op);
+
+  int row_id = rotated_config_id.row_id + transform_op.row;
+  int column_id = rotated_config_id.column_id + transform_op.column;
+
+  return entity::ConfigId(row_id, column_id, rotated_config_id.context_id);
+}
+
 entity::Mapping remapper::MappingRotater(const entity::Mapping& mapping,
                                          const remapper::RotateOp& rotate_op) {
   entity::ConfigMap rotated_config_map;
