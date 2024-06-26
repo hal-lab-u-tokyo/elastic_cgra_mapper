@@ -25,11 +25,7 @@ enum MRRGCGRAType {
   kElastic,
 };
 
-enum MRRGMemoryIOType {
-  kAll,
-  kBothEnds,
-  kOneEnd,
-};
+enum MRRGMemoryIOType { kAll, kBothEnds, kOneEnd, kInterleaved };
 
 enum MRRGNetworkType {
   kOrthogonal,
@@ -74,6 +70,7 @@ class MRRG : public BaseGraphClass<MRRGNodeProperty, MRRGEdgeProperty,
 
   MRRGConfig GetMRRGConfig() const;
   int GetMRRGNodeId(int row_id, int column_id, int context_id);
+  MRRGNodeProperty GetMRRGNodeProperty(ConfigId config_id);
 
  private:
   struct HashTuple_ {

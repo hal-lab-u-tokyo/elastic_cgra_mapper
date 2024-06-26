@@ -1,3 +1,4 @@
+#include <entity/architecture.hpp>
 #include <entity/mrrg.hpp>
 #include <map>
 
@@ -35,6 +36,8 @@ entity::MRRGMemoryIOType entity::MRRGMemoryIOTypeFromString(
     return entity::MRRGMemoryIOType::kBothEnds;
   } else if (memory_io_type_string == "one_end") {
     return entity::MRRGMemoryIOType::kOneEnd;
+  } else if (memory_io_type_string == "interleaved") {
+    return entity::MRRGMemoryIOType::kInterleaved;
   } else {
     assert("invalid Memory IO Type String");
     abort();
@@ -52,6 +55,9 @@ std::string entity::MRRGMemoryIoTypeToString(
       break;
     case entity::MRRGMemoryIOType::kOneEnd:
       return "one_end";
+      break;
+    case entity::MRRGMemoryIOType::kInterleaved:
+      return "interleaved";
       break;
     default:
       assert("invalid MRRG Memory IO Type");
@@ -179,6 +185,17 @@ entity::MRRG::MRRG(entity::MRRGConfig mrrg_config)
             graph_[vertex_id].supported_operations =
                 entity::GetAllOperationsExceptMemoryAccess();
           }
+        } else if (mrrg_config.memory_io ==
+                   entity::MRRGMemoryIOType::kInterleaved) {
+          if ((i + j) % 2 == 0) {
+            graph_[vertex_id].supported_operations = entity::GetAllOperations();
+          } else {
+            graph_[vertex_id].supported_operations =
+                entity::GetAllOperationsExceptMemoryAccess();
+          }
+        } else {
+          assert("invalid memory io type");
+          abort();
         }
 
         std::tuple<int, int, int> config_id(i, j, k);
@@ -226,5 +243,13 @@ entity::MRRGConfig entity::MRRG::GetMRRGConfig() const {
 int entity::MRRG::GetMRRGNodeId(int row_id, int column_id, int context_id) {
   std::tuple<int, int, int> config_id(row_id, column_id, context_id);
   if (config_id_to_node_id_map_.count(config_id) == 0) return -1;
-  return config_id_to_node_id_map_[config_id];
+  int result = config_id_to_node_id_map_[config_id];
+  return result;
+}
+
+entity::MRRGNodeProperty entity::MRRG::GetMRRGNodeProperty(
+    entity::ConfigId config_id) {
+  int vertex_id = GetMRRGNodeId(config_id.row_id, config_id.column_id,
+                                config_id.context_id);
+  return graph_[vertex_id];
 }
