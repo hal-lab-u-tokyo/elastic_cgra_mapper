@@ -145,4 +145,8 @@ remapper::RotateOp remapper::Rotate180(const remapper::RotateOp& tmp) {
     return remapper::RotateOp::TopIsLeftMirror;
   if (tmp == remapper::RotateOp::TopIsLeftMirror)
     return remapper::RotateOp::TopIsRightMirror;
+  else {
+    std::cout << "Error: Rotate180" << std::endl;
+    assert(false);
+  }
 }
