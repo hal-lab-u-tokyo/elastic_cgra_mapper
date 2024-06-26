@@ -70,7 +70,8 @@ class MRRG : public BaseGraphClass<MRRGNodeProperty, MRRGEdgeProperty,
 
   MRRGConfig GetMRRGConfig() const;
   int GetMRRGNodeId(int row_id, int column_id, int context_id);
-  MRRGNodeProperty GetMRRGNodeProperty(ConfigId config_id);
+  MRRGNodeProperty GetMRRGNodeProperty(int row_id, int column_id,
+                                       int context_id);
 
  private:
   struct HashTuple_ {

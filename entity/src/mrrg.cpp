@@ -247,9 +247,9 @@ int entity::MRRG::GetMRRGNodeId(int row_id, int column_id, int context_id) {
   return result;
 }
 
-entity::MRRGNodeProperty entity::MRRG::GetMRRGNodeProperty(
-    entity::ConfigId config_id) {
-  int vertex_id = GetMRRGNodeId(config_id.row_id, config_id.column_id,
-                                config_id.context_id);
+entity::MRRGNodeProperty entity::MRRG::GetMRRGNodeProperty(int row_id,
+                                                           int column_id,
+                                                           int context_id) {
+  int vertex_id = GetMRRGNodeId(row_id, column_id, context_id);
   return graph_[vertex_id];
 }
