@@ -1,6 +1,7 @@
 import csv
 from .mapping_log_reader import *
 from .remapping_log_reader import *
+from .remapping_exec_log_reader import *
 
 def load_result_from_csv(csv_dir_path, benchmark_list):
   mapping_csv_file_path = csv_dir_path + "mapping_result.csv"
@@ -71,6 +72,11 @@ def load_result_from_csv(csv_dir_path, benchmark_list):
       remapping_log_info.remapper_time = float(row[13])
       remapping_log_info.mapping_json_list = row[14].strip("[]").replace("'", "").split(", ")
       remapping_log_info_list.append(remapping_log_info)
+
+      exec_log_file_path = row[0].replace("/log/", "/exec_log/")
+      exec_log_file_path = exec_log_file_path.replace("/remapping_", "/exec_log_")
+      remapping_log_info.remapping_exec_log = remapping_exec_log_reader(exec_log_file_path)
+
 
   with open(db_csv_file_path) as f:
     reader = csv.reader(f)

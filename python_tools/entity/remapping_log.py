@@ -52,6 +52,7 @@ class RemapperLogInfo:
         self.mapping_type_num: int = 0
         self.remapper_mode: RemapperType
         self.mapping_json_list = []
+        self.remapping_exec_log = None
 
     def get_input_as_str(self):
         return self.benchmark + str(self.row) + "_" + str(self.column) + "_" + str(self.context_size) + "_" + str(self.memory_io.value) + "_" + str(self.cgra_type.value) + "_" + str(self.network_type.value) + "_" + str(self.parallel_num) + "_" + str(self.remapper_mode.value)

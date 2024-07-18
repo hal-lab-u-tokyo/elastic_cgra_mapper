@@ -77,6 +77,7 @@ def remapping_log_reader(log_file_path, benchmark_list=[]) -> Tuple[bool, Remapp
             line_num = line_num + 1
 
     if line_num <= offset + 8:
+        print("ERROR: remapping log reader failed: " + log_file_path)
         return (False, remapper_log_info)
-
+    print("remapping_log_reader: " + log_file_path + " succeeded")
     return (True, remapper_log_info)
