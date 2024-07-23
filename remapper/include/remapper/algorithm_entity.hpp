@@ -62,6 +62,9 @@ class CGRAMatrix : public Rectangle {
   bool IsAvailableRemapping(const MappingMatrix& mapping_matrix,
                             const MappingTransformOp& transform_op) const;
   entity::MRRGConfig GetMRRGConfig() const { return mrrg_config_; };
+  entity::MRRGCGRAType GetMRRGCGRAType() const {
+    return mrrg_config_.cgra_type;
+  };
 
  private:
   entity::MRRGConfig mrrg_config_;
