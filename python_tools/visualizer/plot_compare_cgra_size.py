@@ -62,16 +62,19 @@ class DataToPlot:
     self.time = []
     self.type_num = []
     self.unix_time = []
+    self.exec_log = []
     for i in range(7):
       self.utilization.append([])
       self.time.append([])
       self.type_num.append([])
       self.unix_time.append([])
+      self.exec_log.append([])
       for _ in range(0, cgra_num):
         self.utilization[i].append(-1)
         self.time[i].append(-1)
         self.type_num[i].append(0)
         self.unix_time[i].append(-1)
+        self.exec_log[i].append(None)
 
 class AllDataToPlot:
   def __init__(self, min_cgra_size, max_cgra_size):
@@ -79,7 +82,7 @@ class AllDataToPlot:
     self.min_cgra_size = min_cgra_size
     self.max_cgra_size = max_cgra_size
 
-  def add_benchmark_data(self, benchmark_name, mapping_type, cgra_size, utilization, time, type_num, unix_time):
+  def add_benchmark_data(self, benchmark_name, mapping_type, cgra_size, utilization, time, type_num, unix_time, exec_log):
     cgra_size_idx = cgra_size - self.min_cgra_size
     if benchmark_name not in self.data_of_each_benchmark.keys():
       self.data_of_each_benchmark[benchmark_name] = DataToPlot(self.max_cgra_size - self.min_cgra_size + 1)
@@ -98,12 +101,13 @@ class AllDataToPlot:
     self.data_of_each_benchmark[benchmark_name].time[mapping_type.value][cgra_size_idx] = time
     self.data_of_each_benchmark[benchmark_name].unix_time[mapping_type.value][cgra_size_idx] = unix_time
     self.data_of_each_benchmark[benchmark_name].type_num[mapping_type.value][cgra_size_idx] = type_num
+    self.data_of_each_benchmark[benchmark_name].exec_log[mapping_type.value][cgra_size_idx] = exec_log
 
   def ouptut_csv(self, file_name):
     check_dir_availability("./output/compare_cgra_size/")
     f = open("./output/compare_cgra_size/" + file_name + ".csv", 'w', encoding='utf-8', newline='')
     data_writer = csv.writer(f)
-    data_writer.writerow(["benchmark_name","type", "cgra_size", "utilization", "time", "type_num"])
+    data_writer.writerow(["benchmark_name","type", "cgra_size", "utilization", "time", "type_num", "mapping_num", "shift_num", "rotation0", "rotation1", "rotation2", "rotation3", "rotation4", "rotation5", "rotation6", "rotation7"])
 
     for benchmark in self.data_of_each_benchmark.keys():
       for mapping_type in range(1,7):
@@ -113,6 +117,20 @@ class AllDataToPlot:
           row.append(self.data_of_each_benchmark[benchmark].time[mapping_type][i])
           row.append(self.data_of_each_benchmark[benchmark].type_num[mapping_type][i])
 
+          if self.data_of_each_benchmark[benchmark].exec_log[mapping_type][i] is None:
+            for i in range(10):
+              row.append(-1)
+          else:
+            row.append(self.data_of_each_benchmark[benchmark].exec_log[mapping_type][i].mapping_num)
+            row.append(self.data_of_each_benchmark[benchmark].exec_log[mapping_type][i].shift_num)
+            row.append(self.data_of_each_benchmark[benchmark].exec_log[mapping_type][i].rotation[0])
+            row.append(self.data_of_each_benchmark[benchmark].exec_log[mapping_type][i].rotation[1])
+            row.append(self.data_of_each_benchmark[benchmark].exec_log[mapping_type][i].rotation[2])
+            row.append(self.data_of_each_benchmark[benchmark].exec_log[mapping_type][i].rotation[3])
+            row.append(self.data_of_each_benchmark[benchmark].exec_log[mapping_type][i].rotation[4])
+            row.append(self.data_of_each_benchmark[benchmark].exec_log[mapping_type][i].rotation[5])
+            row.append(self.data_of_each_benchmark[benchmark].exec_log[mapping_type][i].rotation[6])
+            row.append(self.data_of_each_benchmark[benchmark].exec_log[mapping_type][i].rotation[7])
           data_writer.writerow(row)
     f.close()
 
@@ -237,13 +255,13 @@ if __name__ == "__main__":
     time = remapping_info.remapper_time + database_info.creating_time
 
     if remapping_info.remapper_mode == RemapperType.DP:
-      memory_io_to_all_data_to_plot[memory_io.to_string()].add_benchmark_data(benchmark, MappingType.dp, row, utilization, time, remapping_info.mapping_type_num, remapping_info.get_unix_time())
+      memory_io_to_all_data_to_plot[memory_io.to_string()].add_benchmark_data(benchmark, MappingType.dp, row, utilization, time, remapping_info.mapping_type_num, remapping_info.get_unix_time(), remapping_info.remapping_exec_log)
     elif remapping_info.remapper_mode == RemapperType.Greedy:
-      memory_io_to_all_data_to_plot[memory_io.to_string()].add_benchmark_data(benchmark, MappingType.greedy, row, utilization, time, remapping_info.mapping_type_num, remapping_info.get_unix_time())
+      memory_io_to_all_data_to_plot[memory_io.to_string()].add_benchmark_data(benchmark, MappingType.greedy, row, utilization, time, remapping_info.mapping_type_num, remapping_info.get_unix_time(), remapping_info.remapping_exec_log)
     elif remapping_info.remapper_mode == RemapperType.FullSearch:
-      memory_io_to_all_data_to_plot[memory_io.to_string()].add_benchmark_data(benchmark, MappingType.full_search, row, utilization, time, remapping_info.mapping_type_num, remapping_info.get_unix_time())
+      memory_io_to_all_data_to_plot[memory_io.to_string()].add_benchmark_data(benchmark, MappingType.full_search, row, utilization, time, remapping_info.mapping_type_num, remapping_info.get_unix_time(), remapping_info.remapping_exec_log)
     elif remapping_info.remapper_mode == RemapperType.DPAndFullSearch:
-      memory_io_to_all_data_to_plot[memory_io.to_string()].add_benchmark_data(benchmark, MappingType.dp_and_full_search, row, utilization, time, remapping_info.mapping_type_num, remapping_info.get_unix_time())
+      memory_io_to_all_data_to_plot[memory_io.to_string()].add_benchmark_data(benchmark, MappingType.dp_and_full_search, row, utilization, time, remapping_info.mapping_type_num, remapping_info.get_unix_time(), remapping_info.remapping_exec_log)
 
   for mapping_info in mapping_info_list:
     row = mapping_info.row
