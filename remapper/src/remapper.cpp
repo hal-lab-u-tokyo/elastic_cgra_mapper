@@ -90,6 +90,32 @@ remapper::RemappingResult remapper::Remapper::ElasticRemapping(
   return result;
 }
 
+remapper::RemappingResult remapper::Remapper::ElasticRemapping(
+    const std::vector<entity::Mapping>& mapping_vec,
+    const entity::MRRGConfig& target_mrrg_config, const int target_parallel_num,
+    std::ofstream& log_file, remapper::RemappingMode mode, double timeout_s,
+    int db_num) {
+  RemappingResult result, tmp_result;
+
+  // TODO: db_num > 1
+  if (db_num != 1) {
+    return result;
+  }
+
+  for (const auto mapping : mapping_vec) {
+    std::vector<entity::Mapping> tmp_mapping_vec = {mapping};
+    tmp_result =
+        ElasticRemapping(tmp_mapping_vec, target_mrrg_config,
+                         target_parallel_num, log_file, mode, timeout_s);
+    if (tmp_result.result_mapping_id_vec.size() >
+        result.result_mapping_id_vec.size()) {
+      result = tmp_result;
+    }
+  }
+
+  return result;
+}
+
 void remapper::OutputToLogFile(entity::MRRGConfig mapping_mrrg_config,
                                remapper::MappingTransformOp transform_op,
                                std::ofstream& log_file) {

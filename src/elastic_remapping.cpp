@@ -16,6 +16,7 @@ int main(int argc, char* argv[]) {
   remapper::RemappingMode mode =
       static_cast<remapper::RemappingMode>(std::stoi(argv[4]));
   const double timeout_s = std::stod(argv[5]);
+  const int db_num = std::stod(argv[6]);
 
   assert(std::filesystem::path(mapping_dir_path).is_absolute());
   assert(std::filesystem::path(mrrg_file_path).is_absolute());
@@ -85,9 +86,16 @@ int main(int argc, char* argv[]) {
 
   std::ofstream remapper_exec_file =
       std::ofstream(logger.GetRemapperExecLogFilePath());
-  const auto remapping_result = remapper::Remapper::ElasticRemapping(
-      mapping_vec, mrrg_config, parallel_num, remapper_exec_file, mode,
-      timeout_s);
+  remapper::RemappingResult remapping_result;
+  if (db_num == -1) {
+    remapping_result = remapper::Remapper::ElasticRemapping(
+        mapping_vec, mrrg_config, parallel_num, remapper_exec_file, mode,
+        timeout_s);
+  } else if (db_num == 1) {
+    remapping_result = remapper::Remapper::ElasticRemapping(
+        mapping_vec, mrrg_config, parallel_num, remapper_exec_file, mode,
+        timeout_s, 1);
+  }
 
   std::set<int> result_mapping_id_set;
   std::vector<entity::Mapping> result_mapping_vec;
@@ -105,5 +113,6 @@ int main(int argc, char* argv[]) {
   output.mrrg_config = mrrg_config;
   output.parallel_num = remapping_result.result_mapping_id_vec.size();
   output.mapping_type_num = result_mapping_id_set.size();
+  output.db_num = db_num;
   logger.LogRemapperOutput(output);
 }

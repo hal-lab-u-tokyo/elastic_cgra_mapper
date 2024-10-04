@@ -35,6 +35,7 @@ struct RemapperOutput {
   entity::MRRGConfig mrrg_config;
   int parallel_num;
   int mapping_type_num;
+  int db_num;
 };
 
 struct CreateDatabaseInput {
