@@ -47,9 +47,6 @@ int main(int argc, char* argv[]) {
   for (const auto& file :
        std::filesystem::directory_iterator(mapping_dir_path)) {
     const auto mapping = io::ReadMappingFile(file.path());
-    if (mapping.GetMRRGConfig().cgra_type != entity::MRRGCGRAType::kElastic) {
-      continue;
-    }
     if (mapping.GetMRRGConfig().context_size > mrrg_config.context_size) {
       continue;
     }
