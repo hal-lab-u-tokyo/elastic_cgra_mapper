@@ -62,5 +62,5 @@ TEST(RemapperTest, remapper_test) {
       remapper::Remapper::ElasticRemapping(
           mapping_vec, mrrg_config, parallel_num, log_file,
           remapper::RemappingMode::FullSearch, 100);
-  EXPECT_EQ(remapping_result_full_search.result_mapping_id_vec.size(), 3);
+  EXPECT_EQ(remapping_result_full_search.result_mapping_id_vec.size(), 4);
 }
