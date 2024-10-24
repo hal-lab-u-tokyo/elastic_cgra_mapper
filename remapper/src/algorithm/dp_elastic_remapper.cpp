@@ -106,6 +106,12 @@ remapper::RemappingResult remapper::DPElasticRemapping(
                context_shift <
                cgra_matrix.context_size - rotated_mapping_matrix.maxCoeff() + 1;
                context_shift++) {
+            if (cgra_matrix.GetMRRGCGRAType() ==
+                    entity::MRRGCGRAType::kDefault &&
+                context_shift < cgra_matrix.context_size -
+                                    rotated_mapping_matrix.maxCoeff()) {
+              continue;
+            }
             const auto mapping_size = Eigen::Vector3d(
                 rotated_mapping_matrix.rows(), rotated_mapping_matrix.cols(),
                 rotated_mapping_matrix.maxCoeff());
