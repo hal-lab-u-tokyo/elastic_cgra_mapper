@@ -2,6 +2,7 @@
 
 #include <cpp_simulator/elastic_module_interface.hpp>
 #include <functional>
+#include <memory>
 
 namespace simulator {
 struct SELFProtocolSignal {
