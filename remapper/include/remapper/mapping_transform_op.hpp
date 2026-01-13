@@ -17,6 +17,8 @@ RotateOp CombineRotateOp(const RotateOp& lhs, const RotateOp& rhs);
 
 constexpr int kRotateOpNum = 8;
 
+enum class RotateType { All = 0, WithoutMirror = 1 };
+
 const std::vector<RotateOp> kAllRotateOpVec = {
     RotateOp::TopIsTop,          RotateOp::TopIsRight,
     RotateOp::TopIsBottom,       RotateOp::TopIsLeft,

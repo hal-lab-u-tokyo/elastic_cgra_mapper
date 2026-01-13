@@ -1,7 +1,7 @@
 #pragma once
 
-#include <functional>
 #include <cpp_simulator/elastic_module_interface.hpp>
+#include <functional>
 
 namespace simulator {
 struct SELFProtocolSignal {

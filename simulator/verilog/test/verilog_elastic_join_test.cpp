@@ -78,19 +78,19 @@ TEST(VerilogSimulatorTest, elastic_join_test) {
         EXPECT_EQ(elastic_join->valid_output, 1);
       }
 
-    //   std::cout << "cycle: " << cycle << std::endl;
-    //   std::cout << "input data/valid/stop: ";
-    //   std::cout << elastic_join->data_input[0] << " "
-    //             << elastic_join->data_input[1] << " / ";
-    //   std::cout << elastic_join->valid_input[0] + 0 << " "
-    //             << elastic_join->valid_input[1] + 0 << " / ";
-    //   std::cout << elastic_join->stop_input[0] + 0 << " "
-    //             << elastic_join->stop_input[1] + 0 << std::endl;
-    //   std::cout << "output data/valid/stop: ";
-    //   std::cout << elastic_join->data_output[0] + 0 << " "
-    //             << elastic_join->data_output[1] + 0 << " / "
-    //             << elastic_join->valid_output + 0 << " / "
-    //             << elastic_join->stop_output + 0 << std::endl;
+      //   std::cout << "cycle: " << cycle << std::endl;
+      //   std::cout << "input data/valid/stop: ";
+      //   std::cout << elastic_join->data_input[0] << " "
+      //             << elastic_join->data_input[1] << " / ";
+      //   std::cout << elastic_join->valid_input[0] + 0 << " "
+      //             << elastic_join->valid_input[1] + 0 << " / ";
+      //   std::cout << elastic_join->stop_input[0] + 0 << " "
+      //             << elastic_join->stop_input[1] + 0 << std::endl;
+      //   std::cout << "output data/valid/stop: ";
+      //   std::cout << elastic_join->data_output[0] + 0 << " "
+      //             << elastic_join->data_output[1] + 0 << " / "
+      //             << elastic_join->valid_output + 0 << " / "
+      //             << elastic_join->stop_output + 0 << std::endl;
     }
 
     elastic_join->eval();

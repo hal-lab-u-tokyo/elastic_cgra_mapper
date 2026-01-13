@@ -1,12 +1,12 @@
 #pragma once
 
+#include <cpp_simulator/elastic_module_interface.hpp>
+#include <cpp_simulator/elastic_wire.hpp>
+#include <cpp_simulator/memory.hpp>
 #include <entity/architecture.hpp>
 #include <entity/operation.hpp>
 #include <map>
 #include <queue>
-#include <cpp_simulator/elastic_module_interface.hpp>
-#include <cpp_simulator/elastic_wire.hpp>
-#include <cpp_simulator/memory.hpp>
 
 namespace simulator {
 template <typename T>

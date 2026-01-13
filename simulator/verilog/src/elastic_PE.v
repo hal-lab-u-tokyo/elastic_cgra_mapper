@@ -238,7 +238,7 @@ module ElasticPE (
                 r_mapping_context_max_id <= mapping_context_max_id;
             end
 
-            // context reset 
+            // context reset
             if (start_exec) begin
                 r_config_index_mux_a <= 0;
                 r_config_index_mux_b <= 0;
@@ -263,7 +263,7 @@ module ElasticPE (
             end
             // context switch & register update : alu
             if (w_switch_context_alu) begin
-                // register update       
+                // register update
                 r_alu_output[r_alu_output_index] <= w_alu_output.data;
                 if (r_alu_output_index == PE_REG_SIZE - 1) begin
                     r_alu_output_index <= 0;

@@ -138,17 +138,16 @@ TEST(VerilogSimulatorTest, elastic_PE_test) {
         }
       }
 
-        std::cout << std::endl;
-        std::cout << "<<<<<< cycle " << cycle << " >>>>>>" << std::endl;
-        for (int i = 0; i < kNeighborPENum; i++) {
-          std::cout << "output_data[" << i << "]: " << pe->pe_output_data[i]
-                    << std::endl;
-          std::cout << "valid_output[" << i << "]: " << pe->valid_output[i] +
-          0
-                    << std::endl;
-        }
-        std::cout << "memory_read_address: " << pe->memory_read_address
+      std::cout << std::endl;
+      std::cout << "<<<<<< cycle " << cycle << " >>>>>>" << std::endl;
+      for (int i = 0; i < kNeighborPENum; i++) {
+        std::cout << "output_data[" << i << "]: " << pe->pe_output_data[i]
                   << std::endl;
+        std::cout << "valid_output[" << i << "]: " << pe->valid_output[i] + 0
+                  << std::endl;
+      }
+      std::cout << "memory_read_address: " << pe->memory_read_address
+                << std::endl;
     }
 
     pe->eval();
@@ -253,7 +252,7 @@ TEST(VerilogSimulatorTest, elastic_PE_test_route) {
       }
 
       //   std::cout << std::endl;
-        // std::cout << "<<<<<< cycle " << cycle << " >>>>>>" << std::endl;
+      // std::cout << "<<<<<< cycle " << cycle << " >>>>>>" << std::endl;
       //   for (int i = 0; i < kNeighborPENum; i++) {
       //     std::cout << "output_data[" << i << "]: " << pe->pe_output_data[i]
       //               << std::endl;

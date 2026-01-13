@@ -8,10 +8,10 @@ parameter DURING_EXEC = 2'b01;
 parameter FINISH_EXEC = 2'b10;
 
 module ElasticALU (
-    // base 
+    // base
     input clk,
     input reset_n,
-    // alu 
+    // alu
     input [DATA_WIDTH-1:0] input_data_1,
     input [DATA_WIDTH-1:0] input_data_2,
     input [OPERATION_BIT_LENGTH-1:0] op,
@@ -85,7 +85,7 @@ module ElasticALU (
                 case (op)
                     0: output_data <= 0;  // nop
                     1: begin
-                        output_data <= input_data_1_for_alu + input_data_2_for_alu;  // add 
+                        output_data <= input_data_1_for_alu + input_data_2_for_alu;  // add
                     end
                     2: begin
                         output_data <= input_data_1_for_alu - input_data_2_for_alu;  // sub
@@ -106,7 +106,7 @@ module ElasticALU (
                     end
                     7: begin
                         output_data <= 0;
-                        memory_write_data <= input_data_1_for_alu;  // output 
+                        memory_write_data <= input_data_1_for_alu;  // output
                     end
                     8: begin
                         output_data <= input_data_1_for_alu;  // route

@@ -1,6 +1,6 @@
-#include <entity/operation.hpp>
 #include <cpp_simulator/PE.hpp>
 #include <cpp_simulator/operation.hpp>
+#include <entity/operation.hpp>
 
 simulator::PE::PE() : input_wire_({}), output_wire_({}), position_id_(0, 0) {
   register_size_ = 1;

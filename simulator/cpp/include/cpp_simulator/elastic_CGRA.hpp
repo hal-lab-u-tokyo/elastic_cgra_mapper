@@ -1,9 +1,9 @@
 #pragma once
 
-#include <entity/mapping.hpp>
 #include <cpp_simulator/elastic_PE.hpp>
 #include <cpp_simulator/elastic_module.hpp>
 #include <cpp_simulator/module.hpp>
+#include <entity/mapping.hpp>
 
 namespace simulator {
 class ElasticCGRA : public IModule {

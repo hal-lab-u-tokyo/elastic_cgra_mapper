@@ -1,0 +1,9 @@
+{
+    "column" : "9",
+    "row" : "9",
+    "memory_io": "all",
+    "CGRA_type": "default",
+    "network_type": "orthogonal",
+    "local_reg_size": "1",
+    "context_size": "4"
+}
