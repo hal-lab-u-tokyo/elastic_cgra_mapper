@@ -28,7 +28,7 @@ parameter PE_REG_SIZE_BIT_LENGTH = 1;
 parameter ELASTIC_BUFFER_SIZE = 4;
 parameter ELASTIC_BUFFER_SIZE_BIT_LENGTH = 2;
 
-// param 
+// param
 parameter ADD_CYCLE = 1;
 parameter SUB_CYCLE = 1;
 parameter MUL_CYCLE = 4;

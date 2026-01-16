@@ -23,7 +23,7 @@
   },
   "compare_cgra_size_config": {
     "min_size": 6,
-    "max_size": 10,
+    "max_size": 15,
     "context_size": 4,
     "network_type": "orthogonal"
   },
@@ -87,7 +87,7 @@
       "visualize": true
     },
     {
-      "kernel_name": "fixed_matrixmultiply_const",
+      "kernel_name": "fixed_matrixmultiply_const_no_loop",
       "name": "matmul",
       "visualize": true
     }

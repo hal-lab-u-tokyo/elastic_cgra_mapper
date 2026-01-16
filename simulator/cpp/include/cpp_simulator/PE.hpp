@@ -1,9 +1,9 @@
 #pragma once
 
-#include <entity/architecture.hpp>
 #include <cpp_simulator/memory.hpp>
 #include <cpp_simulator/module.hpp>
 #include <cpp_simulator/wire.hpp>
+#include <entity/architecture.hpp>
 #include <vector>
 
 namespace simulator {

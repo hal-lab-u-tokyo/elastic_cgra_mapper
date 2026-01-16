@@ -8,5 +8,5 @@ __pycache__/
 **/obj_dir/*
 python_tools/experiment_runner/log/*
 python_tools/experiment_runner/tmp_cgra/*
-license/gurobi.lic
+license_files/gurobi.lic
 garbage/*

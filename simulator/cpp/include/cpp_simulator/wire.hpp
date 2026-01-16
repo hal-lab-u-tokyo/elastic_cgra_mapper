@@ -1,5 +1,7 @@
 #pragma once
 
+#include <memory>
+
 namespace simulator {
 template <typename T>
 class Wire {

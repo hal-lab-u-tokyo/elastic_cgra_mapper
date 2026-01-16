@@ -67,7 +67,7 @@ module PE (
                 case (r_config_memory[r_config_index].op)
                     0: r_output <= 0;  // nop
                     1: begin
-                        r_output <= pe_input_data[r_config_memory[r_config_index].input_PE_index_1] + pe_input_data[r_config_memory[r_config_index].input_PE_index_2];  // add 
+                        r_output <= pe_input_data[r_config_memory[r_config_index].input_PE_index_1] + pe_input_data[r_config_memory[r_config_index].input_PE_index_2];  // add
                     end
                     2: begin
                         r_output <= pe_input_data[r_config_memory[r_config_index].input_PE_index_1] - pe_input_data[r_config_memory[r_config_index].input_PE_index_2];  // sub
@@ -87,7 +87,7 @@ module PE (
                         r_output <= memory_read_data;
                     end
                     7: begin
-                        r_output <= pe_input_data[r_config_memory[r_config_index].input_PE_index_1];  //output 
+                        r_output <= pe_input_data[r_config_memory[r_config_index].input_PE_index_1];  //output
                     end
                     8: begin
                         r_output <= pe_input_data[r_config_memory[r_config_index].input_PE_index_1];  // route
@@ -95,7 +95,7 @@ module PE (
                 endcase
             end
 
-            // context reset 
+            // context reset
             if (start_exec) begin
                 r_config_index <= 0;
                 r_counter <= 0;

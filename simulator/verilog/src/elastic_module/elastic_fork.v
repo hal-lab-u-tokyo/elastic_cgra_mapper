@@ -7,7 +7,7 @@ module ElasticFork (
     // base
     input clk,
     input reset_n,
-    // input 
+    // input
     input [DATA_WIDTH-1:0] input_data,
     input valid_input,
     output stop_input,

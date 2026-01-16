@@ -1,6 +1,4 @@
----
 BasedOnStyle: Google
----
 Language:                               Cpp
 Standard:                               Cpp11
 Cpp11BracedListStyle:                   true

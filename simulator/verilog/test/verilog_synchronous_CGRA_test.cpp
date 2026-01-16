@@ -12,10 +12,10 @@
 TEST(VerilogSimulatorTest, synchronous_CGRA_test) {
   std::string mapping_file_path =
       "../../../../simulator/verilog/test/data/default_mapping.json";
-  std::shared_ptr<entity::Mapping> mapping_ptr = std::make_shared<entity::Mapping>();
+  std::shared_ptr<entity::Mapping> mapping_ptr =
+      std::make_shared<entity::Mapping>();
   *mapping_ptr = io::ReadMappingFile(mapping_file_path);
 
- 
   // verilog simulator
   auto GetInputPEIndex = [](entity::ConfigId from, entity::ConfigId to) {
     if (from.row_id < to.row_id) return 0;
