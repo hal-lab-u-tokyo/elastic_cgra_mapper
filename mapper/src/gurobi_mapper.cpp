@@ -180,6 +180,58 @@ mapper::MappingResult mapper::GurobiILPMapper::Execution() {
       }
     }
 
+    // add constraint: aporopriate input type
+    const double appropriate_input_type_coefficient = 1;
+    for (int dfg_node_id = 0; dfg_node_id < dfg_node_num; dfg_node_id++) {
+      for (int mrrg_node_id = 0; mrrg_node_id < mrrg_node_num; mrrg_node_id++) {
+        std::vector<int> dfg_parent_node_id_vec =
+            dfg_ptr_->GetParentNodeIdVec(dfg_node_id);
+        std::vector<int> mrrg_parent_node_id_vec =
+            mrrg_ptr_->GetParentNodeIdVec(mrrg_node_id);
+
+        for (int dfg_parent_node_id : dfg_parent_node_id_vec) {
+          GRBLinExpr tmp_lin_expr;
+          for (int mrrg_parent_node_id : mrrg_parent_node_id_vec) {
+            tmp_lin_expr.addTerms(
+                &appropriate_input_type_coefficient,
+                &(map_op_to_PE[dfg_parent_node_id][mrrg_parent_node_id]), 1);
+            tmp_lin_expr.addTerms(
+                &appropriate_input_type_coefficient,
+                &(map_output_to_route[dfg_parent_node_id][mrrg_parent_node_id]),
+                1);
+          }
+          std::string constr_name = "c_appropriate_input_type_" +
+                                    std::to_string(dfg_node_id) + "_" +
+                                    std::to_string(mrrg_node_id) + "_" +
+                                    std::to_string(dfg_parent_node_id);
+          model.addConstr(map_op_to_PE[dfg_node_id][mrrg_node_id],
+                          GRB_LESS_EQUAL, tmp_lin_expr, constr_name);
+        }
+      }
+    }
+
+    // add constraint: input to route operation
+    const double input_to_route_coefficient = 1;
+    for (int dfg_node_id = 0; dfg_node_id < dfg_node_num; dfg_node_id++) {            
+      for (int mrrg_node_id = 0; mrrg_node_id < mrrg_node_num; mrrg_node_id++) {
+        GRBLinExpr tmp_lin_expr;
+        std::vector<int> mrrg_parent_node_id_vec =
+            mrrg_ptr_->GetParentNodeIdVec(mrrg_node_id);
+        for (int mrrg_parent_node_id : mrrg_parent_node_id_vec) {
+          if(mrrg_parent_node_id == mrrg_node_id) continue;
+          tmp_lin_expr.addTerms(&input_to_route_coefficient,
+                                &(map_op_to_PE[dfg_node_id][mrrg_parent_node_id]), 1);
+          tmp_lin_expr.addTerms(&input_to_route_coefficient,
+                                &(map_output_to_route[dfg_node_id][mrrg_parent_node_id]), 1);
+        }
+        std::string constr_name = "c_input_to_route_" + std::to_string(dfg_node_id) +
+                                  "_" + std::to_string(mrrg_node_id);
+        model.addConstr(map_output_to_route[dfg_node_id][mrrg_node_id],
+                        GRB_LESS_EQUAL, tmp_lin_expr, constr_name);    
+      }
+    }
+                
+
     // add constraint for elastic CGRA
     if (mrrg_ptr_->GetMRRGConfig().cgra_type ==
         entity::MRRGCGRAType::kElastic) {
