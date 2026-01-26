@@ -168,8 +168,7 @@ struct MappingIOStruct {
 
   std::vector<PEConfigIOStruct> PE_config;
 
-  MappingIOStruct(entity::MRRGConfig mrrg_config,
-                  std::shared_ptr<entity::Mapping> mapping_ptr_) {
+  MappingIOStruct(entity::MRRGConfig mrrg_config, std::shared_ptr<entity::Mapping> mapping_ptr_) {
     column = mrrg_config.column;
     row = mrrg_config.row;
     context_size = mrrg_config.context_size;

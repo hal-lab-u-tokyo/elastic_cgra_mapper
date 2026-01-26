@@ -10,3 +10,7 @@ python_tools/experiment_runner/log/*
 python_tools/experiment_runner/tmp_cgra/*
 license/gurobi.lic
 garbage/*
+mapping*/
+Testing*/
+build_archive/
+ETNET/

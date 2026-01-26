@@ -29,7 +29,7 @@ class RemapperInput:
     self.timeout_s = timeout_s
 
 def mapping_exec(input):
-  cgra_dir_path = os.path.join(os.getcwd(), "/tmp_cgra/mapping/")
+  cgra_dir_path = os.path.join(os.getcwd(), "./tmp_cgra/mapping/")
 
   lock.acquire()
   try:
@@ -55,7 +55,7 @@ def mapping_exec(input):
   finally:
     lock.release()
 
-  subprocess.run(["/home/ubuntu/elastic_cgra_mapper/build/mapping", input.dfg_file_path, cgra_file_path, input.output_dir_path, str(input.timeout_s), str(input.parallel_num)])
+  subprocess.run(["/home/members/h-ito/llvm/elastic_cgra_mapper/build/mapping", input.dfg_file_path, cgra_file_path, input.output_dir_path, str(input.timeout_s), str(input.parallel_num)])
 
   os.remove(cgra_file_path)
 

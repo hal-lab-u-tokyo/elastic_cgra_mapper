@@ -7,6 +7,8 @@ entity::MRRGCGRAType entity::MRRGCGRATypeFromString(
     return entity::MRRGCGRAType::kDefault;
   } else if (cgra_type_string == "elastic") {
     return entity::MRRGCGRAType::kElastic;
+  } else if (cgra_type_string == "withController") {
+    return entity::MRRGCGRAType::kwithController;
   } else {
     assert("invalid MRRG CGRA Type");
     abort();
@@ -20,6 +22,9 @@ std::string entity::MRRGCGRATypeToString(entity::MRRGCGRAType cgra_type) {
       break;
     case entity::MRRGCGRAType::kElastic:
       return "elastic";
+      break;
+    case entity::MRRGCGRAType::kwithController:
+      return "withController";
       break;
     default:
       assert("invalid MRRG CGRA Type String");
@@ -146,6 +151,8 @@ entity::MRRG::MRRG(entity::MRRGConfig mrrg_config)
       config_id_to_node_id_map_({}) {
   entity::MRRGGraph mrrg_graph;
   std::map<std::tuple<int, int, int>, int> node_id_to_vertex_id;
+  // std::vector<int> loop_pe_row_pos = {2, 4, 1, 7, 5, 3, 6, 1};
+  std::vector<int> loop_pe_row_pos = {1, 6, 3, 5, 7, 1, 4, 2};
 
   for (int i = 0; i < mrrg_config.row; i++) {
     for (int j = 0; j < mrrg_config.column; j++) {
@@ -162,22 +169,30 @@ entity::MRRG::MRRG(entity::MRRGConfig mrrg_config)
         graph_[vertex_id].local_reg_size = mrrg_config.local_reg_size;
         graph_[vertex_id].context_size = mrrg_config.context_size;
 
-        if (mrrg_config.memory_io == entity::MRRGMemoryIOType::kAll) {
-          graph_[vertex_id].supported_operations = entity::GetAllOperations();
-        } else if (mrrg_config.memory_io ==
-                   entity::MRRGMemoryIOType::kBothEnds) {
-          if (j == 0 || j == mrrg_config.column - 1) {
-            graph_[vertex_id].supported_operations = entity::GetAllOperations();
-          } else {
-            graph_[vertex_id].supported_operations =
-                entity::GetAllOperationsExceptMemoryAccess();
+        bool is_loop_pe = false;
+        if (mrrg_config.is_raccoon) {
+          if(j <= 8 && loop_pe_row_pos[j] == i){
+            graph_[vertex_id].supported_operations = entity::GetLoopOperations();
+            is_loop_pe = true;
           }
-        } else if (mrrg_config.memory_io == entity::MRRGMemoryIOType::kOneEnd) {
-          if (j == 0) {
+        }
+        if(!is_loop_pe){
+          if (mrrg_config.memory_io == entity::MRRGMemoryIOType::kAll) {
             graph_[vertex_id].supported_operations = entity::GetAllOperations();
-          } else {
-            graph_[vertex_id].supported_operations =
-                entity::GetAllOperationsExceptMemoryAccess();
+          } else if (mrrg_config.memory_io == entity::MRRGMemoryIOType::kBothEnds) {
+            if (i == 0 || i == mrrg_config.row - 1) {
+              graph_[vertex_id].supported_operations = entity::GetAllOperations();
+            } else {
+              graph_[vertex_id].supported_operations =
+                  entity::GetAllOperationsExceptMemoryAccess();
+            }
+          } else if (mrrg_config.memory_io == entity::MRRGMemoryIOType::kOneEnd) {
+            if (i == 0) {
+              graph_[vertex_id].supported_operations = entity::GetAllOperations();
+            } else {
+              graph_[vertex_id].supported_operations =
+                  entity::GetAllOperationsExceptMemoryAccess();
+            }
           }
         }
 

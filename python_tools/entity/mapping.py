@@ -78,25 +78,37 @@ class NetworkType(Enum):
 
 class OperationType(Enum):
     Add = 0
-    Sub = 1
-    Mul = 2
-    Div = 3
-    Const = 4
-    Load = 5
-    Output = 6
-    Store = 7
-    Nop = 8
-    Route = 9
-    Or = 10
-    Shift = 11
+    FAdd = 1
+    Sub = 2
+    Mul = 3
+    FMul = 4
+    Div = 5
+    Const = 6
+    Load = 7
+    Output = 8
+    Store = 9
+    Nop = 10
+    Route = 11
+    Or = 12
+    Shift = 13
+    icmp = 14
+    Loop = 15
+    Select = 16
+    Cmpgt = 17
+    Cmpge = 18
+    Cmpeq = 19
 
     def get_from_string(input: str):
         if input == "add":
             return OperationType.Add
+        elif input == "fadd":
+            return OperationType.FAdd
         elif input == "sub":
             return OperationType.Sub
         elif input == "mul":
             return OperationType.Mul
+        elif input == "fmul":
+            return OperationType.FMul
         elif input == "div":
             return OperationType.Div
         elif input == "const":
@@ -115,6 +127,18 @@ class OperationType(Enum):
             return OperationType.Or
         elif input == "shift":
             return OperationType.Shift
+        elif input == "icmp":
+            return OperationType.icmp
+        elif input == "cmpgt" or input == "icmpgt":
+            return OperationType.Cmpgt
+        elif input == "cmpge" or input == "icmpge":
+            return OperationType.Cmpge
+        elif input == "cmpeq" or input == "icmpeq":
+            return OperationType.Cmpeq
+        elif input == "loop":
+            return OperationType.Loop
+        elif input == "select":
+            return OperationType.Select
         else:
             print("ERROR: OperationType get_from_string invalid input")
             raise ValueError
@@ -122,10 +146,14 @@ class OperationType(Enum):
     def to_string(input):
         if input == OperationType.Add:
             return "add"
+        elif input == OperationType.FAdd:
+            return "fadd"
         elif input == OperationType.Sub:
             return "sub"
         elif input == OperationType.Mul:
             return "mul"
+        elif input == OperationType.FMul:
+            return "fmul"
         elif input == OperationType.Div:
             return "div"
         elif input ==OperationType.Const:
@@ -144,6 +172,10 @@ class OperationType(Enum):
             return "or"
         elif input == OperationType.Shift:
             return "shift"
+        elif input == OperationType.icmp:
+            return "icmp"
+        elif input == OperationType.Select:
+            return "select"
         else:
             print("ERROR: OperationType to_string invalid input")
             raise ValueError

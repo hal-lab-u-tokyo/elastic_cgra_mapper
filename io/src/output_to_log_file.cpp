@@ -254,6 +254,7 @@ std::string io::CreateDatabaseLogger::GetNextGurobiMappingPath(
 
 void io::CreateDatabaseLogger::LogMapping(
     const io::MappingOutput& mapping_output) {
+  fprintf(stderr, "debug 0122\n");
   assert(start_mapping_);
 
   mapping_logger_.LogMappingOutput(mapping_output);

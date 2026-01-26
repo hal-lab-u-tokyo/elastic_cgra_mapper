@@ -53,7 +53,7 @@ mapper::MappingResult mapper::GurobiILPMapper::Execution() {
 
         var_name = "r_" + std::to_string(i) + "_" + std::to_string(j);
         map_output_to_route[i][j] =
-            model.addVar(0.0, 1.0, 0.0, GRB_BINARY, var_name);
+        model.addVar(0.0, 1.0, 0.0, GRB_BINARY, var_name);
       }
     }
     // set objective
@@ -285,6 +285,26 @@ mapper::MappingResult mapper::GurobiILPMapper::Execution() {
     // optimize model
     model.optimize();
 
+    int status = model.get(GRB_IntAttr_Status);
+
+    if (status != GRB_OPTIMAL && status != GRB_SUBOPTIMAL) {
+      if (status == GRB_INFEASIBLE) {
+        model.computeIIS();
+        model.write("debug.iis");
+      }
+      const auto end_time = std::chrono::system_clock::now();
+      const double mapping_time = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count() / 1000.0;
+      return MappingResult(false, entity::Mapping(mrrg_ptr_->GetMRRGConfig()),
+                          mapping_time);
+    }
+
+    if (model.get(GRB_IntAttr_SolCount) == 0) {
+      const auto end_time = std::chrono::system_clock::now();
+      const double mapping_time = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count() / 1000.0;
+      return MappingResult(false, entity::Mapping(mrrg_ptr_->GetMRRGConfig()),
+                          mapping_time);
+    }
+
     // get result
     std::vector<int> dfg_node_to_mrrg_node(dfg_node_num);
     std::vector<std::vector<int>> dfg_output_to_mrrg_reg(dfg_node_num);
@@ -301,11 +321,7 @@ mapper::MappingResult mapper::GurobiILPMapper::Execution() {
     }
 
     const auto end_time = std::chrono::system_clock::now();
-    const double mapping_time =
-        std::chrono::duration_cast<std::chrono::milliseconds>(end_time -
-                                                              start_time)
-            .count() /
-        1000.0;
+    const double mapping_time = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count() / 1000.0;
     return MappingResult(
         true,
         entity::Mapping(*mrrg_ptr_, *dfg_ptr_, dfg_node_to_mrrg_node,

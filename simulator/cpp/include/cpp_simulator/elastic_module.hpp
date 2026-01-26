@@ -7,6 +7,7 @@
 #include <cpp_simulator/elastic_module_interface.hpp>
 #include <cpp_simulator/elastic_wire.hpp>
 #include <cpp_simulator/memory.hpp>
+#include <memory>
 
 namespace simulator {
 template <typename T>

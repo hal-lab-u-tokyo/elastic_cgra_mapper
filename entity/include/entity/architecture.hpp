@@ -81,7 +81,7 @@ struct CGRAConfig {
   std::vector<ConfigId> to_config_id_vec;
   OpType operation_type;
   std::string operation_name;
-  ConfigId from_config_id_vec[2];
+  ConfigId from_config_id_vec[4];
 
   CGRAConfig()
       : from_config_id_num(0),
@@ -97,14 +97,13 @@ struct CGRAConfig {
     return result;
   }
 
-  void AddFromConfig(ConfigId from_config_id, OpType op_type,
-                     std::string op_name) {
+  void AddFromConfig(ConfigId from_config_id, OpType op_type, std::string op_name) {
     from_config_id_vec[from_config_id_num] = from_config_id;
     from_config_id_num++;
-    if (from_config_id_num >= 3) {
-      std::cerr << "from config id > 3" << std::endl;
-      abort();
-    }
+    // if (from_config_id_num >= 3) {
+    //   std::cerr << "from config id > 3" << std::endl;
+    //   abort();
+    // }
     operation_type = op_type;
     operation_name = op_name;
 
