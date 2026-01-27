@@ -91,7 +91,9 @@ entity::Mapping::Mapping(
           config_map_[to_config_id].AddFromConfig(from_config_id, to_op_type,
                                                   to_op_name);
           if (searched_PE_id.count(adj_PE_id) == 0) {
-            from_PE_id_queue.push(to_PE_id);
+            if(to_op_type == entity::OpType::ROUTE) {                            
+              from_PE_id_queue.push(to_PE_id);
+            }
             searched_PE_id.emplace(to_PE_id);
           }
         }
