@@ -14,7 +14,18 @@ class BaseGraph
                               NodeProperty, EdgeProperty,
                               GraphProperty>::adjacency_list;
 };
+
 typedef std::pair<int, int> Edge;
+struct HashEdge {
+ public:
+  std::size_t operator()(const Edge& x) const {
+    std::size_t seed = 0;
+    boost::hash_combine(seed, x.first);
+    boost::hash_combine(seed, x.second);
+
+    return seed;
+  }
+};
 
 template <typename NodeProperty, typename EdgeProperty, typename GraphProperty>
 class BaseGraphClass {
@@ -43,6 +54,13 @@ class BaseGraphClass {
           BaseGraph<NodeProperty, EdgeProperty, GraphProperty>>::edge_descriptor
           edge_id) const {
     return graph_[edge_id];
+  }
+
+  Edge GetEdgeSourceTarget(int edge_id) {
+    if (edge_id_to_edge_map_.empty()) {
+      SetEdgeMap();
+    }
+    return edge_id_to_edge_map_.at(edge_id);
   }
 
   int GetNodeNum() const { return boost::num_vertices(graph_); };
@@ -86,9 +104,51 @@ class BaseGraphClass {
     return boost::is_reachable(src_node_id, to_node_id, graph_, color.data());
   }
 
+  std::vector<int> GetOutEdgeIdVec(int node_id) {
+    std::vector<int> edge_id_vec;
+
+    if (edge_id_to_edge_map_.empty()) {
+      SetEdgeMap();
+    }
+
+    auto pair_it_and_end =
+        boost::out_edges(node_id, graph_);  // for directed graph
+    auto eit = pair_it_and_end.first;
+    auto eend = pair_it_and_end.second;
+    for (eit; eit != eend; eit++) {
+      Edge edge = std::make_pair(boost::source(*eit, graph_),
+                                 boost::target(*eit, graph_));
+      edge_id_vec.push_back(edge_to_edge_id_map_.at(edge));
+    }
+
+    return edge_id_vec;
+  }
+
+  std::vector<int> GetInEdgeIdVec(int node_id) {
+    std::vector<int> edge_id_vec;
+
+    if (edge_id_to_edge_map_.empty()) {
+      SetEdgeMap();
+    }
+
+    auto pair_it_and_end =
+        boost::in_edges(node_id, graph_);  // for directed graph
+    auto eit = pair_it_and_end.first;
+    auto eend = pair_it_and_end.second;
+    for (eit; eit != eend; eit++) {
+      Edge edge = std::make_pair(boost::source(*eit, graph_),
+                                 boost::target(*eit, graph_));
+      edge_id_vec.push_back(edge_to_edge_id_map_.at(edge));
+    }
+
+    return edge_id_vec;
+  }
+
  protected:
   BaseGraph<NodeProperty, EdgeProperty, GraphProperty> graph_;
   std::unordered_map<int, std::vector<int>> child_to_parent_map_;
+  std::unordered_map<int, Edge> edge_id_to_edge_map_;
+  std::unordered_map<Edge, int, HashEdge> edge_to_edge_id_map_;
 
   void SetChildToParentMap() {
     for (int node_id = 0; node_id < GetNodeNum(); node_id++) {
@@ -99,6 +159,23 @@ class BaseGraphClass {
       for (int adj_node_id : adj_node_id_vec) {
         child_to_parent_map_.at(adj_node_id).push_back(node_id);
       }
+    }
+    return;
+  }
+
+  void SetEdgeMap() {
+    int edge_count = 0;
+    typename boost::graph_traits<
+        BaseGraph<NodeProperty, EdgeProperty, GraphProperty>>::edge_iterator ei,
+        ei_end;
+    for (std::tie(ei, ei_end) = boost::edges(graph_); ei != ei_end; ++ei) {
+      int from_node_id = boost::source(*ei, graph_);
+      int to_node_id = boost::target(*ei, graph_);
+      edge_id_to_edge_map_.insert(
+          {edge_count, std::make_pair(from_node_id, to_node_id)});
+      edge_to_edge_id_map_.insert(
+          {std::make_pair(from_node_id, to_node_id), edge_count});
+      edge_count++;
     }
     return;
   }

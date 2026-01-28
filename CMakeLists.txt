@@ -27,6 +27,11 @@ set_property(TARGET mapping PROPERTY CXX_STANDARD 17)
 target_compile_options(mapping INTERFACE -Wall -Wextra -Wno-deprecated)
 target_link_libraries(mapping PRIVATE io entity mapper cpp_simulator)
 
+add_executable(routing_mapping src/routing_mapping.cpp)
+set_property(TARGET routing_mapping PROPERTY CXX_STANDARD 17)
+target_compile_options(routing_mapping INTERFACE -Wall -Wextra -Wno-deprecated)
+target_link_libraries(routing_mapping PRIVATE io entity mapper cpp_simulator)
+
 add_executable(create_database src/create_database.cpp)
 set_property(TARGET create_database PROPERTY CXX_STANDARD 17)
 target_compile_options(create_database INTERFACE -Wall -Wextra -Wno-deprecated)

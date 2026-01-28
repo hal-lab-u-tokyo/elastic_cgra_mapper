@@ -102,6 +102,117 @@ entity::Mapping::Mapping(
   }
 };
 
+entity::Mapping entity::GenerateMappingFromRoutingResult(
+    const entity::MRRG& mrrg, const entity::DFG& dfg,
+    const std::vector<int>& dfg_node_to_mrrg_node,
+    const std::vector<std::vector<int>>& dfg_output_to_mrrg_edge) {
+  entity::MRRGConfig mrrg_config_ = mrrg.GetMRRGConfig();
+  entity::ConfigMap config_map_ = {};
+
+  entity::MRRG dc_mrrg = mrrg;  
+
+  for (int from_op_id = 0; from_op_id < dfg.GetNodeNum(); from_op_id++) {
+    int from_op_PE_id = dfg_node_to_mrrg_node[from_op_id];
+
+    std::vector<int> mrrg_edge_id_vec = dfg_output_to_mrrg_edge[from_op_id];
+    std::vector<int> mrrg_out_edge_ids = dc_mrrg.GetOutEdgeIdVec(from_op_PE_id);
+
+    std::unordered_map<int, int> PE_id_to_op_id_map = {
+        {from_op_PE_id, from_op_id}};
+    for (int to_op_id : dfg.GetAdjacentNodeIdVec(from_op_id)) {
+      int to_PE_id = dfg_node_to_mrrg_node[to_op_id];
+      PE_id_to_op_id_map.emplace(to_PE_id, to_op_id);
+    }
+    const int kRouteOpId = -1;
+    for (int mrrg_edge_id : mrrg_edge_id_vec) {
+      int to_PE_id = dc_mrrg.GetEdgeSourceTarget(mrrg_edge_id).second;
+      if (PE_id_to_op_id_map.count(to_PE_id) == 0) {
+        PE_id_to_op_id_map.emplace(to_PE_id, kRouteOpId);
+      }
+    }
+
+    auto GetOpTypeFromPEId = [&](int PE_id) {
+      int op_id = PE_id_to_op_id_map.at(PE_id);
+      if (op_id == kRouteOpId) {
+        return entity::OpType::ROUTE;
+      }
+      return dfg.GetNodeProperty(op_id).op;
+    };
+
+    auto GetOpNameFromPEId = [&](int PE_id) {
+      int op_id = PE_id_to_op_id_map.at(PE_id);
+      if (op_id == kRouteOpId) {
+        return std::string("route");
+      }
+      return dfg.GetNodeProperty(op_id).op_name;
+    };
+
+    std::queue<int> from_edge_id_queue;
+    std::set<int> searched_edge_id;
+    // initialize queue
+    for (int edge_id : mrrg_edge_id_vec) {
+      if (std::find(mrrg_out_edge_ids.begin(), mrrg_out_edge_ids.end(),
+                    edge_id) != mrrg_out_edge_ids.end()) {
+        from_edge_id_queue.push(edge_id);
+      }
+    }
+
+    while (from_edge_id_queue.size() > 0) {
+      int from_edge_id = from_edge_id_queue.front();
+      int from_PE_id, to_PE_id;
+      std::tie(from_PE_id, to_PE_id) = dc_mrrg.GetEdgeSourceTarget(from_edge_id);
+      from_edge_id_queue.pop();
+
+      std::vector<int> adj_edge_id_vec = dc_mrrg.GetOutEdgeIdVec(to_PE_id);
+      entity::ConfigId from_config_id(mrrg.GetNodeProperty(from_PE_id));
+      entity::OpType from_op_type = GetOpTypeFromPEId(from_PE_id);
+      std::string from_op_name = GetOpNameFromPEId(from_PE_id);
+
+      if (config_map_.count(from_config_id) == 0) {
+        config_map_.emplace(from_config_id,
+                            entity::CGRAConfig(from_op_type, from_op_name));
+      }
+
+      if (from_op_type == entity::OpType::CONST) {
+        if (dfg.GetNodeProperty(from_op_id).const_value.has_value()) {
+          config_map_[from_config_id].SetConstValue(
+              dfg.GetNodeProperty(from_op_id).const_value.value());
+        }
+      }
+
+      for (int adj_edge_id : adj_edge_id_vec) {
+        if (searched_edge_id.count(adj_edge_id) > 0) {
+          continue;
+        }
+
+        for (int mrrg_edge_id : mrrg_edge_id_vec) {
+          if (adj_edge_id != mrrg_edge_id) continue;
+
+          entity::ConfigId to_config_id(mrrg.GetNodeProperty(to_PE_id));
+          entity::OpType to_op_type = to_op_type = GetOpTypeFromPEId(to_PE_id);
+          std::string to_op_name = GetOpNameFromPEId(to_PE_id);
+
+          if (config_map_.count(to_config_id) == 0) {
+            config_map_.emplace(
+                to_config_id, entity::CGRAConfig::GenerateInitialCGRAConfig());
+          }
+          config_map_[from_config_id].AddToConfig(to_config_id, from_op_type,
+                                                  from_op_name);
+          config_map_[to_config_id].AddFromConfig(from_config_id, to_op_type,
+                                                  to_op_name);
+          if (searched_edge_id.count(adj_edge_id) == 0) {
+            if (to_op_type == entity::OpType::ROUTE) {
+              from_edge_id_queue.push(adj_edge_id);
+            }
+            searched_edge_id.emplace(adj_edge_id);
+          }
+        }
+      }
+    }
+  }
+  return entity::Mapping(mrrg_config_, config_map_);
+}
+
 size_t entity::Mapping::GetOpNum() const {
   size_t result = 0;
   for (const auto& id_and_config : config_map_) {

@@ -12,13 +12,13 @@ typedef std::unordered_map<ConfigId, CGRAConfig, entity::HashConfigId>
 
 class Mapping {
  public:
-  Mapping() : config_map_({}){};
+  Mapping() : config_map_({}) {};
   Mapping(entity::MRRGConfig mrrg_config)
-      : config_map_({}), mrrg_config_(mrrg_config){};
+      : config_map_({}), mrrg_config_(mrrg_config) {};
   Mapping(MRRG mrrg, DFG dfg, const std::vector<int>& dfg_node_to_mrrg_node,
           const std::vector<std::vector<int>>& dfg_output_to_mrrg_reg);
   Mapping(entity::MRRGConfig mrrg_config, ConfigMap config_map)
-      : config_map_(config_map), mrrg_config_(mrrg_config){};
+      : config_map_(config_map), mrrg_config_(mrrg_config) {};
   MRRGConfig GetMRRGConfig() const { return mrrg_config_; };
   ConfigMap GetConfigMap() const { return config_map_; };
   CGRAConfig GetConfig(ConfigId config_id) const {
@@ -34,4 +34,9 @@ class Mapping {
   MRRGConfig mrrg_config_;
   ConfigMap config_map_;
 };
+
+entity::Mapping GenerateMappingFromRoutingResult(
+    const entity::MRRG& mrrg, const entity::DFG& dfg,
+    const std::vector<int>& dfg_node_to_mrrg_node,
+    const std::vector<std::vector<int>>& dfg_output_to_mrrg_edge);
 }  // namespace entity

@@ -5,4 +5,4 @@ set_target_properties(mapper PROPERTIES INTERFACE_INCLUDE_DIRECTORIES
 
 target_link_libraries(mapper INTERFACE entity gurobi::cxx stdc++fs)
 target_compile_options(mapper INTERFACE -Wall -Wextra -Wno-deprecated)
-target_sources(mapper INTERFACE gurobi_mapper.cpp)
+target_sources(mapper INTERFACE gurobi_mapper.cpp gurobi_routing_mapper.cpp)
