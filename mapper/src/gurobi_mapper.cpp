@@ -255,7 +255,40 @@ mapper::MappingResult mapper::GurobiILPMapper::Execution() {
                         GRB_LESS_EQUAL, tmp_lin_expr, constr_name);    
       }
     }
-                
+
+    // add constraint: prevent cycle route
+    const double cycle_route_coefficient = 1;
+    for (int dfg_node_id = 0; dfg_node_id < dfg_node_num; dfg_node_id++) {    
+      std::vector<int> dfg_adj_node_ids =
+          dfg_ptr_->GetAdjacentNodeIdVec(dfg_node_id);
+      for (int mrrg_node_id = 0; mrrg_node_id < mrrg_node_num; mrrg_node_id++) {
+        GRBLinExpr tmp_lin_expr;
+        std::vector<int> mrrg_child_node_id_vec =
+            mrrg_ptr_->GetAdjacentNodeIdVec(mrrg_node_id);            
+        for (int mrrg_child_node_id : mrrg_child_node_id_vec) {
+          if(mrrg_child_node_id == mrrg_node_id) continue;
+          tmp_lin_expr.addTerms(&cycle_route_coefficient,
+                                &(map_output_to_route[dfg_node_id][mrrg_child_node_id]), 1);
+          for (int dfg_adj_node_id : dfg_adj_node_ids) {
+            tmp_lin_expr.addTerms(&cycle_route_coefficient,
+                                  &(map_op_to_PE[dfg_adj_node_id][mrrg_child_node_id]), 1);                      
+          }                                                                          
+        }
+        std::vector<int> mmrg_parent_node_id_vec =
+            mrrg_ptr_->GetParentNodeIdVec(mrrg_node_id);
+        for (int mmrg_parent_node_id : mmrg_parent_node_id_vec) {
+          if(mmrg_parent_node_id == mrrg_node_id) continue;
+          tmp_lin_expr.addTerms(&cycle_route_coefficient,
+                                &(map_output_to_route[dfg_node_id][mmrg_parent_node_id]), 1);
+        }
+        tmp_lin_expr.addTerms(&cycle_route_coefficient,
+                              &(map_op_to_PE[dfg_node_id][mrrg_node_id]), 1);
+        std::string constr_name = "c_cycle_route_" + std::to_string(dfg_node_id) +
+                                  "_" + std::to_string(mrrg_node_id);
+        model.addConstr(2 * map_output_to_route[dfg_node_id][mrrg_node_id],
+                        GRB_LESS_EQUAL, tmp_lin_expr, constr_name);    
+      }
+    }                
 
     // add constraint for elastic CGRA
     if (mrrg_ptr_->GetMRRGConfig().cgra_type ==
