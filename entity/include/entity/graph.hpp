@@ -111,17 +111,7 @@ class BaseGraphClass {
       SetEdgeMap();
     }
 
-    auto pair_it_and_end =
-        boost::out_edges(node_id, graph_);  // for directed graph
-    auto eit = pair_it_and_end.first;
-    auto eend = pair_it_and_end.second;
-    for (eit; eit != eend; eit++) {
-      Edge edge = std::make_pair(boost::source(*eit, graph_),
-                                 boost::target(*eit, graph_));
-      edge_id_vec.push_back(edge_to_edge_id_map_.at(edge));
-    }
-
-    return edge_id_vec;
+    return node_to_out_edge_id_map_.at(node_id);
   }
 
   std::vector<int> GetInEdgeIdVec(int node_id) {
@@ -131,17 +121,7 @@ class BaseGraphClass {
       SetEdgeMap();
     }
 
-    auto pair_it_and_end =
-        boost::in_edges(node_id, graph_);  // for directed graph
-    auto eit = pair_it_and_end.first;
-    auto eend = pair_it_and_end.second;
-    for (eit; eit != eend; eit++) {
-      Edge edge = std::make_pair(boost::source(*eit, graph_),
-                                 boost::target(*eit, graph_));
-      edge_id_vec.push_back(edge_to_edge_id_map_.at(edge));
-    }
-
-    return edge_id_vec;
+    return node_to_in_edge_id_map_.at(node_id);
   }
 
  protected:
@@ -149,6 +129,8 @@ class BaseGraphClass {
   std::unordered_map<int, std::vector<int>> child_to_parent_map_;
   std::unordered_map<int, Edge> edge_id_to_edge_map_;
   std::unordered_map<Edge, int, HashEdge> edge_to_edge_id_map_;
+  std::unordered_map<int, std::vector<int>> node_to_in_edge_id_map_;
+  std::unordered_map<int, std::vector<int>> node_to_out_edge_id_map_;
 
   void SetChildToParentMap() {
     for (int node_id = 0; node_id < GetNodeNum(); node_id++) {
@@ -175,6 +157,16 @@ class BaseGraphClass {
           {edge_count, std::make_pair(from_node_id, to_node_id)});
       edge_to_edge_id_map_.insert(
           {std::make_pair(from_node_id, to_node_id), edge_count});
+      if (node_to_out_edge_id_map_.find(from_node_id) ==
+          node_to_out_edge_id_map_.end()) {
+        node_to_out_edge_id_map_.insert({from_node_id, std::vector<int>()});
+      }
+      node_to_out_edge_id_map_.at(from_node_id).push_back(edge_count);
+      if (node_to_in_edge_id_map_.find(to_node_id) ==
+          node_to_in_edge_id_map_.end()) {
+        node_to_in_edge_id_map_.insert({to_node_id, std::vector<int>()});
+      }
+      node_to_in_edge_id_map_.at(to_node_id).push_back(edge_count);
       edge_count++;
     }
     return;
