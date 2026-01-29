@@ -24,8 +24,7 @@ typedef BaseGraph<DFGNodeProperty, DFGEdgeProperty, DFGGraphProperty> DFGGraph;
 class DFG : public BaseGraphClass<DFGNodeProperty, DFGEdgeProperty,
                                   DFGGraphProperty> {
  public:
-  using BaseGraphClass<DFGNodeProperty, DFGEdgeProperty,
-                       DFGGraphProperty>::BaseGraphClass;
+  using BaseGraphClass<DFGNodeProperty, DFGEdgeProperty, DFGGraphProperty>::BaseGraphClass;
   DFG(DFGGraph dfg_graph);
 };
 }  // namespace entity

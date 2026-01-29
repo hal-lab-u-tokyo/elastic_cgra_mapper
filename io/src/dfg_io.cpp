@@ -10,7 +10,8 @@ entity::DFG io::ReadDFGDotFile(std::string file_name) {
   boost::dynamic_properties dp(boost::ignore_other_properties);
   dp.property("opcode", boost::get(&entity::DFGNodeProperty::op_str, graph));
   dp.property("operand", boost::get(&entity::DFGEdgeProperty::operand, graph));
-  dp.property("node_id", boost::get(&entity::DFGNodeProperty::op_name, graph));
+  // dp.property("node_id", boost::get(&entity::DFGNodeProperty::op_name, graph));
+  dp.property("label", boost::get(&entity::DFGNodeProperty::op_name, graph));
   dp.property("const_value",
               boost::get(&entity::DFGNodeProperty::const_value, graph));
   boost::read_graphviz(dot, graph, dp);

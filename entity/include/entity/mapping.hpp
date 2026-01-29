@@ -34,4 +34,9 @@ class Mapping {
   MRRGConfig mrrg_config_;
   ConfigMap config_map_;
 };
+
+entity::Mapping GenerateMappingFromRoutingResult(
+    const entity::MRRG& mrrg, const entity::DFG& dfg,
+    const std::vector<int>& dfg_node_to_mrrg_node,
+    const std::vector<std::vector<int>>& dfg_output_to_mrrg_edge);
 }  // namespace entity

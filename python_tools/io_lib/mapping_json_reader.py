@@ -63,14 +63,19 @@ def read_mapping_from_json(file_name: str) -> Mapping:
 
             if result.memory_io_type == MemoryIOType.BothEnds:
                 is_memory_accecible_PE = False
-                if PE_ele.column_id == 0 or PE_ele.column_id == result.column_num - 1:
+                if PE_ele.row_id == 0 or PE_ele.row_id == result.row_num - 1:
                     is_memory_accecible_PE = True
-                assert is_memory_accecible_PE == True or have_memory_access_op == False
+                # assert is_memory_accecible_PE == True or have_memory_access_op == False
+                assert is_memory_accecible_PE == True or have_memory_access_op == False, (
+                    f"PE at column {PE_ele.column_id}, at row {PE_ele.row_id} has memory access operation, "
+                    f"but it is not memory accessible.")
             elif result.memory_io_type == MemoryIOType.OneEnd:
                 is_memory_accecible_PE = False
-                if PE_ele.column_id == 0:
+                if PE_ele.row_id == 0:
                     is_memory_accecible_PE = True
-                assert is_memory_accecible_PE == True or have_memory_access_op == False
-
+                # assert is_memory_accecible_PE == True or have_memory_access_op == False
+                assert is_memory_accecible_PE == True or have_memory_access_op == False, (
+                    f"PE at column {PE_ele.column_id}, at row {PE_ele.row_id} has memory access operation, "
+                    f"but it is not memory accessible.")
             result.PE_array[PE_ele.row_id][PE_ele.column_id] = PE_ele
     return result

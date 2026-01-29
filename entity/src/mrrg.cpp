@@ -7,6 +7,8 @@ entity::MRRGCGRAType entity::MRRGCGRATypeFromString(
     return entity::MRRGCGRAType::kDefault;
   } else if (cgra_type_string == "elastic") {
     return entity::MRRGCGRAType::kElastic;
+  } else if (cgra_type_string == "withController") {
+    return entity::MRRGCGRAType::kwithController;
   } else {
     assert("invalid MRRG CGRA Type");
     abort();
@@ -20,6 +22,9 @@ std::string entity::MRRGCGRATypeToString(entity::MRRGCGRAType cgra_type) {
       break;
     case entity::MRRGCGRAType::kElastic:
       return "elastic";
+      break;
+    case entity::MRRGCGRAType::kwithController:
+      return "withController";
       break;
     default:
       assert("invalid MRRG CGRA Type String");
@@ -146,6 +151,16 @@ entity::MRRG::MRRG(entity::MRRGConfig mrrg_config)
       config_id_to_node_id_map_({}) {
   entity::MRRGGraph mrrg_graph;
   std::map<std::tuple<int, int, int>, int> node_id_to_vertex_id;
+  // std::vector<int> loop_pe_row_pos = {2, 4, 1, 7, 5, 3, 6, 1};
+  std::vector<int> loop_pe_row_pos = {1, 6, 3, 5, 7, 1, 4, 2};
+  std::vector<std::pair<int, int>> TM_pe_positions = {std::make_pair(2, 6),
+                                                      std::make_pair(2, 6),
+                                                      std::make_pair(2, 6),
+                                                      std::make_pair(-1, -1),
+                                                      std::make_pair(-1, -1),
+                                                      std::make_pair(-1, -1),
+                                                      std::make_pair(-1, -1),
+                                                      std::make_pair(-1, -1)};
 
   for (int i = 0; i < mrrg_config.row; i++) {
     for (int j = 0; j < mrrg_config.column; j++) {
@@ -162,22 +177,33 @@ entity::MRRG::MRRG(entity::MRRGConfig mrrg_config)
         graph_[vertex_id].local_reg_size = mrrg_config.local_reg_size;
         graph_[vertex_id].context_size = mrrg_config.context_size;
 
-        if (mrrg_config.memory_io == entity::MRRGMemoryIOType::kAll) {
+        bool is_loop_pe = false;
+        bool is_TM_pe = false;
+        if (mrrg_config.is_TM_raccoon && i == mrrg_config.row-1) {
           graph_[vertex_id].supported_operations = entity::GetAllOperations();
-        } else if (mrrg_config.memory_io ==
-                   entity::MRRGMemoryIOType::kBothEnds) {
-          if (j == 0 || j == mrrg_config.column - 1) {
-            graph_[vertex_id].supported_operations = entity::GetAllOperations();
-          } else {
-            graph_[vertex_id].supported_operations =
-                entity::GetAllOperationsExceptMemoryAccess();
+          is_TM_pe = true;
+        }
+        if (mrrg_config.is_raccoon) {
+          if(j <= 8 && loop_pe_row_pos[j] == i){
+            graph_[vertex_id].supported_operations = entity::GetLoopOperations();
+            is_loop_pe = true;
           }
-        } else if (mrrg_config.memory_io == entity::MRRGMemoryIOType::kOneEnd) {
-          if (j == 0) {
+        }
+        if(!is_loop_pe && !is_TM_pe){
+          if (mrrg_config.memory_io == entity::MRRGMemoryIOType::kAll) {
             graph_[vertex_id].supported_operations = entity::GetAllOperations();
-          } else {
-            graph_[vertex_id].supported_operations =
-                entity::GetAllOperationsExceptMemoryAccess();
+          } else if (mrrg_config.memory_io == entity::MRRGMemoryIOType::kBothEnds) {
+            if (i == 0 || i == mrrg_config.row - 1) {
+              graph_[vertex_id].supported_operations = entity::GetAllOperations();
+            } else {
+              graph_[vertex_id].supported_operations = entity::GetAllOperationsExceptMemoryAccess();
+            }
+          } else if (mrrg_config.memory_io == entity::MRRGMemoryIOType::kOneEnd) {
+            if (i == 0) {
+              graph_[vertex_id].supported_operations = entity::GetAllOperations();
+            } else {
+              graph_[vertex_id].supported_operations = entity::GetAllOperationsExceptMemoryAccess();
+            }
           }
         }
 
@@ -192,12 +218,53 @@ entity::MRRG::MRRG(entity::MRRGConfig mrrg_config)
     for (int j = 0; j < mrrg_config.column; j++) {
       for (int k = 0; k < mrrg_config.context_size; k++) {
         std::tuple<int, int, int> from_node_id({i, j, k});
-        auto connected_node_id_vec =
-            GetConnectedNodeIdVector(from_node_id, mrrg_config);
-        int from_vertex_id = node_id_to_vertex_id[from_node_id];
-        for (auto to_node_id : connected_node_id_vec) {
-          int to_vertex_id = node_id_to_vertex_id[to_node_id];
-          boost::add_edge(from_vertex_id, to_vertex_id, graph_);
+        std::tuple<int, int, int> root_node_id;
+        if(mrrg_config.is_TM_raccoon){
+          if(i == mrrg_config.row-1){
+            auto TM_pe_position = TM_pe_positions[j];
+            if(TM_pe_position.first != -1){
+              root_node_id = std::make_tuple(TM_pe_position.first, TM_pe_position.second, k);
+              auto connected_node_id_vec = GetConnectedNodeIdVector(root_node_id, mrrg_config);
+              int TM_vertex_id = node_id_to_vertex_id[from_node_id];
+              for (auto to_node_id : connected_node_id_vec) {
+                int to_row_id, to_column_id, to_context_id;
+                std::tie(to_row_id, to_column_id, to_context_id) = to_node_id;
+                if(to_row_id != mrrg_config.row-1){
+                  int neighbor_vertex_id = node_id_to_vertex_id[to_node_id];
+                  boost::add_edge(TM_vertex_id, neighbor_vertex_id, graph_);
+                  boost::add_edge(neighbor_vertex_id, TM_vertex_id, graph_);
+                }
+              }
+              for(int idx = j; idx >= 0; idx--){
+                if(TM_pe_positions[idx].first==TM_pe_position.first && TM_pe_positions[idx].second==TM_pe_position.second){
+                  root_node_id = std::make_tuple(i, idx, k);
+                  break;
+                }
+              }
+              int neighbor_vertex_id = node_id_to_vertex_id[root_node_id];
+              boost::add_edge(neighbor_vertex_id, TM_vertex_id, graph_);
+            }else{
+              continue;
+            }
+          }else{
+            auto connected_node_id_vec = GetConnectedNodeIdVector(from_node_id, mrrg_config);
+            int from_vertex_id = node_id_to_vertex_id[from_node_id];
+            for (auto to_node_id : connected_node_id_vec) {
+              int to_row_id, to_column_id, to_context_id;
+              std::tie(to_row_id, to_column_id, to_context_id) = to_node_id;
+              if(to_row_id != mrrg_config.row-1){
+                int to_vertex_id = node_id_to_vertex_id[to_node_id];
+                boost::add_edge(from_vertex_id, to_vertex_id, graph_);
+              }
+            }
+          }
+        }else{
+          auto connected_node_id_vec = GetConnectedNodeIdVector(from_node_id, mrrg_config);
+          int from_vertex_id = node_id_to_vertex_id[from_node_id];
+          for (auto to_node_id : connected_node_id_vec) {
+            int to_vertex_id = node_id_to_vertex_id[to_node_id];
+            boost::add_edge(from_vertex_id, to_vertex_id, graph_);
+          }
         }
       }
     }

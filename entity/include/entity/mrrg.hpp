@@ -22,6 +22,7 @@ struct MRRGEdgeProperty {};
 
 enum MRRGCGRAType {
   kDefault,
+  kwithController,
   kElastic,
 };
 
@@ -52,6 +53,8 @@ struct MRRGConfig {
   MRRGNetworkType network_type;
   int local_reg_size;
   int context_size;
+  bool is_raccoon;
+  bool is_TM_raccoon;
 };
 
 MRRGCGRAType MRRGCGRATypeFromString(std::string cgra_type_string);

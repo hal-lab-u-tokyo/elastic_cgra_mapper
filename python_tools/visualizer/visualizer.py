@@ -29,7 +29,9 @@ class Visualizer():
         for context_id in range(mapping.context_size):
             Visualizer.visualize_mapping_one_context(mapping, context_id, fig)
 
-        plt.savefig(output_dir + "/result.pdf")
+        # plt.savefig(output_dir + "/result.pdf")
+        outpath = os.path.join(output_dir, "result.png")
+        plt.savefig(outpath, dpi=300, bbox_inches='tight', format='png')
 
     @staticmethod
     def visualize_mapping_one_context(mapping: Mapping, context_id: int, fig):
@@ -46,7 +48,8 @@ class Visualizer():
             return column_id * 100 + row_id
 
         def create_xy_from_row_id_and_column_id(row_id, column_id, row_num):
-            return (column_id, row_num - 1 - row_id)
+            # Change origin to bottom-left by removing the inversion of row_id
+            return (column_id, row_id)
 
         PE_id_to_patch = {}
 
@@ -127,7 +130,8 @@ class Visualizer():
         """
         if isinstance(patch, plt.Rectangle):
             width = patch.get_width()
-            height = patch.get_width()
+            # height = patch.get_width()
+            height = patch.get_height()
             x = patch.get_x()
             y = patch.get_y()
             return (x + width / 2, y + height / 2)
