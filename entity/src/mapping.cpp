@@ -160,7 +160,8 @@ entity::Mapping entity::GenerateMappingFromRoutingResult(
     while (from_edge_id_queue.size() > 0) {
       int from_edge_id = from_edge_id_queue.front();
       int from_PE_id, to_PE_id;
-      std::tie(from_PE_id, to_PE_id) = dc_mrrg.GetEdgeSourceTarget(from_edge_id);
+      std::tie(from_PE_id, to_PE_id) =
+          dc_mrrg.GetEdgeSourceTarget(from_edge_id);
       from_edge_id_queue.pop();
 
       std::vector<int> adj_edge_id_vec = dc_mrrg.GetOutEdgeIdVec(to_PE_id);

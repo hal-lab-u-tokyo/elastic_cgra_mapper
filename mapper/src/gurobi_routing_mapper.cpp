@@ -45,7 +45,8 @@ mapper::MappingResult mapper::GurobiILPRoutingMapper::Execution() {
         dfg_node_num, std::vector<GRBVar>(mrrg_node_num));
     std::vector<std::vector<GRBVar>> map_op_to_route(
         dfg_node_num, std::vector<GRBVar>(mrrg_edge_num));
-    std::vector<GRBVar> map_route_op_to_PE(mrrg_node_num);
+    std::vector<std::vector<GRBVar>> map_route_op_to_PE(
+        dfg_node_num, std::vector<GRBVar>(mrrg_node_num));
 
     for (int dfg_node_id = 0; dfg_node_id < dfg_node_num; dfg_node_id++) {
       for (int mrrg_node_id = 0; mrrg_node_id < mrrg_node_num; mrrg_node_id++) {
@@ -53,6 +54,10 @@ mapper::MappingResult mapper::GurobiILPRoutingMapper::Execution() {
         var_name = "f_" + std::to_string(dfg_node_id) + "_" +
                    std::to_string(mrrg_node_id);
         map_op_to_PE[dfg_node_id][mrrg_node_id] =
+            model.addVar(0.0, 1.0, 0.0, GRB_BINARY, var_name);
+        var_name = "ro_" + std::to_string(dfg_node_id) + "_" +
+                   std::to_string(mrrg_node_id);
+        map_route_op_to_PE[dfg_node_id][mrrg_node_id] =
             model.addVar(0.0, 1.0, 0.0, GRB_BINARY, var_name);
       }
       for (int mrrg_edge_id = 0; mrrg_edge_id < mrrg_edge_num; mrrg_edge_id++) {
@@ -64,18 +69,11 @@ mapper::MappingResult mapper::GurobiILPRoutingMapper::Execution() {
       }
     }
 
-    for (int mrrg_node_id = 0; mrrg_node_id < mrrg_node_num; mrrg_node_id++) {
-      std::string var_name;
-      var_name = "rp_" + std::to_string(mrrg_node_id);
-      map_route_op_to_PE[mrrg_node_id] =
-          model.addVar(0.0, 1.0, 0.0, GRB_BINARY, var_name);
-    }
-
     // set objective
     GRBLinExpr objective_lin_expr;
     const double object_coefficient = 1.0;
-    for (int dfg_node_id = 0; dfg_node_id < dfg_node_num; dfg_node_id++) {
-      for (int mrrg_edge_id = 0; mrrg_edge_id < mrrg_edge_num; mrrg_edge_id++) {
+    for (int mrrg_edge_id = 0; mrrg_edge_id < mrrg_edge_num; mrrg_edge_id++) {
+      for (int dfg_node_id = 0; dfg_node_id < dfg_node_num; dfg_node_id++) {
         objective_lin_expr.addTerms(
             &object_coefficient, &(map_op_to_route[dfg_node_id][mrrg_edge_id]),
             1);
@@ -101,18 +99,24 @@ mapper::MappingResult mapper::GurobiILPRoutingMapper::Execution() {
     for (int mrrg_node_id = 0; mrrg_node_id < mrrg_node_num; mrrg_node_id++) {
       std::vector<int> mrrg_in_edge_ids =
           mrrg_ptr_->GetInEdgeIdVec(mrrg_node_id);
-      GRBLinExpr tmp_lin_expr;
+      GRBLinExpr route_input_edge_num, route_op_num;
       for (int dfg_node_id = 0; dfg_node_id < dfg_node_num; dfg_node_id++) {
         for (int mrrg_in_edge_id : mrrg_in_edge_ids) {
-          tmp_lin_expr.addTerms(
+          route_input_edge_num.addTerms(
               &route_op_placement_coefficient,
               &(map_op_to_route[dfg_node_id][mrrg_in_edge_id]), 1);
         }
       }
+      for (int dfg_node_id = 0; dfg_node_id < dfg_node_num; dfg_node_id++) {
+        route_op_num.addTerms(&route_op_placement_coefficient,
+                              &(map_route_op_to_PE[dfg_node_id][mrrg_node_id]),
+                              1);
+      }
+
       std::string constr_name =
           "c_route_op_placement_" + std::to_string(mrrg_node_id);
-      model.addConstr(map_route_op_to_PE[mrrg_node_id], GRB_LESS_EQUAL,
-                      tmp_lin_expr, constr_name);
+      model.addConstr(route_op_num, GRB_LESS_EQUAL, route_input_edge_num,
+                      constr_name);
     }
 
     // add constraint: functional unit exclusivity
@@ -122,9 +126,10 @@ mapper::MappingResult mapper::GurobiILPRoutingMapper::Execution() {
       for (int dfg_node_id = 0; dfg_node_id < dfg_node_num; dfg_node_id++) {
         tmp_lin_expr.addTerms(&exclusivity_coefficient,
                               &(map_op_to_PE[dfg_node_id][mrrg_node_id]), 1);
+        tmp_lin_expr.addTerms(&exclusivity_coefficient,
+                              &(map_route_op_to_PE[dfg_node_id][mrrg_node_id]),
+                              1);
       }
-      tmp_lin_expr.addTerms(&exclusivity_coefficient,
-                            &(map_route_op_to_PE[mrrg_node_id]), 1);
       std::string constr_name = "c_exclusivity_" + std::to_string(mrrg_node_id);
       model.addConstr(tmp_lin_expr, GRB_LESS_EQUAL, 1, constr_name);
     }
@@ -169,23 +174,52 @@ mapper::MappingResult mapper::GurobiILPRoutingMapper::Execution() {
       int dfg_output_num =
           static_cast<int>(dfg_ptr_->GetAdjacentNodeIdVec(dfg_node_id).size());
       for (int mrrg_node_id = 0; mrrg_node_id < mrrg_node_num; mrrg_node_id++) {
-        std::vector<int> mrrg_adj_edge_ids =
+        std::vector<int> mrrg_out_edge_ids =
             mrrg_ptr_->GetOutEdgeIdVec(mrrg_node_id);
-        GRBLinExpr tmp_lin_expr;
-        for (int mrrg_adj_edge_id : mrrg_adj_edge_ids) {
-          tmp_lin_expr.addTerms(
+        std::vector<int> mrrg_in_edge_ids =
+            mrrg_ptr_->GetInEdgeIdVec(mrrg_node_id);
+        GRBLinExpr out_edge_num, in_edge_num;
+        for (int mrrg_out_edge_id : mrrg_out_edge_ids) {
+          out_edge_num.addTerms(
               &fanout_coefficient,
-              &(map_op_to_route[dfg_node_id][mrrg_adj_edge_id]), 1);
+              &(map_op_to_route[dfg_node_id][mrrg_out_edge_id]), 1);
         }
         std::string constr_name = "c_fanout_" + std::to_string(dfg_node_id) +
                                   "_" + std::to_string(mrrg_node_id);
+        model.addConstr(map_route_op_to_PE[dfg_node_id][mrrg_node_id],
+                        GRB_LESS_EQUAL, out_edge_num, constr_name);
         model.addConstr(map_op_to_PE[dfg_node_id][mrrg_node_id], GRB_LESS_EQUAL,
-                        tmp_lin_expr, constr_name);
+                        out_edge_num, constr_name);
       }
     }
 
-    // add constraint: fanin
-    const double fanin_coefficient = 1;
+    // add constraint: operation fanin
+    const double op_fanin_coefficient = 1;
+    for (int dfg_node_id = 0; dfg_node_id < dfg_node_num; dfg_node_id++) {
+      int dfg_input_num =
+          static_cast<int>(dfg_ptr_->GetParentNodeIdVec(dfg_node_id).size());
+      std::vector<int> dfg_parent_node_id_vec =
+          dfg_ptr_->GetParentNodeIdVec(dfg_node_id);
+      for (int mrrg_node_id = 0; mrrg_node_id < mrrg_node_num; mrrg_node_id++) {
+        std::vector<int> mrrg_parent_edge_ids =
+            mrrg_ptr_->GetInEdgeIdVec(mrrg_node_id);
+        GRBLinExpr tmp_lin_expr;
+        for (int mrrg_parent_edge_id : mrrg_parent_edge_ids) {
+          for (int dfg_parent_node_id : dfg_parent_node_id_vec) {
+            tmp_lin_expr.addTerms(
+                &op_fanin_coefficient,
+                &(map_op_to_route[dfg_parent_node_id][mrrg_parent_edge_id]), 1);
+          }
+        }
+        std::string constr_name = "c_op_fanin_" + std::to_string(dfg_node_id) +
+                                  "_" + std::to_string(mrrg_node_id);
+        model.addConstr(dfg_input_num * map_op_to_PE[dfg_node_id][mrrg_node_id],
+                        GRB_LESS_EQUAL, tmp_lin_expr, constr_name);
+      }
+    }
+
+    // add constraint: route fanin
+    const double route_fanin_coefficient = 1;
     for (int dfg_node_id = 0; dfg_node_id < dfg_node_num; dfg_node_id++) {
       int dfg_input_num =
           static_cast<int>(dfg_ptr_->GetParentNodeIdVec(dfg_node_id).size());
@@ -195,69 +229,39 @@ mapper::MappingResult mapper::GurobiILPRoutingMapper::Execution() {
         GRBLinExpr tmp_lin_expr;
         for (int mrrg_parent_edge_id : mrrg_parent_edge_ids) {
           tmp_lin_expr.addTerms(
-              &fanin_coefficient,
+              &route_fanin_coefficient,
               &(map_op_to_route[dfg_node_id][mrrg_parent_edge_id]), 1);
         }
-        std::string constr_name = "c_fanin_" + std::to_string(dfg_node_id) +
-                                  "_" + std::to_string(mrrg_node_id);
-        model.addConstr(dfg_input_num * map_op_to_PE[dfg_node_id][mrrg_node_id],
-                        GRB_EQUAL, tmp_lin_expr, constr_name);
-      }
-    }
-
-    // add constraint: map_op_to_route consistency
-    const double map_op_to_route_coefficient = 1;
-    for (int mrrg_node_id = 0; mrrg_node_id < mrrg_node_num; mrrg_node_id++) {
-      std::vector<int> mrrg_in_edge_ids =
-          mrrg_ptr_->GetInEdgeIdVec(mrrg_node_id);
-      std::vector<int> mrrg_out_edge_ids =
-          mrrg_ptr_->GetOutEdgeIdVec(mrrg_node_id);
-      for (int dfg_node_id = 0; dfg_node_id < dfg_node_num; dfg_node_id++) {
-        GRBLinExpr in_edge_num;
-        GRBLinExpr out_edge_num;
-        for (int mrrg_in_edge_id : mrrg_in_edge_ids) {
-          in_edge_num.addTerms(&map_op_to_route_coefficient,
-                               &(map_op_to_route[dfg_node_id][mrrg_in_edge_id]),
-                               1);
-        }
-        for (int mrrg_out_edge_id : mrrg_out_edge_ids) {
-          out_edge_num.addTerms(
-              &map_op_to_route_coefficient,
-              &(map_op_to_route[dfg_node_id][mrrg_out_edge_id]), 1);
-        }
-        std::string constr_name = "c_map_op_to_route_" +
+        std::string constr_name = "c_route_fanin_" +
                                   std::to_string(dfg_node_id) + "_" +
                                   std::to_string(mrrg_node_id);
-        model.addConstr(map_route_op_to_PE[mrrg_node_id], GRB_LESS_EQUAL,
-                        out_edge_num, constr_name);
-        model.addConstr(in_edge_num, GRB_LESS_EQUAL, out_edge_num, constr_name);
+        model.addConstr(map_route_op_to_PE[dfg_node_id][mrrg_node_id],
+                        GRB_LESS_EQUAL, tmp_lin_expr, constr_name);
       }
     }
 
-    // add constraint: aporopriate input type
+    // add constraint: appropriate input type
     const double appropriate_input_type_coefficient = 1;
     for (int dfg_node_id = 0; dfg_node_id < dfg_node_num; dfg_node_id++) {
       std::vector<int> dfg_parent_node_id_vec =
           dfg_ptr_->GetParentNodeIdVec(dfg_node_id);
-      int dfg_parent_node_num = static_cast<int>(dfg_parent_node_id_vec.size());
+
       for (int mrrg_node_id = 0; mrrg_node_id < mrrg_node_num; mrrg_node_id++) {
-        std::vector<int> mrrg_parent_edge_ids =
+        std::vector<int> mrrg_in_edge_ids =
             mrrg_ptr_->GetInEdgeIdVec(mrrg_node_id);
         for (int dfg_parent_node_id : dfg_parent_node_id_vec) {
           GRBLinExpr tmp_lin_expr;
-          for (int mrrg_parent_edge_id : mrrg_parent_edge_ids) {
+          for (int mrrg_in_edge_id : mrrg_in_edge_ids) {
             tmp_lin_expr.addTerms(
                 &appropriate_input_type_coefficient,
-                &(map_op_to_route[dfg_parent_node_id][mrrg_parent_edge_id]),
-                1);
+                &(map_op_to_route[dfg_parent_node_id][mrrg_in_edge_id]), 1);
           }
-
           std::string constr_name = "c_appropriate_input_type_" +
                                     std::to_string(dfg_node_id) + "_" +
                                     std::to_string(mrrg_node_id) + "_" +
                                     std::to_string(dfg_parent_node_id);
-          model.addConstr(map_op_to_PE[dfg_node_id][mrrg_node_id], GRB_EQUAL,
-                          tmp_lin_expr, constr_name);
+          model.addConstr(map_op_to_PE[dfg_node_id][mrrg_node_id],
+                          GRB_LESS_EQUAL, tmp_lin_expr, constr_name);
         }
       }
     }
