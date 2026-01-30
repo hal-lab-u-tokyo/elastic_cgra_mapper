@@ -78,6 +78,9 @@ std::string entity::OpTypeToString(OpType op) {
       break;
     case entity::OpType::SELECT:
       return "select";
+    case entity::OpType::TM:
+      return "tm";
+      break;
     default:
       assert("invalid OpType");
       abort();
@@ -136,6 +139,8 @@ entity::OpType entity::OpTypeFromString(std::string op_string) {
     return entity::OpType::LOOP;
   } else if (op_string == "select") {
     return entity::OpType::SELECT;
+  } else if (op_string == "tm") {
+    return entity::OpType::TM;
   } else {
     std::string message = "invalid op string: " + op_string;
     std::cerr << message << std::endl;
@@ -169,6 +174,11 @@ std::vector<entity::OpType> entity::GetAllOperationsExceptMemoryAccess() {
 std::vector<entity::OpType> entity::GetLoopOperations() {
   return std::vector<OpType>(
       {entity::OpType::LOOP});
+};
+
+std::vector<entity::OpType> entity::GetTMOperations() {
+  return std::vector<OpType>(
+      {entity::OpType::TM});
 };
 
 bool entity::IsMemoryAccessOperation(OpType op) {

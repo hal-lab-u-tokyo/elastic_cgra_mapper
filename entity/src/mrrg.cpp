@@ -94,7 +94,8 @@ std::string entity::MRRGNetworkTypeToString(
 entity::MRRG::MRRG(entity::MRRGGraph mrrg_graph)
     : entity::BaseGraphClass<entity::MRRGNodeProperty, entity::MRRGEdgeProperty,
                              entity::MRRGGraphProperty>(mrrg_graph),
-      config_id_to_node_id_map_({}){};
+      config_id_to_node_id_map_({}),
+      node_id_to_config_id_map_({}) {}
 
 std::vector<std::tuple<int, int, int>> GetConnectedNodeIdVector(
     std::tuple<int, int, int> from_node_id,
@@ -148,19 +149,13 @@ std::vector<std::tuple<int, int, int>> GetConnectedNodeIdVector(
 entity::MRRG::MRRG(entity::MRRGConfig mrrg_config)
     : entity::BaseGraphClass<entity::MRRGNodeProperty, entity::MRRGEdgeProperty,
                              entity::MRRGGraphProperty>(),
-      config_id_to_node_id_map_({}) {
+      config_id_to_node_id_map_({}),
+      node_id_to_config_id_map_({}) {
   entity::MRRGGraph mrrg_graph;
   std::map<std::tuple<int, int, int>, int> node_id_to_vertex_id;
-  // std::vector<int> loop_pe_row_pos = {2, 4, 1, 7, 5, 3, 6, 1};
-  std::vector<int> loop_pe_row_pos = {1, 6, 3, 5, 7, 1, 4, 2};
-  std::vector<std::pair<int, int>> TM_pe_positions = {std::make_pair(2, 6),
-                                                      std::make_pair(2, 6),
-                                                      std::make_pair(2, 6),
-                                                      std::make_pair(-1, -1),
-                                                      std::make_pair(-1, -1),
-                                                      std::make_pair(-1, -1),
-                                                      std::make_pair(-1, -1),
-                                                      std::make_pair(-1, -1)};
+  // std::vector<int> loop_pe_row_pos = {1, 6, 3, 5, 7, 1, 4, 2};//Original Raccoon
+  std::vector<std::vector<int>> loop_pe_row_pos = {{2}, {6}, {4}, {-1}, {5,6}, {2}, {4}, {3}};//for TM raccoon
+  std::vector<std::vector<int>> TM_pe_row_pos = {{-1}, {-1}, {-1}, {5}, {4}, {6}, {4}, {4}};
 
   for (int i = 0; i < mrrg_config.row; i++) {
     for (int j = 0; j < mrrg_config.column; j++) {
@@ -179,17 +174,25 @@ entity::MRRG::MRRG(entity::MRRGConfig mrrg_config)
 
         bool is_loop_pe = false;
         bool is_TM_pe = false;
-        if (mrrg_config.is_TM_raccoon && i == mrrg_config.row-1) {
+        bool is_TM_pe_2 = false;
+        if (mrrg_config.is_TM_raccoon && i == mrrg_config.row-1 || i == mrrg_config.row-2 || i == mrrg_config.row-3) {
           graph_[vertex_id].supported_operations = entity::GetAllOperations();
           is_TM_pe = true;
         }
+        //is_raccoonとis_raccoon_2は排他
         if (mrrg_config.is_raccoon) {
-          if(j <= 8 && loop_pe_row_pos[j] == i){
+          if(j <= 8 && std::find(loop_pe_row_pos[j].begin(), loop_pe_row_pos[j].end(), i) != loop_pe_row_pos[j].end()){
             graph_[vertex_id].supported_operations = entity::GetLoopOperations();
             is_loop_pe = true;
           }
         }
-        if(!is_loop_pe && !is_TM_pe){
+        if(mrrg_config.is_TM_raccoon_2){
+          if(j <= 8 && std::find(TM_pe_row_pos[j].begin(), TM_pe_row_pos[j].end(), i) != TM_pe_row_pos[j].end()){
+            graph_[vertex_id].supported_operations = entity::GetTMOperations();
+            is_TM_pe_2 = true;
+          }
+        }
+        if(!is_loop_pe && !is_TM_pe && !is_TM_pe_2){
           if (mrrg_config.memory_io == entity::MRRGMemoryIOType::kAll) {
             graph_[vertex_id].supported_operations = entity::GetAllOperations();
           } else if (mrrg_config.memory_io == entity::MRRGMemoryIOType::kBothEnds) {
@@ -208,7 +211,9 @@ entity::MRRG::MRRG(entity::MRRGConfig mrrg_config)
         }
 
         std::tuple<int, int, int> config_id(i, j, k);
+        // Populate the reverse map during initialization
         config_id_to_node_id_map_.emplace(config_id, vertex_id);
+        node_id_to_config_id_map_.emplace(vertex_id, config_id);
       }
     }
   }
@@ -220,8 +225,8 @@ entity::MRRG::MRRG(entity::MRRGConfig mrrg_config)
         std::tuple<int, int, int> from_node_id({i, j, k});
         std::tuple<int, int, int> root_node_id;
         if(mrrg_config.is_TM_raccoon){
-          if(i == mrrg_config.row-1){
-            auto TM_pe_position = TM_pe_positions[j];
+          if(i == mrrg_config.row-1 || i == mrrg_config.row-2 || i == mrrg_config.row-3){
+            auto TM_pe_position = TM_pe_positions[mrrg_config.row -1 - i][j];
             if(TM_pe_position.first != -1){
               root_node_id = std::make_tuple(TM_pe_position.first, TM_pe_position.second, k);
               auto connected_node_id_vec = GetConnectedNodeIdVector(root_node_id, mrrg_config);
@@ -236,7 +241,7 @@ entity::MRRG::MRRG(entity::MRRGConfig mrrg_config)
                 }
               }
               for(int idx = j; idx >= 0; idx--){
-                if(TM_pe_positions[idx].first==TM_pe_position.first && TM_pe_positions[idx].second==TM_pe_position.second){
+                if(TM_pe_positions[mrrg_config.row -1 - i][idx].first==TM_pe_position.first && TM_pe_positions[mrrg_config.row -1 - i][idx].second==TM_pe_position.second){
                   root_node_id = std::make_tuple(i, idx, k);
                   break;
                 }
@@ -294,4 +299,9 @@ int entity::MRRG::GetMRRGNodeId(int row_id, int column_id, int context_id) {
   std::tuple<int, int, int> config_id(row_id, column_id, context_id);
   if (config_id_to_node_id_map_.count(config_id) == 0) return -1;
   return config_id_to_node_id_map_[config_id];
+}
+
+std::tuple<int, int, int> entity::MRRG::GetMRRGConfigId(int node_id) {
+  if (node_id_to_config_id_map_.count(node_id) == 0) return std::make_tuple(-1, -1, -1);
+  return node_id_to_config_id_map_[node_id];
 }

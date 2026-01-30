@@ -55,6 +55,7 @@ struct MRRGConfig {
   int context_size;
   bool is_raccoon;
   bool is_TM_raccoon;
+  bool is_TM_raccoon_2;
 };
 
 MRRGCGRAType MRRGCGRATypeFromString(std::string cgra_type_string);
@@ -77,6 +78,30 @@ class MRRG : public BaseGraphClass<MRRGNodeProperty, MRRGEdgeProperty,
 
   MRRGConfig GetMRRGConfig() const;
   int GetMRRGNodeId(int row_id, int column_id, int context_id);
+  std::tuple<int, int, int> GetMRRGConfigId(int node_id);
+    bool isSamePos(entity::MRRGConfig mrrg_config, const std::pair<int, int>& pos_normal, const std::pair<int, int>& pos_last_row) {
+    if((pos_last_row.first == mrrg_config.row - 1 || pos_last_row.first == mrrg_config.row - 2 || pos_last_row.first == mrrg_config.row - 3) && TM_pe_positions[mrrg_config.row - 1 - pos_last_row.first][pos_last_row.second].first == pos_normal.first && TM_pe_positions[mrrg_config.row - 1 - pos_last_row.first][pos_last_row.second].second == pos_normal.second){
+      return true;
+    }
+    return false;
+  }
+  std::vector<std::tuple<int, int, int>> GetTMSamePos(entity::MRRGConfig mrrg_config, const std::tuple<int, int, int>& normal_node_id){
+    std::vector<std::tuple<int, int, int>> same_pos_vec;
+    int normal_row = std::get<0>(normal_node_id);
+    int normal_column = std::get<1>(normal_node_id);
+    for(int j = 1; j <= 3; j++){
+      for(int i = 0; i < mrrg_config.column; i++){
+        std::pair<int, int> pos_last_row = std::make_pair(mrrg_config.row - j, i);
+        std::pair<int, int> pos_normal = std::make_pair(normal_row, normal_column);
+        if(isSamePos(mrrg_config, pos_normal, pos_last_row)){
+          for(int k = 0; k < mrrg_config.context_size; k++){
+            same_pos_vec.push_back(std::make_tuple(pos_last_row.first, pos_last_row.second, k));
+          }
+        }
+      }
+    }
+    return same_pos_vec;
+  }
 
  private:
   struct HashTuple_ {
@@ -89,5 +114,32 @@ class MRRG : public BaseGraphClass<MRRGNodeProperty, MRRGEdgeProperty,
   };
   std::unordered_map<std::tuple<int, int, int>, int, HashTuple_>
       config_id_to_node_id_map_;
+  // Add a reverse map for config_id_to_node_id_map_
+  std::unordered_map<int, std::tuple<int, int, int>> node_id_to_config_id_map_;
+
+  std::vector<std::vector<std::pair<int, int>>> TM_pe_positions = {{std::make_pair(5, 3),
+                                                      std::make_pair(5, 3),
+                                                      std::make_pair(5, 3),
+                                                      std::make_pair(5, 3),
+                                                      std::make_pair(4, 4),
+                                                      std::make_pair(4, 4),
+                                                      std::make_pair(4, 4),
+                                                      std::make_pair(4, 4)},
+                                                    {std::make_pair(6, 5),
+                                                      std::make_pair(6, 5),
+                                                      std::make_pair(6, 5),
+                                                      std::make_pair(6, 5),
+                                                      std::make_pair(4, 6),
+                                                      std::make_pair(4, 6),
+                                                      std::make_pair(4, 6),
+                                                      std::make_pair(4, 6)},
+                                                    {std::make_pair(4, 7),
+                                                      std::make_pair(4, 7),
+                                                      std::make_pair(4, 7),
+                                                      std::make_pair(4, 7),
+                                                      std::make_pair(-1, -1),
+                                                      std::make_pair(-1, -1),
+                                                      std::make_pair(-1, -1),
+                                                      std::make_pair(-1, -1)}};
 };
 }  // namespace entity

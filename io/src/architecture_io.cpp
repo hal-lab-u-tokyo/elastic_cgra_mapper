@@ -20,6 +20,7 @@ entity::MRRG io::ReadMRRGFromJsonFile(std::string file_name) {
   // auto is_racoon_data = GetValueFromPTree<std::string>(ptree, "is_racoon");
   auto is_raccoon_data = ptree.get<std::string>("is_raccoon", "false");
   auto is_TM_raccoon_data = ptree.get<std::string>("is_TM_raccoon", "false");
+  auto is_TM_raccoon_2_data = ptree.get<std::string>("is_TM_raccoon_2", "false");
   auto network_type_data =
       GetValueFromPTree<std::string>(ptree, "network_type");
 
@@ -27,6 +28,7 @@ entity::MRRG io::ReadMRRGFromJsonFile(std::string file_name) {
   mrrg_config.cgra_type = entity::MRRGCGRATypeFromString(cgra_type_data);
   mrrg_config.is_raccoon = (is_raccoon_data == "true");
   mrrg_config.is_TM_raccoon = (is_TM_raccoon_data == "true");
+  mrrg_config.is_TM_raccoon_2 = (is_TM_raccoon_2_data == "true");
   mrrg_config.network_type =
       entity::MRRGNetworkTypeFromString(network_type_data);
 
@@ -49,6 +51,7 @@ void io::WriteMRRGToJsonFile(std::string file_name,
   ptree.put("context_size", mrrg_config.context_size);
   ptree.put("is_raccoon", mrrg_config.is_raccoon ? "true" : "false");
   ptree.put("is_TM_raccoon", mrrg_config.is_TM_raccoon ? "true" : "false");
+  ptree.put("is_TM_raccoon_2", mrrg_config.is_TM_raccoon_2 ? "true" : "false");
 
   boost::property_tree::write_json(file_name, ptree);
   return;

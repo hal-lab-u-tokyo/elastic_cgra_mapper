@@ -290,6 +290,183 @@ mapper::MappingResult mapper::GurobiILPMapper::Execution() {
       }
     } 
 
+    // // add constraint for TM raccoon
+    // if(mrrg_ptr_->GetMRRGConfig().is_TM_raccoon) {
+    //   for (int mrrg_node_id = 0; mrrg_node_id < mrrg_node_num; mrrg_node_id++) {
+    //     auto mrrg_config_id = mrrg_ptr_->GetMRRGConfigId(mrrg_node_id);
+    //     if (std::get<0>(mrrg_config_id) == mrrg_ptr_->GetMRRGConfig().row - 1) continue;
+    //     std::vector<int> mrrg_adj_node_id_vec = mrrg_ptr_->GetParentNodeIdVec(mrrg_node_id);
+    //     for (int mrrg_adj_node_id : mrrg_adj_node_id_vec) {
+    //       auto adj_mrrg_config_id = mrrg_ptr_->GetMRRGConfigId(mrrg_adj_node_id);
+    //       if (std::get<0>(adj_mrrg_config_id) == mrrg_ptr_->GetMRRGConfig().row - 1) continue;
+    //       if (mrrg_adj_node_id == mrrg_node_id) continue;
+    //       auto TM_same_pos_vec = mrrg_ptr_->GetTMSamePos(mrrg_ptr_->GetMRRGConfig(), mrrg_config_id);
+    //       auto adj_TM_same_pos_vec = mrrg_ptr_->GetTMSamePos(mrrg_ptr_->GetMRRGConfig(), adj_mrrg_config_id);
+    //       if(TM_same_pos_vec.size() == 0 && adj_TM_same_pos_vec.size() == 0) continue;
+
+    //       GRBQuadExpr expr;
+    //       std::vector<int> TM_same_pos_id_vec, adj_TM_same_pos_id_vec;
+    //       for(auto TM_same_pos : TM_same_pos_vec) {
+    //         TM_same_pos_id_vec.push_back(mrrg_ptr_->GetMRRGNodeId(std::get<0>(TM_same_pos), std::get<1>(TM_same_pos), std::get<2>(TM_same_pos)));
+    //       }
+    //       for(auto adj_TM_same_pos : adj_TM_same_pos_vec) {
+    //         adj_TM_same_pos_id_vec.push_back(mrrg_ptr_->GetMRRGNodeId(std::get<0>(adj_TM_same_pos), std::get<1>(adj_TM_same_pos), std::get<2>(adj_TM_same_pos)));
+    //       }
+    //       TM_same_pos_id_vec.push_back(mrrg_node_id);
+    //       adj_TM_same_pos_id_vec.push_back(mrrg_adj_node_id);
+
+    //       for (int dfg_node_id = 0; dfg_node_id < dfg_node_num; dfg_node_id++) {
+    //         auto dfg_parent_node_id_vec = dfg_ptr_->GetParentNodeIdVec(dfg_node_id);
+
+    //         for (int dfg_parent_node_id : dfg_parent_node_id_vec) {
+    //           for (auto TM_same_pos_id : TM_same_pos_id_vec) {
+    //             for (auto adj_TM_same_pos_id : adj_TM_same_pos_id_vec) {
+
+    //               // 基本項
+    //               expr += map_op_to_PE[dfg_parent_node_id][adj_TM_same_pos_id]
+    //                     * map_op_to_PE[dfg_node_id][TM_same_pos_id];
+
+    //               expr += map_op_to_PE[dfg_node_id][adj_TM_same_pos_id]
+    //                     * map_output_to_route[dfg_node_id][TM_same_pos_id];
+
+    //               expr += map_output_to_route[dfg_parent_node_id][adj_TM_same_pos_id]
+    //                     * map_op_to_PE[dfg_node_id][TM_same_pos_id];
+
+    //               expr += map_output_to_route[dfg_node_id][adj_TM_same_pos_id]
+    //                     * map_output_to_route[dfg_node_id][TM_same_pos_id];
+    //             }
+    //           }
+    //         }
+    //       }
+
+    //       model.addQConstr(expr <= 1);
+    //     }
+    //   }
+    // }
+
+    // add constraint for TM raccoon (linearized)
+    if (mrrg_ptr_->GetMRRGConfig().is_TM_raccoon) {
+
+      for (int mrrg_node_id = 0; mrrg_node_id < mrrg_node_num; mrrg_node_id++) {
+
+        auto mrrg_config_id = mrrg_ptr_->GetMRRGConfigId(mrrg_node_id);
+        if (std::get<0>(mrrg_config_id) == mrrg_ptr_->GetMRRGConfig().row - 1) continue;
+
+        std::vector<int> mrrg_adj_node_id_vec =
+            mrrg_ptr_->GetParentNodeIdVec(mrrg_node_id);
+
+        for (int mrrg_adj_node_id : mrrg_adj_node_id_vec) {
+
+          auto adj_mrrg_config_id = mrrg_ptr_->GetMRRGConfigId(mrrg_adj_node_id);
+          if (std::get<0>(adj_mrrg_config_id) == mrrg_ptr_->GetMRRGConfig().row - 1) continue;
+          if (mrrg_adj_node_id == mrrg_node_id) continue;
+
+          auto TM_same_pos_vec =
+              mrrg_ptr_->GetTMSamePos(mrrg_ptr_->GetMRRGConfig(), mrrg_config_id);
+          auto adj_TM_same_pos_vec =
+              mrrg_ptr_->GetTMSamePos(mrrg_ptr_->GetMRRGConfig(), adj_mrrg_config_id);
+
+          if (TM_same_pos_vec.empty() && adj_TM_same_pos_vec.empty()) continue;
+
+          // tuple → node_id に変換
+          std::vector<int> TM_same_pos_id_vec, adj_TM_same_pos_id_vec;
+          for (auto TM_same_pos : TM_same_pos_vec) {
+            TM_same_pos_id_vec.push_back(
+              mrrg_ptr_->GetMRRGNodeId(
+                std::get<0>(TM_same_pos),
+                std::get<1>(TM_same_pos),
+                std::get<2>(TM_same_pos)));
+          }
+          for (auto adj_TM_same_pos : adj_TM_same_pos_vec) {
+            adj_TM_same_pos_id_vec.push_back(
+              mrrg_ptr_->GetMRRGNodeId(
+                std::get<0>(adj_TM_same_pos),
+                std::get<1>(adj_TM_same_pos),
+                std::get<2>(adj_TM_same_pos)));
+          }
+
+          // 自分自身も含める
+          TM_same_pos_id_vec.push_back(mrrg_node_id);
+          adj_TM_same_pos_id_vec.push_back(mrrg_adj_node_id);
+
+          GRBLinExpr sum_z_expr = 0;   // ← 二次式ではなく線形式
+
+          for (int dfg_node_id = 0; dfg_node_id < dfg_node_num; dfg_node_id++) {
+            auto dfg_parent_node_id_vec =
+                dfg_ptr_->GetParentNodeIdVec(dfg_node_id);
+
+            for (int dfg_parent_node_id : dfg_parent_node_id_vec) {
+
+              for (int TM_id : TM_same_pos_id_vec) {
+                for (int adj_TM_id : adj_TM_same_pos_id_vec) {
+
+                  // (1) z1 = map_op[parent][adj] * map_op[cur][TM]
+                  {
+                    GRBVar z = model.addVar(0, 1, 0, GRB_BINARY);
+                    GRBVar x = map_op_to_PE[dfg_parent_node_id][adj_TM_id];
+                    GRBVar y = map_op_to_PE[dfg_node_id][TM_id];
+
+                    model.addConstr(z <= x);
+                    model.addConstr(z <= y);
+                    model.addConstr(z >= x + y - 1);
+
+                    sum_z_expr += z;
+                  }
+
+                  // (2) z2 = map_op[parent][adj] * map_output[cur][TM]
+                  {
+                    GRBVar z = model.addVar(0, 1, 0, GRB_BINARY);
+                    GRBVar x = map_op_to_PE[dfg_parent_node_id][adj_TM_id];
+                    GRBVar y = map_output_to_route[dfg_node_id][TM_id];
+
+                    model.addConstr(z <= x);
+                    model.addConstr(z <= y);
+                    model.addConstr(z >= x + y - 1);
+
+                    sum_z_expr += z;
+                  }
+
+                  // (3) z3 = map_output[parent][adj] * map_op[cur][TM]
+                  {
+                    GRBVar z = model.addVar(0, 1, 0, GRB_BINARY);
+                    GRBVar x = map_output_to_route[dfg_parent_node_id][adj_TM_id];
+                    GRBVar y = map_op_to_PE[dfg_node_id][TM_id];
+
+                    model.addConstr(z <= x);
+                    model.addConstr(z <= y);
+                    model.addConstr(z >= x + y - 1);
+
+                    sum_z_expr += z;
+                  }
+
+                  // (4) z4 = map_output[parent][adj] * map_output[cur][TM]
+                  {
+                    GRBVar z = model.addVar(0, 1, 0, GRB_BINARY);
+                    GRBVar x = map_output_to_route[dfg_parent_node_id][adj_TM_id];
+                    GRBVar y = map_output_to_route[dfg_node_id][TM_id];
+
+                    model.addConstr(z <= x);
+                    model.addConstr(z <= y);
+                    model.addConstr(z >= x + y - 1);
+
+                    sum_z_expr += z;
+                  }
+
+                }
+              }
+            }
+          }
+
+          // 最終制約（線形）
+          model.addConstr(sum_z_expr <= 1);
+        }
+      }
+    }
+
+
+
+
+
     // add constraint for elastic CGRA
     if (mrrg_ptr_->GetMRRGConfig().cgra_type ==
         entity::MRRGCGRAType::kElastic) {

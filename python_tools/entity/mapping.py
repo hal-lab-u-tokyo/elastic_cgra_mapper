@@ -97,6 +97,7 @@ class OperationType(Enum):
     Cmpgt = 17
     Cmpge = 18
     Cmpeq = 19
+    TM = 20
 
     def get_from_string(input: str):
         if input == "add":
@@ -139,6 +140,8 @@ class OperationType(Enum):
             return OperationType.Loop
         elif input == "select":
             return OperationType.Select
+        elif input == "tm":
+            return OperationType.TM
         else:
             print("ERROR: OperationType get_from_string invalid input")
             raise ValueError
@@ -176,6 +179,8 @@ class OperationType(Enum):
             return "icmp"
         elif input == OperationType.Select:
             return "select"
+        elif input == OperationType.TM:
+            return "tm"
         else:
             print("ERROR: OperationType to_string invalid input")
             raise ValueError
