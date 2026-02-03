@@ -32,6 +32,21 @@ std::string entity::MRRGCGRATypeToString(entity::MRRGCGRAType cgra_type) {
   }
 };
 
+std::string entity::MRRGLoopPEPositionToString(
+    entity::MRRGLoopPEPosition loop_pe_pos) {
+  switch (loop_pe_pos) {
+    case entity::MRRGLoopPEPosition::kOrig:
+      return "orig";
+      break;
+    case entity::MRRGLoopPEPosition::kProp:
+      return "prop";
+      break;
+    default:
+      assert("invalid MRRG Loop PE Position");
+      abort();
+  }
+}
+
 entity::MRRGMemoryIOType entity::MRRGMemoryIOTypeFromString(
     std::string memory_io_type_string) {
   if (memory_io_type_string == "all") {
@@ -75,6 +90,18 @@ entity::MRRGNetworkType entity::MRRGNetworkTypeFromString(
     abort();
   }
 };
+
+entity::MRRGLoopPEPosition entity::MRRGLoopPEPositionFromString(
+    std::string loop_pe_pos_string) {
+  if (loop_pe_pos_string == "orig") {
+    return entity::MRRGLoopPEPosition::kOrig;
+  } else if (loop_pe_pos_string == "prop") {
+    return entity::MRRGLoopPEPosition::kProp;
+  } else {
+    assert("invalid Loop PE Position String");
+    abort();
+  }
+}
 
 std::string entity::MRRGNetworkTypeToString(
     entity::MRRGNetworkType network_type) {
@@ -294,6 +321,10 @@ entity::MRRG::MRRG(entity::MRRGConfig mrrg_config)
   graph_[boost::graph_bundle].memory_io = mrrg_config.memory_io;
   graph_[boost::graph_bundle].cgra_type = mrrg_config.cgra_type;
   graph_[boost::graph_bundle].network_type = mrrg_config.network_type;
+  graph_[boost::graph_bundle].is_raccoon = mrrg_config.is_raccoon;
+  graph_[boost::graph_bundle].loop_pe_pos = mrrg_config.loop_pe_pos;
+  graph_[boost::graph_bundle].is_TM_raccoon = mrrg_config.is_TM_raccoon;
+  graph_[boost::graph_bundle].is_TM_raccoon_2 = mrrg_config.is_TM_raccoon_2;
 };
 
 entity::MRRGConfig entity::MRRG::GetMRRGConfig() const {
@@ -305,6 +336,10 @@ entity::MRRGConfig entity::MRRG::GetMRRGConfig() const {
   mrrg_config.network_type = graph_[boost::graph_bundle].network_type;
   mrrg_config.local_reg_size = graph_[0].local_reg_size;
   mrrg_config.context_size = graph_[0].context_size;
+  mrrg_config.is_raccoon = graph_[boost::graph_bundle].is_raccoon;
+  mrrg_config.loop_pe_pos = graph_[boost::graph_bundle].loop_pe_pos;
+  mrrg_config.is_TM_raccoon = graph_[boost::graph_bundle].is_TM_raccoon;
+  mrrg_config.is_TM_raccoon_2 = graph_[boost::graph_bundle].is_TM_raccoon_2;
 
   return mrrg_config;
 }
