@@ -177,8 +177,9 @@ std::vector<entity::OpType> entity::GetLoopOperations() {
 };
 
 std::vector<entity::OpType> entity::GetTMOperations() {
-  return std::vector<OpType>(
-      {entity::OpType::TM});
+  auto ops = GetAllOperations();
+  ops.push_back(entity::OpType::TM);
+  return ops;
 };
 
 bool entity::IsMemoryAccessOperation(OpType op) {

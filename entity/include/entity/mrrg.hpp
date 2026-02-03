@@ -54,6 +54,7 @@ struct MRRGConfig {
   int local_reg_size;
   int context_size;
   bool is_raccoon;
+  int loop_pe_pos;
   bool is_TM_raccoon;
   bool is_TM_raccoon_2;
 };
@@ -117,26 +118,54 @@ class MRRG : public BaseGraphClass<MRRGNodeProperty, MRRGEdgeProperty,
   // Add a reverse map for config_id_to_node_id_map_
   std::unordered_map<int, std::tuple<int, int, int>> node_id_to_config_id_map_;
 
+  // //TM5
+  // std::vector<std::vector<std::pair<int, int>>> TM_pe_positions = {{std::make_pair(5, 3),
+  //                                                     std::make_pair(5, 3),
+  //                                                     std::make_pair(5, 3),
+  //                                                     std::make_pair(5, 3),
+  //                                                     std::make_pair(4, 4),
+  //                                                     std::make_pair(4, 4),
+  //                                                     std::make_pair(4, 4),
+  //                                                     std::make_pair(4, 4)},
+  //                                                   {std::make_pair(6, 5),
+  //                                                     std::make_pair(6, 5),
+  //                                                     std::make_pair(6, 5),
+  //                                                     std::make_pair(6, 5),
+  //                                                     std::make_pair(4, 6),
+  //                                                     std::make_pair(4, 6),
+  //                                                     std::make_pair(4, 6),
+  //                                                     std::make_pair(4, 6)},
+  //                                                   {std::make_pair(4, 7),
+  //                                                     std::make_pair(4, 7),
+  //                                                     std::make_pair(4, 7),
+  //                                                     std::make_pair(4, 7),
+  //                                                     std::make_pair(-1, -1),
+  //                                                     std::make_pair(-1, -1),
+  //                                                     std::make_pair(-1, -1),
+  //                                                     std::make_pair(-1, -1)}};
+
+  //TM4
   std::vector<std::vector<std::pair<int, int>>> TM_pe_positions = {{std::make_pair(5, 3),
                                                       std::make_pair(5, 3),
                                                       std::make_pair(5, 3),
-                                                      std::make_pair(5, 3),
                                                       std::make_pair(4, 4),
                                                       std::make_pair(4, 4),
                                                       std::make_pair(4, 4),
-                                                      std::make_pair(4, 4)},
+                                                      std::make_pair(6, 5),
+                                                      std::make_pair(6, 5),
+                                                    },
                                                     {std::make_pair(6, 5),
-                                                      std::make_pair(6, 5),
-                                                      std::make_pair(6, 5),
-                                                      std::make_pair(6, 5),
                                                       std::make_pair(4, 6),
                                                       std::make_pair(4, 6),
                                                       std::make_pair(4, 6),
-                                                      std::make_pair(4, 6)},
-                                                    {std::make_pair(4, 7),
                                                       std::make_pair(4, 7),
                                                       std::make_pair(4, 7),
                                                       std::make_pair(4, 7),
+                                                      std::make_pair(-1, -1)},
+                                                    {std::make_pair(-1, -1),
+                                                      std::make_pair(-1, -1),
+                                                      std::make_pair(-1, -1),
+                                                      std::make_pair(-1, -1),
                                                       std::make_pair(-1, -1),
                                                       std::make_pair(-1, -1),
                                                       std::make_pair(-1, -1),
