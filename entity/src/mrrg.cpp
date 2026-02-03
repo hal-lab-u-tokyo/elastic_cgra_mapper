@@ -32,21 +32,6 @@ std::string entity::MRRGCGRATypeToString(entity::MRRGCGRAType cgra_type) {
   }
 };
 
-std::string entity::MRRGLoopPEPositionToString(
-    entity::MRRGLoopPEPosition loop_pe_pos) {
-  switch (loop_pe_pos) {
-    case entity::MRRGLoopPEPosition::kOrig:
-      return "orig";
-      break;
-    case entity::MRRGLoopPEPosition::kProp:
-      return "prop";
-      break;
-    default:
-      assert("invalid MRRG Loop PE Position");
-      abort();
-  }
-}
-
 entity::MRRGMemoryIOType entity::MRRGMemoryIOTypeFromString(
     std::string memory_io_type_string) {
   if (memory_io_type_string == "all") {
@@ -91,18 +76,6 @@ entity::MRRGNetworkType entity::MRRGNetworkTypeFromString(
   }
 };
 
-entity::MRRGLoopPEPosition entity::MRRGLoopPEPositionFromString(
-    std::string loop_pe_pos_string) {
-  if (loop_pe_pos_string == "orig") {
-    return entity::MRRGLoopPEPosition::kOrig;
-  } else if (loop_pe_pos_string == "prop") {
-    return entity::MRRGLoopPEPosition::kProp;
-  } else {
-    assert("invalid Loop PE Position String");
-    abort();
-  }
-}
-
 std::string entity::MRRGNetworkTypeToString(
     entity::MRRGNetworkType network_type) {
   switch (network_type) {
@@ -117,6 +90,60 @@ std::string entity::MRRGNetworkTypeToString(
       abort();
   }
 };
+
+entity::MRRGLoopPEPosition entity::MRRGLoopPEPositionFromString(
+    std::string loop_pe_pos_string) {
+  if (loop_pe_pos_string == "orig") {
+    return entity::MRRGLoopPEPosition::kOrig;
+  } else if (loop_pe_pos_string == "prop") {
+    return entity::MRRGLoopPEPosition::kProp;
+  } else {
+    assert("invalid Loop PE Position String");
+    abort();
+  }
+}
+
+std::string entity::MRRGLoopPEPositionToString(
+    entity::MRRGLoopPEPosition loop_pe_pos) {
+  switch (loop_pe_pos) {
+    case entity::MRRGLoopPEPosition::kOrig:
+      return "orig";
+      break;
+    case entity::MRRGLoopPEPosition::kProp:
+      return "prop";
+      break;
+    default:
+      assert("invalid MRRG Loop PE Position");
+      abort();
+  }
+}
+
+entity::MRRGTMPEPosition entity::MRRGTMPEPositionFromString(
+    std::string tm_pe_pos_string) {
+  if (tm_pe_pos_string == "prop") {
+    return entity::MRRGTMPEPosition::kTMProp;
+  } else if (tm_pe_pos_string == "rand") {
+    return entity::MRRGTMPEPosition::kRand;
+  } else {
+    assert("invalid TM PE Position String");
+    abort();
+  }
+}
+
+std::string entity::MRRGTMPEPositionToString(
+    entity::MRRGTMPEPosition tm_pe_pos) {
+  switch (tm_pe_pos) {
+    case entity::MRRGTMPEPosition::kTMProp:
+      return "prop";
+      break;
+    case entity::MRRGTMPEPosition::kRand:
+      return "rand";
+      break;
+    default:
+      assert("invalid MRRG TM PE Position");
+      abort();
+  }
+}
 
 entity::MRRG::MRRG(entity::MRRGGraph mrrg_graph)
     : entity::BaseGraphClass<entity::MRRGNodeProperty, entity::MRRGEdgeProperty,
@@ -181,8 +208,9 @@ entity::MRRG::MRRG(entity::MRRGConfig mrrg_config)
   entity::MRRGGraph mrrg_graph;
   std::map<std::tuple<int, int, int>, int> node_id_to_vertex_id;
   std::vector<std::vector<int>> loop_pe_row_pos_orig = {{1}, {6}, {3}, {5}, {7}, {1}, {4}, {2}};//Original Raccoon
-  std::vector<std::vector<int>> loop_pe_row_pos_prop = {{2}, {6}, {4}, {-1}, {5,6}, {2}, {4}, {3}};//for TM raccoon
-  std::vector<std::vector<int>> TM_pe_row_pos = {{-1}, {-1}, {-1}, {5}, {4}, {6}, {4}, {4}};
+  std::vector<std::vector<int>> loop_pe_row_pos_prop = {{2}, {-1}, {6}, {4}, {5,6}, {2}, {4}, {3}};//for TM raccoon
+  std::vector<std::vector<int>> TM_pe_row_pos_prop = {{-1}, {-1}, {-1}, {5}, {4}, {6}, {4}, {4}};
+  std::vector<std::vector<int>> TM_pe_row_pos_rand = {{2}, {-1}, {1, 4}, {-1}, {4}, {-1}, {5}, {-1}};
 
   for (int i = 0; i < mrrg_config.row; i++) {
     for (int j = 0; j < mrrg_config.column; j++) {
@@ -201,24 +229,31 @@ entity::MRRG::MRRG(entity::MRRGConfig mrrg_config)
 
         bool is_loop_pe = false;
         bool is_TM_pe = false;
-        if (mrrg_config.is_TM_raccoon && i == mrrg_config.row-1 || i == mrrg_config.row-2 || i == mrrg_config.row-3) {
+        if (mrrg_config.is_TM_raccoon && (i == mrrg_config.row-1 || i == mrrg_config.row-2 || i == mrrg_config.row-3)) {
           graph_[vertex_id].supported_operations = entity::GetAllOperations();
           is_TM_pe = true;
         }else if(mrrg_config.is_TM_raccoon_2){
-          if(j <= 8 && std::find(TM_pe_row_pos[j].begin(), TM_pe_row_pos[j].end(), i) != TM_pe_row_pos[j].end()){
-            graph_[vertex_id].supported_operations = entity::GetTMOperations();
-            is_TM_pe = true;
+          if(mrrg_config.tm_pe_pos == entity::MRRGTMPEPosition::kTMProp){
+            if(j < 8 && std::find(TM_pe_row_pos_prop[j].begin(), TM_pe_row_pos_prop[j].end(), i) != TM_pe_row_pos_prop[j].end()){
+              graph_[vertex_id].supported_operations = entity::GetTMOperations();
+              is_TM_pe = true;
+            }
+          }else if(mrrg_config.tm_pe_pos == entity::MRRGTMPEPosition::kRand){
+            if(j < 8 && std::find(TM_pe_row_pos_rand[j].begin(), TM_pe_row_pos_rand[j].end(), i) != TM_pe_row_pos_rand[j].end()){
+              graph_[vertex_id].supported_operations = entity::GetTMOperations();
+              is_TM_pe = true;
+            }
           }
         }
         //is_raccoonとis_raccoon_2は排他
         if (!is_TM_pe && mrrg_config.is_raccoon) {
-          if(mrrg_config.loop_pe_pos == 0){
-            if(j <= 8 && std::find(loop_pe_row_pos_orig[j].begin(), loop_pe_row_pos_orig[j].end(), i) != loop_pe_row_pos_orig[j].end()){
+          if(mrrg_config.loop_pe_pos == entity::MRRGLoopPEPosition::kOrig){
+            if(j < 8 && std::find(loop_pe_row_pos_orig[j].begin(), loop_pe_row_pos_orig[j].end(), i) != loop_pe_row_pos_orig[j].end()){
               graph_[vertex_id].supported_operations = entity::GetLoopOperations();
               is_loop_pe = true;
             }
-          }else{
-            if(j <= 8 && std::find(loop_pe_row_pos_prop[j].begin(), loop_pe_row_pos_prop[j].end(), i) != loop_pe_row_pos_prop[j].end()){
+          }else if(mrrg_config.loop_pe_pos == entity::MRRGLoopPEPosition::kProp){
+            if(j < 8 && std::find(loop_pe_row_pos_prop[j].begin(), loop_pe_row_pos_prop[j].end(), i) != loop_pe_row_pos_prop[j].end()){
               graph_[vertex_id].supported_operations = entity::GetLoopOperations();
               is_loop_pe = true;
             }
@@ -323,6 +358,7 @@ entity::MRRG::MRRG(entity::MRRGConfig mrrg_config)
   graph_[boost::graph_bundle].network_type = mrrg_config.network_type;
   graph_[boost::graph_bundle].is_raccoon = mrrg_config.is_raccoon;
   graph_[boost::graph_bundle].loop_pe_pos = mrrg_config.loop_pe_pos;
+  graph_[boost::graph_bundle].tm_pe_pos = mrrg_config.tm_pe_pos;
   graph_[boost::graph_bundle].is_TM_raccoon = mrrg_config.is_TM_raccoon;
   graph_[boost::graph_bundle].is_TM_raccoon_2 = mrrg_config.is_TM_raccoon_2;
 };
@@ -338,6 +374,7 @@ entity::MRRGConfig entity::MRRG::GetMRRGConfig() const {
   mrrg_config.context_size = graph_[0].context_size;
   mrrg_config.is_raccoon = graph_[boost::graph_bundle].is_raccoon;
   mrrg_config.loop_pe_pos = graph_[boost::graph_bundle].loop_pe_pos;
+  mrrg_config.tm_pe_pos = graph_[boost::graph_bundle].tm_pe_pos;
   mrrg_config.is_TM_raccoon = graph_[boost::graph_bundle].is_TM_raccoon;
   mrrg_config.is_TM_raccoon_2 = graph_[boost::graph_bundle].is_TM_raccoon_2;
 

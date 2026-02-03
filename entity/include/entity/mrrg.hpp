@@ -42,6 +42,11 @@ enum MRRGLoopPEPosition {
   kProp,
 };
 
+enum MRRGTMPEPosition {
+  kTMProp,
+  kRand
+};
+
 struct MRRGGraphProperty {
   int row_num;
   int column_num;
@@ -50,6 +55,7 @@ struct MRRGGraphProperty {
   MRRGNetworkType network_type;
   bool is_raccoon;
   MRRGLoopPEPosition loop_pe_pos;
+  MRRGTMPEPosition tm_pe_pos;
   bool is_TM_raccoon;
   bool is_TM_raccoon_2;
 };
@@ -64,6 +70,7 @@ struct MRRGConfig {
   int context_size;
   bool is_raccoon;
   MRRGLoopPEPosition loop_pe_pos;
+  MRRGTMPEPosition tm_pe_pos;
   bool is_TM_raccoon;
   bool is_TM_raccoon_2;
 };
@@ -76,6 +83,8 @@ MRRGNetworkType MRRGNetworkTypeFromString(std::string network_type_string);
 std::string MRRGNetworkTypeToString(MRRGNetworkType network_type);
 MRRGLoopPEPosition MRRGLoopPEPositionFromString(std::string loop_pe_pos_string);
 std::string MRRGLoopPEPositionToString(MRRGLoopPEPosition loop_pe_pos);
+MRRGTMPEPosition MRRGTMPEPositionFromString(std::string tm_pe_pos_string);
+std::string MRRGTMPEPositionToString(MRRGTMPEPosition tm_pe_pos);
 
 typedef BaseGraph<MRRGNodeProperty, MRRGEdgeProperty, MRRGGraphProperty>
     MRRGGraph;

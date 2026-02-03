@@ -93,8 +93,10 @@ mapper::MappingResult mapper::GurobiILPMapper::Execution() {
       model.addConstr(tmp_lin_expr, GRB_LESS_EQUAL, 1, constr_name);
     }
 
+
     // add constraint: functional unit legality
     for (int i = 0; i < dfg_node_num; i++) {
+      int count = 0;
       for (int j = 0; j < mrrg_node_num; j++) {
         entity::OpType dfg_op = (dfg_ptr_->GetNodeProperty(i)).op;
         std::vector<entity::OpType> mrrg_supported_op_vec =
@@ -109,7 +111,17 @@ mapper::MappingResult mapper::GurobiILPMapper::Execution() {
           std::string constr_name =
               "c_legality_" + std::to_string(i) + "_" + std::to_string(j);
           model.addConstr(map_op_to_PE[i][j], GRB_EQUAL, 0, constr_name);
+        } else {
+          count++;
         }
+        // std::cout << "DFG node " << i << " op=" << (int)dfg_op << std::endl;
+        // for (auto op : mrrg_supported_op_vec) {
+        //   std::cout << "MRRG node " << j << " supports " << (int)op << std::endl;
+        // }
+      }
+      if (count == 0) {
+        printf("DFG node %d is legal\n", i);
+        abort();
       }
     }
 
