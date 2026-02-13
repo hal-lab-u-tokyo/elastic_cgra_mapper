@@ -8,9 +8,18 @@
 
 io::Logger::Logger() {
   const auto tmp_time = std::chrono::system_clock::now();
-  log_id_ = std::to_string(std::chrono::duration_cast<std::chrono::nanoseconds>(
-                               tmp_time.time_since_epoch())
-                               .count());
+
+  // get yyyy/mm/dd_hh:mm:ss
+  std::time_t time_t_tmp = std::chrono::system_clock::to_time_t(tmp_time);
+  std::tm* tm_tmp = std::localtime(&time_t_tmp);
+  char buffer[30];
+  std::strftime(buffer, sizeof(buffer), "%Y%m%d%H%M%S", tm_tmp);
+  int milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(
+                         tmp_time.time_since_epoch())
+                         .count() %
+                     1000;
+
+  log_id_ = std::string(buffer) + std::to_string(milliseconds);
 }
 
 void io::Logger::InitializePath(const std::filesystem::path& output_dir_path) {
