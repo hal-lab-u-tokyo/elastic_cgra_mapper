@@ -27,9 +27,9 @@ ENV GRB_LICENSE_FILE="/opt/gurobi/gurobi.lic"
 COPY ../requirements.txt ${APPLICATION_DIRECTORY}/requirements.txt
 RUN pip install -r ${APPLICATION_DIRECTORY}/requirements.txt
 
-# RUN useradd -ms /bin/sh ${USER_NAME}
-# RUN chown -R ${USER_NAME} /home/${USER_NAME}
-# USER ${USER_NAME}
+RUN useradd -ms /bin/sh ${USER_NAME}
+RUN chown -R ${USER_NAME} /home/${USER_NAME}
+USER ${USER_NAME}
 
 WORKDIR ${APPLICATION_DIRECTORY}
 COPY ../.pre-commit-config.yaml ${APPLICATION_DIRECTORY}/
