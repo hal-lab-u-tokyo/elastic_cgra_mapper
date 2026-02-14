@@ -5,3 +5,5 @@ fi
 cd build
 cmake -GNinja ..
 ninja
+
+cd ..
