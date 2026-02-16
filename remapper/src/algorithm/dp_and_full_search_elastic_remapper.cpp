@@ -1,6 +1,6 @@
 #include <remapper/algorithm/dp_and_full_search_elastic_remapper.hpp>
 #include <remapper/algorithm/dp_elastic_remapper.hpp>
-#include <remapper/algorithm/full_search_elastic_remapper.hpp>
+#include <remapper/algorithm/full_search_remapper.hpp>
 #include <remapper/mapping_concater.hpp>
 #include <remapper/transform.hpp>
 
@@ -106,7 +106,7 @@ remapper::RemappingResult remapper::DPAndFullSearchElasticRemapping(
 
             remapper::CGRAMatrix cgra_matrix_to_create_new_element(
                 mrrg_config_to_create_new_element);
-            const auto remapping_result = remapper::FullSearchElasticRemapping(
+            const auto remapping_result = remapper::FullSearchRemapping(
                 mapping_vec_to_create_new_element,
                 cgra_matrix_to_create_new_element, 2, log_file,
                 std::numeric_limits<double>::max());

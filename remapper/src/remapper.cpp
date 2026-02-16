@@ -5,7 +5,7 @@
 
 #include "remapper/algorithm/dp_and_full_search_elastic_remapper.hpp"
 #include "remapper/algorithm/dp_elastic_remapper.hpp"
-#include "remapper/algorithm/full_search_elastic_remapper.hpp"
+#include "remapper/algorithm/full_search_remapper.hpp"
 #include "remapper/algorithm/greedy_elastic_remapper.hpp"
 #include "remapper/algorithm_entity.hpp"
 #include "time.h"
@@ -53,9 +53,11 @@ remapper::RemappingResult remapper::Remapper::ElasticRemapping(
     std::ofstream& log_file, remapper::RemappingMode mode, double timeout_s) {
   std::vector<remapper::MappingMatrix> mapping_matrix_vec;
   for (size_t mapping_id = 0; mapping_id < mapping_vec.size(); ++mapping_id) {
-    const auto& mapping = mapping_vec[mapping_id];
-    mapping_matrix_vec.emplace_back(mapping, static_cast<int>(mapping_id),
-                                    target_mrrg_config);
+    const entity::Mapping& mapping = mapping_vec[mapping_id];
+    remapper::MappingMatrix mapping_matrix(
+        mapping, static_cast<int>(mapping_id), target_mrrg_config);
+    mapping_matrix.UpdateRotatedMatrixCache(remapper::kAllRotateOpVec);
+    mapping_matrix_vec.emplace_back(mapping_matrix);
   }
   remapper::CGRAMatrix cgra_matrix(target_mrrg_config);
 
@@ -63,9 +65,9 @@ remapper::RemappingResult remapper::Remapper::ElasticRemapping(
   const auto start_time = std::chrono::system_clock::now();
   switch (mode) {
     case RemappingMode::FullSearch:
-      result = remapper::FullSearchElasticRemapping(
-          mapping_matrix_vec, cgra_matrix, target_parallel_num, log_file,
-          timeout_s);
+      result = remapper::FullSearchRemapping(mapping_matrix_vec, cgra_matrix,
+                                             target_parallel_num, log_file,
+                                             timeout_s);
       break;
     case RemappingMode::Greedy:
       result = remapper::GreedyElasticRemapping(mapping_matrix_vec, cgra_matrix,
