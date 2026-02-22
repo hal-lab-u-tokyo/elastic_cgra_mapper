@@ -73,6 +73,10 @@ def remapping_log_reader(log_file_path, benchmark_list=[]) -> Tuple[bool, Remapp
                 parsed = parse.parse("mapping type num: {:d}\n", line)
                 if parsed != None:
                     remapper_log_info.mapping_type_num = parsed[0]
+            if line_num == offset + 11:
+                parsed = parse.parse("db num: {:d}\n", line)
+                if parsed != None:
+                    remapper_log_info.db_num = parsed[0]
 
             line_num = line_num + 1
 

@@ -29,6 +29,7 @@ class RemappingRunnerConfig:
     self.memory_io_list = []
     self.network_type_list = []
     self.local_reg_size = 0
+    self.db_num = -1
     self.context_size = 0
 
     self.benchmark_name_list = []
@@ -63,6 +64,7 @@ class RemappingRunnerConfig:
       self.network_type_list.append(NetworkType.get_from_string(network_type))
     self.local_reg_size = config_dict["remapping_setting"]["local_reg_size"]
     self.context_size = config_dict["remapping_setting"]["context_size"]
+    self.db_num = config_dict["remapping_setting"]["db_num"]
 
     self.benchmark_name_list = config_dict["benchmark_name"]
 
@@ -100,7 +102,7 @@ class RemappingRunnerConfig:
               cgra = CGRA(cgra_type, cgra_size, cgra_size, self.context_size, memory_io, network_type, self.local_reg_size)
               database_dir_path = os.path.join(benchmark_output_dir_path, "database/mapping/" + get_database_id(cgra, database_timeout_s) + "/mapping/mapping")
               for mode in self.remapper_mode:
-                input = RemapperInput(database_dir_path, cgra, benchmark_output_dir_path, mode, self.remapper_timeout_s - self.database_timeout_s)
+                input = RemapperInput(database_dir_path, cgra, benchmark_output_dir_path, mode, self.remapper_timeout_s - self.database_timeout_s, self.db_num)
                 input_list.append(input)
 
     return input_list

@@ -14,7 +14,7 @@ target_sources(
             algorithm_entity.cpp
             combination_counter.cpp
             transform.cpp
-            algorithm/full_search_elastic_remapper.cpp
+            algorithm/full_search_remapper.cpp
             algorithm/greedy_elastic_remapper.cpp
             algorithm/dp_elastic_remapper.cpp
             algorithm/dp_and_full_search_elastic_remapper.cpp

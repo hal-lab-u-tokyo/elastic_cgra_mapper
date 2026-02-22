@@ -41,6 +41,8 @@ class MappingMatrix : public Rectangle {
   };
   entity::Mapping GetMapping() const { return mapping_; };
   int GetParallelNum() const { return parallel_num_; };
+  void UpdateRotatedMatrixCache(
+      const std::vector<remapper::RotateOp>& rotate_op_vec);
 
  private:
   MappingMatrix(const Eigen::MatrixXi& op_num_matrix,
@@ -54,6 +56,8 @@ class MappingMatrix : public Rectangle {
   int parallel_num_;
   Eigen::MatrixXi GetRotatedMatrix(const Eigen::MatrixXi& matrix,
                                    remapper::RotateOp rotate_op) const;
+
+  std::unordered_map<int, Eigen::MatrixXi> rotated_matrix_cache_;
 };
 
 class CGRAMatrix : public Rectangle {
@@ -61,7 +65,14 @@ class CGRAMatrix : public Rectangle {
   CGRAMatrix(const entity::MRRGConfig& mrrg_config);
   bool IsAvailableRemapping(const MappingMatrix& mapping_matrix,
                             const MappingTransformOp& transform_op) const;
+  int TryRemapping(
+      const std::vector<MappingMatrix>& mapping_matrix_vec,
+      const std::vector<MappingTransformOp>& transform_op_vec) const;
+
   entity::MRRGConfig GetMRRGConfig() const { return mrrg_config_; };
+  entity::MRRGCGRAType GetMRRGCGRAType() const {
+    return mrrg_config_.cgra_type;
+  };
 
  private:
   entity::MRRGConfig mrrg_config_;
