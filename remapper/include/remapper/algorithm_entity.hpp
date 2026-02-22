@@ -54,6 +54,8 @@ class MappingMatrix : public Rectangle {
   int parallel_num_;
   Eigen::MatrixXi GetRotatedMatrix(const Eigen::MatrixXi& matrix,
                                    remapper::RotateOp rotate_op) const;
+
+  std::unordered_map<int, Eigen::MatrixXi> rotated_matrix_cache_;
 };
 
 class CGRAMatrix : public Rectangle {
