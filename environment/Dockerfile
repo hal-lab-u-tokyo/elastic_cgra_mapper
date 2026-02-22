@@ -34,3 +34,6 @@ USER ${USER_NAME}
 WORKDIR ${APPLICATION_DIRECTORY}
 COPY ../.pre-commit-config.yaml ${APPLICATION_DIRECTORY}/
 RUN git init . && pre-commit install-hooks
+
+RUN cp /usr/share/bash-completion/completions/git /home/${USER_NAME}/.git-completion.bash
+RUN echo "source ~/.git-completion.bash" >> ~/.bashrc
