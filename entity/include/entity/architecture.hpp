@@ -97,7 +97,8 @@ struct CGRAConfig {
     return result;
   }
 
-  void AddFromConfig(ConfigId from_config_id, OpType op_type, std::string op_name) {
+  void AddFromConfig(ConfigId from_config_id, OpType op_type,
+                     std::string op_name) {
     from_config_id_vec[from_config_id_num] = from_config_id;
     from_config_id_num++;
     // if (from_config_id_num >= 3) {

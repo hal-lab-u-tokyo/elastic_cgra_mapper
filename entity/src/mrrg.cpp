@@ -207,10 +207,16 @@ entity::MRRG::MRRG(entity::MRRGConfig mrrg_config)
       node_id_to_config_id_map_({}) {
   entity::MRRGGraph mrrg_graph;
   std::map<std::tuple<int, int, int>, int> node_id_to_vertex_id;
-  std::vector<std::vector<int>> loop_pe_row_pos_orig = {{1}, {6}, {3}, {5}, {7}, {1}, {4}, {2}};//Original Raccoon
-  std::vector<std::vector<int>> loop_pe_row_pos_prop = {{2}, {-1}, {6}, {4}, {5,6}, {2}, {4}, {3}};//for TM raccoon
-  std::vector<std::vector<int>> TM_pe_row_pos_prop = {{-1}, {-1}, {-1}, {5}, {4}, {6}, {4}, {4}};
-  std::vector<std::vector<int>> TM_pe_row_pos_rand = {{2}, {-1}, {1, 4}, {-1}, {4}, {-1}, {5}, {-1}};
+  std::vector<std::vector<int>> loop_pe_row_pos_orig = {
+      {1}, {6}, {3}, {5}, {7}, {1}, {4}, {2}};  // Original Raccoon
+  std::vector<std::vector<int>> loop_pe_row_pos_prop = {
+      {2}, {-1}, {6}, {4}, {5, 6}, {2}, {4}, {3}};  // for TM raccoon
+  // std::vector<std::vector<int>> TM_pe_row_pos_prop = {{-1}, {-1}, {-1}, {5},
+  // {4}, {6}, {4}, {4}};
+  std::vector<std::vector<int>> TM_pe_row_pos_prop = {{-1}, {-1}, {5}, {-1},
+                                                      {4},  {6},  {4}, {4}};
+  std::vector<std::vector<int>> TM_pe_row_pos_rand = {{2}, {-1}, {1, 4}, {-1},
+                                                      {4}, {-1}, {5},    {-1}};
 
   for (int i = 0; i < mrrg_config.row; i++) {
     for (int j = 0; j < mrrg_config.column; j++) {
@@ -229,51 +235,72 @@ entity::MRRG::MRRG(entity::MRRGConfig mrrg_config)
 
         bool is_loop_pe = false;
         bool is_TM_pe = false;
-        if (mrrg_config.is_TM_raccoon && (i == mrrg_config.row-1 || i == mrrg_config.row-2 || i == mrrg_config.row-3)) {
+        if (mrrg_config.is_TM_raccoon &&
+            (i == mrrg_config.row - 1 || i == mrrg_config.row - 2 ||
+             i == mrrg_config.row - 3)) {
           graph_[vertex_id].supported_operations = entity::GetAllOperations();
           is_TM_pe = true;
-        }else if(mrrg_config.is_TM_raccoon_2){
-          if(mrrg_config.tm_pe_pos == entity::MRRGTMPEPosition::kTMProp){
-            if(j < 8 && std::find(TM_pe_row_pos_prop[j].begin(), TM_pe_row_pos_prop[j].end(), i) != TM_pe_row_pos_prop[j].end()){
-              graph_[vertex_id].supported_operations = entity::GetTMOperations();
+        } else if (mrrg_config.is_TM_raccoon_2) {
+          if (mrrg_config.tm_pe_pos == entity::MRRGTMPEPosition::kTMProp) {
+            if (j < 8 && std::find(TM_pe_row_pos_prop[j].begin(),
+                                   TM_pe_row_pos_prop[j].end(),
+                                   i) != TM_pe_row_pos_prop[j].end()) {
+              graph_[vertex_id].supported_operations =
+                  entity::GetTMOperations();
               is_TM_pe = true;
             }
-          }else if(mrrg_config.tm_pe_pos == entity::MRRGTMPEPosition::kRand){
-            if(j < 8 && std::find(TM_pe_row_pos_rand[j].begin(), TM_pe_row_pos_rand[j].end(), i) != TM_pe_row_pos_rand[j].end()){
-              graph_[vertex_id].supported_operations = entity::GetTMOperations();
+          } else if (mrrg_config.tm_pe_pos == entity::MRRGTMPEPosition::kRand) {
+            if (j < 8 && std::find(TM_pe_row_pos_rand[j].begin(),
+                                   TM_pe_row_pos_rand[j].end(),
+                                   i) != TM_pe_row_pos_rand[j].end()) {
+              graph_[vertex_id].supported_operations =
+                  entity::GetTMOperations();
               is_TM_pe = true;
             }
           }
         }
-        //is_raccoonとis_raccoon_2は排他
+        // is_raccoonとis_raccoon_2は排他
         if (!is_TM_pe && mrrg_config.is_raccoon) {
-          if(mrrg_config.loop_pe_pos == entity::MRRGLoopPEPosition::kOrig){
-            if(j < 8 && std::find(loop_pe_row_pos_orig[j].begin(), loop_pe_row_pos_orig[j].end(), i) != loop_pe_row_pos_orig[j].end()){
-              graph_[vertex_id].supported_operations = entity::GetLoopOperations();
+          if (mrrg_config.loop_pe_pos == entity::MRRGLoopPEPosition::kOrig) {
+            if (j < 8 && std::find(loop_pe_row_pos_orig[j].begin(),
+                                   loop_pe_row_pos_orig[j].end(),
+                                   i) != loop_pe_row_pos_orig[j].end()) {
+              graph_[vertex_id].supported_operations =
+                  entity::GetLoopOperations();
               is_loop_pe = true;
             }
-          }else if(mrrg_config.loop_pe_pos == entity::MRRGLoopPEPosition::kProp){
-            if(j < 8 && std::find(loop_pe_row_pos_prop[j].begin(), loop_pe_row_pos_prop[j].end(), i) != loop_pe_row_pos_prop[j].end()){
-              graph_[vertex_id].supported_operations = entity::GetLoopOperations();
+          } else if (mrrg_config.loop_pe_pos ==
+                     entity::MRRGLoopPEPosition::kProp) {
+            if (j < 8 && std::find(loop_pe_row_pos_prop[j].begin(),
+                                   loop_pe_row_pos_prop[j].end(),
+                                   i) != loop_pe_row_pos_prop[j].end()) {
+              graph_[vertex_id].supported_operations =
+                  entity::GetLoopOperations();
               is_loop_pe = true;
             }
           }
         }
 
-        if(!is_loop_pe && !is_TM_pe){
+        if (!is_loop_pe && !is_TM_pe) {
           if (mrrg_config.memory_io == entity::MRRGMemoryIOType::kAll) {
             graph_[vertex_id].supported_operations = entity::GetAllOperations();
-          } else if (mrrg_config.memory_io == entity::MRRGMemoryIOType::kBothEnds) {
+          } else if (mrrg_config.memory_io ==
+                     entity::MRRGMemoryIOType::kBothEnds) {
             if (i == 0 || i == mrrg_config.row - 1) {
-              graph_[vertex_id].supported_operations = entity::GetAllOperations();
+              graph_[vertex_id].supported_operations =
+                  entity::GetAllOperations();
             } else {
-              graph_[vertex_id].supported_operations = entity::GetAllOperationsExceptMemoryAccess();
+              graph_[vertex_id].supported_operations =
+                  entity::GetAllOperationsExceptMemoryAccess();
             }
-          } else if (mrrg_config.memory_io == entity::MRRGMemoryIOType::kOneEnd) {
+          } else if (mrrg_config.memory_io ==
+                     entity::MRRGMemoryIOType::kOneEnd) {
             if (i == 0) {
-              graph_[vertex_id].supported_operations = entity::GetAllOperations();
+              graph_[vertex_id].supported_operations =
+                  entity::GetAllOperations();
             } else {
-              graph_[vertex_id].supported_operations = entity::GetAllOperationsExceptMemoryAccess();
+              graph_[vertex_id].supported_operations =
+                  entity::GetAllOperationsExceptMemoryAccess();
             }
           }
         }
@@ -292,31 +319,41 @@ entity::MRRG::MRRG(entity::MRRGConfig mrrg_config)
       for (int k = 0; k < mrrg_config.context_size; k++) {
         std::tuple<int, int, int> from_node_id({i, j, k});
         std::tuple<int, int, int> root_node_id;
-        if(mrrg_config.is_TM_raccoon){
-          if(i == mrrg_config.row-1 || i == mrrg_config.row-2 || i == mrrg_config.row-3){
-            auto TM_pe_position = TM_pe_positions[mrrg_config.row -1 - i][j];
-            if(TM_pe_position.first != -1){
-              root_node_id = std::make_tuple(TM_pe_position.first, TM_pe_position.second, k);
-              auto connected_node_id_vec = GetConnectedNodeIdVector(root_node_id, mrrg_config);
+        if (mrrg_config.is_TM_raccoon) {
+          if (i == mrrg_config.row - 1 || i == mrrg_config.row - 2 ||
+              i == mrrg_config.row - 3) {
+            auto TM_pe_position = TM_pe_positions[mrrg_config.row - 1 - i][j];
+            if (TM_pe_position.first != -1) {
+              root_node_id = std::make_tuple(TM_pe_position.first,
+                                             TM_pe_position.second, k);
+              auto connected_node_id_vec =
+                  GetConnectedNodeIdVector(root_node_id, mrrg_config);
               int TM_vertex_id = node_id_to_vertex_id[from_node_id];
               for (auto to_node_id : connected_node_id_vec) {
                 int to_row_id, to_column_id, to_context_id;
                 std::tie(to_row_id, to_column_id, to_context_id) = to_node_id;
-                if(to_row_id != mrrg_config.row-1 && to_row_id != mrrg_config.row-2 && to_row_id != mrrg_config.row-3){
+                if (to_row_id != mrrg_config.row - 1 &&
+                    to_row_id != mrrg_config.row - 2 &&
+                    to_row_id != mrrg_config.row - 3) {
                   int neighbor_vertex_id = node_id_to_vertex_id[to_node_id];
                   boost::add_edge(TM_vertex_id, neighbor_vertex_id, graph_);
                   boost::add_edge(neighbor_vertex_id, TM_vertex_id, graph_);
                 }
               }
-              for(int idx_i = i; (mrrg_config.row -1 - idx_i) >= 0 && (mrrg_config.row -1 - idx_i) <= 2; idx_i--){
+              for (int idx_i = i; (mrrg_config.row - 1 - idx_i) >= 0 &&
+                                  (mrrg_config.row - 1 - idx_i) <= 2;
+                   idx_i--) {
                 int beg_idx_j;
-                if(idx_i == i){
-                  beg_idx_j = j -1;
-                }else{
+                if (idx_i == i) {
+                  beg_idx_j = j - 1;
+                } else {
                   beg_idx_j = mrrg_config.column - 1;
                 }
-                for(int idx_j = beg_idx_j; idx_j >= 0; idx_j--){
-                  if(TM_pe_positions[mrrg_config.row -1 - idx_i][idx_j].first==TM_pe_position.first && TM_pe_positions[mrrg_config.row -1 - idx_i][idx_j].second==TM_pe_position.second){
+                for (int idx_j = beg_idx_j; idx_j >= 0; idx_j--) {
+                  if (TM_pe_positions[mrrg_config.row - 1 - idx_i][idx_j]
+                              .first == TM_pe_position.first &&
+                      TM_pe_positions[mrrg_config.row - 1 - idx_i][idx_j]
+                              .second == TM_pe_position.second) {
                     root_node_id = std::make_tuple(idx_i, idx_j, k);
                     break;
                   }
@@ -324,23 +361,25 @@ entity::MRRG::MRRG(entity::MRRGConfig mrrg_config)
               }
               int neighbor_vertex_id = node_id_to_vertex_id[root_node_id];
               boost::add_edge(neighbor_vertex_id, TM_vertex_id, graph_);
-            }else{
+            } else {
               continue;
             }
-          }else{
-            auto connected_node_id_vec = GetConnectedNodeIdVector(from_node_id, mrrg_config);
+          } else {
+            auto connected_node_id_vec =
+                GetConnectedNodeIdVector(from_node_id, mrrg_config);
             int from_vertex_id = node_id_to_vertex_id[from_node_id];
             for (auto to_node_id : connected_node_id_vec) {
               int to_row_id, to_column_id, to_context_id;
               std::tie(to_row_id, to_column_id, to_context_id) = to_node_id;
-              if(to_row_id != mrrg_config.row-1){
+              if (to_row_id != mrrg_config.row - 1) {
                 int to_vertex_id = node_id_to_vertex_id[to_node_id];
                 boost::add_edge(from_vertex_id, to_vertex_id, graph_);
               }
             }
           }
-        }else{
-          auto connected_node_id_vec = GetConnectedNodeIdVector(from_node_id, mrrg_config);
+        } else {
+          auto connected_node_id_vec =
+              GetConnectedNodeIdVector(from_node_id, mrrg_config);
           int from_vertex_id = node_id_to_vertex_id[from_node_id];
           for (auto to_node_id : connected_node_id_vec) {
             int to_vertex_id = node_id_to_vertex_id[to_node_id];
@@ -388,6 +427,7 @@ int entity::MRRG::GetMRRGNodeId(int row_id, int column_id, int context_id) {
 }
 
 std::tuple<int, int, int> entity::MRRG::GetMRRGConfigId(int node_id) {
-  if (node_id_to_config_id_map_.count(node_id) == 0) return std::make_tuple(-1, -1, -1);
+  if (node_id_to_config_id_map_.count(node_id) == 0)
+    return std::make_tuple(-1, -1, -1);
   return node_id_to_config_id_map_[node_id];
 }

@@ -120,7 +120,7 @@ entity::OpType entity::OpTypeFromString(std::string op_string) {
     return entity::OpType::OR;
   } else if (op_string == "xor") {
     return entity::OpType::XOR;
-  } else if (op_string == "shift" || op_string == "ashr" || 
+  } else if (op_string == "shift" || op_string == "ashr" ||
              op_string == "lshr" || op_string == "shl") {
     return entity::OpType::SHIFT;
   } else if (op_string == "icmp") {
@@ -150,30 +150,29 @@ entity::OpType entity::OpTypeFromString(std::string op_string) {
 
 std::vector<entity::OpType> entity::GetAllOperations() {
   return std::vector<OpType>(
-      {entity::OpType::ADD, entity::OpType::FADD, entity::OpType::SUB, 
-       entity::OpType::FSUB, entity::OpType::MUL, entity::OpType::FMUL,
-       entity::OpType::DIV, entity::OpType::SDIV, entity::OpType::FDIV, 
-       entity::OpType::CONST, entity::OpType::LOAD, entity::OpType::OUTPUT,
-       entity::OpType::STORE, entity::OpType::NOP, entity::OpType::ROUTE, 
-       entity::OpType::AND, entity::OpType::OR, entity::OpType::XOR, 
-       entity::OpType::SHIFT, entity::OpType::ICMP, entity::OpType::CMPGT,   
+      {entity::OpType::ADD,   entity::OpType::FADD,  entity::OpType::SUB,
+       entity::OpType::FSUB,  entity::OpType::MUL,   entity::OpType::FMUL,
+       entity::OpType::DIV,   entity::OpType::SDIV,  entity::OpType::FDIV,
+       entity::OpType::CONST, entity::OpType::LOAD,  entity::OpType::OUTPUT,
+       entity::OpType::STORE, entity::OpType::NOP,   entity::OpType::ROUTE,
+       entity::OpType::AND,   entity::OpType::OR,    entity::OpType::XOR,
+       entity::OpType::SHIFT, entity::OpType::ICMP,  entity::OpType::CMPGT,
        entity::OpType::CMPGE, entity::OpType::CMPEQ, entity::OpType::SELECT});
 };
 
 std::vector<entity::OpType> entity::GetAllOperationsExceptMemoryAccess() {
   return std::vector<OpType>(
-      {entity::OpType::ADD, entity::OpType::FADD, entity::OpType::SUB, 
-       entity::OpType::FSUB, entity::OpType::MUL, entity::OpType::FMUL,
-       entity::OpType::DIV, entity::OpType::SDIV, entity::OpType::FDIV,
-       entity::OpType::CONST, entity::OpType::NOP,entity::OpType::ROUTE, 
-       entity::OpType::AND, entity::OpType::OR, entity::OpType::XOR,
-       entity::OpType::SHIFT, entity::OpType::ICMP, entity::OpType::CMPGT,
+      {entity::OpType::ADD,   entity::OpType::FADD,  entity::OpType::SUB,
+       entity::OpType::FSUB,  entity::OpType::MUL,   entity::OpType::FMUL,
+       entity::OpType::DIV,   entity::OpType::SDIV,  entity::OpType::FDIV,
+       entity::OpType::CONST, entity::OpType::NOP,   entity::OpType::ROUTE,
+       entity::OpType::AND,   entity::OpType::OR,    entity::OpType::XOR,
+       entity::OpType::SHIFT, entity::OpType::ICMP,  entity::OpType::CMPGT,
        entity::OpType::CMPGE, entity::OpType::CMPEQ, entity::OpType::SELECT});
 };
 
 std::vector<entity::OpType> entity::GetLoopOperations() {
-  return std::vector<OpType>(
-      {entity::OpType::LOOP});
+  return std::vector<OpType>({entity::OpType::LOOP});
 };
 
 std::vector<entity::OpType> entity::GetTMOperations() {

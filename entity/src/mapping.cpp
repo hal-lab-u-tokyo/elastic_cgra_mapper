@@ -25,7 +25,8 @@ entity::Mapping::Mapping(
     }
 
     const int kRouteOpId = -1;
-    std::vector<int> op_result_mrrg_reg_vec = dfg_output_to_mrrg_reg[from_op_id];
+    std::vector<int> op_result_mrrg_reg_vec =
+        dfg_output_to_mrrg_reg[from_op_id];
     for (int mrrg_reg_id : op_result_mrrg_reg_vec) {
       PE_id_to_op_id_map.emplace(mrrg_reg_id, kRouteOpId);
       PE_id_vec.emplace_back(mrrg_reg_id);
@@ -61,7 +62,8 @@ entity::Mapping::Mapping(
       std::string from_op_name = GetOpNameFromPEId(from_PE_id);
 
       if (config_map_.count(from_config_id) == 0) {
-        config_map_.emplace(from_config_id, entity::CGRAConfig(from_op_type, from_op_name));
+        config_map_.emplace(from_config_id,
+                            entity::CGRAConfig(from_op_type, from_op_name));
       }
       if (from_op_type == entity::OpType::CONST) {
         int op_id = PE_id_to_op_id_map.at(from_PE_id);
@@ -92,7 +94,7 @@ entity::Mapping::Mapping(
                                                   to_op_name);
           if (searched_PE_id.count(adj_PE_id) == 0) {
             // from_PE_id_queue.push(to_PE_id);
-            if(to_op_type == entity::OpType::ROUTE) {                            
+            if (to_op_type == entity::OpType::ROUTE) {
               from_PE_id_queue.push(to_PE_id);
             }
             searched_PE_id.emplace(to_PE_id);
@@ -110,7 +112,7 @@ entity::Mapping entity::GenerateMappingFromRoutingResult(
   entity::MRRGConfig mrrg_config_ = mrrg.GetMRRGConfig();
   entity::ConfigMap config_map_ = {};
 
-  entity::MRRG dc_mrrg = mrrg;  
+  entity::MRRG dc_mrrg = mrrg;
 
   for (int from_op_id = 0; from_op_id < dfg.GetNodeNum(); from_op_id++) {
     int from_op_PE_id = dfg_node_to_mrrg_node[from_op_id];
@@ -161,7 +163,8 @@ entity::Mapping entity::GenerateMappingFromRoutingResult(
     while (from_edge_id_queue.size() > 0) {
       int from_edge_id = from_edge_id_queue.front();
       int from_PE_id, to_PE_id;
-      std::tie(from_PE_id, to_PE_id) = dc_mrrg.GetEdgeSourceTarget(from_edge_id);
+      std::tie(from_PE_id, to_PE_id) =
+          dc_mrrg.GetEdgeSourceTarget(from_edge_id);
       from_edge_id_queue.pop();
 
       std::vector<int> adj_edge_id_vec = dc_mrrg.GetOutEdgeIdVec(to_PE_id);

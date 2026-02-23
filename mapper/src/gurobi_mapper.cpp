@@ -53,7 +53,7 @@ mapper::MappingResult mapper::GurobiILPMapper::Execution() {
 
         var_name = "r_" + std::to_string(i) + "_" + std::to_string(j);
         map_output_to_route[i][j] =
-        model.addVar(0.0, 1.0, 0.0, GRB_BINARY, var_name);
+            model.addVar(0.0, 1.0, 0.0, GRB_BINARY, var_name);
       }
     }
     // set objective
@@ -93,7 +93,6 @@ mapper::MappingResult mapper::GurobiILPMapper::Execution() {
       model.addConstr(tmp_lin_expr, GRB_LESS_EQUAL, 1, constr_name);
     }
 
-
     // add constraint: functional unit legality
     for (int i = 0; i < dfg_node_num; i++) {
       int count = 0;
@@ -116,7 +115,8 @@ mapper::MappingResult mapper::GurobiILPMapper::Execution() {
         }
         // std::cout << "DFG node " << i << " op=" << (int)dfg_op << std::endl;
         // for (auto op : mrrg_supported_op_vec) {
-        //   std::cout << "MRRG node " << j << " supports " << (int)op << std::endl;
+        //   std::cout << "MRRG node " << j << " supports " << (int)op <<
+        //   std::endl;
         // }
       }
       if (count == 0) {
@@ -224,127 +224,150 @@ mapper::MappingResult mapper::GurobiILPMapper::Execution() {
 
     // add constraint: input to route operation
     const double input_to_route_coefficient = 1;
-    for (int dfg_node_id = 0; dfg_node_id < dfg_node_num; dfg_node_id++) {            
+    for (int dfg_node_id = 0; dfg_node_id < dfg_node_num; dfg_node_id++) {
       for (int mrrg_node_id = 0; mrrg_node_id < mrrg_node_num; mrrg_node_id++) {
         GRBLinExpr tmp_lin_expr;
         std::vector<int> mrrg_parent_node_id_vec =
             mrrg_ptr_->GetParentNodeIdVec(mrrg_node_id);
         for (int mrrg_parent_node_id : mrrg_parent_node_id_vec) {
-          if(mrrg_parent_node_id == mrrg_node_id) continue;
-          tmp_lin_expr.addTerms(&input_to_route_coefficient,
-                                &(map_op_to_PE[dfg_node_id][mrrg_parent_node_id]), 1);
-          tmp_lin_expr.addTerms(&input_to_route_coefficient,
-                                &(map_output_to_route[dfg_node_id][mrrg_parent_node_id]), 1);
+          if (mrrg_parent_node_id == mrrg_node_id) continue;
+          tmp_lin_expr.addTerms(
+              &input_to_route_coefficient,
+              &(map_op_to_PE[dfg_node_id][mrrg_parent_node_id]), 1);
+          tmp_lin_expr.addTerms(
+              &input_to_route_coefficient,
+              &(map_output_to_route[dfg_node_id][mrrg_parent_node_id]), 1);
         }
-        std::string constr_name = "c_input_to_route_" + std::to_string(dfg_node_id) +
-                                  "_" + std::to_string(mrrg_node_id);
+        std::string constr_name = "c_input_to_route_" +
+                                  std::to_string(dfg_node_id) + "_" +
+                                  std::to_string(mrrg_node_id);
         model.addConstr(map_output_to_route[dfg_node_id][mrrg_node_id],
-                        GRB_LESS_EQUAL, tmp_lin_expr, constr_name);    
+                        GRB_LESS_EQUAL, tmp_lin_expr, constr_name);
       }
     }
 
     // add constraint: output to route operation
     const double output_to_route_coefficient = 1;
-    for (int dfg_node_id = 0; dfg_node_id < dfg_node_num; dfg_node_id++) {    
+    for (int dfg_node_id = 0; dfg_node_id < dfg_node_num; dfg_node_id++) {
       std::vector<int> dfg_adj_node_ids =
           dfg_ptr_->GetAdjacentNodeIdVec(dfg_node_id);
       for (int mrrg_node_id = 0; mrrg_node_id < mrrg_node_num; mrrg_node_id++) {
         GRBLinExpr tmp_lin_expr;
         std::vector<int> mrrg_child_node_id_vec =
-            mrrg_ptr_->GetAdjacentNodeIdVec(mrrg_node_id);            
+            mrrg_ptr_->GetAdjacentNodeIdVec(mrrg_node_id);
         for (int mrrg_child_node_id : mrrg_child_node_id_vec) {
-          if(mrrg_child_node_id == mrrg_node_id) continue;
-          for(int dfg_adj_node_id : dfg_adj_node_ids) {
-            tmp_lin_expr.addTerms(&output_to_route_coefficient,
-                                  &(map_op_to_PE[dfg_adj_node_id][mrrg_child_node_id]), 1);                      
-          }                    
-          tmp_lin_expr.addTerms(&output_to_route_coefficient,
-                                &(map_output_to_route[dfg_node_id][mrrg_child_node_id]), 1);
+          if (mrrg_child_node_id == mrrg_node_id) continue;
+          for (int dfg_adj_node_id : dfg_adj_node_ids) {
+            tmp_lin_expr.addTerms(
+                &output_to_route_coefficient,
+                &(map_op_to_PE[dfg_adj_node_id][mrrg_child_node_id]), 1);
+          }
+          tmp_lin_expr.addTerms(
+              &output_to_route_coefficient,
+              &(map_output_to_route[dfg_node_id][mrrg_child_node_id]), 1);
         }
-        std::string constr_name = "c_output_to_route_" + std::to_string(dfg_node_id) +
-                                  "_" + std::to_string(mrrg_node_id);
+        std::string constr_name = "c_output_to_route_" +
+                                  std::to_string(dfg_node_id) + "_" +
+                                  std::to_string(mrrg_node_id);
         model.addConstr(map_output_to_route[dfg_node_id][mrrg_node_id],
-                        GRB_LESS_EQUAL, tmp_lin_expr, constr_name);    
+                        GRB_LESS_EQUAL, tmp_lin_expr, constr_name);
       }
     }
 
     // add constraint: prevent cycle route
     const double cycle_route_coefficient = 1;
-    for (int dfg_node_id = 0; dfg_node_id < dfg_node_num; dfg_node_id++) {    
+    for (int dfg_node_id = 0; dfg_node_id < dfg_node_num; dfg_node_id++) {
       std::vector<int> dfg_adj_node_ids =
           dfg_ptr_->GetAdjacentNodeIdVec(dfg_node_id);
       for (int mrrg_node_id = 0; mrrg_node_id < mrrg_node_num; mrrg_node_id++) {
         GRBLinExpr tmp_lin_expr;
         std::vector<int> mrrg_child_node_id_vec =
-            mrrg_ptr_->GetAdjacentNodeIdVec(mrrg_node_id);            
+            mrrg_ptr_->GetAdjacentNodeIdVec(mrrg_node_id);
         for (int mrrg_child_node_id : mrrg_child_node_id_vec) {
-          if(mrrg_child_node_id == mrrg_node_id) continue;
-          tmp_lin_expr.addTerms(&cycle_route_coefficient,
-                                &(map_output_to_route[dfg_node_id][mrrg_child_node_id]), 1);
+          if (mrrg_child_node_id == mrrg_node_id) continue;
+          tmp_lin_expr.addTerms(
+              &cycle_route_coefficient,
+              &(map_output_to_route[dfg_node_id][mrrg_child_node_id]), 1);
           for (int dfg_adj_node_id : dfg_adj_node_ids) {
-            tmp_lin_expr.addTerms(&cycle_route_coefficient,
-                                  &(map_op_to_PE[dfg_adj_node_id][mrrg_child_node_id]), 1);                      
-          }                                                                          
+            tmp_lin_expr.addTerms(
+                &cycle_route_coefficient,
+                &(map_op_to_PE[dfg_adj_node_id][mrrg_child_node_id]), 1);
+          }
         }
         std::vector<int> mmrg_parent_node_id_vec =
             mrrg_ptr_->GetParentNodeIdVec(mrrg_node_id);
         for (int mmrg_parent_node_id : mmrg_parent_node_id_vec) {
-          if(mmrg_parent_node_id == mrrg_node_id) continue;
-          tmp_lin_expr.addTerms(&cycle_route_coefficient,
-                                &(map_output_to_route[dfg_node_id][mmrg_parent_node_id]), 1);
+          if (mmrg_parent_node_id == mrrg_node_id) continue;
+          tmp_lin_expr.addTerms(
+              &cycle_route_coefficient,
+              &(map_output_to_route[dfg_node_id][mmrg_parent_node_id]), 1);
         }
         tmp_lin_expr.addTerms(&cycle_route_coefficient,
                               &(map_op_to_PE[dfg_node_id][mrrg_node_id]), 1);
-        std::string constr_name = "c_cycle_route_" + std::to_string(dfg_node_id) +
-                                  "_" + std::to_string(mrrg_node_id);
+        std::string constr_name = "c_cycle_route_" +
+                                  std::to_string(dfg_node_id) + "_" +
+                                  std::to_string(mrrg_node_id);
         model.addConstr(2 * map_output_to_route[dfg_node_id][mrrg_node_id],
-                        GRB_LESS_EQUAL, tmp_lin_expr, constr_name);    
+                        GRB_LESS_EQUAL, tmp_lin_expr, constr_name);
       }
-    } 
+    }
 
     // // add constraint for TM raccoon
     // if(mrrg_ptr_->GetMRRGConfig().is_TM_raccoon) {
-    //   for (int mrrg_node_id = 0; mrrg_node_id < mrrg_node_num; mrrg_node_id++) {
+    //   for (int mrrg_node_id = 0; mrrg_node_id < mrrg_node_num;
+    //   mrrg_node_id++) {
     //     auto mrrg_config_id = mrrg_ptr_->GetMRRGConfigId(mrrg_node_id);
-    //     if (std::get<0>(mrrg_config_id) == mrrg_ptr_->GetMRRGConfig().row - 1) continue;
-    //     std::vector<int> mrrg_adj_node_id_vec = mrrg_ptr_->GetParentNodeIdVec(mrrg_node_id);
-    //     for (int mrrg_adj_node_id : mrrg_adj_node_id_vec) {
-    //       auto adj_mrrg_config_id = mrrg_ptr_->GetMRRGConfigId(mrrg_adj_node_id);
-    //       if (std::get<0>(adj_mrrg_config_id) == mrrg_ptr_->GetMRRGConfig().row - 1) continue;
-    //       if (mrrg_adj_node_id == mrrg_node_id) continue;
-    //       auto TM_same_pos_vec = mrrg_ptr_->GetTMSamePos(mrrg_ptr_->GetMRRGConfig(), mrrg_config_id);
-    //       auto adj_TM_same_pos_vec = mrrg_ptr_->GetTMSamePos(mrrg_ptr_->GetMRRGConfig(), adj_mrrg_config_id);
-    //       if(TM_same_pos_vec.size() == 0 && adj_TM_same_pos_vec.size() == 0) continue;
+    //     if (std::get<0>(mrrg_config_id) == mrrg_ptr_->GetMRRGConfig().row -
+    //     1) continue; std::vector<int> mrrg_adj_node_id_vec =
+    //     mrrg_ptr_->GetParentNodeIdVec(mrrg_node_id); for (int
+    //     mrrg_adj_node_id : mrrg_adj_node_id_vec) {
+    //       auto adj_mrrg_config_id =
+    //       mrrg_ptr_->GetMRRGConfigId(mrrg_adj_node_id); if
+    //       (std::get<0>(adj_mrrg_config_id) == mrrg_ptr_->GetMRRGConfig().row
+    //       - 1) continue; if (mrrg_adj_node_id == mrrg_node_id) continue; auto
+    //       TM_same_pos_vec =
+    //       mrrg_ptr_->GetTMSamePos(mrrg_ptr_->GetMRRGConfig(),
+    //       mrrg_config_id); auto adj_TM_same_pos_vec =
+    //       mrrg_ptr_->GetTMSamePos(mrrg_ptr_->GetMRRGConfig(),
+    //       adj_mrrg_config_id); if(TM_same_pos_vec.size() == 0 &&
+    //       adj_TM_same_pos_vec.size() == 0) continue;
 
     //       GRBQuadExpr expr;
     //       std::vector<int> TM_same_pos_id_vec, adj_TM_same_pos_id_vec;
     //       for(auto TM_same_pos : TM_same_pos_vec) {
-    //         TM_same_pos_id_vec.push_back(mrrg_ptr_->GetMRRGNodeId(std::get<0>(TM_same_pos), std::get<1>(TM_same_pos), std::get<2>(TM_same_pos)));
+    //         TM_same_pos_id_vec.push_back(mrrg_ptr_->GetMRRGNodeId(std::get<0>(TM_same_pos),
+    //         std::get<1>(TM_same_pos), std::get<2>(TM_same_pos)));
     //       }
     //       for(auto adj_TM_same_pos : adj_TM_same_pos_vec) {
-    //         adj_TM_same_pos_id_vec.push_back(mrrg_ptr_->GetMRRGNodeId(std::get<0>(adj_TM_same_pos), std::get<1>(adj_TM_same_pos), std::get<2>(adj_TM_same_pos)));
+    //         adj_TM_same_pos_id_vec.push_back(mrrg_ptr_->GetMRRGNodeId(std::get<0>(adj_TM_same_pos),
+    //         std::get<1>(adj_TM_same_pos), std::get<2>(adj_TM_same_pos)));
     //       }
     //       TM_same_pos_id_vec.push_back(mrrg_node_id);
     //       adj_TM_same_pos_id_vec.push_back(mrrg_adj_node_id);
 
-    //       for (int dfg_node_id = 0; dfg_node_id < dfg_node_num; dfg_node_id++) {
-    //         auto dfg_parent_node_id_vec = dfg_ptr_->GetParentNodeIdVec(dfg_node_id);
+    //       for (int dfg_node_id = 0; dfg_node_id < dfg_node_num;
+    //       dfg_node_id++) {
+    //         auto dfg_parent_node_id_vec =
+    //         dfg_ptr_->GetParentNodeIdVec(dfg_node_id);
 
     //         for (int dfg_parent_node_id : dfg_parent_node_id_vec) {
     //           for (auto TM_same_pos_id : TM_same_pos_id_vec) {
     //             for (auto adj_TM_same_pos_id : adj_TM_same_pos_id_vec) {
 
     //               // 基本項
-    //               expr += map_op_to_PE[dfg_parent_node_id][adj_TM_same_pos_id]
+    //               expr +=
+    //               map_op_to_PE[dfg_parent_node_id][adj_TM_same_pos_id]
     //                     * map_op_to_PE[dfg_node_id][TM_same_pos_id];
 
     //               expr += map_op_to_PE[dfg_node_id][adj_TM_same_pos_id]
     //                     * map_output_to_route[dfg_node_id][TM_same_pos_id];
 
-    //               expr += map_output_to_route[dfg_parent_node_id][adj_TM_same_pos_id]
+    //               expr +=
+    //               map_output_to_route[dfg_parent_node_id][adj_TM_same_pos_id]
     //                     * map_op_to_PE[dfg_node_id][TM_same_pos_id];
 
-    //               expr += map_output_to_route[dfg_node_id][adj_TM_same_pos_id]
+    //               expr +=
+    //               map_output_to_route[dfg_node_id][adj_TM_same_pos_id]
     //                     * map_output_to_route[dfg_node_id][TM_same_pos_id];
     //             }
     //           }
@@ -358,42 +381,39 @@ mapper::MappingResult mapper::GurobiILPMapper::Execution() {
 
     // add constraint for TM raccoon (linearized)
     if (mrrg_ptr_->GetMRRGConfig().is_TM_raccoon) {
-
       for (int mrrg_node_id = 0; mrrg_node_id < mrrg_node_num; mrrg_node_id++) {
-
         auto mrrg_config_id = mrrg_ptr_->GetMRRGConfigId(mrrg_node_id);
-        if (std::get<0>(mrrg_config_id) == mrrg_ptr_->GetMRRGConfig().row - 1) continue;
+        if (std::get<0>(mrrg_config_id) == mrrg_ptr_->GetMRRGConfig().row - 1)
+          continue;
 
         std::vector<int> mrrg_adj_node_id_vec =
             mrrg_ptr_->GetParentNodeIdVec(mrrg_node_id);
 
         for (int mrrg_adj_node_id : mrrg_adj_node_id_vec) {
-
-          auto adj_mrrg_config_id = mrrg_ptr_->GetMRRGConfigId(mrrg_adj_node_id);
-          if (std::get<0>(adj_mrrg_config_id) == mrrg_ptr_->GetMRRGConfig().row - 1) continue;
+          auto adj_mrrg_config_id =
+              mrrg_ptr_->GetMRRGConfigId(mrrg_adj_node_id);
+          if (std::get<0>(adj_mrrg_config_id) ==
+              mrrg_ptr_->GetMRRGConfig().row - 1)
+            continue;
           if (mrrg_adj_node_id == mrrg_node_id) continue;
 
-          auto TM_same_pos_vec =
-              mrrg_ptr_->GetTMSamePos(mrrg_ptr_->GetMRRGConfig(), mrrg_config_id);
-          auto adj_TM_same_pos_vec =
-              mrrg_ptr_->GetTMSamePos(mrrg_ptr_->GetMRRGConfig(), adj_mrrg_config_id);
+          auto TM_same_pos_vec = mrrg_ptr_->GetTMSamePos(
+              mrrg_ptr_->GetMRRGConfig(), mrrg_config_id);
+          auto adj_TM_same_pos_vec = mrrg_ptr_->GetTMSamePos(
+              mrrg_ptr_->GetMRRGConfig(), adj_mrrg_config_id);
 
           if (TM_same_pos_vec.empty() && adj_TM_same_pos_vec.empty()) continue;
 
           // tuple → node_id に変換
           std::vector<int> TM_same_pos_id_vec, adj_TM_same_pos_id_vec;
           for (auto TM_same_pos : TM_same_pos_vec) {
-            TM_same_pos_id_vec.push_back(
-              mrrg_ptr_->GetMRRGNodeId(
-                std::get<0>(TM_same_pos),
-                std::get<1>(TM_same_pos),
+            TM_same_pos_id_vec.push_back(mrrg_ptr_->GetMRRGNodeId(
+                std::get<0>(TM_same_pos), std::get<1>(TM_same_pos),
                 std::get<2>(TM_same_pos)));
           }
           for (auto adj_TM_same_pos : adj_TM_same_pos_vec) {
-            adj_TM_same_pos_id_vec.push_back(
-              mrrg_ptr_->GetMRRGNodeId(
-                std::get<0>(adj_TM_same_pos),
-                std::get<1>(adj_TM_same_pos),
+            adj_TM_same_pos_id_vec.push_back(mrrg_ptr_->GetMRRGNodeId(
+                std::get<0>(adj_TM_same_pos), std::get<1>(adj_TM_same_pos),
                 std::get<2>(adj_TM_same_pos)));
           }
 
@@ -401,17 +421,15 @@ mapper::MappingResult mapper::GurobiILPMapper::Execution() {
           TM_same_pos_id_vec.push_back(mrrg_node_id);
           adj_TM_same_pos_id_vec.push_back(mrrg_adj_node_id);
 
-          GRBLinExpr sum_z_expr = 0;   // ← 二次式ではなく線形式
+          GRBLinExpr sum_z_expr = 0;  // ← 二次式ではなく線形式
 
           for (int dfg_node_id = 0; dfg_node_id < dfg_node_num; dfg_node_id++) {
             auto dfg_parent_node_id_vec =
                 dfg_ptr_->GetParentNodeIdVec(dfg_node_id);
 
             for (int dfg_parent_node_id : dfg_parent_node_id_vec) {
-
               for (int TM_id : TM_same_pos_id_vec) {
                 for (int adj_TM_id : adj_TM_same_pos_id_vec) {
-
                   // (1) z1 = map_op[parent][adj] * map_op[cur][TM]
                   {
                     GRBVar z = model.addVar(0, 1, 0, GRB_BINARY);
@@ -441,7 +459,8 @@ mapper::MappingResult mapper::GurobiILPMapper::Execution() {
                   // (3) z3 = map_output[parent][adj] * map_op[cur][TM]
                   {
                     GRBVar z = model.addVar(0, 1, 0, GRB_BINARY);
-                    GRBVar x = map_output_to_route[dfg_parent_node_id][adj_TM_id];
+                    GRBVar x =
+                        map_output_to_route[dfg_parent_node_id][adj_TM_id];
                     GRBVar y = map_op_to_PE[dfg_node_id][TM_id];
 
                     model.addConstr(z <= x);
@@ -454,7 +473,8 @@ mapper::MappingResult mapper::GurobiILPMapper::Execution() {
                   // (4) z4 = map_output[parent][adj] * map_output[cur][TM]
                   {
                     GRBVar z = model.addVar(0, 1, 0, GRB_BINARY);
-                    GRBVar x = map_output_to_route[dfg_parent_node_id][adj_TM_id];
+                    GRBVar x =
+                        map_output_to_route[dfg_parent_node_id][adj_TM_id];
                     GRBVar y = map_output_to_route[dfg_node_id][TM_id];
 
                     model.addConstr(z <= x);
@@ -463,7 +483,6 @@ mapper::MappingResult mapper::GurobiILPMapper::Execution() {
 
                     sum_z_expr += z;
                   }
-
                 }
               }
             }
@@ -474,10 +493,6 @@ mapper::MappingResult mapper::GurobiILPMapper::Execution() {
         }
       }
     }
-
-
-
-
 
     // add constraint for elastic CGRA
     if (mrrg_ptr_->GetMRRGConfig().cgra_type ==
@@ -592,16 +607,24 @@ mapper::MappingResult mapper::GurobiILPMapper::Execution() {
         model.write("debug.iis");
       }
       const auto end_time = std::chrono::system_clock::now();
-      const double mapping_time = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count() / 1000.0;
+      const double mapping_time =
+          std::chrono::duration_cast<std::chrono::milliseconds>(end_time -
+                                                                start_time)
+              .count() /
+          1000.0;
       return MappingResult(false, entity::Mapping(mrrg_ptr_->GetMRRGConfig()),
-                          mapping_time);
+                           mapping_time);
     }
 
     if (model.get(GRB_IntAttr_SolCount) == 0) {
       const auto end_time = std::chrono::system_clock::now();
-      const double mapping_time = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count() / 1000.0;
+      const double mapping_time =
+          std::chrono::duration_cast<std::chrono::milliseconds>(end_time -
+                                                                start_time)
+              .count() /
+          1000.0;
       return MappingResult(false, entity::Mapping(mrrg_ptr_->GetMRRGConfig()),
-                          mapping_time);
+                           mapping_time);
     }
 
     // get result
@@ -620,7 +643,11 @@ mapper::MappingResult mapper::GurobiILPMapper::Execution() {
     }
 
     const auto end_time = std::chrono::system_clock::now();
-    const double mapping_time = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count() / 1000.0;
+    const double mapping_time =
+        std::chrono::duration_cast<std::chrono::milliseconds>(end_time -
+                                                              start_time)
+            .count() /
+        1000.0;
     return MappingResult(
         true,
         entity::Mapping(*mrrg_ptr_, *dfg_ptr_, dfg_node_to_mrrg_node,
