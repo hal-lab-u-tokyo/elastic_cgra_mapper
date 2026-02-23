@@ -5,7 +5,7 @@
 
 #include "remapper/algorithm/dp_and_full_search_elastic_remapper.hpp"
 #include "remapper/algorithm/dp_elastic_remapper.hpp"
-#include "remapper/algorithm/full_search_elastic_remapper.hpp"
+#include "remapper/algorithm/full_search_remapper.hpp"
 #include "remapper/algorithm/greedy_elastic_remapper.hpp"
 #include "remapper/algorithm_entity.hpp"
 #include "time.h"
@@ -63,9 +63,9 @@ remapper::RemappingResult remapper::Remapper::ElasticRemapping(
   const auto start_time = std::chrono::system_clock::now();
   switch (mode) {
     case RemappingMode::FullSearch:
-      result = remapper::FullSearchElasticRemapping(
-          mapping_matrix_vec, cgra_matrix, target_parallel_num, log_file,
-          timeout_s);
+      result = remapper::FullSearchRemapping(mapping_matrix_vec, cgra_matrix,
+                                             target_parallel_num, log_file,
+                                             timeout_s);
       break;
     case RemappingMode::Greedy:
       result = remapper::GreedyElasticRemapping(mapping_matrix_vec, cgra_matrix,
