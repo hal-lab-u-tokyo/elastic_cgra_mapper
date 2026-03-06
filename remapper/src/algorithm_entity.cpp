@@ -223,9 +223,9 @@ int remapper::CGRAMatrix::TryRemapping(
 
   Eigen::MatrixXi op_num_matrix = Eigen::MatrixXi::Zero(row_size, column_size);
   bool over_context_size = false;
-  int last_mapping_num = 0;
+  int last_mapping_id = 0;
   for (int i = 0; i < transform_op_vec.size(); i++) {
-    last_mapping_num = i;
+    last_mapping_id = i;
     const auto& transform_op = transform_op_vec[i];
 
     Eigen::MatrixXi tmp_matrix =
@@ -236,8 +236,8 @@ int remapper::CGRAMatrix::TryRemapping(
 
     int max_op_num = op_num_matrix.maxCoeff();
     over_context_size = max_op_num > context_size;
-    if (over_context_size) break;
+    if (over_context_size) return last_mapping_id;
   }
 
-  return last_mapping_num + 1;
+  return last_mapping_id + 1;
 }
