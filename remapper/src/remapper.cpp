@@ -6,7 +6,7 @@
 #include "remapper/algorithm/dp_and_full_search_elastic_remapper.hpp"
 #include "remapper/algorithm/dp_elastic_remapper.hpp"
 #include "remapper/algorithm/full_search_remapper.hpp"
-#include "remapper/algorithm/greedy_elastic_remapper.hpp"
+#include "remapper/algorithm/greedy_remapper.hpp"
 #include "remapper/algorithm_entity.hpp"
 #include "time.h"
 
@@ -68,8 +68,8 @@ remapper::RemappingResult remapper::Remapper::ElasticRemapping(
                                              timeout_s);
       break;
     case RemappingMode::Greedy:
-      result = remapper::GreedyElasticRemapping(mapping_matrix_vec, cgra_matrix,
-                                                target_parallel_num, log_file);
+      result = remapper::GreedyRemapping(mapping_matrix_vec, cgra_matrix,
+                                         target_parallel_num, log_file);
       break;
     case RemappingMode::DP:
       result = remapper::DPElasticRemapping(mapping_matrix_vec, cgra_matrix,
