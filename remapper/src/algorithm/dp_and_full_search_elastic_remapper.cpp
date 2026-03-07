@@ -1,5 +1,5 @@
 #include <remapper/algorithm/dp_and_full_search_elastic_remapper.hpp>
-#include <remapper/algorithm/dp_elastic_remapper.hpp>
+#include <remapper/algorithm/dp_remapper.hpp>
 #include <remapper/algorithm/full_search_remapper.hpp>
 #include <remapper/mapping_concater.hpp>
 #include <remapper/transform.hpp>
@@ -152,7 +152,7 @@ remapper::RemappingResult remapper::DPAndFullSearchElasticRemapping(
     }
   }
 
-  const auto dp_remapping_result = remapper::DPElasticRemapping(
+  const auto dp_remapping_result = remapper::DPRemapping(
       mapping_matrix_vec, cgra_matrix, target_parallel_num, log_file);
 
   remapper::RemappingResult modified_remepping_result;

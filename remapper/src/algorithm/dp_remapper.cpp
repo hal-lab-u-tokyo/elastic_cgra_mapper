@@ -1,4 +1,4 @@
-#include <remapper/algorithm/dp_elastic_remapper.hpp>
+#include <remapper/algorithm/dp_remapper.hpp>
 #include <remapper/mapping_concater.hpp>
 #include <remapper/mapping_transform_op.hpp>
 #include <remapper/remapper.hpp>
@@ -48,7 +48,7 @@ std::vector<std::vector<Eigen::Vector3d>> GetDPSplitedRectangleSize(
   return dp_splited_rectangle_size;
 }
 
-remapper::RemappingResult remapper::DPElasticRemapping(
+remapper::RemappingResult remapper::DPRemapping(
     std::vector<remapper::MappingMatrix> mapping_matrix_vec,
     const remapper::CGRAMatrix& cgra_matrix, const int target_parallel_num,
     std::ofstream& log_file) {
