@@ -1,6 +1,6 @@
 # !/bin/bash
 
-DEBUG_ENABLE=0
+DEBUG_ENABLE=0 # 1: enable debug, 0: disable debug
 
 if [ ! -d "build" ]; then
     mkdir build
