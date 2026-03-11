@@ -14,6 +14,7 @@ TEST(IOTest, mrrg_io_test) {
   input_mrrg_config.network_type = entity::MRRGNetworkType::kDiagonal;
   input_mrrg_config.local_reg_size = 3;
   input_mrrg_config.context_size = 3;
+  input_mrrg_config.loop_controller_position_vec = {{0, 0}, {7, 7}};
 
   std::shared_ptr<entity::MRRG> input_mrrg_ptr_ =
       std::make_shared<entity::MRRG>();
@@ -23,4 +24,6 @@ TEST(IOTest, mrrg_io_test) {
   entity::MRRG output_mrrg = io::ReadMRRGFromJsonFile(file_path);
 
   EXPECT_EQ(input_mrrg_config.row, output_mrrg.GetMRRGConfig().row);
+  EXPECT_EQ(input_mrrg_config.loop_controller_position_vec.size(),
+            output_mrrg.GetMRRGConfig().loop_controller_position_vec.size());
 }

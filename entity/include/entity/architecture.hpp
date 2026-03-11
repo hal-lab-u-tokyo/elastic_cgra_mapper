@@ -7,29 +7,6 @@
 
 namespace entity {
 
-struct PEPositionId {
-  int row_id;
-  int column_id;
-
-  PEPositionId() {
-    row_id = -1;
-    column_id = -1;
-  }
-  PEPositionId(int _row_id, int _column_id)
-      : row_id(_row_id), column_id(_column_id) {}
-
-  bool operator==(const PEPositionId& position_id) const {
-    return row_id == position_id.row_id && column_id == position_id.column_id;
-  }
-
-  bool operator<(const PEPositionId& position_id) const {
-    if (row_id != position_id.row_id) {
-      return row_id < position_id.row_id;
-    }
-    return column_id < position_id.column_id;
-  }
-};
-
 struct HashPEPositionId {
  public:
   size_t operator()(const PEPositionId& config_id) const {

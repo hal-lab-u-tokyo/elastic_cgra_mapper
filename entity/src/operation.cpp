@@ -40,6 +40,9 @@ std::string entity::OpTypeToString(OpType op) {
     case entity::OpType::SHIFT:
       return "shift";
       break;
+    case entity::OpType::LOOP:
+      return "loop";
+      break;
     default:
       assert("invalid OpType");
       abort();
@@ -71,6 +74,10 @@ entity::OpType entity::OpTypeFromString(std::string op_string) {
     return entity::OpType::OR;
   } else if (op_string == "shift") {
     return entity::OpType::SHIFT;
+  } else if (op_string == "loop") {
+    return entity::OpType::LOOP;
+  } else if (op_string == "select") {
+    return entity::OpType::SELECT;
   } else {
     std::string message = "invalid op string: " + op_string;
     std::cerr << message << std::endl;
@@ -91,6 +98,10 @@ std::vector<entity::OpType> entity::GetAllOperationsExceptMemoryAccess() {
       {entity::OpType::ADD, entity::OpType::SUB, entity::OpType::MUL,
        entity::OpType::DIV, entity::OpType::CONST, entity::OpType::NOP,
        entity::OpType::ROUTE, entity::OpType::OR, entity::OpType::SHIFT});
+};
+
+std::vector<entity::OpType> entity::GetLoopOperations() {
+  return std::vector<OpType>({entity::OpType::LOOP});
 };
 
 bool entity::IsMemoryAccessOperation(OpType op) {
