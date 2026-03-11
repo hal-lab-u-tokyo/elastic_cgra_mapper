@@ -8,7 +8,7 @@
 #include <io/mapping_io.hpp>
 #include <io/output_to_log_file.hpp>
 #include <iostream>
-#include <mapper/gurobi_mapper.hpp>
+#include <mapper/gurobi_placement_mapper.hpp>
 
 std::string FixOpName(std::string op_name, int node_offset) {
   std::string result = "";
@@ -115,8 +115,8 @@ int main(int argc, char* argv[]) {
     dfg_ptr = AddDFG(dfg_ptr, dfg_ptr_to_add, dfg_ptr_to_add->GetNodeNum() * i);
   }
 
-  mapper::GurobiILPMapper* mapper;
-  mapper = mapper::GurobiILPMapper().CreateMapper(dfg_ptr, mrrg_ptr);
+  mapper::GurobiPlacementILPMapper* mapper;
+  mapper = mapper::GurobiPlacementILPMapper().CreateMapper(dfg_ptr, mrrg_ptr);
   mapper->SetLogFilePath(logger.GetGurobiLogFilePath());
   mapper->SetTimeOut(timeout_s);
 

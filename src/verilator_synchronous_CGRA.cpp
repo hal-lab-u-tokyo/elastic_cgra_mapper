@@ -6,7 +6,7 @@
 #include <io/dfg_io.hpp>
 #include <io/mapping_io.hpp>
 #include <iostream>
-#include <mapper/gurobi_mapper.hpp>
+#include <mapper/gurobi_placement_mapper.hpp>
 
 int main(int argc, char** argv) {
   if (argc != 5) {
@@ -47,7 +47,7 @@ int main(int argc, char** argv) {
   }
 
   mapper::IILPMapper* mapper;
-  mapper = mapper::GurobiILPMapper().CreateMapper(dfg_ptr, mrrg_ptr);
+  mapper = mapper::GurobiPlacementILPMapper().CreateMapper(dfg_ptr, mrrg_ptr);
 
   const auto mapping_result = mapper->Execution();
   io::WriteMappingFile(mapping_file_path, mapping_result.mapping_ptr,

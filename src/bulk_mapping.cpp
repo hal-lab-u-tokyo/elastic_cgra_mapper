@@ -7,7 +7,7 @@
 #include <io/mapping_io.hpp>
 #include <io/output_to_log_file.hpp>
 #include <iostream>
-#include <mapper/gurobi_mapper.hpp>
+#include <mapper/gurobi_placement_mapper.hpp>
 
 std::vector<entity::MRRGConfig> GetMRRGToTest(int dfg_node_num) {
   std::vector<entity::MRRGConfig> mrrg_config_vec;
@@ -69,8 +69,9 @@ int main(int argc, char* argv[]) {
       std::shared_ptr<entity::MRRG> mrrg_ptr =
           std::make_shared<entity::MRRG>(mrrg_config);
 
-      mapper::GurobiILPMapper* mapper;
-      mapper = mapper::GurobiILPMapper().CreateMapper(dfg_ptr, mrrg_ptr);
+      mapper::GurobiPlacementILPMapper* mapper;
+      mapper =
+          mapper::GurobiPlacementILPMapper().CreateMapper(dfg_ptr, mrrg_ptr);
       mapper->SetLogFilePath(mapping_logger.GetGurobiLogFilePath());
       mapper->SetTimeOut(timeout_s);
 

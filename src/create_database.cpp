@@ -7,7 +7,7 @@
 #include <io/mapping_io.hpp>
 #include <io/output_to_log_file.hpp>
 #include <iostream>
-#include <mapper/gurobi_mapper.hpp>
+#include <mapper/gurobi_placement_mapper.hpp>
 #include <remapper/algorithm/dp_elastic_remapper.hpp>
 
 std::vector<entity::MRRGConfig> GetMRRGOfSubCGRA(
@@ -208,8 +208,9 @@ int main(int argc, char* argv[]) {
           std::make_shared<entity::MRRG>(tmp_mrrg_config);
 
       double mapping_time_out_s = (db_timeout_s - creating_db_time_s) / 2;
-      mapper::GurobiILPMapper* mapper;
-      mapper = mapper::GurobiILPMapper().CreateMapper(dfg_ptr, mrrg_ptr);
+      mapper::GurobiPlacementILPMapper* mapper;
+      mapper =
+          mapper::GurobiPlacementILPMapper().CreateMapper(dfg_ptr, mrrg_ptr);
       mapper->SetLogFilePath(logger.GetNextGurobiMappingPath(
           mapping_time_out_s, mrrg_ptr->GetMRRGConfig()));
       mapper->SetTimeOut(mapping_time_out_s);
