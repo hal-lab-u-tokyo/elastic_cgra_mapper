@@ -6,9 +6,13 @@
 namespace entity {
 enum OpType {
   ADD,
+  FADD,
   SUB,
   MUL,
+  FMUL,
   DIV,
+  SDIV,
+  FDIV,
   CONST,
   LOAD,
   OUTPUT,
@@ -16,7 +20,14 @@ enum OpType {
   NOP,
   ROUTE,
   OR,
+  SHIFT,
+  ICMP,
+  CMPGT,
+  CMPGE,
+  CMPEQ,
+  FSUB,
   LOOP,
+  SELECT
 };
 std::string OpTypeToString(OpType op);
 OpType OpTypeFromString(std::string op_string);
