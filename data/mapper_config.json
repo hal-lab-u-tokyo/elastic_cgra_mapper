@@ -1,0 +1,8 @@
+{
+    "Algorithm": {
+        "type": "ILPMapper"
+    },
+    "DFG": {
+        "operation_name_label": "node_id"
+    }
+}
