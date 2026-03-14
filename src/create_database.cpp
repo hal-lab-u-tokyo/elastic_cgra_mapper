@@ -9,7 +9,7 @@
 #include <io/output_to_log_file.hpp>
 #include <iostream>
 #include <mapper/gurobi_placement_mapper.hpp>
-#include <remapper/algorithm/dp_elastic_remapper.hpp>
+#include <remapper/algorithm/dp_remapper.hpp>
 
 std::vector<entity::MRRGConfig> GetMRRGOfSubCGRA(
     int dfg_node_num, int memory_access_node_num,
@@ -189,8 +189,8 @@ int main(int argc, char* argv[]) {
     std::ofstream remapper_log_file(logger.GetSelectionLogFilePath());
     const auto dp_start_time = std::chrono::system_clock::now();
     auto remapping_result =
-        remapper::DPElasticRemapping(tmp_mapping_matrix_vec, cgra_matrix,
-                                     target_parallel_num, remapper_log_file);
+        remapper::DPRemapping(tmp_mapping_matrix_vec, cgra_matrix,
+                              target_parallel_num, remapper_log_file);
     const auto dp_end_time = std::chrono::system_clock::now();
     remapping_result.remapping_time_s =
         std::chrono::duration_cast<std::chrono::milliseconds>(dp_end_time -

@@ -4,7 +4,7 @@
 #include <chrono>
 
 #include "remapper/algorithm/dp_and_full_search_elastic_remapper.hpp"
-#include "remapper/algorithm/dp_elastic_remapper.hpp"
+#include "remapper/algorithm/dp_remapper.hpp"
 #include "remapper/algorithm/full_search_remapper.hpp"
 #include "remapper/algorithm/greedy_remapper.hpp"
 #include "remapper/algorithm_entity.hpp"
@@ -72,8 +72,8 @@ remapper::RemappingResult remapper::Remapper::ElasticRemapping(
                                          target_parallel_num, log_file);
       break;
     case RemappingMode::DP:
-      result = remapper::DPElasticRemapping(mapping_matrix_vec, cgra_matrix,
-                                            target_parallel_num, log_file);
+      result = remapper::DPRemapping(mapping_matrix_vec, cgra_matrix,
+                                     target_parallel_num, log_file);
       break;
     case RemappingMode::DPAndFullSearch:
       result = remapper::DPAndFullSearchElasticRemapping(
