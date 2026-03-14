@@ -116,10 +116,9 @@ entity::Mapping remapper::MappingRotater(const entity::Mapping& mapping,
           to_config_id, mapping.GetMRRGConfig(), rotate_op));
     }
 
-    for (int i = 0; i < cgra_config.second.from_config_id_num; i++) {
-      rotated_cgra_config.from_config_id_vec[i] =
-          remapper::RotateConfigId(cgra_config.second.from_config_id_vec[i],
-                                   mapping.GetMRRGConfig(), rotate_op);
+    for (const auto& from_config_id : cgra_config.second.from_config_id_vec) {
+      rotated_cgra_config.from_config_id_vec.push_back(remapper::RotateConfigId(
+          from_config_id, mapping.GetMRRGConfig(), rotate_op));
     }
 
     rotated_config_map.emplace(rotated_config_id, rotated_cgra_config);

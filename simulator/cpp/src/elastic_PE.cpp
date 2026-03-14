@@ -52,10 +52,10 @@ simulator::ElasticPE::ElasticPE(
 };
 
 void simulator::ElasticPE::SetConfig(int id, entity::CGRAConfig config) {
-  if (config.from_config_id_num >= 1) {
+  if (config.from_config_id_vec.size() >= 1) {
     input_mux_1_.SetConfig(id, config.from_config_id_vec[0].GetPositionId());
   }
-  if (config.from_config_id_num == 2) {
+  if (config.from_config_id_vec.size() == 2) {
     input_mux_2_.SetConfig(id, config.from_config_id_vec[1].GetPositionId());
   }
 

@@ -79,10 +79,15 @@ TEST(VerilogSimulatorTest, synchronous_CGRA_test) {
         cgra->config_PE_row_index = row_id;
         cgra->config_PE_column_index = column_id;
         cgra->config_index = context_id;
-        cgra->config_input_PE_index_1 =
-            GetInputPEIndex(cgra_config.from_config_id_vec[0], config_id);
-        cgra->config_input_PE_index_2 =
-            GetInputPEIndex(cgra_config.from_config_id_vec[1], config_id);
+
+        if (cgra_config.from_config_id_vec.size() >= 1) {
+          cgra->config_input_PE_index_1 =
+              GetInputPEIndex(cgra_config.from_config_id_vec[0], config_id);
+        }
+        if (cgra_config.from_config_id_vec.size() == 2) {
+          cgra->config_input_PE_index_2 =
+              GetInputPEIndex(cgra_config.from_config_id_vec[1], config_id);
+        }
         cgra->config_op = GetOpIndex(cgra_config.operation_type);
         cgra->config_const_data = cgra_config.const_value;
 

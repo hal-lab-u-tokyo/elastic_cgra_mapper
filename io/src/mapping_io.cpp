@@ -57,8 +57,8 @@ struct ConfigIOStruct {
     for (entity::ConfigId config_id : cgra_config.to_config_id_vec) {
       to_config_id.emplace_back(config_id);
     }
-    for (int i = 0; i < cgra_config.from_config_id_num; i++) {
-      from_config_id.emplace_back(cgra_config.from_config_id_vec[i]);
+    for (entity::ConfigId config_id : cgra_config.from_config_id_vec) {
+      from_config_id.emplace_back(config_id);
     }
   }
   ConfigIOStruct(const boost::property_tree::ptree& ptree) {
