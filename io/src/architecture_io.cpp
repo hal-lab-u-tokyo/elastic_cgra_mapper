@@ -1,3 +1,4 @@
+#include <boost/foreach.hpp>
 #include <boost/optional.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
@@ -24,6 +25,14 @@ entity::MRRG io::ReadMRRGFromJsonFile(std::string file_name) {
   mrrg_config.cgra_type = entity::MRRGCGRATypeFromString(cgra_type_data);
   mrrg_config.network_type =
       entity::MRRGNetworkTypeFromString(network_type_data);
+  BOOST_FOREACH (
+      const boost::property_tree::ptree::value_type& loop_controller_data,
+      ptree.get_child("loop_controllers")) {
+    int row_id = GetValueFromPTree<int>(loop_controller_data.second, "row_id");
+    int column_id =
+        GetValueFromPTree<int>(loop_controller_data.second, "column_id");
+    mrrg_config.loop_controller_position_vec.emplace_back(row_id, column_id);
+  }
 
   return entity::MRRG(mrrg_config);
 }
@@ -42,6 +51,15 @@ void io::WriteMRRGToJsonFile(std::string file_name,
             entity::MRRGNetworkTypeToString(mrrg_config.network_type));
   ptree.put("local_reg_size", mrrg_config.local_reg_size);
   ptree.put("context_size", mrrg_config.context_size);
+  boost::property_tree::ptree loop_controllers;
+  for (auto loop_controller_position :
+       mrrg_config.loop_controller_position_vec) {
+    boost::property_tree::ptree loop_controller_node;
+    loop_controller_node.put("row_id", loop_controller_position.row_id);
+    loop_controller_node.put("column_id", loop_controller_position.column_id);
+    loop_controllers.push_back(std::make_pair("", loop_controller_node));
+  }
+  ptree.add_child("loop_controllers", loop_controllers);
 
   boost::property_tree::write_json(file_name, ptree);
   return;

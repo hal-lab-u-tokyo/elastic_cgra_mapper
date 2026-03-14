@@ -7,29 +7,6 @@
 
 namespace entity {
 
-struct PEPositionId {
-  int row_id;
-  int column_id;
-
-  PEPositionId() {
-    row_id = -1;
-    column_id = -1;
-  }
-  PEPositionId(int _row_id, int _column_id)
-      : row_id(_row_id), column_id(_column_id) {}
-
-  bool operator==(const PEPositionId& position_id) const {
-    return row_id == position_id.row_id && column_id == position_id.column_id;
-  }
-
-  bool operator<(const PEPositionId& position_id) const {
-    if (row_id != position_id.row_id) {
-      return row_id < position_id.row_id;
-    }
-    return column_id < position_id.column_id;
-  }
-};
-
 struct HashPEPositionId {
  public:
   size_t operator()(const PEPositionId& config_id) const {
@@ -76,21 +53,18 @@ struct HashConfigId {
 
 struct CGRAConfig {
  public:
-  int from_config_id_num;
   int const_value = 0;
   std::vector<ConfigId> to_config_id_vec;
   OpType operation_type;
   std::string operation_name;
-  ConfigId from_config_id_vec[2];
+  std::vector<ConfigId> from_config_id_vec;
 
   CGRAConfig()
-      : from_config_id_num(0),
-        operation_type(entity::OpType::NOP),
-        to_config_id_vec({}){};
+      : operation_type(entity::OpType::NOP),
+        to_config_id_vec({}),
+        from_config_id_vec({}){};
   CGRAConfig(entity::OpType op_type, std::string op_name)
-      : from_config_id_num(0),
-        operation_type(op_type),
-        operation_name(op_name) {}
+      : operation_type(op_type), operation_name(op_name) {}
 
   static CGRAConfig GenerateInitialCGRAConfig() {
     CGRAConfig result;
@@ -99,12 +73,7 @@ struct CGRAConfig {
 
   void AddFromConfig(ConfigId from_config_id, OpType op_type,
                      std::string op_name) {
-    from_config_id_vec[from_config_id_num] = from_config_id;
-    from_config_id_num++;
-    if (from_config_id_num >= 3) {
-      std::cerr << "from config id > 3" << std::endl;
-      abort();
-    }
+    from_config_id_vec.emplace_back(from_config_id);
     operation_type = op_type;
     operation_name = op_name;
 

@@ -6,6 +6,28 @@
 #include <tuple>
 
 namespace entity {
+struct PEPositionId {
+  int row_id;
+  int column_id;
+
+  PEPositionId() {
+    row_id = -1;
+    column_id = -1;
+  }
+  PEPositionId(int _row_id, int _column_id)
+      : row_id(_row_id), column_id(_column_id) {}
+
+  bool operator==(const PEPositionId& position_id) const {
+    return row_id == position_id.row_id && column_id == position_id.column_id;
+  }
+
+  bool operator<(const PEPositionId& position_id) const {
+    if (row_id != position_id.row_id) {
+      return row_id < position_id.row_id;
+    }
+    return column_id < position_id.column_id;
+  }
+};
 struct MRRGNodeProperty {
   bool is_memory_accessible;
 
@@ -42,6 +64,7 @@ struct MRRGGraphProperty {
   MRRGMemoryIOType memory_io;
   MRRGCGRAType cgra_type;
   MRRGNetworkType network_type;
+  std::vector<entity::PEPositionId> loop_controller_position_vec;
 };
 
 struct MRRGConfig {
@@ -52,6 +75,9 @@ struct MRRGConfig {
   MRRGNetworkType network_type;
   int local_reg_size;
   int context_size;
+  std::vector<entity::PEPositionId> loop_controller_position_vec;
+
+  bool IsLoopController(entity::PEPositionId position_id) const;
 };
 
 MRRGCGRAType MRRGCGRATypeFromString(std::string cgra_type_string);

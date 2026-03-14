@@ -57,7 +57,8 @@ simulator::Wire<int> simulator::PE::GetOutputWire(
 
 void simulator::PE::Update() {
   entity::CGRAConfig tmp_config = config_[tmp_config_id_];
-  int input_1, input_2;
+  int input_1 = 0;
+  int input_2 = 0;
 
   auto GetWireValue = [&](entity::PEPositionId position_id) {
     if (position_id == position_id_) {
@@ -67,8 +68,12 @@ void simulator::PE::Update() {
     }
   };
 
-  input_1 = GetWireValue(tmp_config.from_config_id_vec[0].GetPositionId());
-  input_2 = GetWireValue(tmp_config.from_config_id_vec[1].GetPositionId());
+  if (tmp_config.from_config_id_vec.size() >= 1) {
+    input_1 = GetWireValue(tmp_config.from_config_id_vec[0].GetPositionId());
+  }
+  if (tmp_config.from_config_id_vec.size() == 2) {
+    input_2 = GetWireValue(tmp_config.from_config_id_vec[1].GetPositionId());
+  }
 
   // execute operation
   output_ = simulator::ExecuteOperation(tmp_config.operation_type, input_1,

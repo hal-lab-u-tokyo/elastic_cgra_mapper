@@ -3,14 +3,15 @@
 #include <cpp_simulator/CGRA.hpp>
 #include <io/architecture_io.hpp>
 #include <io/dfg_io.hpp>
-#include <mapper/gurobi_mapper.hpp>
+#include <mapper/gurobi_placement_mapper.hpp>
 
 TEST(SimulatorTest, simulator_default_result_test) {
   std::shared_ptr<entity::DFG> dfg_ptr = std::make_shared<entity::DFG>();
   std::shared_ptr<entity::MRRG> mrrg_ptr = std::make_shared<entity::MRRG>();
 
+  entity::DFGConfig dfg_config;
   *dfg_ptr = io::ReadDFGDotFile(
-      "../../../../simulator/cpp/test/data/matrixmultiply.dot");
+      "../../../../simulator/cpp/test/data/matrixmultiply.dot", dfg_config);
   *mrrg_ptr = io::ReadMRRGFromJsonFile(
       "../../../../simulator/cpp/test/data/4x4_default_cgra.json");
 
@@ -35,7 +36,7 @@ TEST(SimulatorTest, simulator_default_result_test) {
   }
 
   mapper::IILPMapper* mapper;
-  mapper = mapper::GurobiILPMapper().CreateMapper(dfg_ptr, mrrg_ptr);
+  mapper = mapper::GurobiPlacementILPMapper().CreateMapper(dfg_ptr, mrrg_ptr);
   std::shared_ptr<entity::Mapping> mapping_ptr =
       std::make_shared<entity::Mapping>();
   const auto result = mapper->Execution();
@@ -63,7 +64,22 @@ TEST(SimulatorTest, simulator_default_result_test) {
 
   int count = 0;
   int tmp = 1;
-  for (int i = 0; i < 5; i++) {
+
+  int output_config_id;
+  for (auto config_pair : result.mapping_ptr->GetConfigMap()) {
+    if (config_pair.second.operation_type == entity::OpType::OUTPUT) {
+      output_config_id = config_pair.first.context_id;
+    }
+  }
+
+  int result_offset;
+  if (output_config_id < 2) {
+    result_offset = 1;
+  } else {
+    result_offset = 0;
+  }
+
+  for (int i = result_offset; i < 5 + result_offset; i++) {
     count += tmp * tmp * 2;
     EXPECT_EQ(result_vec[i + 4], count);
     tmp++;

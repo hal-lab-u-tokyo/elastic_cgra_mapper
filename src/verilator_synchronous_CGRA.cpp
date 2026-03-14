@@ -4,9 +4,10 @@
 
 #include <io/architecture_io.hpp>
 #include <io/dfg_io.hpp>
+#include <io/mapper_config_io.hpp>
 #include <io/mapping_io.hpp>
 #include <iostream>
-#include <mapper/gurobi_mapper.hpp>
+#include <mapper/gurobi_placement_mapper.hpp>
 
 int main(int argc, char** argv) {
   if (argc != 5) {
@@ -17,13 +18,16 @@ int main(int argc, char** argv) {
   std::string dfg_dot_file_path = argv[1];
   std::string mrrg_file_path = argv[2];
   std::string mapping_file_path = argv[3];
-  std::string fst_output_file_path = argv[4];
+  std::string mapper_config_file_path = argv[4];
+  std::string fst_output_file_path = argv[5];
 
   // create mapping
   std::shared_ptr<entity::DFG> dfg_ptr = std::make_shared<entity::DFG>();
   std::shared_ptr<entity::MRRG> mrrg_ptr = std::make_shared<entity::MRRG>();
+  entity::MapperConfig mapper_config =
+      io::ReadMapperConfigFromJsonFile(mapper_config_file_path);
 
-  *dfg_ptr = io::ReadDFGDotFile(dfg_dot_file_path);
+  *dfg_ptr = io::ReadDFGDotFile(dfg_dot_file_path, mapper_config.dfg_config);
   *mrrg_ptr = io::ReadMRRGFromJsonFile(mrrg_file_path);
 
   // verify A[0][i] * A[i][0]
@@ -47,7 +51,7 @@ int main(int argc, char** argv) {
   }
 
   mapper::IILPMapper* mapper;
-  mapper = mapper::GurobiILPMapper().CreateMapper(dfg_ptr, mrrg_ptr);
+  mapper = mapper::GurobiPlacementILPMapper().CreateMapper(dfg_ptr, mrrg_ptr);
 
   const auto mapping_result = mapper->Execution();
   io::WriteMappingFile(mapping_file_path, mapping_result.mapping_ptr,
@@ -121,10 +125,14 @@ int main(int argc, char** argv) {
         cgra->config_PE_row_index = row_id;
         cgra->config_PE_column_index = column_id;
         cgra->config_index = context_id;
-        cgra->config_input_PE_index_1 =
-            GetInputPEIndex(cgra_config.from_config_id_vec[0], config_id);
-        cgra->config_input_PE_index_2 =
-            GetInputPEIndex(cgra_config.from_config_id_vec[1], config_id);
+        if (cgra_config.from_config_id_vec.size() >= 1) {
+          cgra->config_input_PE_index_1 =
+              GetInputPEIndex(cgra_config.from_config_id_vec[0], config_id);
+        }
+        if (cgra_config.from_config_id_vec.size() == 2) {
+          cgra->config_input_PE_index_2 =
+              GetInputPEIndex(cgra_config.from_config_id_vec[1], config_id);
+        }
         cgra->config_op = GetOpIndex(cgra_config.operation_type);
         cgra->config_const_data = cgra_config.const_value;
 

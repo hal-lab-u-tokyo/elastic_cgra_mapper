@@ -54,7 +54,7 @@ entity::Mapping remapper::MappingConcater(
         shifted_config.to_config_id_vec[j] =
             ShiftConfigId(shifted_config.to_config_id_vec[j]);
       }
-      for (int j = 0; j < shifted_config.from_config_id_num; j++) {
+      for (int j = 0; j < shifted_config.from_config_id_vec.size(); j++) {
         shifted_config.from_config_id_vec[j] =
             ShiftConfigId(shifted_config.from_config_id_vec[j]);
       }

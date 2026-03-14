@@ -1,6 +1,16 @@
 #include <entity/mrrg.hpp>
 #include <map>
 
+bool entity::MRRGConfig::IsLoopController(
+    entity::PEPositionId position_id) const {
+  for (auto loop_controller_position : loop_controller_position_vec) {
+    if (position_id == loop_controller_position) {
+      return true;
+    }
+  }
+  return false;
+}
+
 entity::MRRGCGRAType entity::MRRGCGRATypeFromString(
     std::string cgra_type_string) {
   if (cgra_type_string == "default") {
@@ -140,6 +150,32 @@ std::vector<std::tuple<int, int, int>> GetConnectedNodeIdVector(
   return result;
 };
 
+std::vector<entity::OpType> GetSupportedOperation(
+    entity::PEPositionId position_id, entity::MRRGConfig& mrrg_config) {
+  // Implementation for getting supported operations based on position and
+  // config
+  if (mrrg_config.IsLoopController(position_id)) {
+    return entity::GetLoopOperations();
+  }
+
+  if (mrrg_config.memory_io == entity::MRRGMemoryIOType::kAll) {
+    return entity::GetAllOperations();
+  } else if (mrrg_config.memory_io == entity::MRRGMemoryIOType::kBothEnds) {
+    if (position_id.column_id == 0 ||
+        position_id.column_id == mrrg_config.column - 1) {
+      return entity::GetAllOperations();
+    } else {
+      return entity::GetAllOperationsExceptMemoryAccess();
+    }
+  } else if (mrrg_config.memory_io == entity::MRRGMemoryIOType::kOneEnd) {
+    if (position_id.column_id == 0) {
+      return entity::GetAllOperations();
+    } else {
+      return entity::GetAllOperationsExceptMemoryAccess();
+    }
+  }
+}
+
 entity::MRRG::MRRG(entity::MRRGConfig mrrg_config)
     : entity::BaseGraphClass<entity::MRRGNodeProperty, entity::MRRGEdgeProperty,
                              entity::MRRGGraphProperty>(),
@@ -149,6 +185,9 @@ entity::MRRG::MRRG(entity::MRRGConfig mrrg_config)
 
   for (int i = 0; i < mrrg_config.row; i++) {
     for (int j = 0; j < mrrg_config.column; j++) {
+      std::vector<entity::OpType> supported_operations =
+          GetSupportedOperation({i, j}, mrrg_config);
+
       for (int k = 0; k < mrrg_config.context_size; k++) {
         // add node, (with memory_io and local reg size property)
         auto vertex_id = boost::add_vertex(graph_);
@@ -161,25 +200,7 @@ entity::MRRG::MRRG(entity::MRRGConfig mrrg_config)
         }
         graph_[vertex_id].local_reg_size = mrrg_config.local_reg_size;
         graph_[vertex_id].context_size = mrrg_config.context_size;
-
-        if (mrrg_config.memory_io == entity::MRRGMemoryIOType::kAll) {
-          graph_[vertex_id].supported_operations = entity::GetAllOperations();
-        } else if (mrrg_config.memory_io ==
-                   entity::MRRGMemoryIOType::kBothEnds) {
-          if (j == 0 || j == mrrg_config.column - 1) {
-            graph_[vertex_id].supported_operations = entity::GetAllOperations();
-          } else {
-            graph_[vertex_id].supported_operations =
-                entity::GetAllOperationsExceptMemoryAccess();
-          }
-        } else if (mrrg_config.memory_io == entity::MRRGMemoryIOType::kOneEnd) {
-          if (j == 0) {
-            graph_[vertex_id].supported_operations = entity::GetAllOperations();
-          } else {
-            graph_[vertex_id].supported_operations =
-                entity::GetAllOperationsExceptMemoryAccess();
-          }
-        }
+        graph_[vertex_id].supported_operations = supported_operations;
 
         std::tuple<int, int, int> config_id(i, j, k);
         config_id_to_node_id_map_.emplace(config_id, vertex_id);
@@ -208,6 +229,8 @@ entity::MRRG::MRRG(entity::MRRGConfig mrrg_config)
   graph_[boost::graph_bundle].memory_io = mrrg_config.memory_io;
   graph_[boost::graph_bundle].cgra_type = mrrg_config.cgra_type;
   graph_[boost::graph_bundle].network_type = mrrg_config.network_type;
+  graph_[boost::graph_bundle].loop_controller_position_vec =
+      mrrg_config.loop_controller_position_vec;
 };
 
 entity::MRRGConfig entity::MRRG::GetMRRGConfig() const {
@@ -219,6 +242,8 @@ entity::MRRGConfig entity::MRRG::GetMRRGConfig() const {
   mrrg_config.network_type = graph_[boost::graph_bundle].network_type;
   mrrg_config.local_reg_size = graph_[0].local_reg_size;
   mrrg_config.context_size = graph_[0].context_size;
+  mrrg_config.loop_controller_position_vec =
+      graph_[boost::graph_bundle].loop_controller_position_vec;
 
   return mrrg_config;
 }
