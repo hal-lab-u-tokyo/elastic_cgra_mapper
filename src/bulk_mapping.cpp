@@ -4,6 +4,7 @@
 #include <filesystem>
 #include <io/architecture_io.hpp>
 #include <io/dfg_io.hpp>
+#include <io/mapper_config_io.hpp>
 #include <io/mapping_io.hpp>
 #include <io/output_to_log_file.hpp>
 #include <iostream>
@@ -37,20 +38,23 @@ std::vector<entity::MRRGConfig> GetMRRGToTest(int dfg_node_num) {
 }
 
 int main(int argc, char* argv[]) {
-  if (argc != 5) {
+  if (argc != 6) {
     std::cerr << "invalid arguments" << std::endl;
     abort();
   }
 
   const std::string dfg_dot_file_path(argv[1]);
   const std::string output_dir = argv[2];
+  const std::string mapper_config_file_path = argv[3];
   double timeout_s = std::stod(argv[3]);
 
   assert(std::filesystem::path(dfg_dot_file_path).is_absolute());
   assert(std::filesystem::path(output_dir).is_absolute());
 
   std::shared_ptr<entity::DFG> dfg_ptr = std::make_shared<entity::DFG>();
-  *dfg_ptr = io::ReadDFGDotFile(dfg_dot_file_path);
+  entity::MapperConfig mapper_config =
+      io::ReadMapperConfigFromJsonFile(mapper_config_file_path);
+  *dfg_ptr = io::ReadDFGDotFile(dfg_dot_file_path, mapper_config.dfg_config);
 
   const auto mrrg_config_vec = GetMRRGToTest(dfg_ptr->GetNodeNum());
 

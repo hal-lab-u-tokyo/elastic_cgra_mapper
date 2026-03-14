@@ -3,14 +3,16 @@
 #include <io/dfg_io.hpp>
 #include <iostream>
 
-entity::DFG io::ReadDFGDotFile(std::string file_name) {
+entity::DFG io::ReadDFGDotFile(std::string file_name,
+                               entity::DFGConfig dfg_config) {
   entity::DFGGraph graph;
   std::ifstream dot(file_name);
 
   boost::dynamic_properties dp(boost::ignore_other_properties);
   dp.property("opcode", boost::get(&entity::DFGNodeProperty::op_str, graph));
   dp.property("operand", boost::get(&entity::DFGEdgeProperty::operand, graph));
-  dp.property("node_id", boost::get(&entity::DFGNodeProperty::op_name, graph));
+  dp.property(dfg_config.operation_name_label,
+              boost::get(&entity::DFGNodeProperty::op_name, graph));
   dp.property("const_value",
               boost::get(&entity::DFGNodeProperty::const_value, graph));
   boost::read_graphviz(dot, graph, dp);
@@ -24,14 +26,16 @@ entity::DFG io::ReadDFGDotFile(std::string file_name) {
 }
 
 void io::WriteDFGDotFile(std::string file_name,
-                         const std::shared_ptr<entity::DFG> dfg_ptr) {
+                         const std::shared_ptr<entity::DFG> dfg_ptr,
+                         entity::DFGConfig dfg_config) {
   std::ofstream output_file(file_name);
 
   entity::DFGGraph graph = dfg_ptr->GetGraph();
   boost::dynamic_properties dp(boost::ignore_other_properties);
   dp.property("opcode", boost::get(&entity::DFGNodeProperty::op_str, graph));
   dp.property("operand", boost::get(&entity::DFGEdgeProperty::operand, graph));
-  dp.property("node_id", boost::get(&entity::DFGNodeProperty::op_name, graph));
+  dp.property(dfg_config.operation_name_label,
+              boost::get(&entity::DFGNodeProperty::op_name, graph));
   dp.property("const_value",
               boost::get(&entity::DFGNodeProperty::const_value, graph));
 

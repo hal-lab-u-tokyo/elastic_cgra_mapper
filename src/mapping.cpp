@@ -5,10 +5,13 @@
 #include <fstream>
 #include <io/architecture_io.hpp>
 #include <io/dfg_io.hpp>
+#include <io/mapper_config_io.hpp>
 #include <io/mapping_io.hpp>
 #include <io/output_to_log_file.hpp>
 #include <iostream>
 #include <mapper/gurobi_mapper.hpp>
+#include <mapper/gurobi_placement_mapper.hpp>
+#include <mapper/mapper.hpp>
 
 std::string FixOpName(std::string op_name, int node_offset) {
   std::string result = "";
@@ -72,7 +75,7 @@ std::shared_ptr<entity::DFG> AddDFG(
 }
 
 int main(int argc, char* argv[]) {
-  if (argc != 6) {
+  if (argc != 7) {
     std::cerr << "invalid arguments" << std::endl;
     abort();
   }
@@ -82,8 +85,9 @@ int main(int argc, char* argv[]) {
   std::string dfg_dot_file_path = argv[1];
   std::string mrrg_file_path = argv[2];
   std::string output_dir = argv[3];
-  double timeout_s = std::stod(argv[4]);
-  int parallel_num = std::stoi(argv[5]);
+  std::string mapper_config_file_path = argv[4];
+  double timeout_s = std::stod(argv[5]);
+  int parallel_num = std::stoi(argv[6]);
 
   if (!std::filesystem::exists(output_dir)) {
     std::filesystem::create_directories(output_dir);
@@ -99,7 +103,10 @@ int main(int argc, char* argv[]) {
   std::shared_ptr<entity::DFG> dfg_ptr_to_add = std::make_shared<entity::DFG>();
   std::shared_ptr<entity::MRRG> mrrg_ptr = std::make_shared<entity::MRRG>();
 
-  *dfg_ptr_to_add = io::ReadDFGDotFile(dfg_dot_file_path);
+  entity::MapperConfig mapper_config =
+      io::ReadMapperConfigFromJsonFile(mapper_config_file_path);
+  *dfg_ptr_to_add =
+      io::ReadDFGDotFile(dfg_dot_file_path, mapper_config.dfg_config);
   *dfg_ptr = *dfg_ptr_to_add;
   *mrrg_ptr = io::ReadMRRGFromJsonFile(mrrg_file_path);
 
@@ -115,12 +122,24 @@ int main(int argc, char* argv[]) {
     dfg_ptr = AddDFG(dfg_ptr, dfg_ptr_to_add, dfg_ptr_to_add->GetNodeNum() * i);
   }
 
-  mapper::GurobiILPMapper* mapper;
-  mapper = mapper::GurobiILPMapper().CreateMapper(dfg_ptr, mrrg_ptr);
-  mapper->SetLogFilePath(logger.GetGurobiLogFilePath());
-  mapper->SetTimeOut(timeout_s);
+  mapper::IILPMapper* mapper_impl;
+  if (mapper_config.algorithm_config.algorithm ==
+      entity::AlgorithmType::kILPMapper) {
+    mapper_impl = mapper::GurobiILPMapper().CreateMapper(dfg_ptr, mrrg_ptr);
+  } else if (mapper_config.algorithm_config.algorithm ==
+             entity::AlgorithmType::kPlacementILPMapper) {
+    mapper_impl =
+        mapper::GurobiPlacementILPMapper().CreateMapper(dfg_ptr, mrrg_ptr);
+  } else {
+    std::cerr << "Invalid algorithm type in mapper config: "
+              << static_cast<int>(mapper_config.algorithm_config.algorithm)
+              << std::endl;
+    abort();
+  }
+  mapper_impl->SetLogFilePath(logger.GetGurobiLogFilePath());
+  mapper_impl->SetTimeOut(timeout_s);
 
-  const auto result = mapper->Execution();
+  const auto result = mapper_impl->Execution();
 
   io::MappingOutput output;
   output.mapping_time_s = result.mapping_time_s;

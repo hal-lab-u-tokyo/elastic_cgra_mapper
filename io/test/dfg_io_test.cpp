@@ -5,6 +5,7 @@
 
 TEST(IOTest, dfg_io_test) {
   std::string file_path = "./test_dot_data.dot";
+  entity::DFGConfig dfg_config;
 
   std::vector<entity::Edge> edges = {{0, 1}, {1, 2}, {2, 3}, {3, 4}, {4, 5}};
 
@@ -33,9 +34,9 @@ TEST(IOTest, dfg_io_test) {
   entity::DFG input_dfg(g);
   std::shared_ptr<entity::DFG> input_dfg_ptr = std::make_shared<entity::DFG>();
   *input_dfg_ptr = input_dfg;
-  io::WriteDFGDotFile(file_path, input_dfg_ptr);
+  io::WriteDFGDotFile(file_path, input_dfg_ptr, dfg_config);
 
-  entity::DFG output_dfg = io::ReadDFGDotFile(file_path);
+  entity::DFG output_dfg = io::ReadDFGDotFile(file_path, dfg_config);
 
   int output_node_num = 0;
   auto vertex_iter = boost::vertices(output_dfg.GetGraph());

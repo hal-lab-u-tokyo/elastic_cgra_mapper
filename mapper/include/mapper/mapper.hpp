@@ -21,5 +21,7 @@ class IILPMapper {
       const std::shared_ptr<entity::DFG> dfg_ptr,
       const std::shared_ptr<entity::MRRG> mrrg_ptr) = 0;
   virtual MappingResult Execution() = 0;
+  virtual void SetLogFilePath(const std::string& log_file_path) = 0;
+  virtual void SetTimeOut(double time_out_s) = 0;
 };
 }  // namespace mapper

@@ -4,6 +4,7 @@
 #include <fstream>
 #include <io/architecture_io.hpp>
 #include <io/dfg_io.hpp>
+#include <io/mapper_config_io.hpp>
 #include <io/mapping_io.hpp>
 #include <io/output_to_log_file.hpp>
 #include <iostream>
@@ -101,7 +102,7 @@ std::vector<int> SortElementByFreqency(const std::vector<int>& vec) {
 }
 
 int main(int argc, char* argv[]) {
-  if (argc != 6) {
+  if (argc != 7) {
     std::cerr << "invalid arguments" << std::endl;
     abort();
   }
@@ -109,8 +110,9 @@ int main(int argc, char* argv[]) {
   const std::string dfg_dot_file_path = argv[1];
   const std::string mrrg_file_path = argv[2];
   const std::string output_dir = argv[3];
-  const double db_timeout_s = std::stod(argv[4]);
-  const bool overwrite = static_cast<bool>(std::stoi(argv[5]));
+  const std::string mapper_config_file_path = argv[4];
+  const double db_timeout_s = std::stod(argv[5]);
+  const bool overwrite = static_cast<bool>(std::stoi(argv[6]));
   double creating_db_time_s = 0;
 
   assert(std::filesystem::path(dfg_dot_file_path).is_absolute());
@@ -122,7 +124,9 @@ int main(int argc, char* argv[]) {
   constexpr double kMinUtilization = 0.5;
 
   std::shared_ptr<entity::DFG> dfg_ptr = std::make_shared<entity::DFG>();
-  *dfg_ptr = io::ReadDFGDotFile(dfg_dot_file_path);
+  entity::MapperConfig mapper_config =
+      io::ReadMapperConfigFromJsonFile(mapper_config_file_path);
+  *dfg_ptr = io::ReadDFGDotFile(dfg_dot_file_path, mapper_config.dfg_config);
   std::shared_ptr<entity::MRRG> target_mrrg_ptr =
       std::make_shared<entity::MRRG>();
   *target_mrrg_ptr = io::ReadMRRGFromJsonFile(mrrg_file_path);

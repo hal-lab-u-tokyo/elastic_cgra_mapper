@@ -4,6 +4,7 @@
 
 #include <io/architecture_io.hpp>
 #include <io/dfg_io.hpp>
+#include <io/mapper_config_io.hpp>
 #include <io/mapping_io.hpp>
 #include <iostream>
 #include <mapper/gurobi_placement_mapper.hpp>
@@ -17,13 +18,16 @@ int main(int argc, char** argv) {
   std::string dfg_dot_file_path = argv[1];
   std::string mrrg_file_path = argv[2];
   std::string mapping_file_path = argv[3];
-  std::string fst_output_file_path = argv[4];
+  std::string mapper_config_file_path = argv[4];
+  std::string fst_output_file_path = argv[5];
 
   // create mapping
   std::shared_ptr<entity::DFG> dfg_ptr = std::make_shared<entity::DFG>();
   std::shared_ptr<entity::MRRG> mrrg_ptr = std::make_shared<entity::MRRG>();
+  entity::MapperConfig mapper_config =
+      io::ReadMapperConfigFromJsonFile(mapper_config_file_path);
 
-  *dfg_ptr = io::ReadDFGDotFile(dfg_dot_file_path);
+  *dfg_ptr = io::ReadDFGDotFile(dfg_dot_file_path, mapper_config.dfg_config);
   *mrrg_ptr = io::ReadMRRGFromJsonFile(mrrg_file_path);
 
   // verify A[0][i] * A[i][0]
