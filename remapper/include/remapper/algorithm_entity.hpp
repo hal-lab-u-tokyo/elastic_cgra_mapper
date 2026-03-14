@@ -13,6 +13,11 @@ class Rectangle {
   int context_size;
 };
 
+enum PEType {
+  MEMORY_ACCESS,
+  NON_MEMORY_ACCESS,
+};
+
 class MappingMatrix : public Rectangle {
  public:
   MappingMatrix();
@@ -68,6 +73,23 @@ class CGRAMatrix : public Rectangle {
       const std::vector<MappingTransformOp>& transform_op_vec) const;
 
   entity::MRRGConfig GetMRRGConfig() const { return mrrg_config_; };
+  remapper::PEType GetPEType(int row_id, int column_id) const {
+    if (mrrg_config_.memory_io == entity::MRRGMemoryIOType::kAll) {
+      return remapper::PEType::MEMORY_ACCESS;
+    } else if (mrrg_config_.memory_io == entity::MRRGMemoryIOType::kOneEnd) {
+      if (column_id == 0) {
+        return remapper::PEType::MEMORY_ACCESS;
+      }
+    } else if (mrrg_config_.memory_io == entity::MRRGMemoryIOType::kBothEnds) {
+      if (column_id == 0 || column_id == column_size - 1) {
+        return remapper::PEType::MEMORY_ACCESS;
+      }
+    }
+
+    std::cerr << "Error: GetPEType " << row_id << ", " << column_id
+              << std::endl;
+    abort();
+  }
 
  private:
   entity::MRRGConfig mrrg_config_;
