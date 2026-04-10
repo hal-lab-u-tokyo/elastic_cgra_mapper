@@ -189,21 +189,38 @@ entity::Mapping entity::GenerateMappingFromRoutingResult(
           dc_mrrg.GetEdgeSourceTarget(from_edge_id);
       from_edge_id_queue.pop();
 
-      std::vector<int> adj_edge_id_vec = dc_mrrg.GetInEdgeIdVec(to_PE_id);
+      std::vector<int> adj_edge_id_vec = dc_mrrg.GetOutEdgeIdVec(to_PE_id);
       entity::ConfigId from_config_id(mrrg.GetNodeProperty(from_PE_id));
       entity::OpType from_op_type = GetOpTypeFromPEId(from_PE_id);
       std::string from_op_name = GetOpNameFromPEId(from_PE_id);
+
+      entity::ConfigId to_config_id(mrrg.GetNodeProperty(to_PE_id));
+      entity::OpType to_op_type = GetOpTypeFromPEId(to_PE_id);
+      std::string to_op_name = GetOpNameFromPEId(to_PE_id);
 
       if (config_map_.count(from_config_id) == 0) {
         config_map_.emplace(from_config_id,
                             entity::CGRAConfig(from_op_type, from_op_name));
       }
+      if (config_map_.count(to_config_id) == 0) {
+        config_map_.emplace(to_config_id,
+                            entity::CGRAConfig(to_op_type, to_op_name));
+      }
+      config_map_[from_config_id].AddToConfig(to_config_id, from_op_type,
+                                              from_op_name);
+      config_map_[to_config_id].AddFromConfig(from_config_id, to_op_type,
+                                              to_op_name);
 
       if (from_op_type == entity::OpType::CONST) {
         if (dfg.GetNodeProperty(from_op_id).const_value.has_value()) {
           config_map_[from_config_id].SetConstValue(
               dfg.GetNodeProperty(from_op_id).const_value.value());
         }
+      }
+      std::cout << "Adjacent edge count: " << adj_edge_id_vec.size() << "\n";
+
+      if (to_op_type != entity::OpType::ROUTE) {
+        continue;
       }
 
       for (int adj_edge_id : adj_edge_id_vec) {
@@ -214,29 +231,8 @@ entity::Mapping entity::GenerateMappingFromRoutingResult(
         for (int mrrg_edge_id : mrrg_edge_id_vec) {
           if (adj_edge_id != mrrg_edge_id) continue;
 
-          entity::ConfigId to_config_id(mrrg.GetNodeProperty(to_PE_id));
-          entity::OpType to_op_type = GetOpTypeFromPEId(to_PE_id);
-          std::string to_op_name = GetOpNameFromPEId(to_PE_id);
-
-          if (config_map_.count(to_config_id) == 0) {
-            // config_map_.emplace(
-            //     to_config_id,
-            //     entity::CGRAConfig::GenerateInitialCGRAConfig());
-            config_map_.emplace(to_config_id,
-                                entity::CGRAConfig(to_op_type, to_op_name));
-          }
-          config_map_[from_config_id].AddToConfig(to_config_id, from_op_type,
-                                                  from_op_name);
-          config_map_[to_config_id].AddFromConfig(from_config_id, to_op_type,
-                                                  to_op_name);
           if (searched_edge_id.count(adj_edge_id) == 0) {
-            // if (to_op_type == entity::OpType::ROUTE) {
-            //   from_edge_id_queue.push(adj_edge_id);
-            // }
-            mrrg_out_edge_ids = dc_mrrg.GetOutEdgeIdVec(to_PE_id);
-            for (int edge_id : mrrg_out_edge_ids) {
-              from_edge_id_queue.push(edge_id);
-            }
+            from_edge_id_queue.push(adj_edge_id);
             searched_edge_id.emplace(adj_edge_id);
           }
         }
