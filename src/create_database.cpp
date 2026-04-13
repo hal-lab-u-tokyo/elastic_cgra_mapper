@@ -162,11 +162,10 @@ int main(int argc, char* argv[]) {
   io::CreateDatabaseLogger logger;
   logger.LogCreateDatabaseInput({dfg_dot_file_path, mrrg_file_path, output_dir,
                                  db_timeout_s, kMinUtilization});
-  if (logger.countMappingDataNum() != 0 && !overwrite) {
+  if (logger.countMappingDataNum() != 0) {
     return 0;
-  } else if (overwrite) {
-    logger.DeleteAllMappingData();
   }
+
   while (1) {
     std::vector<remapper::MappingMatrix> tmp_mapping_matrix_vec;
     for (const auto& mapping_matrix : mapping_matrix_vec) {
@@ -215,7 +214,7 @@ int main(int argc, char* argv[]) {
       mapper::GurobiPlacementILPMapper* mapper;
       mapper =
           mapper::GurobiPlacementILPMapper().CreateMapper(dfg_ptr, mrrg_ptr);
-      mapper->SetLogFilePath(logger.GetNextGurobiMappingPath(
+      mapper->SetLogFilePath(logger.GetNextMappingPath(
           mapping_time_out_s, mrrg_ptr->GetMRRGConfig()));
       mapper->SetTimeOut(mapping_time_out_s);
 
