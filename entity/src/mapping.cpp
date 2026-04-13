@@ -111,29 +111,6 @@ entity::Mapping entity::GenerateMappingFromRoutingResult(
   entity::MRRGConfig mrrg_config_ = mrrg.GetMRRGConfig();
   entity::ConfigMap config_map_ = {};
 
-  // デバッグ出力: dfg_node_to_mrrg_node の内容
-  std::cerr << "[Mapping::Mapping] dfg_node_to_mrrg_node size="
-            << dfg_node_to_mrrg_node.size() << "\n";
-  std::string op_str;
-  for (size_t i = 0; i < dfg_node_to_mrrg_node.size(); ++i) {
-    op_str = dfg.GetNodeProperty(i).op_str;
-    std::cerr << "  dfg[" << i << "] (" << op_str << ") -> mrrg["
-              << dfg_node_to_mrrg_node[i] << "]\n";
-  }
-
-  // デバッグ出力: dfg_output_to_mrrg_edge の内容
-  std::cerr
-      << "[GenerateMappingFromRoutingResult] dfg_output_to_mrrg_edge size="
-      << dfg_output_to_mrrg_edge.size() << "\n";
-  for (size_t i = 0; i < dfg_output_to_mrrg_edge.size(); ++i) {
-    std::string op_str = dfg.GetNodeProperty(i).op_str;
-    std::cerr << "  dfg[" << i << "] (" << op_str << ") edges ->";
-    for (int edge_id : dfg_output_to_mrrg_edge[i]) {
-      std::cerr << " " << edge_id;
-    }
-    std::cerr << "\n";
-  }
-
   entity::MRRG dc_mrrg = mrrg;
 
   for (int from_op_id = 0; from_op_id < dfg.GetNodeNum(); from_op_id++) {
