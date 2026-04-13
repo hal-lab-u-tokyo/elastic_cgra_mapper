@@ -178,18 +178,25 @@ mapper::MappingResult mapper::GurobiILPMapper::Execution() {
             mrrg_ptr_->GetOutEdgeIdVec(mrrg_node_id);
         std::vector<int> mrrg_in_edge_ids =
             mrrg_ptr_->GetInEdgeIdVec(mrrg_node_id);
-        GRBLinExpr out_edge_num, in_edge_num;
+        GRBLinExpr out_edge_num;
         for (int mrrg_out_edge_id : mrrg_out_edge_ids) {
           out_edge_num.addTerms(
               &fanout_coefficient,
               &(map_op_to_route[dfg_node_id][mrrg_out_edge_id]), 1);
         }
-        std::string constr_name = "c_fanout_" + std::to_string(dfg_node_id) +
-                                  "_" + std::to_string(mrrg_node_id);
+        std::string route_fanout_constr_name =
+            "c_route_fanout_" + std::to_string(dfg_node_id) + "_" +
+            std::to_string(mrrg_node_id);
         model.addConstr(map_route_op_to_PE[dfg_node_id][mrrg_node_id],
-                        GRB_LESS_EQUAL, out_edge_num, constr_name);
-        model.addConstr(map_op_to_PE[dfg_node_id][mrrg_node_id], GRB_LESS_EQUAL,
-                        out_edge_num, constr_name);
+                        GRB_LESS_EQUAL, out_edge_num, route_fanout_constr_name);
+
+        if (dfg_output_num > 0) {
+          std::string op_fanout_constr_name =
+              "c_op_fanout_" + std::to_string(dfg_node_id) + "_" +
+              std::to_string(mrrg_node_id);
+          model.addConstr(map_op_to_PE[dfg_node_id][mrrg_node_id],
+                          GRB_LESS_EQUAL, out_edge_num, op_fanout_constr_name);
+        }
       }
     }
 
