@@ -194,7 +194,6 @@ entity::Mapping entity::GenerateMappingFromRoutingResult(
               dfg.GetNodeProperty(from_op_id).const_value.value());
         }
       }
-      std::cout << "Adjacent edge count: " << adj_edge_id_vec.size() << "\n";
 
       if (to_op_type != entity::OpType::ROUTE) {
         continue;
