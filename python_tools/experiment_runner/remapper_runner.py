@@ -16,12 +16,12 @@ import shutil
 class RemappingRunnerConfig:
   def __init__(self):
     # exec setting
-    self.overwrite = False
     self.kernel_dir_path = ""
     self.output_dir_path = ""
     self.create_database = 0
     self.database_timeout_s = 0
     self.remapper_timeout_s = 0
+    self.mapping_config_path = ""
     self.process_num = 32
 
     self.cgra_type_list = []
@@ -43,6 +43,7 @@ class RemappingRunnerConfig:
     self.output_dir_path = config_dict["exec_setting"]["output_dir_path"]
     self.create_database = config_dict["exec_setting"]["create_database"]
     self.database_path = config_dict["exec_setting"]["database_path"]
+    self.mapping_config_path = config_dict["exec_setting"]["mapping_config_path"]
     self.database_timeout_s = config_dict["exec_setting"]["database_timeout_s"]
     self.remapper_timeout_s = config_dict["exec_setting"]["remapper_timeout_s"]
     self.process_num = config_dict["exec_setting"]["process_num"]
@@ -81,7 +82,7 @@ class RemappingRunnerConfig:
           for memory_io in self.memory_io_list:
             for network_type in self.network_type_list:
               cgra = CGRA(cgra_type, cgra_size, cgra_size, self.context_size, memory_io, network_type, self.local_reg_size, self.loop_controller_list)
-              input = CreateDatabaseInput(dfg_file_path, output_dir_path, cgra, self.database_timeout_s, self.overwrite)
+              input = CreateDatabaseInput(dfg_file_path, output_dir_path, cgra, self.mapping_config_path, self.database_timeout_s)
               input_list.append(input)
 
     return input_list
