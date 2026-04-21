@@ -40,6 +40,18 @@ def mapping_exec(input):
 
   input.cgra.dump_to_json(cgra_file_path)
 
+  lock.acquire()
+  try:
+    experiment_log_file = open(experiment_log_file_path, "a")
+    experiment_log_file.write("--- mapping exec ---\n")
+    experiment_log_file.write("dfg_file: " + input.dfg_file_path + "\n")
+    experiment_log_file.write("output_dir: " + input.output_dir_path + "\n")
+    experiment_log_file.write("cgra: " + str(input.cgra.get_cgra_dict()) + "\n")
+    experiment_log_file.write("parallel_num: " + str(input.parallel_num) + "\n")
+    experiment_log_file.close()
+  finally:
+    lock.release()
+
   subprocess.run(["/home/ubuntu/elastic_cgra_mapper/build/mapping", input.dfg_file_path, cgra_file_path, input.output_dir_path,input.mapping_config_path, str(input.timeout_s), str(input.parallel_num)])
 
   os.remove(cgra_file_path)
@@ -60,22 +72,21 @@ def create_database_exec(input):
   lock.acquire()
   try:
     experiment_log_file = open(experiment_log_file_path, "a")
-    experiment_log_file.write("--- database exec ---\n")
+    experiment_log_file.write("--- create database exec ---\n")
     experiment_log_file.write("dfg_file: " + input.dfg_file_path + "\n")
-    experiment_log_file.write("output_dir_path: " + input.output_dir_path + "\n")
+    experiment_log_file.write("output_dir: " + input.output_dir_path + "\n")
     experiment_log_file.write("cgra: " + str(input.cgra.get_cgra_dict()) + "\n")
-    experiment_log_file.write("db_timeout_s: " + str(input.db_timeout_s) + "\n")
-    experiment_log_file.write("overwrite: " + str(input.overwrite) + "\n")
     experiment_log_file.close()
   finally:
     lock.release()
+
 
   subprocess.run(["/home/ubuntu/elastic_cgra_mapper/build/create_database", input.dfg_file_path, cgra_file_path, input.output_dir_path, input.mapping_config_path, str(input.db_timeout_s), str(int(input.overwrite))])
 
   os.remove(cgra_file_path)
 
 def remapper_exec(input):
-  cgra_dir_path = os.path.join(os.getcwd(), "/tmp_cgra/mapping/")
+  cgra_dir_path = os.path.join(os.getcwd(), "tmp_cgra/")
 
   lock.acquire()
   try:
