@@ -20,6 +20,33 @@ io::Logger::Logger() {
                      1000;
 
   log_id_ = std::string(buffer) + std::to_string(milliseconds);
+  host_name_ = GetHostName();
+  git_commit_id_ = GetGitCommitId();
+}
+
+std::string io::Logger::GetHostName() const {
+  const char* hostname_env = std::getenv("HOSTNAME_FROM_HOST");
+  std::string host_name = hostname_env ? std::string(hostname_env) : "unknown";
+  return host_name;
+}
+
+std::string io::Logger::GetGitCommitId() const {
+  char buffer[128];
+  FILE* pipe = popen("git rev-parse --short HEAD", "r");
+  if (!pipe) {
+    std::cerr << "Failed to get git commit id" << std::endl;
+    abort();
+  }
+
+  fgets(buffer, sizeof(buffer), pipe);
+  int status = pclose(pipe);
+  if (status == -1) {
+    std::cerr << "Failed to close pipe for git commit id" << std::endl;
+    abort();
+  }
+  std::string git_commit = std::string(buffer);
+  git_commit.erase(git_commit.find_last_not_of(" \n\r\t") + 1);
+  return git_commit;
 }
 
 void io::Logger::InitializePath(const std::filesystem::path& output_dir_path) {
@@ -96,6 +123,8 @@ void io::MappingLogger::LogMappingInput(const io::MappingInput& input) {
   json_str_vec["output_dir"] = "\"" + output_dir_path_.string() + "\"";
   json_str_vec["timeout_s"] = std::to_string(input.timeout_s);
   json_str_vec["parallel_num"] = std::to_string(input.parallel_num);
+  json_str_vec["host_name"] = "\"" + host_name_ + "\"";
+  json_str_vec["git_commit_id"] = "\"" + git_commit_id_ + "\"";
   OutputJsonLog(input_summary_file_path_, json_str_vec);
 
   CopyFile(input.dfg_dot_file_path,
@@ -171,6 +200,8 @@ void io::RemapperLogger::LogRemapperInput(const io::RemapperInput& input) {
   json_str_vec["output_dir"] = "\"" + output_dir_path_.string() + "\"";
   json_str_vec["remapper_mode"] = input.remapper_mode;
   json_str_vec["timeout_s"] = std::to_string(input.timeout_s);
+  json_str_vec["host_name"] = "\"" + host_name_ + "\"";
+  json_str_vec["git_commit_id"] = "\"" + git_commit_id_ + "\"";
 
   std::string mapping_files_str = "[";
   for (const auto& file :
@@ -266,6 +297,8 @@ void io::CreateDatabaseLogger::LogCreateDatabaseInput(
   json_str_vec["output_dir"] = "\"" + output_dir_path_.string() + "\"";
   json_str_vec["db_timeout_s"] = std::to_string(input.db_timeout_s);
   json_str_vec["min_utilization"] = std::to_string(input.min_utilization);
+  json_str_vec["host_name"] = "\"" + host_name_ + "\"";
+  json_str_vec["git_commit_id"] = "\"" + git_commit_id_ + "\"";
   OutputJsonLog(input_summary_file_path_, json_str_vec);
 
   CopyFile(input.cgra_file_path, arch_file_path_);

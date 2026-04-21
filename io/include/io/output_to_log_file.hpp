@@ -61,6 +61,11 @@ class Logger {
   void OutputJsonLog(
       const std::filesystem::path& json_log_file_path,
       const std::unordered_map<std::string, std::string>& json_str_vec);
+  std::string GetHostName() const;
+  std::string GetGitCommitId() const;
+
+  std::string host_name_;
+  std::string git_commit_id_;
   std::filesystem::path output_dir_path_;
   std::filesystem::path log_file_path_;
   std::string log_id_;

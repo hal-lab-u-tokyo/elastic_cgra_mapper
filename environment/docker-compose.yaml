@@ -9,6 +9,8 @@ services:
     stdin_open: true
     ports:
       - 1000:1000
+    environment:
+      - HOSTNAME_FROM_HOST=${HOSTNAME}
     volumes:
       - $HOME/elastic_cgra_mapper/:/home/ubuntu/elastic_cgra_mapper
       - $HOME/elastic_cgra_mapper/license_files/gurobi.lic:/opt/gurobi/gurobi.lic:ro
