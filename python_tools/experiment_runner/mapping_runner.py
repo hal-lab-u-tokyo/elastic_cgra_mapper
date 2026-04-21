@@ -94,7 +94,7 @@ if __name__ == "__main__":
   lock = multiprocessing.Lock()
 
 
-  experiment_output_dir_path = os.path.join(config.output_dir_path, "experiments/mapping/" + get_datetime_string() + "/")
+  experiment_output_dir_path = os.path.join(config.output_dir_path, "experiments/" + get_datetime_string() + "/mapping")
   os.makedirs(experiment_output_dir_path, exist_ok=True)
   shutil.copy(config_path, os.path.join(experiment_output_dir_path, "mapping_config.json"))
 
