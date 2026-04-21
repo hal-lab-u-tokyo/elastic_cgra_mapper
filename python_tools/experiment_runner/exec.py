@@ -4,21 +4,20 @@ import time
 import subprocess
 
 class MappingInput:
-  def __init__(self, dfg_file_path, output_dir_path, cgra, timeout_s, parallel_num, overwrite):
+  def __init__(self, dfg_file_path, output_dir_path, mapping_config_path, cgra, timeout_s, parallel_num):
     self.dfg_file_path = dfg_file_path
     self.output_dir_path = output_dir_path
+    self.mapping_config_path = mapping_config_path
     self.cgra = cgra
     self.timeout_s = timeout_s
     self.parallel_num = parallel_num
-    self.overwrite = overwrite
 
 class CreateDatabaseInput:
-  def __init__(self, dfg_file_path, output_dir_path, cgra, db_timeout_s, overwrite):
+  def __init__(self, dfg_file_path, output_dir_path, cgra, db_timeout_s):
     self.dfg_file_path = dfg_file_path
     self.cgra = cgra
     self.output_dir_path = output_dir_path
     self.db_timeout_s = db_timeout_s
-    self.overwrite = overwrite
 
 class RemapperInput:
   def __init__(self, mapping_dir_path, cgra, output_dir_path, remapper_mode, timeout_s):
@@ -29,7 +28,7 @@ class RemapperInput:
     self.timeout_s = timeout_s
 
 def mapping_exec(input):
-  cgra_dir_path = os.path.join(os.getcwd(), "/tmp_cgra/mapping/")
+  cgra_dir_path = os.path.join(os.getcwd(), "tmp_cgra/")
 
   lock.acquire()
   try:
@@ -41,26 +40,12 @@ def mapping_exec(input):
 
   input.cgra.dump_to_json(cgra_file_path)
 
-  lock.acquire()
-  try:
-    experiment_log_file = open(experiment_log_file_path, "a")
-    experiment_log_file.write("--- mapping exec ---\n")
-    experiment_log_file.write("dfg_file: " + input.dfg_file_path + "\n")
-    experiment_log_file.write("output_dir_path: " + input.output_dir_path + "\n")
-    experiment_log_file.write("cgra: " + str(input.cgra.get_cgra_dict()) + "\n")
-    experiment_log_file.write("timeout_s: " + str(input.timeout_s) + "\n")
-    experiment_log_file.write("parallel_num: " + str(input.parallel_num) + "\n")
-    experiment_log_file.write("overwrite: " + str(input.overwrite) + "\n")
-    experiment_log_file.close()
-  finally:
-    lock.release()
-
-  subprocess.run(["/home/ubuntu/elastic_cgra_mapper/build/mapping", input.dfg_file_path, cgra_file_path, input.output_dir_path, str(input.timeout_s), str(input.parallel_num)])
+  subprocess.run(["/home/ubuntu/elastic_cgra_mapper/build/mapping", input.dfg_file_path, cgra_file_path, input.output_dir_path,input.mapping_config_path, str(input.timeout_s), str(input.parallel_num)])
 
   os.remove(cgra_file_path)
 
 def create_database_exec(input):
-  cgra_dir_path = os.path.join(os.getcwd(), "/tmp_cgra/mapping/")
+  cgra_dir_path = os.path.join(os.getcwd(), "tmp_cgra/")
 
   lock.acquire()
   try:
@@ -85,7 +70,7 @@ def create_database_exec(input):
   finally:
     lock.release()
 
-  subprocess.run(["/home/ubuntu/elastic_cgra_mapper/build/create_database", input.dfg_file_path, cgra_file_path, input.output_dir_path, str(input.db_timeout_s), str(int(input.overwrite))])
+  subprocess.run(["/home/ubuntu/elastic_cgra_mapper/build/create_database", input.dfg_file_path, cgra_file_path, input.output_dir_path, input.mapping_config_path, str(input.db_timeout_s), str(int(input.overwrite))])
 
   os.remove(cgra_file_path)
 

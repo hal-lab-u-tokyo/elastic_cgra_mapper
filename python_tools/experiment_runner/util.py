@@ -3,6 +3,7 @@ import os
 import sys
 sys.path.append(os.pardir)
 from io_lib import *
+from datetime import datetime
 
 def check_dir_availability(dir_path):
   if not os.path.exists(dir_path):
@@ -31,6 +32,12 @@ def get_database_id(cgra, database_timeout_s):
   database_id += str(database_timeout_s)
 
   return database_id
+
+def get_datetime_string():
+  now = datetime.now()
+  datetime_string = now.strftime("%Y-%m-%d-%H-%M-%S")
+
+  return datetime_string
 
 def remapping_type_to_int(remapper_type):
   if remapper_type == RemapperType.FullSearch:
