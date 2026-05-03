@@ -301,6 +301,7 @@ class DPRemappingHelper {
     mapping_id_to_index_.clear();
     for (int i = 0; i < mapping_matrix_vec_.size(); i++) {
       mapping_id_to_index_[mapping_matrix_vec_[i].id] = i;
+      mapping_index_to_id_[i] = mapping_matrix_vec_[i].id;
     }
   }
 
@@ -314,7 +315,7 @@ class DPRemappingHelper {
           static_cast<remapper::RotateOp>(placement.rotation_type));
       remapping_result.result_transform_op_vec.push_back(transform_op);
       remapping_result.result_mapping_id_vec.push_back(
-          mapping_matrix_vec_[mapping_id_to_index_.at(placement.id)].id);
+          mapping_matrix_vec_[mapping_index_to_id_.at(placement.id)].id);
     }
     return remapping_result;
   }
@@ -422,6 +423,7 @@ class DPRemappingHelper {
  private:
   std::vector<remapper::MappingMatrix> mapping_matrix_vec_;
   std::unordered_map<int, int> mapping_id_to_index_;
+  std::unordered_map<int, int> mapping_index_to_id_;
   remapper::CGRAMatrix cgra_matrix_;
 
   bool IsAvailableTransformWithRotation(Eigen::Vector3d shift_size,
