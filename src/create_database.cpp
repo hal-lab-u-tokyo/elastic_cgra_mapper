@@ -221,17 +221,14 @@ int main(int argc, char* argv[]) {
       creating_db_time_s += mapping_result.mapping_time_s;
 
       evaluated_mapping_id_vec.push_back(mapping_id);
-      if (mapping_result.is_success) {
-        io::MappingOutput mapping_output;
-        mapping_output.mapping_time_s = mapping_result.mapping_time_s;
-        mapping_output.is_success = mapping_result.is_success;
-        mapping_output.mapping_ptr = mapping_result.mapping_ptr;
-        mapping_output.mrrg_config = mrrg_ptr->GetMRRGConfig();
 
-        logger.LogMapping(mapping_output);
-      } else {
-        break;
-      }
+      io::MappingOutput mapping_output;
+      mapping_output.mapping_time_s = mapping_result.mapping_time_s;
+      mapping_output.is_success = mapping_result.is_success;
+      mapping_output.mapping_ptr = mapping_result.mapping_ptr;
+      mapping_output.mrrg_config = mrrg_ptr->GetMRRGConfig();
+
+      logger.LogMapping(mapping_output);
     }
     if (creating_db_time_s > db_timeout_s) {
       break;
