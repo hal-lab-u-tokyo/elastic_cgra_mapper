@@ -315,7 +315,7 @@ class DPRemappingHelper {
           static_cast<remapper::RotateOp>(placement.rotation_type));
       remapping_result.result_transform_op_vec.push_back(transform_op);
       remapping_result.result_mapping_id_vec.push_back(
-          mapping_matrix_vec_[mapping_index_to_id_.at(placement.id)].id);
+          mapping_index_to_id_.at(placement.id));
     }
     return remapping_result;
   }
@@ -418,6 +418,8 @@ class DPRemappingHelper {
       new_placement.x += x_shift;
       new_placement.y += y_shift;
     }
+
+    return new_placement;
   }
 
  private:
