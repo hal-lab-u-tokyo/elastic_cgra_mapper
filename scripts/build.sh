@@ -2,6 +2,7 @@
 
 DEBUG_ENABLE=0 # 1: enable debug, 0: disable debug
 
+cd /home/ubuntu/elastic_cgra_mapper
 if [ ! -d "build" ]; then
     mkdir build
 fi

@@ -1,7 +1,7 @@
 import json
 
 class CGRA:
-  def __init__(self, cgra_type, row, column, context_size, memory_io_type, network_type, local_reg_size):
+  def __init__(self, cgra_type, row, column, context_size, memory_io_type, network_type, local_reg_size, loop_controller_list):
     self.row = row
     self.column = column
     self.memory_io_type = memory_io_type
@@ -9,6 +9,7 @@ class CGRA:
     self.network_type = network_type
     self.local_reg_size = local_reg_size
     self.context_size = context_size
+    self.loop_controller_list = loop_controller_list
 
   def __eq__(self, other):
     if self.row != other.row:
@@ -25,6 +26,8 @@ class CGRA:
       return False
     if self.context_size != other.context_size:
       return False
+    if self.loop_controller_list != other.loop_controller_list:
+      return False
     return True
 
 
@@ -37,6 +40,7 @@ class CGRA:
     cgra_dict["network_type"] = self.network_type.to_string()
     cgra_dict["local_reg_size"] = self.local_reg_size
     cgra_dict["context_size"] = self.context_size
+    cgra_dict["loop_controllers"] = self.loop_controller_list
     return cgra_dict
 
   def dump_to_json(self, file_path):

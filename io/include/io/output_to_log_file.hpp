@@ -4,6 +4,7 @@
 #include <filesystem>
 #include <fstream>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 namespace io {
@@ -55,11 +56,18 @@ class Logger {
 
  protected:
   void InitializePath(const std::filesystem::path& output_dir_path);
-  void CopyArchFile(const std::filesystem::path& original_arch_file_path);
+  void CopyFile(const std::filesystem::path& original_file_path,
+                const std::filesystem::path& dest_file_path);
+  void OutputJsonLog(
+      const std::filesystem::path& json_log_file_path,
+      const std::unordered_map<std::string, std::string>& json_str_vec);
+  std::string GetHostName() const;
+  std::string GetGitCommitId() const;
+
+  std::string host_name_;
+  std::string git_commit_id_;
   std::filesystem::path output_dir_path_;
   std::filesystem::path log_file_path_;
-  std::filesystem::path arch_file_path_;
-  std::ofstream log_file_;
   std::string log_id_;
 };
 
@@ -71,8 +79,14 @@ class MappingLogger : public Logger {
   std::string GetGurobiLogFilePath() const {
     return gurobi_log_file_path_.string();
   };
+  std::string GetOutputSummaryFilePath() const {
+    return output_summary_file_path_.string();
+  };
 
  private:
+  std::filesystem::path input_summary_file_path_;
+  std::filesystem::path output_summary_file_path_;
+  std::filesystem::path arch_file_path_;
   std::filesystem::path gurobi_log_file_path_;
   std::filesystem::path mapping_file_path_;
 };
@@ -88,7 +102,11 @@ class RemapperLogger : public Logger {
 
  private:
   std::filesystem::path mapping_file_path_;
+  std::filesystem::path arch_file_path_;
   std::filesystem::path remapper_exec_log_file_path;
+  std::filesystem::path input_summary_file_path_;
+  std::filesystem::path output_summary_file_path_;
+  std::filesystem::path input_mapping_dir_path_;
 };
 
 class CreateDatabaseLogger : public Logger {
@@ -97,9 +115,8 @@ class CreateDatabaseLogger : public Logger {
   void LogCreateDatabaseInput(const CreateDatabaseInput& input);
   void LogCreateDatabaseOutput(const CreateDatabaseOutput& output);
   int countMappingDataNum() const;
-  void DeleteAllMappingData();
-  std::string GetNextGurobiMappingPath(double mapping_timeout_s,
-                                       const entity::MRRGConfig& mrrg_config);
+  std::string GetNextMappingPath(double mapping_timeout_s,
+                                 const entity::MRRGConfig& mrrg_config);
   std::string GetSelectionLogFilePath() const {
     return selection_log_file_path_.string();
   };
@@ -111,6 +128,10 @@ class CreateDatabaseLogger : public Logger {
   MappingLogger mapping_logger_;
   std::filesystem::path mapping_dir_path_;
   std::filesystem::path selection_log_file_path_;
+  std::filesystem::path arch_file_path_;
+  std::filesystem::path input_summary_file_path_;
+  std::filesystem::path output_summary_file_path_;
+  std::vector<std::filesystem::path> mapping_output_summary_file_path_vec_;
   bool start_mapping_;
 };
 }  // namespace io

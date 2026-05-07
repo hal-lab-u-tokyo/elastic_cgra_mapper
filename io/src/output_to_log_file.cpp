@@ -20,6 +20,33 @@ io::Logger::Logger() {
                      1000;
 
   log_id_ = std::string(buffer) + std::to_string(milliseconds);
+  host_name_ = GetHostName();
+  git_commit_id_ = GetGitCommitId();
+}
+
+std::string io::Logger::GetHostName() const {
+  const char* hostname_env = std::getenv("HOSTNAME_FROM_HOST");
+  std::string host_name = hostname_env ? std::string(hostname_env) : "unknown";
+  return host_name;
+}
+
+std::string io::Logger::GetGitCommitId() const {
+  char buffer[128];
+  FILE* pipe = popen("git rev-parse --short HEAD", "r");
+  if (!pipe) {
+    std::cerr << "Failed to get git commit id" << std::endl;
+    abort();
+  }
+
+  fgets(buffer, sizeof(buffer), pipe);
+  int status = pclose(pipe);
+  if (status == -1) {
+    std::cerr << "Failed to close pipe for git commit id" << std::endl;
+    abort();
+  }
+  std::string git_commit = std::string(buffer);
+  git_commit.erase(git_commit.find_last_not_of(" \n\r\t") + 1);
+  return git_commit;
 }
 
 void io::Logger::InitializePath(const std::filesystem::path& output_dir_path) {
@@ -30,29 +57,55 @@ void io::Logger::InitializePath(const std::filesystem::path& output_dir_path) {
   output_dir_path_ = output_dir_path;
 }
 
-void io::Logger::CopyArchFile(
-    const std::filesystem::path& original_arch_file_path) {
-  assert(original_arch_file_path.is_absolute());
+void io::Logger::CopyFile(const std::filesystem::path& original_file_path,
+                          const std::filesystem::path& dest_file_path) {
+  assert(original_file_path.is_absolute());
+  assert(dest_file_path.is_absolute());
 
-  std::filesystem::copy_file(original_arch_file_path, arch_file_path_,
+  std::filesystem::copy_file(original_file_path, dest_file_path,
                              std::filesystem::copy_options::overwrite_existing);
 }
 
+void io::Logger::OutputJsonLog(
+    const std::filesystem::path& json_log_file_path,
+    const std::unordered_map<std::string, std::string>& json_str_vec) {
+  std::ofstream json_log_file(json_log_file_path);
+  json_log_file << "{" << std::endl;
+  int count = 0;
+  for (const auto& [key, value] : json_str_vec) {
+    json_log_file << "  \"" << key << "\": " << value;
+    if (count != json_str_vec.size() - 1) {
+      json_log_file << ",";
+    }
+    json_log_file << std::endl;
+    count++;
+  }
+  json_log_file << "}" << std::endl;
+  json_log_file.close();
+}
+
 void io::MappingLogger::LogMappingInput(const io::MappingInput& input) {
-  InitializePath(input.output_dir_path);
+  InitializePath(input.output_dir_path / "mapping" / log_id_);
   assert(input.dfg_dot_file_path.is_absolute());
 
-  log_file_path_ =
-      output_dir_path_ / ("mapping/log/mapping_" + log_id_ + ".log");
-  arch_file_path_ =
-      output_dir_path_ / ("mapping/cgra/cgra_" + log_id_ + ".json");
-  mapping_file_path_ =
-      output_dir_path_ / ("mapping/mapping/mapping_" + log_id_ + ".json");
-  gurobi_log_file_path_ =
-      output_dir_path_ / ("mapping/gurobi_log/gurobi_" + log_id_ + ".log");
+  input_summary_file_path_ =
+      output_dir_path_ / ("input_log_" + log_id_ + ".json");
+  output_summary_file_path_ =
+      output_dir_path_ / ("output_log_" + log_id_ + ".json");
+  log_file_path_ = output_dir_path_ / ("log_" + log_id_ + ".log");
+  arch_file_path_ = output_dir_path_ / ("cgra_" + log_id_ + ".json");
+  mapping_file_path_ = output_dir_path_ / ("mapping_" + log_id_ + ".json");
+  gurobi_log_file_path_ = output_dir_path_ / ("gurobi_log_" + log_id_ + ".log");
 
   if (!std::filesystem::exists(log_file_path_.parent_path())) {
     std::filesystem::create_directories(log_file_path_.parent_path());
+  }
+  if (!std::filesystem::exists(input_summary_file_path_.parent_path())) {
+    std::filesystem::create_directories(input_summary_file_path_.parent_path());
+  }
+  if (!std::filesystem::exists(output_summary_file_path_.parent_path())) {
+    std::filesystem::create_directories(
+        output_summary_file_path_.parent_path());
   }
   if (!std::filesystem::exists(arch_file_path_.parent_path())) {
     std::filesystem::create_directories(arch_file_path_.parent_path());
@@ -64,49 +117,58 @@ void io::MappingLogger::LogMappingInput(const io::MappingInput& input) {
     std::filesystem::create_directories(gurobi_log_file_path_.parent_path());
   }
 
-  log_file_.open(log_file_path_, std::ios::app);
-  log_file_ << "-- mapping input --" << std::endl;
-  log_file_ << "dfg file: " << input.dfg_dot_file_path.string() << std::endl;
-  log_file_ << "cgra file: " << arch_file_path_.string() << std::endl;
-  log_file_ << "output dir: " << output_dir_path_.string() << std::endl;
-  log_file_ << "timeout (s): " << input.timeout_s << std::endl;
-  log_file_ << "parallel num: " << input.parallel_num << std::endl;
+  std::unordered_map<std::string, std::string> json_str_vec;
+  json_str_vec["dfg_file"] = "\"" + input.dfg_dot_file_path.string() + "\"";
+  json_str_vec["cgra_file"] = "\"" + arch_file_path_.string() + "\"";
+  json_str_vec["output_dir"] = "\"" + output_dir_path_.string() + "\"";
+  json_str_vec["timeout_s"] = std::to_string(input.timeout_s);
+  json_str_vec["parallel_num"] = std::to_string(input.parallel_num);
+  json_str_vec["host_name"] = "\"" + host_name_ + "\"";
+  json_str_vec["git_commit_id"] = "\"" + git_commit_id_ + "\"";
+  OutputJsonLog(input_summary_file_path_, json_str_vec);
 
-  std::shared_ptr<entity::MRRG> mrrg_ptr =
-      std::make_shared<entity::MRRG>(input.mrrg_config);
-  io::WriteMRRGToJsonFile(arch_file_path_.string(), mrrg_ptr);
+  CopyFile(input.dfg_dot_file_path,
+           output_dir_path_ / (input.dfg_dot_file_path.filename().string()));
+
+  std::shared_ptr<entity::MRRG> mrrg_ptr_;
+  mrrg_ptr_ = std::make_shared<entity::MRRG>(input.mrrg_config);
+  io::WriteMRRGToJsonFile(arch_file_path_.string(), mrrg_ptr_);
+
+  return;
 }
 
 void io::MappingLogger::LogMappingOutput(const io::MappingOutput& output) {
   io::WriteMappingFile(mapping_file_path_, output.mapping_ptr,
                        output.mrrg_config);
-  log_file_ << "-- mapping output --" << std::endl;
-  log_file_ << "mapping time (s): " << output.mapping_time_s << std::endl;
-  log_file_ << "is success: " << output.is_success << std::endl;
-  log_file_ << "mapping file: " << mapping_file_path_.string() << std::endl;
-  log_file_ << "gurobi log file: " << gurobi_log_file_path_.string()
-            << std::endl;
-  log_file_.close();
+  std::unordered_map<std::string, std::string> json_str_vec;
+  json_str_vec["mapping_time_s"] = std::to_string(output.mapping_time_s);
+  json_str_vec["is_success"] = output.is_success ? "true" : "false";
+  json_str_vec["mapping_file"] = "\"" + mapping_file_path_.string() + "\"";
+  json_str_vec["gurobi_log_file"] =
+      "\"" + gurobi_log_file_path_.string() + "\"";
+  OutputJsonLog(output_summary_file_path_, json_str_vec);
+
+  return;
 }
 
 void io::RemapperLogger::LogRemapperInput(const io::RemapperInput& input) {
-  InitializePath(input.output_dir_path);
+  InitializePath(input.output_dir_path / "remapping" / log_id_);
   assert(input.mapping_dir_path.is_absolute());
   assert(input.cgra_file_path.is_absolute());
   assert(input.remapper_mode == "dp" || input.remapper_mode == "greedy" ||
          input.remapper_mode == "full_search" ||
          input.remapper_mode == "dp_and_full_search");
 
-  log_file_path_ = output_dir_path_ / ("remapping/" + input.remapper_mode +
-                                       "/log/remapping_" + log_id_ + ".log");
-  arch_file_path_ = output_dir_path_ / ("remapping/" + input.remapper_mode +
-                                        "/cgra/cgra_" + log_id_ + ".json");
-  mapping_file_path_ =
-      output_dir_path_ / ("remapping/" + input.remapper_mode +
-                          "/mapping/remapping_" + log_id_ + ".json");
+  log_file_path_ = output_dir_path_ / ("log_" + log_id_ + ".log");
+  arch_file_path_ = output_dir_path_ / ("cgra_" + log_id_ + ".json");
+  mapping_file_path_ = output_dir_path_ / ("remapping_" + log_id_ + ".json");
   remapper_exec_log_file_path =
-      output_dir_path_ / ("remapping/" + input.remapper_mode +
-                          "/exec_log/exec_log_" + log_id_ + ".log");
+      output_dir_path_ / ("exec_log_" + log_id_ + ".log");
+  input_summary_file_path_ =
+      output_dir_path_ / ("input_summary_" + log_id_ + ".json");
+  output_summary_file_path_ =
+      output_dir_path_ / ("output_summary_" + log_id_ + ".json");
+  input_mapping_dir_path_ = output_dir_path_ / ("input_mapping/");
 
   if (!std::filesystem::exists(log_file_path_.parent_path())) {
     std::filesystem::create_directories(log_file_path_.parent_path());
@@ -121,34 +183,60 @@ void io::RemapperLogger::LogRemapperInput(const io::RemapperInput& input) {
     std::filesystem::create_directories(
         remapper_exec_log_file_path.parent_path());
   }
-
-  CopyArchFile(input.cgra_file_path);
-
-  log_file_.open(log_file_path_, std::ios::app);
-  log_file_ << "-- remapping input --" << std::endl;
-  log_file_ << "mapping dir: " << input.mapping_dir_path.string() << std::endl;
-
-  for (const auto& file :
-       std::filesystem::directory_iterator(input.mapping_dir_path)) {
-    log_file_ << ">> mapping file: " << file.path().string() << std::endl;
+  if (!std::filesystem::exists(input_summary_file_path_.parent_path())) {
+    std::filesystem::create_directories(input_summary_file_path_.parent_path());
+  }
+  if (!std::filesystem::exists(output_summary_file_path_.parent_path())) {
+    std::filesystem::create_directories(
+        output_summary_file_path_.parent_path());
+  }
+  if (!std::filesystem::exists(input_mapping_dir_path_)) {
+    std::filesystem::create_directories(input_mapping_dir_path_);
   }
 
-  log_file_ << "cgra file: " << arch_file_path_.string() << std::endl;
-  log_file_ << "output dir: " << output_dir_path_.string() << std::endl;
-  log_file_ << "remapper mode: " << input.remapper_mode << std::endl;
-  log_file_ << "timeout_s: " << input.timeout_s << std::endl;
+  std::unordered_map<std::string, std::string> json_str_vec;
+  json_str_vec["mapping_dir"] = "\"" + input.mapping_dir_path.string() + "\"";
+  json_str_vec["cgra_file"] = "\"" + arch_file_path_.string() + "\"";
+  json_str_vec["output_dir"] = "\"" + output_dir_path_.string() + "\"";
+  json_str_vec["remapper_mode"] = input.remapper_mode;
+  json_str_vec["timeout_s"] = std::to_string(input.timeout_s);
+  json_str_vec["host_name"] = "\"" + host_name_ + "\"";
+  json_str_vec["git_commit_id"] = "\"" + git_commit_id_ + "\"";
+
+  std::string mapping_files_str = "[";
+  for (const auto& file :
+       std::filesystem::directory_iterator(input.mapping_dir_path)) {
+    mapping_files_str += "\"" + file.path().string() + "\",";
+  }
+  if (!mapping_files_str.empty()) {
+    mapping_files_str.pop_back();  // Remove the last comma
+  }
+  mapping_files_str += "]";
+
+  json_str_vec["mapping_files"] = mapping_files_str;
+
+  OutputJsonLog(input_summary_file_path_, json_str_vec);
+
+  CopyFile(input.cgra_file_path, arch_file_path_);
+  for (const auto& file :
+       std::filesystem::directory_iterator(input.mapping_dir_path)) {
+    if (file.path().extension() == ".json") {
+      CopyFile(file.path(),
+               input_mapping_dir_path_ / file.path().filename().string());
+    }
+  }
+
+  return;
 }
 
 void io::RemapperLogger::LogRemapperOutput(const io::RemapperOutput& output) {
   assert(output.remapping_time_s >= 0);
-  io::WriteMappingFile(mapping_file_path_, output.mapping_ptr,
-                       output.mrrg_config);
-  log_file_ << "-- remapping output --" << std::endl;
-  log_file_ << "remapping time (s): " << output.remapping_time_s << std::endl;
-  log_file_ << "parallel num: " << output.parallel_num << std::endl;
-  log_file_ << "mapping type num: " << output.mapping_type_num << std::endl;
-  log_file_ << "mapping file: " << mapping_file_path_.string() << std::endl;
-  log_file_.close();
+  std::unordered_map<std::string, std::string> json_str_vec;
+  json_str_vec["remapping_time_s"] = std::to_string(output.remapping_time_s);
+  json_str_vec["parallel_num"] = std::to_string(output.parallel_num);
+  json_str_vec["mapping_type_num"] = std::to_string(output.mapping_type_num);
+  json_str_vec["mapping_file"] = "\"" + mapping_file_path_.string() + "\"";
+  OutputJsonLog(output_summary_file_path_, json_str_vec);
 }
 
 std::string GetCGRAId(const std::filesystem::path& cgra_file_path) {
@@ -169,20 +257,22 @@ std::string GetCGRAId(const std::filesystem::path& cgra_file_path) {
 
 void io::CreateDatabaseLogger::LogCreateDatabaseInput(
     const io::CreateDatabaseInput& input) {
-  InitializePath(input.output_dir_path);
+  InitializePath(input.output_dir_path / "database" / log_id_);
   assert(input.dfg_dot_file_path.is_absolute());
   assert(input.cgra_file_path.is_absolute());
   input_ = input;
 
-  log_file_path_ = output_dir_path_ / ("database/log/db_" + log_id_ + ".log");
-  arch_file_path_ =
-      output_dir_path_ / ("database/cgra/cgra_" + log_id_ + ".json");
+  log_file_path_ = output_dir_path_ / ("log_ " + log_id_ + ".log");
+  arch_file_path_ = output_dir_path_ / ("cgra_" + log_id_ + ".json");
 
   database_id_ = GetCGRAId(input.cgra_file_path) + "_" +
                  std::to_string(static_cast<int>(input.db_timeout_s));
   selection_log_file_path_ =
-      output_dir_path_ /
-      ("database/selection_log/selection_log_" + log_id_ + ".log");
+      output_dir_path_ / ("selection_log_" + log_id_ + ".log");
+  input_summary_file_path_ =
+      output_dir_path_ / ("input_summary_" + log_id_ + ".json");
+  output_summary_file_path_ =
+      output_dir_path_ / ("output_summary_" + log_id_ + ".json");
 
   if (!std::filesystem::exists(log_file_path_.parent_path())) {
     std::filesystem::create_directories(log_file_path_.parent_path());
@@ -193,23 +283,50 @@ void io::CreateDatabaseLogger::LogCreateDatabaseInput(
   if (!std::filesystem::exists(selection_log_file_path_.parent_path())) {
     std::filesystem::create_directories(selection_log_file_path_.parent_path());
   }
+  if (!std::filesystem::exists(input_summary_file_path_.parent_path())) {
+    std::filesystem::create_directories(input_summary_file_path_.parent_path());
+  }
+  if (!std::filesystem::exists(output_summary_file_path_.parent_path())) {
+    std::filesystem::create_directories(
+        output_summary_file_path_.parent_path());
+  }
 
-  log_file_.open(log_file_path_, std::ios::app);
-  log_file_ << "-- create database input --" << std::endl;
-  log_file_ << "dfg file: " << input.dfg_dot_file_path.string() << std::endl;
-  log_file_ << "cgra file: " << arch_file_path_.string() << std::endl;
-  log_file_ << "output dir: " << output_dir_path_.string() << std::endl;
-  log_file_ << "timeout (s): " << input.db_timeout_s << std::endl;
-  log_file_ << "min utilization: " << input.min_utilization << std::endl;
-  CopyArchFile(input.cgra_file_path);
+  std::unordered_map<std::string, std::string> json_str_vec;
+  json_str_vec["dfg_file"] = "\"" + input.dfg_dot_file_path.string() + "\"";
+  json_str_vec["cgra_file"] = "\"" + arch_file_path_.string() + "\"";
+  json_str_vec["output_dir"] = "\"" + output_dir_path_.string() + "\"";
+  json_str_vec["db_timeout_s"] = std::to_string(input.db_timeout_s);
+  json_str_vec["min_utilization"] = std::to_string(input.min_utilization);
+  json_str_vec["host_name"] = "\"" + host_name_ + "\"";
+  json_str_vec["git_commit_id"] = "\"" + git_commit_id_ + "\"";
+  OutputJsonLog(input_summary_file_path_, json_str_vec);
+
+  CopyFile(input.cgra_file_path, arch_file_path_);
+
+  return;
 }
 
 void io::CreateDatabaseLogger::LogCreateDatabaseOutput(
     const io::CreateDatabaseOutput& output) {
-  log_file_ << "-- create database output --" << std::endl;
-  log_file_ << "creating db time (s): " << output.creating_db_time_s
-            << std::endl;
-  log_file_.close();
+  std::unordered_map<std::string, std::string> json_str_vec;
+
+  std::string mapping_output_summary_files_str = "[";
+  for (size_t i = 0; i < mapping_output_summary_file_path_vec_.size(); i++) {
+    mapping_output_summary_files_str +=
+        "\"" + mapping_output_summary_file_path_vec_[i].string() + "\",";
+    if (i == mapping_output_summary_file_path_vec_.size() - 1) {
+      mapping_output_summary_files_str.pop_back();  // Remove the last comma
+    }
+  }
+  mapping_output_summary_files_str += "]";
+
+  json_str_vec["mapping_output_summary_files"] =
+      mapping_output_summary_files_str;
+  json_str_vec["creating_db_time_s"] =
+      std::to_string(output.creating_db_time_s);
+  OutputJsonLog(output_summary_file_path_, json_str_vec);
+
+  return;
 }
 
 int io::CreateDatabaseLogger::countMappingDataNum() const {
@@ -230,29 +347,13 @@ int io::CreateDatabaseLogger::countMappingDataNum() const {
   return count;
 }
 
-void io::CreateDatabaseLogger::DeleteAllMappingData() {
-  std::filesystem::path database_dir_path =
-      output_dir_path_ / ("database/mapping/" + database_id_);
-  if (!std::filesystem::exists(database_dir_path)) {
-    return;
-  }
-
-  for (const auto& file :
-       std::filesystem::recursive_directory_iterator(database_dir_path)) {
-    if (!std::filesystem::is_directory(file.path())) {
-      std::filesystem::remove(file.path());
-    }
-  }
-}
-
-std::string io::CreateDatabaseLogger::GetNextGurobiMappingPath(
+std::string io::CreateDatabaseLogger::GetNextMappingPath(
     double mapping_timeout_s, const entity::MRRGConfig& mrrg_config) {
   start_mapping_ = true;
   MappingInput mapping_input;
   mapping_input.mrrg_config = mrrg_config;
   mapping_input.dfg_dot_file_path = input_.dfg_dot_file_path;
-  mapping_input.output_dir_path =
-      output_dir_path_ / ("database/mapping/" + database_id_);
+  mapping_input.output_dir_path = output_dir_path_ / "database";
   mapping_input.timeout_s = mapping_timeout_s;
   mapping_input.parallel_num = 1;
   mapping_logger_ = MappingLogger();
@@ -267,8 +368,8 @@ void io::CreateDatabaseLogger::LogMapping(
 
   mapping_logger_.LogMappingOutput(mapping_output);
 
-  log_file_ << "mapping_log_file:" << mapping_logger_.GetLogFilePath().string()
-            << std::endl;
+  mapping_output_summary_file_path_vec_.push_back(
+      mapping_logger_.GetOutputSummaryFilePath());
 
   start_mapping_ = false;
 }

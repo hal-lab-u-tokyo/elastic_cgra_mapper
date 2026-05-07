@@ -102,7 +102,7 @@ std::vector<int> SortElementByFreqency(const std::vector<int>& vec) {
 }
 
 int main(int argc, char* argv[]) {
-  if (argc != 7) {
+  if (argc != 6) {
     std::cerr << "invalid arguments" << std::endl;
     abort();
   }
@@ -112,7 +112,6 @@ int main(int argc, char* argv[]) {
   const std::string output_dir = argv[3];
   const std::string mapper_config_file_path = argv[4];
   const double db_timeout_s = std::stod(argv[5]);
-  const bool overwrite = static_cast<bool>(std::stoi(argv[6]));
   double creating_db_time_s = 0;
 
   assert(std::filesystem::path(dfg_dot_file_path).is_absolute());
@@ -162,11 +161,10 @@ int main(int argc, char* argv[]) {
   io::CreateDatabaseLogger logger;
   logger.LogCreateDatabaseInput({dfg_dot_file_path, mrrg_file_path, output_dir,
                                  db_timeout_s, kMinUtilization});
-  if (logger.countMappingDataNum() != 0 && !overwrite) {
+  if (logger.countMappingDataNum() != 0) {
     return 0;
-  } else if (overwrite) {
-    logger.DeleteAllMappingData();
   }
+
   while (1) {
     std::vector<remapper::MappingMatrix> tmp_mapping_matrix_vec;
     for (const auto& mapping_matrix : mapping_matrix_vec) {
@@ -215,7 +213,7 @@ int main(int argc, char* argv[]) {
       mapper::GurobiPlacementILPMapper* mapper;
       mapper =
           mapper::GurobiPlacementILPMapper().CreateMapper(dfg_ptr, mrrg_ptr);
-      mapper->SetLogFilePath(logger.GetNextGurobiMappingPath(
+      mapper->SetLogFilePath(logger.GetNextMappingPath(
           mapping_time_out_s, mrrg_ptr->GetMRRGConfig()));
       mapper->SetTimeOut(mapping_time_out_s);
 
@@ -223,17 +221,14 @@ int main(int argc, char* argv[]) {
       creating_db_time_s += mapping_result.mapping_time_s;
 
       evaluated_mapping_id_vec.push_back(mapping_id);
-      if (mapping_result.is_success) {
-        io::MappingOutput mapping_output;
-        mapping_output.mapping_time_s = mapping_result.mapping_time_s;
-        mapping_output.is_success = mapping_result.is_success;
-        mapping_output.mapping_ptr = mapping_result.mapping_ptr;
-        mapping_output.mrrg_config = mrrg_ptr->GetMRRGConfig();
 
-        logger.LogMapping(mapping_output);
-      } else {
-        break;
-      }
+      io::MappingOutput mapping_output;
+      mapping_output.mapping_time_s = mapping_result.mapping_time_s;
+      mapping_output.is_success = mapping_result.is_success;
+      mapping_output.mapping_ptr = mapping_result.mapping_ptr;
+      mapping_output.mrrg_config = mrrg_ptr->GetMRRGConfig();
+
+      logger.LogMapping(mapping_output);
     }
     if (creating_db_time_s > db_timeout_s) {
       break;

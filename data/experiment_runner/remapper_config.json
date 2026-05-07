@@ -1,9 +1,10 @@
 {
   "exec_setting": {
-    "overwrite": false,
     "kernel_dir_path": "/home/ubuntu/elastic_cgra_mapper/benchmark/kernel",
     "output_dir_path": "/home/ubuntu/elastic_cgra_mapper/output",
     "create_database": false,
+    "database_path": "/home/ubuntu/elastic_cgra_mapper/output/database/remapping.db",
+    "mapping_config_path": "/home/ubuntu/elastic_cgra_mapper/data/mapper_config.json",
     "database_timeout_s": 3600,
     "remapper_timeout_s": 28800,
     "process_num": 8
@@ -25,6 +26,7 @@
       "orthogonal"
     ],
     "local_reg_size": "1",
+    "loop_controllers": [],
     "db_num": 1
   },
   "benchmark_name": [
