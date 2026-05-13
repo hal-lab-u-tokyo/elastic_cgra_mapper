@@ -47,7 +47,7 @@ remapper::RemappingResult::RemappingResult(
   assert(result_mapping_id_vec.size() == result_transform_op_vec.size());
 };
 
-remapper::RemappingResult remapper::Remapper::ElasticRemapping(
+remapper::RemappingResult remapper::Remapper::Remapping(
     const std::vector<entity::Mapping>& mapping_vec,
     const entity::MRRGConfig& target_mrrg_config, const int target_parallel_num,
     std::ofstream& log_file, remapper::RemappingMode mode, double timeout_s) {

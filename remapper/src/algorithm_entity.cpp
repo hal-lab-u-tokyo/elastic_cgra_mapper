@@ -210,6 +210,16 @@ bool remapper::CGRAMatrix::IsAvailableRemapping(
 int remapper::CGRAMatrix::TryRemapping(
     const std::vector<MappingMatrix>& mapping_matrix_vec,
     const std::vector<MappingTransformOp>& transform_op_vec) const {
+  if (mrrg_config_.cgra_type == entity::MRRGCGRAType::kElastic) {
+    return TryRemappingAsynchronousCGRA(mapping_matrix_vec, transform_op_vec);
+  } else {
+    return TryRemappingSynchronousCGRA(mapping_matrix_vec, transform_op_vec);
+  }
+}
+
+int remapper::CGRAMatrix::TryRemappingAsynchronousCGRA(
+    const std::vector<MappingMatrix>& mapping_matrix_vec,
+    const std::vector<MappingTransformOp>& transform_op_vec) const {
   if (mapping_matrix_vec.size() != transform_op_vec.size()) {
     assert("mapping_matrix_vec and transform_op_vec should have the same size");
     abort();
@@ -237,6 +247,46 @@ int remapper::CGRAMatrix::TryRemapping(
     int max_op_num = op_num_matrix.maxCoeff();
     over_context_size = max_op_num > context_size;
     if (over_context_size) return last_mapping_id;
+  }
+
+  return last_mapping_id + 1;
+}
+
+int remapper::CGRAMatrix::TryRemappingSynchronousCGRA(
+    const std::vector<MappingMatrix>& mapping_matrix_vec,
+    const std::vector<MappingTransformOp>& transform_op_vec) const {
+  if (mapping_matrix_vec.size() != transform_op_vec.size()) {
+    assert("mapping_matrix_vec and transform_op_vec should have the same size");
+    abort();
+  }
+
+  for (int i = 0; i < mapping_matrix_vec.size(); i++) {
+    if (!IsAvailableRemapping(mapping_matrix_vec[i], transform_op_vec[i])) {
+      return 0;
+    }
+  }
+
+  Eigen::MatrixXi op_num_matrix = Eigen::MatrixXi::Zero(row_size, column_size);
+  bool over_context_size = false;
+  int last_mapping_id = 0;
+  for (int i = 0; i < transform_op_vec.size(); i++) {
+    last_mapping_id = i;
+    const auto& transform_op = transform_op_vec[i];
+
+    Eigen::MatrixXi tmp_matrix =
+        mapping_matrix_vec[i].GetRotatedOpNumMatrix(transform_op.rotate_op);
+
+    Eigen::MatrixXi target_cgra_matrix =
+        op_num_matrix.block(transform_op.row, transform_op.column,
+                            tmp_matrix.rows(), tmp_matrix.cols());
+    if (target_cgra_matrix.maxCoeff() != 0) {
+      // if there is already an operation, the remapping fails because the CGRA
+      // is synchronous.
+      return last_mapping_id;
+    }
+
+    op_num_matrix.block(transform_op.row, transform_op.column,
+                        tmp_matrix.rows(), tmp_matrix.cols()) += tmp_matrix;
   }
 
   return last_mapping_id + 1;
