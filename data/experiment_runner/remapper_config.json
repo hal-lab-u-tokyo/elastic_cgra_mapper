@@ -10,6 +10,10 @@
     "process_num": 8
   },
   "remapping_setting": {
+    "num_available_mappings": [
+      -1,
+      1
+    ],
     "cgra_type": [
       "default"
     ],
