@@ -72,6 +72,9 @@ entity::Database io::select_database(
     entity::Database database;
 
     const auto mapping_dir_path = database_dir.path() / "database" / "mapping";
+    if (!std::filesystem::exists(mapping_dir_path)) {
+      continue;
+    }
     for (const auto& mapping_dir :
          std::filesystem::directory_iterator(mapping_dir_path)) {
       if (!mapping_dir.is_directory()) {
@@ -113,6 +116,7 @@ entity::Database io::select_database(
         }
       }
     }
+
     return database;
   }
 
