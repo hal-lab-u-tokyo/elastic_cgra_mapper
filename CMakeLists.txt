@@ -47,7 +47,7 @@ target_compile_options(verilator_synchronous_CGRA INTERFACE -Wall -Wextra
                                                             -Wno-deprecated)
 target_link_libraries(verilator_synchronous_CGRA PRIVATE io entity mapper
                                                          cpp_simulator)
-add_executable(remapping src/elastic_remapping.cpp)
+add_executable(remapping src/remapping.cpp)
 set_property(TARGET remapping PROPERTY CXX_STANDARD 17)
 target_compile_options(remapping INTERFACE -Wall -Wextra -Wno-deprecated)
 target_link_libraries(remapping PRIVATE io entity remapper)

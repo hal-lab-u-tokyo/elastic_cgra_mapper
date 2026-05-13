@@ -94,5 +94,11 @@ class CGRAMatrix : public Rectangle {
  private:
   entity::MRRGConfig mrrg_config_;
   Eigen::MatrixXi memory_accessible_matrix_;
+  int TryRemappingAsynchronousCGRA(
+      const std::vector<MappingMatrix>& mapping_matrix_vec,
+      const std::vector<MappingTransformOp>& transform_op_vec) const;
+  int TryRemappingSynchronousCGRA(
+      const std::vector<MappingMatrix>& mapping_matrix_vec,
+      const std::vector<MappingTransformOp>& transform_op_vec) const;
 };
 }  // namespace remapper
