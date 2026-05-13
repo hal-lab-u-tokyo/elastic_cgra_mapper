@@ -196,6 +196,7 @@ void io::RemapperLogger::LogRemapperInput(const io::RemapperInput& input) {
 
   std::unordered_map<std::string, std::string> json_str_vec;
   json_str_vec["mapping_dir"] = "\"" + input.mapping_dir_path.string() + "\"";
+  json_str_vec["dfg_file"] = "\"" + input.dfg_file_path.string() + "\"";
   json_str_vec["cgra_file"] = "\"" + arch_file_path_.string() + "\"";
   json_str_vec["output_dir"] = "\"" + output_dir_path_.string() + "\"";
   json_str_vec["remapper_mode"] = input.remapper_mode;

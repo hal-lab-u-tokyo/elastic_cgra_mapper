@@ -25,6 +25,7 @@ struct MappingOutput {
 
 struct RemapperInput {
   std::filesystem::path mapping_dir_path;
+  std::filesystem::path dfg_file_path;
   std::filesystem::path cgra_file_path;
   std::filesystem::path output_dir_path;
   std::string remapper_mode;

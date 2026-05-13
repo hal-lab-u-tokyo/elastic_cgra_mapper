@@ -78,6 +78,21 @@ struct MRRGConfig {
   std::vector<entity::PEPositionId> loop_controller_position_vec;
 
   bool IsLoopController(entity::PEPositionId position_id) const;
+
+  bool operator==(const MRRGConfig& mrrg_config) const {
+    for (int i = 0; i < loop_controller_position_vec.size(); i++) {
+      if (!(loop_controller_position_vec[i] ==
+            mrrg_config.loop_controller_position_vec[i])) {
+        return false;
+      }
+    }
+    return column == mrrg_config.column && row == mrrg_config.row &&
+           memory_io == mrrg_config.memory_io &&
+           cgra_type == mrrg_config.cgra_type &&
+           network_type == mrrg_config.network_type &&
+           local_reg_size == mrrg_config.local_reg_size &&
+           context_size == mrrg_config.context_size;
+  }
 };
 
 MRRGCGRAType MRRGCGRATypeFromString(std::string cgra_type_string);
