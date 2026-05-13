@@ -18,6 +18,12 @@ int main(int argc, char* argv[]) {
   remapper::RemappingMode mode =
       static_cast<remapper::RemappingMode>(std::stoi(argv[5]));
   const double timeout_s = std::stod(argv[6]);
+  const int num_available_mappings = std::stoi(argv[7]);
+
+  if (argc != 8) {
+    std::cerr << "invalid arguments" << std::endl;
+    abort();
+  }
 
   assert(std::filesystem::path(database_dir_path).is_absolute());
   assert(std::filesystem::path(mrrg_file_path).is_absolute());
@@ -37,13 +43,15 @@ int main(int argc, char* argv[]) {
   input.output_dir_path = output_dir;
   input.remapper_mode = remapper::RemappingModeToString(mode);
   input.timeout_s = timeout_s;
+  input.num_available_mappings = num_available_mappings;
   logger.LogRemapperInput(input);
 
   const auto mrrg_config =
       io::ReadMRRGFromJsonFile(mrrg_file_path).GetMRRGConfig();
 
-  const entity::Database database =
+  entity::Database database =
       io::select_database(database_dir_path, mrrg_config, input.dfg_file_path);
+  database.LimitMappingNum(num_available_mappings);
   std::vector<entity::Mapping> mapping_vec = database.GetMappings();
 
   int max_config_num =

@@ -29,6 +29,10 @@ class Mapping {
     }
   };
   size_t GetOpNum() const;
+  double GetOpRate() const {
+    return double(GetOpNum()) /
+           (mrrg_config_.column * mrrg_config_.row * mrrg_config_.context_size);
+  };
 
  private:
   MRRGConfig mrrg_config_;
