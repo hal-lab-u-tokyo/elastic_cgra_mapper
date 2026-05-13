@@ -66,21 +66,26 @@ void io::Logger::CopyFile(const std::filesystem::path& original_file_path,
                              std::filesystem::copy_options::overwrite_existing);
 }
 
+std::string JsonStrVecToStr(
+    const std::unordered_map<std::string, std::string>& json_str_vec) {
+  std::string result = "{";
+  int count = 0;
+  for (const auto& [key, value] : json_str_vec) {
+    result += "\"" + key + "\": " + value;
+    if (count != json_str_vec.size() - 1) {
+      result += ", ";
+    }
+    count++;
+  }
+  result += "}";
+  return result;
+}
+
 void io::Logger::OutputJsonLog(
     const std::filesystem::path& json_log_file_path,
     const std::unordered_map<std::string, std::string>& json_str_vec) {
   std::ofstream json_log_file(json_log_file_path);
-  json_log_file << "{" << std::endl;
-  int count = 0;
-  for (const auto& [key, value] : json_str_vec) {
-    json_log_file << "  \"" << key << "\": " << value;
-    if (count != json_str_vec.size() - 1) {
-      json_log_file << ",";
-    }
-    json_log_file << std::endl;
-    count++;
-  }
-  json_log_file << "}" << std::endl;
+  json_log_file << JsonStrVecToStr(json_str_vec);
   json_log_file.close();
 }
 
@@ -199,8 +204,10 @@ void io::RemapperLogger::LogRemapperInput(const io::RemapperInput& input) {
   json_str_vec["dfg_file"] = "\"" + input.dfg_file_path.string() + "\"";
   json_str_vec["cgra_file"] = "\"" + arch_file_path_.string() + "\"";
   json_str_vec["output_dir"] = "\"" + output_dir_path_.string() + "\"";
-  json_str_vec["remapper_mode"] = input.remapper_mode;
+  json_str_vec["remapper_mode"] = "\"" + input.remapper_mode + "\"";
   json_str_vec["timeout_s"] = std::to_string(input.timeout_s);
+  json_str_vec["num_available_mappings"] =
+      std::to_string(input.num_available_mappings);
   json_str_vec["host_name"] = "\"" + host_name_ + "\"";
   json_str_vec["git_commit_id"] = "\"" + git_commit_id_ + "\"";
 
@@ -232,12 +239,51 @@ void io::RemapperLogger::LogRemapperInput(const io::RemapperInput& input) {
 
 void io::RemapperLogger::LogRemapperOutput(const io::RemapperOutput& output) {
   assert(output.remapping_time_s >= 0);
+
+  std::filesystem::path output_mapping_dir_path_ =
+      output_dir_path_ / "output_mapping";
+  if (!std::filesystem::exists(output_mapping_dir_path_)) {
+    std::filesystem::create_directories(output_mapping_dir_path_);
+  }
+
+  for (const auto& pair : output.mapping_id_to_mapping) {
+    const int mapping_id = pair.first;
+    const entity::Mapping& mapping = pair.second;
+    std::string mapping_file_name =
+        "remapped_mapping_" + std::to_string(mapping_id) + ".json";
+    io::WriteMappingFile(output_mapping_dir_path_ / mapping_file_name,
+                         std::make_shared<entity::Mapping>(mapping),
+                         output.mrrg_config);
+  }
+  std::filesystem::path output_transform_file_path_ =
+      output_dir_path_ / "transform_op.json";
+  std::ofstream transform_file(output_transform_file_path_);
+  transform_file << "[";
+  for (int i = 0; i < output.transform_op_vec.size(); i++) {
+    io::MappingTransformOp transform_op = output.transform_op_vec[i];
+    int mapping_id = output.mapping_id_vec[i];
+    std::unordered_map<std::string, std::string> json_str_vec;
+    json_str_vec["mapping_id"] = std::to_string(mapping_id);
+    json_str_vec["row"] = std::to_string(transform_op.row);
+    json_str_vec["column"] = std::to_string(transform_op.column);
+    json_str_vec["rotate_op"] = "\"" + transform_op.rotate_op + "\"";
+    std::string json_str = JsonStrVecToStr(json_str_vec);
+    transform_file << json_str;
+    if (i != output.transform_op_vec.size() - 1) {
+      transform_file << ", ";
+    }
+  }
+  transform_file << "]";
+  transform_file.close();
+
   std::unordered_map<std::string, std::string> json_str_vec;
   json_str_vec["remapping_time_s"] = std::to_string(output.remapping_time_s);
   json_str_vec["parallel_num"] = std::to_string(output.parallel_num);
   json_str_vec["mapping_type_num"] = std::to_string(output.mapping_type_num);
   json_str_vec["mapping_file"] = "\"" + mapping_file_path_.string() + "\"";
   OutputJsonLog(output_summary_file_path_, json_str_vec);
+
+  WriteMappingFile(mapping_file_path_, output.mapping_ptr, output.mrrg_config);
 }
 
 std::string GetCGRAId(const std::filesystem::path& cgra_file_path) {

@@ -30,11 +30,22 @@ struct RemapperInput {
   std::filesystem::path output_dir_path;
   std::string remapper_mode;
   double timeout_s;
+  int num_available_mappings;
 };
+
+struct MappingTransformOp {
+  int row;
+  int column;
+  std::string rotate_op;
+};
+
 struct RemapperOutput {
   double remapping_time_s;
   std::shared_ptr<entity::Mapping> mapping_ptr;
   entity::MRRGConfig mrrg_config;
+  std::unordered_map<int, entity::Mapping> mapping_id_to_mapping;
+  std::vector<MappingTransformOp> transform_op_vec;
+  std::vector<int> mapping_id_vec;
   int parallel_num;
   int mapping_type_num;
 };

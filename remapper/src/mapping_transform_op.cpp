@@ -34,3 +34,26 @@ remapper::RotateOp remapper::CombineRotateOp(const remapper::RotateOp& lhs,
     return Exec(WithoutMirror(lhs), RotateWithMirror(WithoutMirror(rhs)));
   }
 }
+
+std::string remapper::RotateOpToString(remapper::RotateOp rotate_op) {
+  switch (rotate_op) {
+    case remapper::RotateOp::TopIsTop:
+      return "TopIsTop";
+    case remapper::RotateOp::TopIsRight:
+      return "TopIsRight";
+    case remapper::RotateOp::TopIsBottom:
+      return "TopIsBottom";
+    case remapper::RotateOp::TopIsLeft:
+      return "TopIsLeft";
+    case remapper::RotateOp::TopIsTopMirror:
+      return "TopIsTopMirror";
+    case remapper::RotateOp::TopIsRightMirror:
+      return "TopIsRightMirror";
+    case remapper::RotateOp::TopIsBottomMirror:
+      return "TopIsBottomMirror";
+    case remapper::RotateOp::TopIsLeftMirror:
+      return "TopIsLeftMirror";
+    default:
+      return "Unknown";
+  }
+}
