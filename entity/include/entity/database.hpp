@@ -9,6 +9,7 @@ class Database {
   void AddMapping(const Mapping& mapping) { mapping_vec_.push_back(mapping); }
   const std::vector<Mapping>& GetMappings() const { return mapping_vec_; }
   int GetMinMappingOpNum() const;
+  void LimitMappingNum(int mapping_num_limit);
 
  private:
   std::vector<Mapping> mapping_vec_;

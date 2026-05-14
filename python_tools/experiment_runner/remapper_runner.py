@@ -49,6 +49,7 @@ class RemappingRunnerConfig:
     self.process_num = config_dict["exec_setting"]["process_num"]
 
     self.cgra_type_list = []
+    self.num_available_mappings = config_dict["remapping_setting"]["num_available_mappings"]
     for cgra_type_str in config_dict["remapping_setting"]["cgra_type"]:
       self.cgra_type_list.append(CGRAType.get_from_string(cgra_type_str))
     cgra_size_min = config_dict["remapping_setting"]["cgra_size"]["min"]
@@ -75,7 +76,6 @@ class RemappingRunnerConfig:
 
     for benchmark_name in self.benchmark_name_list:
       dfg_file_path = os.path.join(self.kernel_dir_path, benchmark_name + ".dot")
-      output_dir_path = os.path.join(output_dir_path)
 
       for cgra_type in self.cgra_type_list:
         for cgra_size in self.cgra_size_list:
@@ -91,7 +91,7 @@ class RemappingRunnerConfig:
     input_list = []
 
     for benchmark_name in self.benchmark_name_list:
-      output_dir_path = os.path.join(remapper_output_dir_path)
+      dfg_file_path = os.path.join(self.kernel_dir_path, benchmark_name + ".dot")
 
       for cgra_type in self.cgra_type_list:
         for cgra_size in self.cgra_size_list:
@@ -103,8 +103,9 @@ class RemappingRunnerConfig:
               else:
                 database_dir_path = self.database_path
               for mode in self.remapper_mode:
-                input = RemapperInput(database_dir_path, cgra, output_dir_path, mode, self.remapper_timeout_s - self.database_timeout_s)
-                input_list.append(input)
+                for num_available_mappings in self.num_available_mappings:
+                  input = RemapperInput(database_dir_path, cgra, dfg_file_path, remapper_output_dir_path, mode, self.remapper_timeout_s - self.database_timeout_s, num_available_mappings)
+                  input_list.append(input)
 
     return input_list
 

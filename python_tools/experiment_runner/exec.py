@@ -21,12 +21,14 @@ class CreateDatabaseInput:
     self.mapping_config_path = mapping_config_path
 
 class RemapperInput:
-  def __init__(self, mapping_dir_path, cgra, output_dir_path, remapper_mode, timeout_s):
+  def __init__(self, mapping_dir_path, cgra, dfg_file_path, output_dir_path, remapper_mode, timeout_s, num_available_mappings):
     self.mapping_dir_path = mapping_dir_path
     self.cgra = cgra
+    self.dfg_file_path = dfg_file_path
     self.output_dir_path = output_dir_path
     self.remapper_mode = remapper_mode
     self.timeout_s = timeout_s
+    self.num_available_mappings = num_available_mappings
 
 def mapping_exec(input):
   cgra_dir_path = os.path.join(os.getcwd(), "tmp_cgra/")
@@ -112,7 +114,7 @@ def remapper_exec(input):
 
   remapper_mode_int = remapping_type_to_int(input.remapper_mode)
 
-  subprocess.run(["/home/ubuntu/elastic_cgra_mapper/build/remapping", input.mapping_dir_path, cgra_file_path, input.output_dir_path, str(remapper_mode_int), str(input.timeout_s)])
+  subprocess.run(["/home/ubuntu/elastic_cgra_mapper/build/remapping", input.mapping_dir_path, input.dfg_file_path, cgra_file_path, input.output_dir_path, str(remapper_mode_int), str(input.timeout_s), str(input.num_available_mappings)])
 
   os.remove(cgra_file_path)
 

@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 #include <vector>
 
 namespace remapper {
@@ -12,6 +13,8 @@ enum RotateOp {
   TopIsBottomMirror = 6,
   TopIsLeftMirror = 7
 };
+
+std::string RotateOpToString(RotateOp rotate_op);
 
 RotateOp CombineRotateOp(const RotateOp& lhs, const RotateOp& rhs);
 
