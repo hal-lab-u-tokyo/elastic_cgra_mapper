@@ -1,9 +1,11 @@
 from io_lib import *
-from util import *
 import time
 import subprocess
 import uuid
 import os
+import sys
+sys.path.append(os.pardir)
+from entity.util import *
 
 class MappingInput:
   def __init__(self, dfg_file_path, output_dir_path, mapping_config_path, cgra, timeout_s, parallel_num):
