@@ -1,8 +1,4 @@
 {
-  "kernel_dir_path": "/home/ubuntu/elastic_cgra_mapper/benchmark/kernel/",
-  "mapping_output_dir_path": "/home/ubuntu/elastic_cgra_mapper/output/",
-  "remapper_output_dir_path": "/home/ubuntu/elastic_cgra_mapper/output/",
-  "visualizer_output_dir_path": "/home/ubuntu/elastic_cgra_mapper/python_tools/visualizer/output/",
   "color_settings": {
     "single-phase": {
       "optimal": "tab:red",
@@ -26,6 +22,22 @@
     "max_size": 15,
     "context_size": 4,
     "network_type": "orthogonal"
+  },
+  "compare_cgra_type_config": {
+    "min_size": 6,
+    "max_size": 15,
+    "context_size": 4,
+    "network_type": "orthogonal"
+  },
+  "compare_available_mapping_num_config": {
+    "min_size": 10,
+    "max_size": 10,
+    "context_size": 4,
+    "network_type": "orthogonal",
+    "num_available_mappings": [
+      -1,
+      1
+    ]
   },
   "compare_database_timeout": {
     "row": 10,

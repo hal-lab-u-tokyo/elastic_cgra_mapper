@@ -16,6 +16,21 @@ class CompareCGRASizeConfig:
     self.context_size: int = 0
     self.network_type: NetworkType = NetworkType.Orthogonal
 
+class CompareCGRATypeConfig:
+  def __init__(self):
+    self.min_size: int = 0
+    self.max_size: int = 0
+    self.context_size: int = 0
+    self.network_type: NetworkType = NetworkType.Orthogonal
+
+class CompareAvailableMappingNumConfig:
+  def __init__(self):
+    self.min_size: int = 0
+    self.max_size: int = 0
+    self.context_size: int = 0
+    self.network_type: NetworkType = NetworkType.Orthogonal
+    self.num_available_mappings: List[int] = []
+
 class CompareDatabaseTimeout:
   def __init__(self):
     self.row: int = 0
@@ -38,6 +53,8 @@ class PlotterConfig:
     self.database_timeout: float = 0
     self.compare_benchmark_config: CompareBenchmarkConfig = CompareBenchmarkConfig()
     self.compare_cgra_size_config: CompareCGRASizeConfig = CompareCGRASizeConfig()
+    self.compare_cgra_type_config: CompareCGRATypeConfig = CompareCGRATypeConfig()
+    self.compare_available_mapping_num_config: CompareAvailableMappingNumConfig = CompareAvailableMappingNumConfig()
     self.compare_database_timeout: CompareDatabaseTimeout = CompareDatabaseTimeout()
     self.benchmark_list: List[BenchmarkConfig] = []
     self.mapping_output_dir_path: str = ""
@@ -76,10 +93,6 @@ def load_plotter_config(config_path):
 
   # kernel dir path
   plotter_config.color_settings = json_dict["color_settings"]
-  plotter_config.kernel_dir_path = json_dict["kernel_dir_path"]
-  plotter_config.mapping_output_dir_path = json_dict["mapping_output_dir_path"]
-  plotter_config.remapper_output_dir_path = json_dict["remapper_output_dir_path"]
-  plotter_config.visualizer_output_dir_path = json_dict["visualizer_output_dir_path"]
   plotter_config.database_timeout = json_dict["database_timeout"]
 
   # compare benchmark config
@@ -93,6 +106,19 @@ def load_plotter_config(config_path):
   plotter_config.compare_cgra_size_config.max_size = json_dict["compare_cgra_size_config"]["max_size"]
   plotter_config.compare_cgra_size_config.context_size = json_dict["compare_cgra_size_config"]["context_size"]
   plotter_config.compare_cgra_size_config.network_type = NetworkType.get_from_string(json_dict["compare_cgra_size_config"]["network_type"])
+
+  # compare cgra type config
+  plotter_config.compare_cgra_type_config.min_size = json_dict["compare_cgra_type_config"]["min_size"]
+  plotter_config.compare_cgra_type_config.max_size = json_dict["compare_cgra_type_config"]["max_size"]
+  plotter_config.compare_cgra_type_config.context_size = json_dict["compare_cgra_type_config"]["context_size"]
+  plotter_config.compare_cgra_type_config.network_type = NetworkType.get_from_string(json_dict["compare_cgra_type_config"]["network_type"])
+
+  # compare available mapping num config
+  plotter_config.compare_available_mapping_num_config.min_size = json_dict["compare_available_mapping_num_config"]["min_size"]
+  plotter_config.compare_available_mapping_num_config.max_size = json_dict["compare_available_mapping_num_config"]["max_size"]
+  plotter_config.compare_available_mapping_num_config.context_size = json_dict["compare_available_mapping_num_config"]["context_size"]
+  plotter_config.compare_available_mapping_num_config.network_type = NetworkType.get_from_string(json_dict["compare_available_mapping_num_config"]["network_type"])
+  plotter_config.compare_available_mapping_num_config.num_available_mappings = json_dict["compare_available_mapping_num_config"]["num_available_mappings"]
 
   # compare database timeout
   plotter_config.compare_database_timeout.row = json_dict["compare_database_timeout"]["row"]

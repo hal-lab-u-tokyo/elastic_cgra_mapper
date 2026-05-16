@@ -1,15 +1,17 @@
 import json
+import os
+from entity import *
 
 class CGRA:
   def __init__(self, cgra_type, row, column, context_size, memory_io_type, network_type, local_reg_size, loop_controller_list):
-    self.row = row
-    self.column = column
-    self.memory_io_type = memory_io_type
-    self.cgra_type = cgra_type
-    self.network_type = network_type
-    self.local_reg_size = local_reg_size
-    self.context_size = context_size
-    self.loop_controller_list = loop_controller_list
+    self.row: int = row
+    self.column: int = column
+    self.memory_io_type: MemoryIOType = memory_io_type
+    self.cgra_type: CGRAType = cgra_type
+    self.network_type: NetworkType = network_type
+    self.local_reg_size: int = local_reg_size
+    self.context_size: int = context_size
+    self.loop_controller_list: list = loop_controller_list
 
   def __eq__(self, other):
     if self.row != other.row:
@@ -46,6 +48,7 @@ class CGRA:
   def dump_to_json(self, file_path):
     cgra_dict = self.get_cgra_dict()
 
-    file = open(file_path, mode="w")
-    json.dump(cgra_dict, file)
-    file.close()
+    with open(file_path, "w") as f:
+        json.dump(cgra_dict, f)
+
+    os.replace(file_path, file_path)

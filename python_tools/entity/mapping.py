@@ -218,3 +218,14 @@ class Mapping:
     network_type: NetworkType
 
     PE_array: List[List[PE]]
+
+    def get_utilization(self):
+        total_pe_num = self.row_num * self.column_num * self.context_size
+        used_pe_num = 0
+        for row in self.PE_array:
+            for pe in row:
+                for config in pe.config_list:
+                    if config.operation_type != OperationType.Nop:
+                        used_pe_num += 1
+
+        return used_pe_num / total_pe_num
