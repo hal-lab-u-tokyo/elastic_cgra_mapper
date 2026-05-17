@@ -1,7 +1,11 @@
 from io_lib import *
-from util import *
 import time
 import subprocess
+import uuid
+import os
+import sys
+sys.path.append(os.pardir)
+from entity.util import *
 
 class MappingInput:
   def __init__(self, dfg_file_path, output_dir_path, mapping_config_path, cgra, timeout_s, parallel_num):
@@ -36,7 +40,7 @@ def mapping_exec(input):
   lock.acquire()
   try:
     check_dir_availability(cgra_dir_path)
-    cgra_file_path = cgra_dir_path + str(int(time.time())) + ".json"
+    cgra_file_path = cgra_dir_path + str(uuid.uuid4()) + ".json"
     time.sleep(1)
   finally:
     lock.release()
@@ -93,7 +97,7 @@ def remapper_exec(input):
   lock.acquire()
   try:
     check_dir_availability(cgra_dir_path)
-    cgra_file_path = cgra_dir_path + str(int(time.time())) + ".json"
+    cgra_file_path = cgra_dir_path + str(uuid.uuid4()) + ".json"
     time.sleep(1)
   finally:
     lock.release()

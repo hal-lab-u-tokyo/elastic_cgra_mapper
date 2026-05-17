@@ -1,7 +1,7 @@
 from enum import Enum
 import os
 import re
-from .cgra import *
+from entity import cgra
 
 class RemapperType(Enum):
     FullSearch = 0
@@ -37,32 +37,20 @@ class RemapperType(Enum):
 
 class RemapperLogInfo:
     def __init__(self):
-        self.log_file_path = ""
-        self.benchmark = ""
-        self.row: int = 0
-        self.column: int = 0
-        self.context_size: int = 0
-        self.memory_io: MemoryIOType
-        self.cgra_type: CGRAType
-        self.network_type: NetworkType
-        self.local_reg_size: int = 0
+        self.server_name = ""
+        self.git_commit_id = ""
+        self.num_available_mappings = 0
+        self.database_mapping_files_num = 0
+        self.result_path = ""
+        self.timeout_s = 0
+        self.benchmark_name = ""
+        self.cgra: CGRA = None
         self.mapping_succeed: bool = False
         self.remapper_time: float = None
-        self.parallel_num: int
+        self.parallel_num: int = 0
         self.mapping_type_num: int = 0
         self.remapper_mode: RemapperType
-        self.mapping_json_list = []
-        self.remapping_exec_log = None
-
-    def get_input_as_str(self):
-        return self.benchmark + str(self.row) + "_" + str(self.column) + "_" + str(self.context_size) + "_" + str(self.memory_io.value) + "_" + str(self.cgra_type.value) + "_" + str(self.network_type.value) + "_" + str(self.parallel_num) + "_" + str(self.remapper_mode.value)
-
-    def get_unix_time(self):
-        file_name = os.path.basename(self.log_file_path)
-        find_number = re.findall(r"\d+", file_name)
-        if len(find_number) == 0:
-            return -1
-        return int(find_number[0])
+        self.utilization = 0
 
     def get_cgra(self):
-        return CGRA(self.cgra_type, self.row, self.column, self.context_size, self.memory_io, self.network_type, self.local_reg_size)
+        return self.cgra

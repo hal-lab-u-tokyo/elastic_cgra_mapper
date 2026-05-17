@@ -1,5 +1,7 @@
 #include "io/output_to_log_file.hpp"
 
+#include <random>
+
 #include "cassert"
 #include "chrono"
 #include "io/architecture_io.hpp"
@@ -19,7 +21,20 @@ io::Logger::Logger() {
                          .count() %
                      1000;
 
-  log_id_ = std::string(buffer) + std::to_string(milliseconds);
+  // randomly generate 4 alphabets
+  const char available_chars[] =
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+  char random_str[5];
+  random_str[4] = '\0';
+  std::random_device rd;
+  std::mt19937 gen(rd());
+  std::uniform_int_distribution<> dis(0, 51);
+  for (int i = 0; i < 4; i++) {
+    random_str[i] = available_chars[dis(gen)];
+  }
+
+  log_id_ = std::string(buffer) + std::to_string(milliseconds) +
+            std::string(random_str) + std::to_string(getpid());
   host_name_ = GetHostName();
   git_commit_id_ = GetGitCommitId();
 }
@@ -256,7 +271,7 @@ void io::RemapperLogger::LogRemapperOutput(const io::RemapperOutput& output) {
                          output.mrrg_config);
   }
   std::filesystem::path output_transform_file_path_ =
-      output_dir_path_ / "transform_op.json";
+      output_dir_path_ / ("transform_op_" + log_id_ + ".json");
   std::ofstream transform_file(output_transform_file_path_);
   transform_file << "[";
   for (int i = 0; i < output.transform_op_vec.size(); i++) {
