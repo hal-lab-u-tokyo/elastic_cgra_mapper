@@ -408,9 +408,15 @@ class DPRemappingHelper {
     }
 
     IdAndPlacement new_placement = placement;
-    new_placement.rotation_type =
-        need_rotation ? static_cast<int>(remapper::RotateOp::TopIsBottom)
-                      : static_cast<int>(remapper::RotateOp::TopIsTop);
+    if (need_rotation) {
+      remapper::RotateOp new_rotate_op = remapper::CombineRotateOp(
+          static_cast<remapper::RotateOp>(placement.rotation_type),
+          remapper::RotateOp::TopIsBottom);
+      new_placement.rotation_type = static_cast<int>(new_rotate_op);
+    } else {
+      new_placement.rotation_type = placement.rotation_type;
+    }
+
     if (need_rotation) {
       new_placement.x = x_shift + rectangle_size.x() - 1 - placement.x;
       new_placement.y = y_shift + rectangle_size.y() - 1 - placement.y;
