@@ -74,6 +74,12 @@ class CGRAMatrix : public Rectangle {
 
   entity::MRRGConfig GetMRRGConfig() const { return mrrg_config_; };
   remapper::PEType GetPEType(int row_id, int column_id) const {
+    if (row_id < 0 || row_id >= row_size || column_id < 0 ||
+        column_id >= column_size) {
+      std::cerr << "invalid PE position" << std::endl;
+      abort();
+    }
+
     if (mrrg_config_.memory_io == entity::MRRGMemoryIOType::kAll) {
       return remapper::PEType::MEMORY_ACCESS;
     } else if (mrrg_config_.memory_io == entity::MRRGMemoryIOType::kOneEnd) {
@@ -86,9 +92,7 @@ class CGRAMatrix : public Rectangle {
       }
     }
 
-    std::cerr << "Error: GetPEType " << row_id << ", " << column_id
-              << std::endl;
-    abort();
+    return remapper::PEType::NON_MEMORY_ACCESS;
   }
 
  private:
