@@ -117,10 +117,8 @@ io::SelectedDatabase io::select_database(
       }
     }
 
-    return SelectedDatabase{database, database_dir.path()};
+    return SelectedDatabase{database, database_dir.path(), true};
   }
 
-  std::cerr << "No valid database is found for the given MRRG config and DFG."
-            << std::endl;
-  abort();
+  return SelectedDatabase{entity::Database(), std::filesystem::path(), false};
 }

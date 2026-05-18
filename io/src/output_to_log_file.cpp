@@ -173,7 +173,14 @@ void io::MappingLogger::LogMappingOutput(const io::MappingOutput& output) {
 
 void io::RemapperLogger::LogRemapperInput(const io::RemapperInput& input) {
   InitializePath(input.output_dir_path / "remapping" / log_id_);
-  assert(input.database_dir_path.is_absolute());
+  bool exist_database = true;
+  if (!std::filesystem::exists(input.database_dir_path)) {
+    exist_database = false;
+  }
+
+  if (exist_database) {
+    assert(input.database_dir_path.is_absolute());
+  }
   assert(input.cgra_file_path.is_absolute());
   assert(input.remapper_mode == "dp" || input.remapper_mode == "greedy" ||
          input.remapper_mode == "full_search" ||
@@ -230,12 +237,14 @@ void io::RemapperLogger::LogRemapperInput(const io::RemapperInput& input) {
       input.database_dir_path / "database" / "mapping";
 
   std::string mapping_files_str = "[";
-  for (const auto& dir_path :
-       std::filesystem::directory_iterator(database_mapping_dir_path)) {
-    mapping_files_str += "\"" + dir_path.path().string() + "\",";
-  }
-  if (!mapping_files_str.empty()) {
-    mapping_files_str.pop_back();  // Remove the last comma
+  if (exist_database) {
+    for (const auto& dir_path :
+         std::filesystem::directory_iterator(database_mapping_dir_path)) {
+      mapping_files_str += "\"" + dir_path.path().string() + "\",";
+    }
+    if (!mapping_files_str.empty()) {
+      mapping_files_str.pop_back();  // Remove the last comma
+    }
   }
   mapping_files_str += "]";
 

@@ -64,6 +64,12 @@ int main(int argc, char* argv[]) {
   input.num_available_mappings = num_available_mappings;
   logger.LogRemapperInput(input);
 
+  if (!selected_database.exist) {
+    std::cerr << "No valid database is found for the given MRRG config and DFG."
+              << std::endl;
+    abort();
+  }
+
   int max_config_num =
       mrrg_config.column * mrrg_config.row * mrrg_config.context_size;
 

@@ -6,6 +6,7 @@
 namespace entity {
 class Database {
  public:
+  Database() = default;
   void AddMapping(const Mapping& mapping) { mapping_vec_.push_back(mapping); }
   const std::vector<Mapping>& GetMappings() const { return mapping_vec_; }
   int GetMinMappingOpNum() const;
