@@ -44,9 +44,18 @@ int main(int argc, char* argv[]) {
     std::filesystem::create_directories(output_dir);
   };
 
+  const auto mrrg_config =
+      io::ReadMRRGFromJsonFile(mrrg_file_path).GetMRRGConfig();
+
+  const auto selected_database =
+      io::select_database(database_dir_path, mrrg_config, dfg_file_path);
+  entity::Database database = selected_database.database;
+  database.LimitMappingNum(num_available_mappings);
+  std::vector<entity::Mapping> mapping_vec = database.GetMappings();
+
   io::RemapperLogger logger;
   io::RemapperInput input;
-  input.mapping_dir_path = database_dir_path;
+  input.database_dir_path = selected_database.database_dir_path;
   input.cgra_file_path = mrrg_file_path;
   input.dfg_file_path = dfg_file_path;
   input.output_dir_path = output_dir;
@@ -54,14 +63,6 @@ int main(int argc, char* argv[]) {
   input.timeout_s = timeout_s;
   input.num_available_mappings = num_available_mappings;
   logger.LogRemapperInput(input);
-
-  const auto mrrg_config =
-      io::ReadMRRGFromJsonFile(mrrg_file_path).GetMRRGConfig();
-
-  entity::Database database =
-      io::select_database(database_dir_path, mrrg_config, input.dfg_file_path);
-  database.LimitMappingNum(num_available_mappings);
-  std::vector<entity::Mapping> mapping_vec = database.GetMappings();
 
   int max_config_num =
       mrrg_config.column * mrrg_config.row * mrrg_config.context_size;

@@ -5,7 +5,7 @@
 #include <io/mapping_io.hpp>
 #include <io/select_database.hpp>
 
-entity::Database io::select_database(
+io::SelectedDatabase io::select_database(
     const std::filesystem::path& database_dir_path,
     const entity::MRRGConfig& mrrg_config,
     const std::filesystem::path& dfg_path) {
@@ -117,7 +117,7 @@ entity::Database io::select_database(
       }
     }
 
-    return database;
+    return SelectedDatabase{database, database_dir.path()};
   }
 
   std::cerr << "No valid database is found for the given MRRG config and DFG."
