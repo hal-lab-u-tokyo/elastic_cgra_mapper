@@ -40,6 +40,7 @@ def load_remapper_result(remapper_dir_path):
     remapper_result.timeout_s = input_summary_json["timeout_s"]
     remapper_result.num_available_mappings = input_summary_json["num_available_mappings"]
     remapper_result.database_mapping_files_num = len(input_summary_json["mapping_files"])
+    remapper_result.remapper_mode = RemapperType.from_string(input_summary_json["remapper_mode"])
 
 
     cgra_file_path = os.path.join(remapper_dir_path, cgra_file_name)

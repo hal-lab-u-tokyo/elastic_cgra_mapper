@@ -10,13 +10,14 @@ def remapper_result_to_csv(remapper_result):
     csv_str += remapper_result.benchmark_name + ","
     csv_str += str(remapper_result.cgra.row) + ","
     csv_str += str(remapper_result.cgra.column) + ","
-    csv_str += str(remapper_result.cgra.memory_io_type) + ","
-    csv_str += str(remapper_result.cgra.cgra_type) + ","
-    csv_str += str(remapper_result.cgra.network_type) + ","
+    csv_str += remapper_result.cgra.memory_io_type.to_string() + ","
+    csv_str += remapper_result.cgra.cgra_type.to_string() + ","
+    csv_str += remapper_result.cgra.network_type.to_string() + ","
     csv_str += str(remapper_result.cgra.local_reg_size) + ","
     csv_str += str(remapper_result.cgra.context_size) + ","
     csv_str += str(remapper_result.cgra.loop_controller_list) + ","
     csv_str += str(remapper_result.mapping_succeed) + ","
+    csv_str += str(remapper_result.remapper_mode.to_string()) + ","
     csv_str += str(remapper_result.remapper_time) + ","
     csv_str += str(remapper_result.parallel_num) + ","
     csv_str += str(remapper_result.mapping_type_num) + ","
@@ -50,13 +51,13 @@ if __name__ == "__main__":
     # output csv
     output_file_path = os.path.join(analysis_dir, "remapper_result.csv")
     with open(output_file_path, "w") as f:
-        f.write("benchmark_name,cgra_row,cgra_column,cgra_memory_io,cgra_type,cgra_network_type,cgra_local_reg_size,cgra_context_size,cgra_loop_controllers,mapping_succeed,remapper_time_s,parallel_num,mapping_type_num,num_available_mappings,database_mapping_files_num\n")
+        f.write("benchmark_name,cgra_row,cgra_column,cgra_memory_io,cgra_type,cgra_network_type,cgra_local_reg_size,cgra_context_size,cgra_loop_controllers,mapping_succeed,remapper_type,remapper_time_s,parallel_num,mapping_type_num,num_available_mappings,database_mapping_files_num\n")
         for remapper_result in remapper_results:
             csv_str = remapper_result_to_csv(remapper_result)
             f.write(csv_str + "\n")
     output_file_path = os.path.join(analysis_dir, "remapper_failed_results.csv")
     with open(output_file_path, "w") as f:
-        f.write("benchmark_name,cgra_row,cgra_column,cgra_memory_io,cgra_type,cgra_network_type,cgra_local_reg_size,cgra_context_size,cgra_loop_controllers,mapping_succeed,remapper_time_s,parallel_num,mapping_type_num,num_available_mappings,database_mapping_files_num\n")
+        f.write("benchmark_name,cgra_row,cgra_column,cgra_memory_io,cgra_type,cgra_network_type,cgra_local_reg_size,cgra_context_size,cgra_loop_controllers,mapping_succeed,remapper_type,remapper_time_s,parallel_num,mapping_type_num,num_available_mappings,database_mapping_files_num\n")
         for remapper_result in remapper_results:
             if not remapper_result.mapping_succeed:
                 csv_str = remapper_result_to_csv(remapper_result)
