@@ -17,11 +17,12 @@ class MappingInput:
     self.parallel_num = parallel_num
 
 class CreateDatabaseInput:
-  def __init__(self, dfg_file_path, output_dir_path, cgra, mapping_config_path, db_timeout_s):
+  def __init__(self, dfg_file_path, output_dir_path, cgra, mapping_config_path, db_timeout_s, max_database_size):
     self.dfg_file_path = dfg_file_path
     self.cgra = cgra
     self.output_dir_path = output_dir_path
     self.db_timeout_s = db_timeout_s
+    self.max_database_size = max_database_size
     self.mapping_config_path = mapping_config_path
 
 class RemapperInput:
@@ -87,7 +88,7 @@ def create_database_exec(input):
   finally:
     lock.release()
 
-  subprocess.run(["/home/ubuntu/elastic_cgra_mapper/build/create_database", input.dfg_file_path, cgra_file_path, input.output_dir_path, input.mapping_config_path, str(input.db_timeout_s)])
+  subprocess.run(["/home/ubuntu/elastic_cgra_mapper/build/create_database", input.dfg_file_path, cgra_file_path, input.output_dir_path, input.mapping_config_path, str(input.db_timeout_s), str(input.max_database_size)])
 
   os.remove(cgra_file_path)
 
