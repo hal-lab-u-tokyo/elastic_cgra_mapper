@@ -10,6 +10,7 @@ TEST(IOTest, dfg_io_test) {
   std::vector<entity::Edge> edges = {{0, 1}, {1, 2}, {2, 3}, {3, 4}, {4, 5}};
 
   std::vector<entity::OpType> all_op = entity::GetAllOperations();
+  all_op.emplace_back(entity::OpType::TM);
   int node_num = all_op.size();
 
   entity::DFGGraph g;

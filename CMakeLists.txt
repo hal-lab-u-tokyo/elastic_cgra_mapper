@@ -9,8 +9,11 @@ set(PROJECT_ROOT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
 find_package(Gurobi REQUIRED)
 find_package(verilator HINTS $ENV{VERILATOR_ROOT})
+# find_package(Eigen3 REQUIRED)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS on)
+
+include_directories(/usr/include/eigen3)
 
 add_subdirectory(third_party)
 

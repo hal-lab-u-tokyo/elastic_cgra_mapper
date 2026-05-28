@@ -11,6 +11,16 @@ bool entity::MRRGConfig::IsLoopController(
   return false;
 }
 
+bool entity::MRRGConfig::IsTMPE(
+    entity::PEPositionId position_id) const {
+  for (auto tm_pe_position : tm_pe_position_vec) {
+    if (position_id == tm_pe_position) {
+      return true;
+    }
+  }
+  return false;
+}
+
 entity::MRRGCGRAType entity::MRRGCGRATypeFromString(
     std::string cgra_type_string) {
   if (cgra_type_string == "default") {
@@ -154,8 +164,18 @@ std::vector<entity::OpType> GetSupportedOperation(
     entity::PEPositionId position_id, entity::MRRGConfig& mrrg_config) {
   // Implementation for getting supported operations based on position and
   // config
-  if (mrrg_config.IsLoopController(position_id)) {
+  const bool is_loop_controller = mrrg_config.IsLoopController(position_id);
+  const bool is_tm_pe = mrrg_config.IsTMPE(position_id);
+
+  if (is_loop_controller && is_tm_pe) {
+    return std::vector<entity::OpType>(
+        {entity::OpType::LOOP, entity::OpType::TM});
+  }
+  if (is_loop_controller) {
     return entity::GetLoopOperations();
+  }
+  if (is_tm_pe) {
+    return entity::GetTMOperations();
   }
 
   if (mrrg_config.memory_io == entity::MRRGMemoryIOType::kAll) {
@@ -231,6 +251,8 @@ entity::MRRG::MRRG(entity::MRRGConfig mrrg_config)
   graph_[boost::graph_bundle].network_type = mrrg_config.network_type;
   graph_[boost::graph_bundle].loop_controller_position_vec =
       mrrg_config.loop_controller_position_vec;
+  graph_[boost::graph_bundle].tm_pe_position_vec =
+      mrrg_config.tm_pe_position_vec;
 };
 
 entity::MRRGConfig entity::MRRG::GetMRRGConfig() const {
@@ -244,6 +266,8 @@ entity::MRRGConfig entity::MRRG::GetMRRGConfig() const {
   mrrg_config.context_size = graph_[0].context_size;
   mrrg_config.loop_controller_position_vec =
       graph_[boost::graph_bundle].loop_controller_position_vec;
+  mrrg_config.tm_pe_position_vec =
+      graph_[boost::graph_bundle].tm_pe_position_vec;
 
   return mrrg_config;
 }

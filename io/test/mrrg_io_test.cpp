@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <io/architecture_io.hpp>
 #include <string>
 
@@ -15,6 +16,7 @@ TEST(IOTest, mrrg_io_test) {
   input_mrrg_config.local_reg_size = 3;
   input_mrrg_config.context_size = 3;
   input_mrrg_config.loop_controller_position_vec = {{0, 0}, {7, 7}};
+  input_mrrg_config.tm_pe_position_vec = {{0, 7}, {7, 0}};
 
   std::shared_ptr<entity::MRRG> input_mrrg_ptr_ =
       std::make_shared<entity::MRRG>();
@@ -26,4 +28,24 @@ TEST(IOTest, mrrg_io_test) {
   EXPECT_EQ(input_mrrg_config.row, output_mrrg.GetMRRGConfig().row);
   EXPECT_EQ(input_mrrg_config.loop_controller_position_vec.size(),
             output_mrrg.GetMRRGConfig().loop_controller_position_vec.size());
+  EXPECT_EQ(input_mrrg_config.tm_pe_position_vec.size(),
+            output_mrrg.GetMRRGConfig().tm_pe_position_vec.size());
+
+  auto has_op =
+      [](const std::vector<entity::OpType>& ops, entity::OpType op) {
+        return std::find(ops.begin(), ops.end(), op) != ops.end();
+      };
+  auto loop_node_id = output_mrrg.GetMRRGNodeId(0, 0, 0);
+  auto tm_node_id = output_mrrg.GetMRRGNodeId(0, 7, 0);
+  auto normal_node_id = output_mrrg.GetMRRGNodeId(1, 1, 0);
+
+  EXPECT_TRUE(
+      has_op(output_mrrg.GetNodeProperty(loop_node_id).supported_operations,
+             entity::OpType::LOOP));
+  EXPECT_TRUE(
+      has_op(output_mrrg.GetNodeProperty(tm_node_id).supported_operations,
+             entity::OpType::TM));
+  EXPECT_FALSE(
+      has_op(output_mrrg.GetNodeProperty(normal_node_id).supported_operations,
+             entity::OpType::TM));
 }

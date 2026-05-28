@@ -25,13 +25,25 @@ entity::MRRG io::ReadMRRGFromJsonFile(std::string file_name) {
   mrrg_config.cgra_type = entity::MRRGCGRATypeFromString(cgra_type_data);
   mrrg_config.network_type =
       entity::MRRGNetworkTypeFromString(network_type_data);
-  BOOST_FOREACH (
-      const boost::property_tree::ptree::value_type& loop_controller_data,
-      ptree.get_child("loop_controllers")) {
-    int row_id = GetValueFromPTree<int>(loop_controller_data.second, "row_id");
-    int column_id =
-        GetValueFromPTree<int>(loop_controller_data.second, "column_id");
-    mrrg_config.loop_controller_position_vec.emplace_back(row_id, column_id);
+  if (auto loop_controllers = ptree.get_child_optional("loop_controllers")) {
+    BOOST_FOREACH (
+        const boost::property_tree::ptree::value_type& loop_controller_data,
+        *loop_controllers) {
+      int row_id =
+          GetValueFromPTree<int>(loop_controller_data.second, "row_id");
+      int column_id =
+          GetValueFromPTree<int>(loop_controller_data.second, "column_id");
+      mrrg_config.loop_controller_position_vec.emplace_back(row_id, column_id);
+    }
+  }
+  if (auto tm_pes = ptree.get_child_optional("tm_pes")) {
+    BOOST_FOREACH (
+        const boost::property_tree::ptree::value_type& tm_pe_data, *tm_pes) {
+      int row_id = GetValueFromPTree<int>(tm_pe_data.second, "row_id");
+      int column_id =
+          GetValueFromPTree<int>(tm_pe_data.second, "column_id");
+      mrrg_config.tm_pe_position_vec.emplace_back(row_id, column_id);
+    }
   }
 
   return entity::MRRG(mrrg_config);
@@ -60,6 +72,14 @@ void io::WriteMRRGToJsonFile(std::string file_name,
     loop_controllers.push_back(std::make_pair("", loop_controller_node));
   }
   ptree.add_child("loop_controllers", loop_controllers);
+  boost::property_tree::ptree tm_pes;
+  for (auto tm_pe_position : mrrg_config.tm_pe_position_vec) {
+    boost::property_tree::ptree tm_pe_node;
+    tm_pe_node.put("row_id", tm_pe_position.row_id);
+    tm_pe_node.put("column_id", tm_pe_position.column_id);
+    tm_pes.push_back(std::make_pair("", tm_pe_node));
+  }
+  ptree.add_child("tm_pes", tm_pes);
 
   boost::property_tree::write_json(file_name, ptree);
   return;

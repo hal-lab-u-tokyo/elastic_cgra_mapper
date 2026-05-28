@@ -65,6 +65,7 @@ struct MRRGGraphProperty {
   MRRGCGRAType cgra_type;
   MRRGNetworkType network_type;
   std::vector<entity::PEPositionId> loop_controller_position_vec;
+  std::vector<entity::PEPositionId> tm_pe_position_vec;
 };
 
 struct MRRGConfig {
@@ -76,8 +77,10 @@ struct MRRGConfig {
   int local_reg_size;
   int context_size;
   std::vector<entity::PEPositionId> loop_controller_position_vec;
+  std::vector<entity::PEPositionId> tm_pe_position_vec;
 
   bool IsLoopController(entity::PEPositionId position_id) const;
+  bool IsTMPE(entity::PEPositionId position_id) const;
 };
 
 MRRGCGRAType MRRGCGRATypeFromString(std::string cgra_type_string);

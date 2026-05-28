@@ -1,5 +1,6 @@
 #include "io/output_to_log_file.hpp"
 
+#include "algorithm"
 #include "cassert"
 #include "chrono"
 #include "io/architecture_io.hpp"
@@ -151,6 +152,30 @@ void io::RemapperLogger::LogRemapperOutput(const io::RemapperOutput& output) {
   log_file_.close();
 }
 
+namespace {
+std::string EncodePEPositionVec(
+    const std::vector<entity::PEPositionId>& position_vec) {
+  if (position_vec.empty()) {
+    return "none";
+  }
+
+  auto sorted_position_vec = position_vec;
+  std::sort(sorted_position_vec.begin(), sorted_position_vec.end());
+
+  std::string result;
+  for (size_t i = 0; i < sorted_position_vec.size(); i++) {
+    if (i > 0) {
+      result += ":";
+    }
+    result += std::to_string(sorted_position_vec[i].row_id);
+    result += "-";
+    result += std::to_string(sorted_position_vec[i].column_id);
+  }
+
+  return result;
+}
+}  // namespace
+
 std::string GetCGRAId(const std::filesystem::path& cgra_file_path) {
   const auto mrrg_config =
       io::ReadMRRGFromJsonFile(cgra_file_path).GetMRRGConfig();
@@ -163,6 +188,9 @@ std::string GetCGRAId(const std::filesystem::path& cgra_file_path) {
   cgra_id += "_" + entity::MRRGCGRATypeToString(mrrg_config.cgra_type);
   cgra_id += "_" + entity::MRRGNetworkTypeToString(mrrg_config.network_type);
   cgra_id += "_" + std::to_string(mrrg_config.local_reg_size);
+  cgra_id += "_loop_" +
+             EncodePEPositionVec(mrrg_config.loop_controller_position_vec);
+  cgra_id += "_tm_" + EncodePEPositionVec(mrrg_config.tm_pe_position_vec);
 
   return cgra_id;
 }
