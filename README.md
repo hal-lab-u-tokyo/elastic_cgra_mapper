@@ -2,10 +2,15 @@
 mapping tool for Elastic CGRA
 
 ## requirement (currently confirmed to work)
-GCC >= 8.5.0, gurobi = 9.1.1, cmake >= 3.20.2
+GCC >= 8.5.0, gurobi >= 9.5.1, cmake >= 3.20.2
 
 ## 1. Setup Environment
 - clone this repository to your $HOME directory
+- initialize submodules
+```bash
+git submodule update --init --recursive third_party/boost third_party/googletest
+git submodule update --init --recursive benchmark/CGRA-Bench
+```
 - Download gurobi WLS license file from [Web License Manager](https://license.gurobi.com/manager/licenses) and place it to license_files directory
 - build and run docker container using the following command
 ```docker

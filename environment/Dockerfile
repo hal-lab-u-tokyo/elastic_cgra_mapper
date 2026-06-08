@@ -1,4 +1,5 @@
-FROM gurobi/optimizer:9.1.1
+ARG GUROBI_VERSION=9.5.2
+FROM gurobi/optimizer:${GUROBI_VERSION}
 
 RUN apt-get update && \
     apt-get install -y wget
@@ -20,8 +21,10 @@ RUN apt-get update && \
     gdb \
     python3-pip
 RUN apt-get install -y verilator
+RUN apt-get update && \
+    apt-get install -y libeigen3-dev
 
-ENV PATH="/home/verilator/bin:${PATH}"
+ENV PATH="${GUROBI_HOME}/bin:/home/verilator/bin:${PATH}"
 ENV GRB_LICENSE_FILE="/opt/gurobi/gurobi.lic"
 
 COPY ../requirements.txt ${APPLICATION_DIRECTORY}/requirements.txt
@@ -36,4 +39,5 @@ COPY ../.pre-commit-config.yaml ${APPLICATION_DIRECTORY}/
 RUN git init . && pre-commit install-hooks
 
 RUN cp /usr/share/bash-completion/completions/git /home/${USER_NAME}/.git-completion.bash
+RUN echo "export PATH=\"${GUROBI_HOME}/bin:\$PATH\"" >> ~/.bashrc
 RUN echo "source ~/.git-completion.bash" >> ~/.bashrc

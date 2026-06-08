@@ -3,7 +3,7 @@ cycler==0.11.0
 distlib==0.3.8
 filelock==3.12.2
 fonttools==4.38.0
-gurobipy==9.1.1
+gurobipy==9.5.2
 identify==2.5.24
 importlib-metadata==6.7.0
 kiwisolver==1.4.5

@@ -3,6 +3,7 @@
 #include <cassert>
 #include <filesystem>
 #include <fstream>
+#include <memory>
 #include <mapper/gurobi_mapper.hpp>
 
 mapper::GurobiILPMapper::GurobiILPMapper(
@@ -24,7 +25,6 @@ mapper::MappingResult mapper::GurobiILPMapper::Execution() {
   try {
     // create gurobi env
     GRBEnv env = GRBEnv(true);
-    env.set(GRB_IntParam_Threads, 32);
     env.start();
 
     // create an empty model
@@ -284,11 +284,9 @@ mapper::MappingResult mapper::GurobiILPMapper::Execution() {
 
     int status = model.get(GRB_IntAttr_Status);
 
-    if (status != GRB_OPTIMAL && status != GRB_SUBOPTIMAL) {
-      if (status == GRB_INFEASIBLE) {
-        model.computeIIS();
-        model.write("debug.iis");
-      }
+    if (status == GRB_INFEASIBLE) {
+      model.computeIIS();
+      model.write("debug.iis");
       const auto end_time = std::chrono::system_clock::now();
       const double mapping_time =
           std::chrono::duration_cast<std::chrono::milliseconds>(end_time -
@@ -315,13 +313,17 @@ mapper::MappingResult mapper::GurobiILPMapper::Execution() {
     std::vector<std::vector<int>> dfg_output_to_mrrg_edge(dfg_node_num);
 
     for (int i = 0; i < dfg_node_num; i++) {
+      std::unique_ptr<double[]> map_op_to_PE_values(
+          model.get(GRB_DoubleAttr_X, map_op_to_PE[i].data(), mrrg_node_num));
+      std::unique_ptr<double[]> map_op_to_route_values(model.get(
+          GRB_DoubleAttr_X, map_op_to_route[i].data(), mrrg_edge_num));
       for (int j = 0; j < mrrg_node_num; j++) {
-        if (map_op_to_PE[i][j].get(GRB_DoubleAttr_X) == 1) {
+        if (map_op_to_PE_values[j] > 0.5) {
           dfg_node_to_mrrg_node[i] = j;
         }
       }
       for (int j = 0; j < mrrg_edge_num; j++) {
-        if (map_op_to_route[i][j].get(GRB_DoubleAttr_X) == 1) {
+        if (map_op_to_route_values[j] > 0.5) {
           dfg_output_to_mrrg_edge[i].push_back(j);
         }
       }
