@@ -1,58 +1,47 @@
 # Elastic CGRA Mapper
 mapping tool for Elastic CGRA
 
-
 ## requirement (currently confirmed to work)
-GCC >= 8.5.0
+GCC >= 8.5.0, gurobi = 9.1.1, cmake >= 3.20.2
 
-gurobi = 9.1.1
-
-cmake >= 3.20.2
-
-## 1.setup
+## 1. Setup Environment
 - clone this repository to your $HOME directory
-- place the gurobi WLS license file (gurobi.lic) to license folder
-
+- Download gurobi WLS license file from [Web License Manager](https://license.gurobi.com/manager/licenses) and place it to license_files directory
+- build and run docker container using the following command
 ```docker
 cd environment
 docker compose build
 docker compose up -d
 ```
 
-## 2.usage
+## 2. Build
+```bash
+sh scripts/build.sh
+```
+
+## 3. Usage
 ### mapping
 ```bash
 cd build
-./mapping
+./mapping {input/dotfile} {input/archfile} {output/mapping/json}
 ```
 
 ### visualizer
 ```bash
-cd visualizer
+cd python_tools/visualizer
 
 ## output mapping image
 dot -Tpng {input/dotfile} -o {output/pngfile} # visualize dot file
-python3 main.py {input/mapping/json} # visualize mapping result
-
-## output remapper evaluation
-python3 output_mapping_result_to_csv.py config/remapper_config.json # output csv cache data for plot
-python3 plot_compare_benchmark.py config/remapper_config.json # output images for benchmark comparison
-python3 plot_compare_cgra_size.py config/remapper_config.json # output images for cgra size comparison
+python3 mapping_visualize_main.py {input/mapping/json} # visualize mapping result
 ```
 
 ### experiment runner
 ```bash
-cd experiment_runner
-python3 mapping_runner.py {nunber_of_process}
+sh scripts/exec_mapping_experiment.sh
+sh scripts/exec_remapper_experiment.sh
 ```
 
-## 3.build
-```bash
-mkdir build && cd build
-cmake .. -GNinja && ninja
-## for debug
-# cmake .. -GNinja -DCMAKE_BUILD_TYPE=Debug && ninja
-```
+
 
 ## 4.test
 ```bash
