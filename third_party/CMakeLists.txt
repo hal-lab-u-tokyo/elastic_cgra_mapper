@@ -2,6 +2,8 @@ set(BOOST_ENABLE_CMAKE ON)
 add_subdirectory(boost)
 
 if(NOT TARGET Eigen3::Eigen)
+  # Prefer the Eigen submodule when present; otherwise use the system package
+  # installed in the Docker image.
   if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/eigen/Eigen")
     set(EIGEN3_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/eigen")
   endif()

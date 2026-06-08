@@ -25,6 +25,8 @@ mapper::MappingResult mapper::GurobiILPMapper::Execution() {
   try {
     // create gurobi env
     GRBEnv env = GRBEnv(true);
+    // Let Gurobi choose the thread count; fixed high values are fragile in
+    // container environments.
     env.start();
 
     // create an empty model
@@ -284,9 +286,23 @@ mapper::MappingResult mapper::GurobiILPMapper::Execution() {
 
     int status = model.get(GRB_IntAttr_Status);
 
+    // Time-limited runs may still have a feasible incumbent. Keep that
+    // behavior configurable for experiments that require stricter status.
     if (status == GRB_INFEASIBLE) {
       model.computeIIS();
       model.write("debug.iis");
+      const auto end_time = std::chrono::system_clock::now();
+      const double mapping_time =
+          std::chrono::duration_cast<std::chrono::milliseconds>(end_time -
+                                                                start_time)
+              .count() /
+          1000.0;
+      return MappingResult(false, entity::Mapping(mrrg_ptr_->GetMRRGConfig()),
+                           mapping_time);
+    }
+
+    if (!accept_feasible_solution_ && status != GRB_OPTIMAL &&
+        status != GRB_SUBOPTIMAL) {
       const auto end_time = std::chrono::system_clock::now();
       const double mapping_time =
           std::chrono::duration_cast<std::chrono::milliseconds>(end_time -
@@ -313,6 +329,8 @@ mapper::MappingResult mapper::GurobiILPMapper::Execution() {
     std::vector<std::vector<int>> dfg_output_to_mrrg_edge(dfg_node_num);
 
     for (int i = 0; i < dfg_node_num; i++) {
+      // Binary solution values are returned as doubles; read them in bulk and
+      // use a 0.5 threshold instead of exact equality to tolerate solver eps.
       std::unique_ptr<double[]> map_op_to_PE_values(
           model.get(GRB_DoubleAttr_X, map_op_to_PE[i].data(), mrrg_node_num));
       std::unique_ptr<double[]> map_op_to_route_values(model.get(
@@ -363,5 +381,11 @@ void mapper::GurobiILPMapper::SetLogFilePath(const std::string& log_file_path) {
 
 void mapper::GurobiILPMapper::SetTimeOut(double timeout_s) {
   timeout_s_ = timeout_s;
+  return;
+}
+
+void mapper::GurobiILPMapper::SetAcceptFeasibleSolution(
+    bool accept_feasible_solution) {
+  accept_feasible_solution_ = accept_feasible_solution;
   return;
 }

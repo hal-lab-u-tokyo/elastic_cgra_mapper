@@ -28,6 +28,11 @@ entity::MapperConfig io::ReadMapperConfigFromJsonFile(std::string file_name) {
               << algorithm_type_str << std::endl;
     abort();
   }
+  if (auto accept_feasible_solution =
+          algorithm_config_ptree.get_optional<bool>("accept_feasible_solution")) {
+    mapper_config.algorithm_config.accept_feasible_solution =
+        accept_feasible_solution.get();
+  }
 
   return mapper_config;
 }
@@ -47,6 +52,9 @@ void io::WriteMapperConfigToJsonFile(
       algorithm_config_ptree.put("type", "ILPPlacementMapper");
       break;
   }
+  algorithm_config_ptree.put(
+      "accept_feasible_solution",
+      mapper_config.algorithm_config.accept_feasible_solution);
   ptree.add_child("Algorithm", algorithm_config_ptree);
   ptree.add_child("DFG", dfg_config_ptree);
 

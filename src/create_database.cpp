@@ -216,6 +216,8 @@ int main(int argc, char* argv[]) {
       mapper->SetLogFilePath(logger.GetNextMappingPath(
           mapping_time_out_s, mrrg_ptr->GetMRRGConfig()));
       mapper->SetTimeOut(mapping_time_out_s);
+      mapper->SetAcceptFeasibleSolution(
+          mapper_config.algorithm_config.accept_feasible_solution);
 
       const auto mapping_result = mapper->Execution();
       creating_db_time_s += mapping_result.mapping_time_s;

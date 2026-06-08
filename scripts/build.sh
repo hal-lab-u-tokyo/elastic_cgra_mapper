@@ -9,6 +9,7 @@ if [ ! -d "build" ]; then
     mkdir build
 fi
 cd build
+# Clear cached Gurobi discovery results when switching Docker image versions.
 if [ $DEBUG_ENABLE -eq 1 ]; then
     cmake -U "GUROBI_*" -GNinja -DCMAKE_BUILD_TYPE=Debug ..
 else

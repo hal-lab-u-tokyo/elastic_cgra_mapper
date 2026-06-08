@@ -138,6 +138,8 @@ int main(int argc, char* argv[]) {
   }
   mapper_impl->SetLogFilePath(logger.GetGurobiLogFilePath());
   mapper_impl->SetTimeOut(timeout_s);
+  mapper_impl->SetAcceptFeasibleSolution(
+      mapper_config.algorithm_config.accept_feasible_solution);
 
   const auto result = mapper_impl->Execution();
 

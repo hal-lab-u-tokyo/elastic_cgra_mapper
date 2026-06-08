@@ -62,6 +62,8 @@ TEST(SimulatorTest, simulator_default_result_test) {
 
   std::vector<int> result_vec = cgra.GetOutputResult();
 
+  // Gurobi version/search order can shift a valid output latency, so verify
+  // the expected sequence instead of relying on a fixed result offset.
   std::vector<int> expected_result_vec;
   int count = 0;
   for (int i = 1; i <= 5; i++) {

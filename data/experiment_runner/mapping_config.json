@@ -8,7 +8,7 @@
   },
     "cgra_settings": {
       "cgra_type": [
-        "elastic"
+        "default"
       ],
       "cgra_size": {
         "min": 6,

@@ -11,6 +11,7 @@ enum class AlgorithmType { kILPMapper, kPlacementILPMapper };
 
 struct AlgorithmConfig {
   AlgorithmType algorithm = AlgorithmType::kPlacementILPMapper;
+  bool accept_feasible_solution = true;
 };
 
 struct MapperConfig {

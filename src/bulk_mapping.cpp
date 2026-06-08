@@ -78,6 +78,8 @@ int main(int argc, char* argv[]) {
           mapper::GurobiPlacementILPMapper().CreateMapper(dfg_ptr, mrrg_ptr);
       mapper->SetLogFilePath(mapping_logger.GetGurobiLogFilePath());
       mapper->SetTimeOut(timeout_s);
+      mapper->SetAcceptFeasibleSolution(
+          mapper_config.algorithm_config.accept_feasible_solution);
 
       const auto result = mapper->Execution();
       is_success = result.is_success;
