@@ -9,9 +9,7 @@
 #include <io/mapping_io.hpp>
 #include <io/output_to_log_file.hpp>
 #include <iostream>
-#include <mapper/gurobi_mapper.hpp>
-#include <mapper/gurobi_placement_mapper.hpp>
-#include <mapper/mapper.hpp>
+#include <mapper/mapper_factory.hpp>
 
 std::string FixOpName(std::string op_name, int node_offset) {
   std::string result = "";
@@ -122,20 +120,9 @@ int main(int argc, char* argv[]) {
     dfg_ptr = AddDFG(dfg_ptr, dfg_ptr_to_add, dfg_ptr_to_add->GetNodeNum() * i);
   }
 
-  mapper::IILPMapper* mapper_impl;
-  if (mapper_config.algorithm_config.algorithm ==
-      entity::AlgorithmType::kILPMapper) {
-    mapper_impl = mapper::GurobiILPMapper().CreateMapper(dfg_ptr, mrrg_ptr);
-  } else if (mapper_config.algorithm_config.algorithm ==
-             entity::AlgorithmType::kPlacementILPMapper) {
-    mapper_impl =
-        mapper::GurobiPlacementILPMapper().CreateMapper(dfg_ptr, mrrg_ptr);
-  } else {
-    std::cerr << "Invalid algorithm type in mapper config: "
-              << static_cast<int>(mapper_config.algorithm_config.algorithm)
-              << std::endl;
-    abort();
-  }
+  std::unique_ptr<mapper::IILPMapper> mapper_impl =
+      mapper::CreateMapper(mapper_config.algorithm_config.algorithm, dfg_ptr,
+                           mrrg_ptr);
   mapper_impl->SetLogFilePath(logger.GetGurobiLogFilePath());
   mapper_impl->SetTimeOut(timeout_s);
   mapper_impl->SetAcceptFeasibleSolution(

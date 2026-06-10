@@ -11,3 +11,7 @@ python_tools/experiment_runner/tmp_cgra/*
 license_files/gurobi.lic
 garbage/*
 .DS_Store
+__pycache__/
+*.pyc
+research/results/*
+!research/results/.gitkeep

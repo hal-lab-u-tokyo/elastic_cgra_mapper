@@ -9,6 +9,7 @@ The recommended way to run this repository is through Docker Compose. The contai
 - GCC >= 8.5.0
 - Gurobi >= 9.5.1
 - CMake >= 3.20.2
+- Graphviz
 
 The Docker image uses Gurobi 9.5.2 by default. The Compose service pins `linux/amd64`, so it also runs on Apple Silicon hosts through Docker Desktop's emulation layer.
 
@@ -185,29 +186,121 @@ The default config is intended for longer experiments. For a quick smoke test, u
 
 Keep the rest of the existing JSON fields unchanged.
 
+## Research Mapping Evaluation
+
+For research on new mapping algorithms, use the `research/` workflow. It keeps experiment manifests, architecture templates, mapper configs, metrics scripts, and generated results separate from the older batch runner.
+
+The standard modulo-style evaluation treats `context_size` as the candidate II, forces `CGRA_type: "default"`, keeps `parallel_num: 1`, and tries `II = MII, MII + 1, ...` until the first successful mapping is found. That first success is reported as `achieved_II`.
+
+Run the smoke experiment:
+
+```bash
+python3 research/scripts/run_suite.py \
+  --manifest research/configs/experiments/smoke_test.json \
+  --out research/results/smoke_test
+```
+
+Create a compact comparison table:
+
+```bash
+python3 research/scripts/compare_results.py \
+  --metrics research/results/smoke_test/metrics.csv \
+  --group-by mapper \
+  --out research/results/smoke_test/summary.md
+```
+
+Create a benchmark-level report:
+
+```bash
+python3 research/scripts/report_by_benchmark.py \
+  --metrics research/results/smoke_test/metrics.csv \
+  --out research/results/smoke_test/benchmark_report.md
+```
+
+Validate the metrics for internal consistency:
+
+```bash
+python3 research/scripts/validate_metrics.py \
+  --metrics research/results/smoke_test/metrics.csv \
+  --out research/results/smoke_test/validation.md
+```
+
+For a small baseline comparison across multiple benchmarks, architectures, and existing ILP mappers, use:
+
+```bash
+python3 research/scripts/run_suite.py \
+  --manifest research/configs/experiments/modulo_baseline_small.json \
+  --out research/results/modulo_baseline_small
+```
+
+The primary output is `metrics.csv`. Important columns are `MII`, `start_II`, `achieved_II`, `II_ratio`, `status`, `mapping_time_sec`, `wall_time_sec`, `compute_pe_utilization`, `pe_context_utilization`, `route_to_compute_ratio`, `avg_manhattan_distance`, `compute_bbox_utilization`, `objective_value`, `best_bound`, and `mip_gap`.
+
+Experiment manifests can either use a single `benchmark_root` plus `benchmarks`, or multiple `benchmark_sets`. Multiple sets are useful when comparing built-in kernels, converted CGRA-Bench kernels, and custom benchmarks in one run while keeping the result rows separable by `benchmark_set`.
+
+Use `research/scripts/normalize_benchmarks.py` when a benchmark collection is not already in the mapper's DOT format. It scans `.dot` and Revamp `.xml` files, writes mapper-compatible `.dot` files, and can generate a research manifest for the normalized benchmark set.
+
+```bash
+python3 research/scripts/normalize_benchmarks.py \
+  --benchmark-root benchmark \
+  --out-dir research/results/normalized_benchmarks \
+  --manifest-out research/results/normalized_benchmarks/all_normalized_manifest.json \
+  --report-out research/results/normalized_benchmarks/normalization_report.md
+```
+
+Then preflight and run the generated manifest:
+
+```bash
+python3 research/scripts/preflight_manifest.py \
+  --manifest research/results/normalized_benchmarks/all_normalized_manifest.json \
+  --repo-root /home/ubuntu/elastic_cgra_mapper \
+  --out-dir research/results/normalized_benchmarks/preflight
+
+python3 research/scripts/run_suite.py \
+  --manifest research/results/normalized_benchmarks/all_normalized_manifest.json \
+  --out research/results/all_normalized_ilp_probe
+
+python3 research/scripts/generate_reports.py \
+  --result-dir research/results/all_normalized_ilp_probe
+```
+
+For placement-oriented comparisons, `research/configs/experiments/placement_routing_stress_baseline.json` evaluates 4x4, 6x6, and 8x8 default CGRAs with `mii: "auto"`, larger `ii_max`, a longer timeout, existing ILP baselines, and the initial `PlacementFirstHeuristicMapper`. Use `placement_routing_stress_probe.json` only as a short routing-stress check. Use `placement_paper_baseline.json` for the broader paper-oriented suite, and run `preflight_manifest.py` before long runs.
+
+See `research/README.md` and `research/docs/` for the experiment protocol, MII definition, metric meanings, and the recommended next steps for adding a new mapper implementation.
+
+For YOTT/PRISA-style placement research, start with `research/docs/placement_research_plan.md`.
+
 ## Benchmarks And CGRA-Bench
 
-The mapper evaluation uses `.dot` files under:
+The mapper consumes DFG `.dot` files with `opcode` attributes. Native mapper-ready examples are under:
 
 ```text
 benchmark/kernel/
+benchmark/cgrame_kernel/
+benchmark/parallel/
 ```
 
-CGRA-Bench is available as a submodule under:
+Other benchmark assets are available under:
 
-```text
-benchmark/CGRA-Bench/
-```
+- `benchmark/CGRA-Bench/evaluation/`: CGRA-Bench DOTs and prior evaluation artifacts
+- `benchmark/CGRA-Bench/kernels/`: C/C++ source kernels and a few generated DOTs
+- `benchmark/GenMap/`: GenMap DOTs with different opcode names
+- `benchmark/revamp_kernel/`: Revamp XML DFGs
 
-Some CGRA-Bench `.dot` files can be converted with:
+Use `research/scripts/normalize_benchmarks.py` to convert the in-repository DOT/XML benchmark files into the current mapper format before research runs. The normalizer currently handles CGRA-Bench evaluation DOTs, CGRA-Bench kernel DOTs, GenMap DOTs, Revamp XMLs, and the native DOTs already used by the mapper.
+
+Example:
 
 ```bash
-python3 benchmark/converter/cgra-bench_converter.py \
-  benchmark/CGRA-Bench/evaluation/fft_pro.dot \
-  /tmp/fft_pro_converted.dot
+python3 research/scripts/normalize_benchmarks.py \
+  --benchmark-root benchmark \
+  --out-dir research/results/normalized_benchmarks \
+  --manifest-out research/results/normalized_benchmarks/all_normalized_manifest.json \
+  --report-out research/results/normalized_benchmarks/normalization_report.md
 ```
 
-Use the converted `.dot` file as a mapper input, or place it under `benchmark/kernel/` and add its filename without `.dot` to `benchmark_name` in `data/experiment_runner/mapping_config.json`.
+The generated manifest is intended as a health-check baseline. It uses `mesh6x6_default_all`, `mii: "auto"`, `ii_max: 24`, `timeout_sec: 3`, and `ilp_mapper`. In the latest check, all 41 DOT/XML benchmark inputs under `benchmark/` normalized successfully, preflight passed for all 41, and the generated ILP probe produced a feasible or optimal mapping for all 41. Because the probe timeout is short, many rows are `timeout_feasible`; use longer timeouts for publication-quality comparisons.
+
+The normalizer is for mapping, placement, and routing evaluation. It folds unsupported source-level operations into mapper-supported resource classes, drops control-only branch nodes, maps `phi` to `const`, and annotates backward dependencies with `distance=1` for RecMII. It does not turn CGRA-Bench C/C++ source files, JSON metadata, images, or prior `.map` files into new DFGs; those are source data or previous outputs rather than direct `build/mapping` inputs.
 
 ## Remapper Evaluation
 
@@ -236,7 +329,8 @@ The analyzer expects a remapper output directory, not a mapper-only experiment.
 Visualize a DFG `.dot` file:
 
 ```bash
-dot -Tpng <input.dot> -o <output.png>
+cd python_tools/visualizer
+python3 dfg_visualize_main.py <input.dot>
 ```
 
 Visualize a mapping result:
@@ -245,3 +339,5 @@ Visualize a mapping result:
 cd python_tools/visualizer
 python3 mapping_visualize_main.py <mapping.json>
 ```
+
+Visualizer outputs are written under `python_tools/visualizer/output/`. DFG visualization writes publication-friendly vector PDF/SVG files through Graphviz when available, and supports mapper-ready DOT files with `opcode` attributes and raw CGRA-Bench-style DOT files whose operation type can be inferred from labels or node names.

@@ -17,6 +17,7 @@ struct MappingResult {
 
 class IILPMapper {
  public:
+  virtual ~IILPMapper() = default;
   virtual IILPMapper* CreateMapper(
       const std::shared_ptr<entity::DFG> dfg_ptr,
       const std::shared_ptr<entity::MRRG> mrrg_ptr) = 0;

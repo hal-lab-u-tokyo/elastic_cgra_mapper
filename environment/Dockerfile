@@ -19,7 +19,8 @@ RUN apt-get update && \
     git \
     ninja-build \
     gdb \
-    python3-pip
+    python3-pip \
+    graphviz
 RUN apt-get install -y verilator
 RUN apt-get update && \
     apt-get install -y libeigen3-dev

@@ -1,0 +1,38 @@
+{
+  "name": "modulo_baseline_small",
+  "mode": "modulo_default_ii_sweep",
+  "mapping_bin": "/home/ubuntu/elastic_cgra_mapper/build/mapping",
+  "benchmark_root": "/home/ubuntu/elastic_cgra_mapper/benchmark/kernel",
+  "benchmarks": [
+    "convolution_no_loop",
+    "fixed_fir_pro",
+    "fixed_fft_pro"
+  ],
+  "architectures": [
+    {
+      "name": "mesh4x4_default_all",
+      "template": "/home/ubuntu/elastic_cgra_mapper/research/configs/arch_templates/mesh_4x4_default.json",
+      "ii_max": 16,
+      "mii": "auto"
+    },
+    {
+      "name": "mesh6x6_default_all",
+      "template": "/home/ubuntu/elastic_cgra_mapper/research/configs/arch_templates/mesh_6x6_default.json",
+      "ii_max": 16,
+      "mii": "auto"
+    }
+  ],
+  "mappers": [
+    {
+      "name": "ilp_mapper",
+      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/ilp_mapper.json"
+    },
+    {
+      "name": "placement_ilp_mapper",
+      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/placement_ilp_mapper.json"
+    }
+  ],
+  "timeout_sec": 300,
+  "parallel_num": 1,
+  "mii_missing_distance_policy": "self_loop"
+}

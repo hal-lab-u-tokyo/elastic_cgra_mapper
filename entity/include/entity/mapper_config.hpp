@@ -7,7 +7,11 @@ struct DFGConfig {
   std::string operation_name_label = "node_id";
 };
 
-enum class AlgorithmType { kILPMapper, kPlacementILPMapper };
+enum class AlgorithmType {
+  kILPMapper,
+  kPlacementILPMapper,
+  kPlacementFirstHeuristicMapper
+};
 
 struct AlgorithmConfig {
   AlgorithmType algorithm = AlgorithmType::kPlacementILPMapper;

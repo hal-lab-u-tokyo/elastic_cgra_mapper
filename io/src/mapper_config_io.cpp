@@ -23,6 +23,9 @@ entity::MapperConfig io::ReadMapperConfigFromJsonFile(std::string file_name) {
   } else if (algorithm_type_str == "ILPPlacementMapper") {
     mapper_config.algorithm_config.algorithm =
         entity::AlgorithmType::kPlacementILPMapper;
+  } else if (algorithm_type_str == "PlacementFirstHeuristicMapper") {
+    mapper_config.algorithm_config.algorithm =
+        entity::AlgorithmType::kPlacementFirstHeuristicMapper;
   } else {
     std::cerr << "Invalid algorithm type in mapper config: "
               << algorithm_type_str << std::endl;
@@ -50,6 +53,9 @@ void io::WriteMapperConfigToJsonFile(
       break;
     case entity::AlgorithmType::kPlacementILPMapper:
       algorithm_config_ptree.put("type", "ILPPlacementMapper");
+      break;
+    case entity::AlgorithmType::kPlacementFirstHeuristicMapper:
+      algorithm_config_ptree.put("type", "PlacementFirstHeuristicMapper");
       break;
   }
   algorithm_config_ptree.put(
