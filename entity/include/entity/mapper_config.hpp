@@ -7,14 +7,8 @@ struct DFGConfig {
   std::string operation_name_label = "node_id";
 };
 
-enum class AlgorithmType {
-  kILPMapper,
-  kPlacementILPMapper,
-  kPlacementFirstHeuristicMapper
-};
-
 struct AlgorithmConfig {
-  AlgorithmType algorithm = AlgorithmType::kPlacementILPMapper;
+  std::string type = "ILPPlacementMapper";
   bool accept_feasible_solution = true;
 };
 

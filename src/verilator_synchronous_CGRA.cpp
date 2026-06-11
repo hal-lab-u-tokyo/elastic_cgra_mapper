@@ -7,7 +7,7 @@
 #include <io/mapper_config_io.hpp>
 #include <io/mapping_io.hpp>
 #include <iostream>
-#include <mapper/gurobi_placement_mapper.hpp>
+#include <mapper/gurobi_placement_ilp_mapper.hpp>
 
 int main(int argc, char** argv) {
   if (argc != 5) {
@@ -50,7 +50,7 @@ int main(int argc, char** argv) {
     dfg_ptr->SetNodeProperty(i, node_property);
   }
 
-  mapper::IILPMapper* mapper;
+  mapper::IMapper* mapper;
   mapper = mapper::GurobiPlacementILPMapper().CreateMapper(dfg_ptr, mrrg_ptr);
 
   const auto mapping_result = mapper->Execution();

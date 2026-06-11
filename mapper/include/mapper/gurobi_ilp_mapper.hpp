@@ -2,20 +2,15 @@
 
 #include <mapper/mapper.hpp>
 
-#include <memory>
-#include <optional>
-#include <string>
-
 namespace mapper {
 
-class PlacementFirstHeuristicMapper : public IMapper {
+class GurobiILPMapper : public IMapper {
  public:
-  PlacementFirstHeuristicMapper(){};
-  PlacementFirstHeuristicMapper(const std::shared_ptr<entity::DFG> dfg_ptr,
-                                const std::shared_ptr<entity::MRRG> mrrg_ptr);
-  PlacementFirstHeuristicMapper* CreateMapper(
-      const std::shared_ptr<entity::DFG> dfg_ptr,
-      const std::shared_ptr<entity::MRRG> mrrg_ptr);
+  GurobiILPMapper(){};
+  GurobiILPMapper(const std::shared_ptr<entity::DFG> dfg_ptr,
+                  const std::shared_ptr<entity::MRRG> mmrg_ptr);
+  GurobiILPMapper* CreateMapper(const std::shared_ptr<entity::DFG> dfg_ptr,
+                                const std::shared_ptr<entity::MRRG> mmrg_ptr);
   MappingResult Execution();
   void SetLogFilePath(const std::string& log_file_path);
   void SetTimeOut(double time_out_s);
@@ -28,5 +23,4 @@ class PlacementFirstHeuristicMapper : public IMapper {
   std::optional<double> timeout_s_;
   bool accept_feasible_solution_ = true;
 };
-
 }  // namespace mapper

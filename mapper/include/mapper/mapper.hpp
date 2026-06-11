@@ -2,6 +2,9 @@
 
 #include <entity/mapping.hpp>
 
+#include <memory>
+#include <string>
+
 namespace mapper {
 struct MappingResult {
   MappingResult(bool is_success, const entity::Mapping& mapping,
@@ -15,12 +18,9 @@ struct MappingResult {
   double mapping_time_s;
 };
 
-class IILPMapper {
+class IMapper {
  public:
-  virtual ~IILPMapper() = default;
-  virtual IILPMapper* CreateMapper(
-      const std::shared_ptr<entity::DFG> dfg_ptr,
-      const std::shared_ptr<entity::MRRG> mrrg_ptr) = 0;
+  virtual ~IMapper() = default;
   virtual MappingResult Execution() = 0;
   virtual void SetLogFilePath(const std::string& log_file_path) = 0;
   virtual void SetTimeOut(double time_out_s) = 0;

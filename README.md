@@ -130,7 +130,7 @@ To compare both models:
 "cgra_type": ["default", "elastic"]
 ```
 
-Note: `data/mapper_config.json` currently uses `ILPMapper`. The `ILPMapper` implementation can run both CGRA types, but its elastic-specific constraints are still marked TODO. Use `PlacementILPMapper` when evaluating the `elastic` model with race-condition avoidance and context-collapsing constraints.
+Note: `data/mapper_config.json` currently uses `ILPMapper`. The `ILPMapper` implementation can run both CGRA types, but its elastic-specific constraints are still marked TODO. Use `ILPPlacementMapper` when evaluating the `elastic` model with race-condition avoidance and context-collapsing constraints.
 
 `Algorithm.accept_feasible_solution` controls how Gurobi statuses are handled. Set it to `true` to accept a feasible incumbent found before a timeout, or `false` to accept only `GRB_OPTIMAL`/`GRB_SUBOPTIMAL` results.
 
@@ -197,32 +197,32 @@ Run the smoke experiment:
 ```bash
 python3 research/scripts/run_suite.py \
   --manifest research/configs/experiments/smoke_test.json \
-  --out research/results/smoke_test
+  --out research/results/baselines/smoke_test
 ```
 
 Create a compact comparison table:
 
 ```bash
 python3 research/scripts/compare_results.py \
-  --metrics research/results/smoke_test/metrics.csv \
+  --metrics research/results/baselines/smoke_test/metrics.csv \
   --group-by mapper \
-  --out research/results/smoke_test/summary.md
+  --out research/results/baselines/smoke_test/summary.md
 ```
 
 Create a benchmark-level report:
 
 ```bash
 python3 research/scripts/report_by_benchmark.py \
-  --metrics research/results/smoke_test/metrics.csv \
-  --out research/results/smoke_test/benchmark_report.md
+  --metrics research/results/baselines/smoke_test/metrics.csv \
+  --out research/results/baselines/smoke_test/benchmark_report.md
 ```
 
 Validate the metrics for internal consistency:
 
 ```bash
 python3 research/scripts/validate_metrics.py \
-  --metrics research/results/smoke_test/metrics.csv \
-  --out research/results/smoke_test/validation.md
+  --metrics research/results/baselines/smoke_test/metrics.csv \
+  --out research/results/baselines/smoke_test/validation.md
 ```
 
 For a small baseline comparison across multiple benchmarks, architectures, and existing ILP mappers, use:
@@ -230,7 +230,7 @@ For a small baseline comparison across multiple benchmarks, architectures, and e
 ```bash
 python3 research/scripts/run_suite.py \
   --manifest research/configs/experiments/modulo_baseline_small.json \
-  --out research/results/modulo_baseline_small
+  --out research/results/baselines/modulo_baseline_small
 ```
 
 The primary output is `metrics.csv`. Important columns are `MII`, `start_II`, `achieved_II`, `II_ratio`, `status`, `mapping_time_sec`, `wall_time_sec`, `compute_pe_utilization`, `pe_context_utilization`, `route_to_compute_ratio`, `avg_manhattan_distance`, `compute_bbox_utilization`, `objective_value`, `best_bound`, and `mip_gap`.
@@ -242,28 +242,32 @@ Use `research/scripts/normalize_benchmarks.py` when a benchmark collection is no
 ```bash
 python3 research/scripts/normalize_benchmarks.py \
   --benchmark-root benchmark \
-  --out-dir research/results/normalized_benchmarks \
-  --manifest-out research/results/normalized_benchmarks/all_normalized_manifest.json \
-  --report-out research/results/normalized_benchmarks/normalization_report.md
+  --out-dir research/results/benchmark_compatibility/normalized_benchmarks \
+  --manifest-out research/results/benchmark_compatibility/normalized_benchmarks/all_normalized_manifest.json \
+  --report-out research/results/benchmark_compatibility/normalized_benchmarks/normalization_report.md
 ```
 
 Then preflight and run the generated manifest:
 
 ```bash
 python3 research/scripts/preflight_manifest.py \
-  --manifest research/results/normalized_benchmarks/all_normalized_manifest.json \
+  --manifest research/results/benchmark_compatibility/normalized_benchmarks/all_normalized_manifest.json \
   --repo-root /home/ubuntu/elastic_cgra_mapper \
-  --out-dir research/results/normalized_benchmarks/preflight
+  --out-dir research/results/benchmark_compatibility/normalized_benchmarks/preflight
 
 python3 research/scripts/run_suite.py \
-  --manifest research/results/normalized_benchmarks/all_normalized_manifest.json \
-  --out research/results/all_normalized_ilp_probe
+  --manifest research/results/benchmark_compatibility/normalized_benchmarks/all_normalized_manifest.json \
+  --out research/results/benchmark_compatibility/all_normalized_ilp_probe
 
 python3 research/scripts/generate_reports.py \
-  --result-dir research/results/all_normalized_ilp_probe
+  --result-dir research/results/benchmark_compatibility/all_normalized_ilp_probe
 ```
 
-For placement-oriented comparisons, `research/configs/experiments/placement_routing_stress_baseline.json` evaluates 4x4, 6x6, and 8x8 default CGRAs with `mii: "auto"`, larger `ii_max`, a longer timeout, existing ILP baselines, and the initial `PlacementFirstHeuristicMapper`. Use `placement_routing_stress_probe.json` only as a short routing-stress check. Use `placement_paper_baseline.json` for the broader paper-oriented suite, and run `preflight_manifest.py` before long runs.
+For placement-oriented comparisons, `research/configs/experiments/placement_routing_stress_baseline.json` evaluates 4x4, 6x6, and 8x8 default CGRAs with `mii: "auto"`, larger `ii_max`, a longer timeout, existing ILP baselines, and the initial `PlacementFirstHeuristicMapper`. Use `placement_routing_stress_probe.json` only as a short routing-stress check. Use `placement_comprehensive_baseline.json` for the broad placement baseline, and run `preflight_manifest.py` before long runs.
+
+New mapping algorithms should derive from `mapper::IMapper` and register their `Algorithm.type` string with the mapper registry. This keeps mapper selection string-based and avoids editing enum or JSON parser code for each research prototype.
+
+Use `research/configs/experiments/algorithm_design_compare.json` as the exploration suite while designing algorithms. It currently uses a 6x6 default CGRA, `mii: "auto"`, `ii_max: 16`, a 20-second per-II timeout, four representative benchmarks covering smoke, memory, and routing-stress behavior, and no ILP-based mappers. Add new heuristic or placement/routing algorithm entries to that manifest for iterative comparison. Use `research/configs/experiments/algorithm_design_reference_small.json` for a small all-mapper comparison that includes `ILPMapper`, `ILPPlacementMapper`, `ConnectivityBasedILPMapper`, and `PlacementFirstHeuristicMapper`. Both are run with `research/scripts/run_suite.py --manifest <manifest>`; the runner prints a timestamped result directory, then reports completed benchmark/architecture/mapper conditions with status label, run time, elapsed time, and estimated remaining time. Each run records `run_metadata.json`, `run_info.md`, manifest snapshots, metrics, per-II stdout/stderr, mapping files, Gurobi logs, and `routing_validation.md` for independent DFG-edge route reachability checks.
 
 See `research/README.md` and `research/docs/` for the experiment protocol, MII definition, metric meanings, and the recommended next steps for adding a new mapper implementation.
 
@@ -293,9 +297,9 @@ Example:
 ```bash
 python3 research/scripts/normalize_benchmarks.py \
   --benchmark-root benchmark \
-  --out-dir research/results/normalized_benchmarks \
-  --manifest-out research/results/normalized_benchmarks/all_normalized_manifest.json \
-  --report-out research/results/normalized_benchmarks/normalization_report.md
+  --out-dir research/results/benchmark_compatibility/normalized_benchmarks \
+  --manifest-out research/results/benchmark_compatibility/normalized_benchmarks/all_normalized_manifest.json \
+  --report-out research/results/benchmark_compatibility/normalized_benchmarks/normalization_report.md
 ```
 
 The generated manifest is intended as a health-check baseline. It uses `mesh6x6_default_all`, `mii: "auto"`, `ii_max: 24`, `timeout_sec: 3`, and `ilp_mapper`. In the latest check, all 41 DOT/XML benchmark inputs under `benchmark/` normalized successfully, preflight passed for all 41, and the generated ILP probe produced a feasible or optimal mapping for all 41. Because the probe timeout is short, many rows are `timeout_feasible`; use longer timeouts for publication-quality comparisons.
@@ -340,4 +344,4 @@ cd python_tools/visualizer
 python3 mapping_visualize_main.py <mapping.json>
 ```
 
-Visualizer outputs are written under `python_tools/visualizer/output/`. DFG visualization writes publication-friendly vector PDF/SVG files through Graphviz when available, and supports mapper-ready DOT files with `opcode` attributes and raw CGRA-Bench-style DOT files whose operation type can be inferred from labels or node names.
+Visualizer outputs are written under `python_tools/visualizer/output/`.

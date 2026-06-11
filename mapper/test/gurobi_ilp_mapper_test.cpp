@@ -1,9 +1,9 @@
 #include <gtest/gtest.h>
 
-#include <mapper/gurobi_mapper.hpp>
-#include <mapper/gurobi_placement_mapper.hpp>
+#include <mapper/gurobi_ilp_mapper.hpp>
+#include <mapper/gurobi_placement_ilp_mapper.hpp>
 
-TEST(MapperTest, gurobi_placement_mapper_test) {
+TEST(MapperTest, gurobi_placement_ilp_mapper_test) {
   // create dfg
   std::vector<entity::Edge> edges = {{0, 1}, {1, 2}, {2, 3}, {3, 4}, {4, 5}};
   int node_num = 6;
@@ -45,7 +45,7 @@ TEST(MapperTest, gurobi_placement_mapper_test) {
   EXPECT_EQ(result.is_success, true);
 }
 
-TEST(MapperTest, gurobi_mapper_test) {
+TEST(MapperTest, gurobi_ilp_mapper_test) {
   // create dfg
   std::vector<entity::Edge> edges = {{0, 1}, {1, 2}, {2, 3}, {3, 4}, {4, 5}};
   int node_num = 6;

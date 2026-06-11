@@ -2,15 +2,20 @@
 
 #include <mapper/mapper.hpp>
 
+#include <memory>
+#include <optional>
+#include <string>
+
 namespace mapper {
 
-class GurobiILPMapper : public IILPMapper {
+class ConnectivityBasedILPMapper : public IMapper {
  public:
-  GurobiILPMapper(){};
-  GurobiILPMapper(const std::shared_ptr<entity::DFG> dfg_ptr,
-                  const std::shared_ptr<entity::MRRG> mmrg_ptr);
-  GurobiILPMapper* CreateMapper(const std::shared_ptr<entity::DFG> dfg_ptr,
-                                const std::shared_ptr<entity::MRRG> mmrg_ptr);
+  ConnectivityBasedILPMapper(){};
+  ConnectivityBasedILPMapper(const std::shared_ptr<entity::DFG> dfg_ptr,
+                             const std::shared_ptr<entity::MRRG> mrrg_ptr);
+  ConnectivityBasedILPMapper* CreateMapper(
+      const std::shared_ptr<entity::DFG> dfg_ptr,
+      const std::shared_ptr<entity::MRRG> mrrg_ptr);
   MappingResult Execution();
   void SetLogFilePath(const std::string& log_file_path);
   void SetTimeOut(double time_out_s);
@@ -23,4 +28,5 @@ class GurobiILPMapper : public IILPMapper {
   std::optional<double> timeout_s_;
   bool accept_feasible_solution_ = true;
 };
+
 }  // namespace mapper

@@ -13,5 +13,9 @@ garbage/*
 .DS_Store
 __pycache__/
 *.pyc
-research/results/*
+research/results/**
+!research/results/
 !research/results/.gitkeep
+!research/results/README.md
+!research/results/**/
+!research/results/**/.gitkeep

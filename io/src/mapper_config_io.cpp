@@ -15,22 +15,8 @@ entity::MapperConfig io::ReadMapperConfigFromJsonFile(std::string file_name) {
 
   boost::property_tree::ptree algorithm_config_ptree =
       ptree.get_child("Algorithm");
-  std::string algorithm_type_str =
+  mapper_config.algorithm_config.type =
       GetValueFromPTree<std::string>(algorithm_config_ptree, "type");
-  if (algorithm_type_str == "ILPMapper") {
-    mapper_config.algorithm_config.algorithm =
-        entity::AlgorithmType::kILPMapper;
-  } else if (algorithm_type_str == "ILPPlacementMapper") {
-    mapper_config.algorithm_config.algorithm =
-        entity::AlgorithmType::kPlacementILPMapper;
-  } else if (algorithm_type_str == "PlacementFirstHeuristicMapper") {
-    mapper_config.algorithm_config.algorithm =
-        entity::AlgorithmType::kPlacementFirstHeuristicMapper;
-  } else {
-    std::cerr << "Invalid algorithm type in mapper config: "
-              << algorithm_type_str << std::endl;
-    abort();
-  }
   if (auto accept_feasible_solution =
           algorithm_config_ptree.get_optional<bool>("accept_feasible_solution")) {
     mapper_config.algorithm_config.accept_feasible_solution =
@@ -47,17 +33,7 @@ void io::WriteMapperConfigToJsonFile(
   dfg_config_ptree.put("operation_name_label",
                        mapper_config.dfg_config.operation_name_label);
 
-  switch (mapper_config.algorithm_config.algorithm) {
-    case entity::AlgorithmType::kILPMapper:
-      algorithm_config_ptree.put("type", "ILPMapper");
-      break;
-    case entity::AlgorithmType::kPlacementILPMapper:
-      algorithm_config_ptree.put("type", "ILPPlacementMapper");
-      break;
-    case entity::AlgorithmType::kPlacementFirstHeuristicMapper:
-      algorithm_config_ptree.put("type", "PlacementFirstHeuristicMapper");
-      break;
-  }
+  algorithm_config_ptree.put("type", mapper_config.algorithm_config.type);
   algorithm_config_ptree.put(
       "accept_feasible_solution",
       mapper_config.algorithm_config.accept_feasible_solution);

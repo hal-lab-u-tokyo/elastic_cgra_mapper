@@ -1,5 +1,5 @@
 {
-  "name": "placement_paper_baseline",
+  "name": "placement_comprehensive_baseline",
   "mode": "modulo_default_ii_sweep",
   "mapping_bin": "/home/ubuntu/elastic_cgra_mapper/build/mapping",
   "benchmark_sets": [

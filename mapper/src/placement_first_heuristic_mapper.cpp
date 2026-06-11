@@ -5,11 +5,16 @@
 #include <cmath>
 #include <fstream>
 #include <limits>
+#include <mapper/mapper_factory.hpp>
 #include <queue>
 #include <set>
 #include <unordered_map>
 
 namespace {
+
+const bool kPlacementFirstHeuristicMapperRegistered =
+    mapper::RegisterMapperType<mapper::PlacementFirstHeuristicMapper>(
+        "PlacementFirstHeuristicMapper");
 
 bool SupportsOperation(const entity::MRRGNodeProperty& mrrg_node,
                        entity::OpType op) {

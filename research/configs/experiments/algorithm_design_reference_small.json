@@ -1,0 +1,53 @@
+{
+  "name": "algorithm_design_reference_small",
+  "mode": "modulo_default_ii_sweep",
+  "result_group": "algorithm_design/algorithm_design_reference_small",
+  "description": "Small all-mapper comparison suite for strict ILP, relaxed placement ILP, and heuristic mappers on kernels that are small enough for solver-backed baselines.",
+  "mapping_bin": "/home/ubuntu/elastic_cgra_mapper/build/mapping",
+  "benchmark_sets": [
+    {
+      "name": "small_smoke",
+      "benchmark_root": "/home/ubuntu/elastic_cgra_mapper/benchmark/kernel",
+      "benchmarks": [
+        "fixed_fir_pro",
+        "fixed_stencil"
+      ]
+    },
+    {
+      "name": "small_memory",
+      "benchmark_root": "/home/ubuntu/elastic_cgra_mapper/benchmark/kernel",
+      "benchmarks": [
+        "fixed_ellpack"
+      ]
+    }
+  ],
+  "architectures": [
+    {
+      "name": "mesh6x6_default_all",
+      "template": "/home/ubuntu/elastic_cgra_mapper/research/configs/arch_templates/mesh_6x6_default.json",
+      "ii_max": 8,
+      "mii": "auto"
+    }
+  ],
+  "mappers": [
+    {
+      "name": "ilp_mapper",
+      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/ilp_mapper.json"
+    },
+    {
+      "name": "placement_ilp_mapper",
+      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/placement_ilp_mapper.json"
+    },
+    {
+      "name": "connectivity_based_ilp_mapper",
+      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/connectivity_based_ilp_mapper.json"
+    },
+    {
+      "name": "placement_first_heuristic",
+      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/placement_first_heuristic_mapper.json"
+    }
+  ],
+  "timeout_sec": 60,
+  "parallel_num": 1,
+  "mii_missing_distance_policy": "self_loop"
+}

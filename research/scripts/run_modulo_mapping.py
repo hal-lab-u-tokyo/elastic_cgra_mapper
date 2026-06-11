@@ -48,6 +48,7 @@ def run_one(
     timeout_sec: float,
     parallel_num: int,
     missing_distance_policy: str = "self_loop",
+    progress: bool = False,
 ) -> dict:
     output_dir.mkdir(parents=True, exist_ok=True)
     computed_mii, start_ii = resolve_mii(
@@ -75,6 +76,12 @@ def run_one(
     if parallel_num != 1:
         raise ValueError("Modulo mapper comparison should use parallel_num=1 because build/mapping duplicates the DFG otherwise.")
 
+    if progress:
+        print(
+            f"  MII={computed_mii}, start_II={start_ii}, ii_max={ii_max}",
+            flush=True,
+        )
+
     for ii in range(start_ii, ii_max + 1):
         trial_dir = output_dir / "tried_ii" / f"ii_{ii}"
         attempt_id = f"attempt_{time.time_ns()}"
@@ -95,6 +102,8 @@ def run_one(
             str(timeout_sec),
             str(parallel_num),
         ]
+        if progress:
+            print(f"    II={ii}: running", flush=True)
         started_at = time.time()
         proc = subprocess.run(cmd, capture_output=True, text=True)
         elapsed = time.time() - started_at
@@ -120,7 +129,20 @@ def run_one(
         )
         row["process_returncode"] = proc.returncode
         row["wall_time_sec"] = elapsed
+        row["trial_dir"] = str(trial_dir)
+        row["stdout_file"] = str(stdout_path)
+        row["stderr_file"] = str(stderr_path)
+        row["arch_file"] = str(arch_path)
+        row["raw_output_dir"] = str(raw_output_dir)
         rows.append(row)
+
+        if progress:
+            outcome = "success" if is_success else "failed"
+            print(
+                f"    II={ii}: {outcome}, status={row.get('status', '')}, "
+                f"elapsed={elapsed:.3f}s",
+                flush=True,
+            )
 
         summary["trials"].append(
             {
@@ -128,6 +150,11 @@ def run_one(
                 "returncode": proc.returncode,
                 "success": is_success,
                 "run_dir": str(run_dir) if run_dir else "",
+                "trial_dir": str(trial_dir),
+                "stdout_file": str(stdout_path),
+                "stderr_file": str(stderr_path),
+                "arch_file": str(arch_path),
+                "raw_output_dir": str(raw_output_dir),
                 "wall_time_sec": elapsed,
             }
         )
@@ -161,6 +188,7 @@ def main() -> None:
         default="self_loop",
         help="How to handle recurrence edges without explicit distance.",
     )
+    parser.add_argument("--progress", action="store_true", help="Print per-II progress to stdout.")
     args = parser.parse_args()
 
     benchmark = args.benchmark or args.dfg.stem
@@ -180,6 +208,7 @@ def main() -> None:
         timeout_sec=args.timeout_sec,
         parallel_num=args.parallel_num,
         missing_distance_policy=args.missing_distance_policy,
+        progress=args.progress,
     )
     print(json.dumps(summary, indent=2))
 

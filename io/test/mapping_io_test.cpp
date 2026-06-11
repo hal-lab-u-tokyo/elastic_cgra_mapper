@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <io/mapping_io.hpp>
-#include <mapper/gurobi_mapper.hpp>
+#include <mapper/gurobi_ilp_mapper.hpp>
 
 TEST(IOTest, maping_io_test) {
   // create mapping

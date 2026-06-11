@@ -9,15 +9,15 @@ Before adding a new mapper, run an auto-II sanity suite and validate the results
 ```bash
 python3 research/scripts/run_suite.py \
   --manifest research/configs/experiments/auto_sanity.json \
-  --out research/results/auto_sanity
+  --out research/results/baselines/auto_sanity
 
 python3 research/scripts/report_by_benchmark.py \
-  --metrics research/results/auto_sanity/metrics.csv \
-  --out research/results/auto_sanity/benchmark_report.md
+  --metrics research/results/baselines/auto_sanity/metrics.csv \
+  --out research/results/baselines/auto_sanity/benchmark_report.md
 
 python3 research/scripts/validate_metrics.py \
-  --metrics research/results/auto_sanity/metrics.csv \
-  --out research/results/auto_sanity/validation.md
+  --metrics research/results/baselines/auto_sanity/metrics.csv \
+  --out research/results/baselines/auto_sanity/validation.md
 ```
 
 For a real baseline, use `mii: "auto"`, enough `ii_max` headroom, and a timeout large enough to avoid mistaking solver timeout for algorithm failure.
@@ -27,7 +27,7 @@ For a slightly broader placement-only sanity check, run:
 ```bash
 python3 research/scripts/run_suite.py \
   --manifest research/configs/experiments/placement_auto_sanity.json \
-  --out research/results/placement_auto_sanity
+  --out research/results/baselines/placement_auto_sanity
 ```
 
 For the 4x4/6x6/8x8 placement baseline requested for YOTT/PRISA-style work, use:
@@ -35,51 +35,51 @@ For the 4x4/6x6/8x8 placement baseline requested for YOTT/PRISA-style work, use:
 ```bash
 python3 research/scripts/run_suite.py \
   --manifest research/configs/experiments/placement_routing_stress_baseline.json \
-  --out research/results/placement_routing_stress_baseline
+  --out research/results/baselines/placement_routing_stress_baseline
 
 python3 research/scripts/report_by_benchmark.py \
-  --metrics research/results/placement_routing_stress_baseline/metrics.csv \
-  --out research/results/placement_routing_stress_baseline/benchmark_report.md
+  --metrics research/results/baselines/placement_routing_stress_baseline/metrics.csv \
+  --out research/results/baselines/placement_routing_stress_baseline/benchmark_report.md
 
 python3 research/scripts/compare_results.py \
-  --metrics research/results/placement_routing_stress_baseline/metrics.csv \
+  --metrics research/results/baselines/placement_routing_stress_baseline/metrics.csv \
   --group-by mapper \
-  --out research/results/placement_routing_stress_baseline/summary_by_mapper.md
+  --out research/results/baselines/placement_routing_stress_baseline/summary_by_mapper.md
 
 python3 research/scripts/compare_results.py \
-  --metrics research/results/placement_routing_stress_baseline/metrics.csv \
+  --metrics research/results/baselines/placement_routing_stress_baseline/metrics.csv \
   --group-by arch_name \
-  --out research/results/placement_routing_stress_baseline/summary_by_arch.md
+  --out research/results/baselines/placement_routing_stress_baseline/summary_by_arch.md
 
 python3 research/scripts/validate_metrics.py \
-  --metrics research/results/placement_routing_stress_baseline/metrics.csv \
-  --out research/results/placement_routing_stress_baseline/validation.md
+  --metrics research/results/baselines/placement_routing_stress_baseline/metrics.csv \
+  --out research/results/baselines/placement_routing_stress_baseline/validation.md
 ```
 
 Use `placement_routing_stress_probe.json` first when iterating on code. It keeps the same 4x4/6x6/8x8 split, but limits the benchmark set and timeout so routing-pressure metrics can be checked quickly.
 
 Use `benchmark_diversity_probe.json` to sanity-check different benchmark families before a long baseline run. The current probe covers `fixed_ellpack` (memory-oriented), `fixed_susan_pro` (vision-style), `fixed_matrixmultiply_const` (recurrence), and `fixed_matrixmultiply_double_const` from the nested `benchmark/parallel` tree.
 
-For the broad paper-oriented run, use `placement_paper_baseline.json`. Always preflight it first:
+For the broad placement baseline, use `placement_comprehensive_baseline.json`. Always preflight it first:
 
 ```bash
 python3 research/scripts/preflight_manifest.py \
-  --manifest research/configs/experiments/placement_paper_baseline.json \
+  --manifest research/configs/experiments/placement_comprehensive_baseline.json \
   --repo-root /home/ubuntu/elastic_cgra_mapper \
-  --out-dir research/results/preflight_placement_paper_baseline
+  --out-dir research/results/preflight/preflight_placement_comprehensive_baseline
 ```
 
 Then run it in chunks, for example:
 
 ```bash
 python3 research/scripts/run_suite.py \
-  --manifest research/configs/experiments/placement_paper_baseline.json \
-  --out research/results/placement_paper_baseline_mesh6x6_parallel \
+  --manifest research/configs/experiments/placement_comprehensive_baseline.json \
+  --out research/results/baselines/placement_comprehensive_baseline_mesh6x6_parallel \
   --only-arch mesh6x6_default_all \
   --only-benchmark-set parallel_matrix
 
 python3 research/scripts/generate_reports.py \
-  --result-dir research/results/placement_paper_baseline_mesh6x6_parallel
+  --result-dir research/results/baselines/placement_comprehensive_baseline_mesh6x6_parallel
 ```
 
 Chunked runs are preferable for ILP-heavy baselines because the pessimistic timeout budget can be much larger than the actual runtime.

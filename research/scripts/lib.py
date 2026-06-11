@@ -759,6 +759,11 @@ CSV_FIELDS = [
     "mapping_file",
     "gurobi_log_file",
     "run_dir",
+    "trial_dir",
+    "stdout_file",
+    "stderr_file",
+    "arch_file",
+    "raw_output_dir",
 ]
 
 

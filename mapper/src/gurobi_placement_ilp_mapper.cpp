@@ -4,7 +4,14 @@
 #include <filesystem>
 #include <fstream>
 #include <memory>
-#include <mapper/gurobi_placement_mapper.hpp>
+#include <mapper/mapper_factory.hpp>
+#include <mapper/gurobi_placement_ilp_mapper.hpp>
+
+namespace {
+const bool kGurobiPlacementILPMapperRegistered =
+    mapper::RegisterMapperType<mapper::GurobiPlacementILPMapper>(
+        "ILPPlacementMapper");
+}
 
 mapper::GurobiPlacementILPMapper::GurobiPlacementILPMapper(
     const std::shared_ptr<entity::DFG> dfg_ptr,

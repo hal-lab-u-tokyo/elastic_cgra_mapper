@@ -46,6 +46,18 @@ def main() -> None:
         "validate_metrics.py",
         ["--metrics", str(metrics), "--out", str(result_dir / "validation.md")],
     )
+    run_script(
+        script_dir,
+        "validate_mapping_routes.py",
+        [
+            "--metrics",
+            str(metrics),
+            "--out",
+            str(result_dir / "routing_validation.md"),
+            "--repo-root",
+            str(Path.cwd()),
+        ],
+    )
 
 
 if __name__ == "__main__":

@@ -14,6 +14,26 @@ def mean(rows: list, key: str) -> float:
     return sum(values) / len(values) if values else 0.0
 
 
+def mean_values(values: list) -> float:
+    return sum(values) / len(values) if values else 0.0
+
+
+def case_key(row: dict) -> tuple:
+    return (
+        row.get("benchmark_set", "") or "default",
+        row.get("benchmark", ""),
+        row.get("arch_name", ""),
+        row.get("mapper", ""),
+    )
+
+
+def row_time(row: dict) -> float:
+    for key in ("wall_time_sec", "mapping_time_sec"):
+        if row.get(key) not in {"", None}:
+            return float(row[key])
+    return 0.0
+
+
 def best_success(rows: list):
     success_rows = [row for row in rows if row.get("status") in SUCCESS_STATUSES]
     if not success_rows:
@@ -21,22 +41,36 @@ def best_success(rows: list):
     return min(success_rows, key=lambda row: (float(row.get("achieved_II") or 1e18), float(row.get("mapping_time_sec") or 1e18)))
 
 
+def summarize_cases(rows: list) -> tuple:
+    by_case = defaultdict(list)
+    for row in rows:
+        by_case[case_key(row)].append(row)
+    best_rows = []
+    case_times = []
+    for case_rows in by_case.values():
+        case_times.append(sum(row_time(row) for row in case_rows))
+        best = best_success(case_rows)
+        if best:
+            best_rows.append(best)
+    return by_case, best_rows, case_times
+
+
 def add_group_table(lines: list, title: str, groups: dict) -> None:
     lines.extend([f"## {title}", ""])
     lines.append(
-        "| group | trials | success | achieved II mean | time mean | compute PE util | route/compute | avg hop | bbox util |"
+        "| group | cases | solved | attempts | achieved II mean | case time mean | compute PE util | route/compute | avg hop | bbox util |"
     )
-    lines.append("| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |")
+    lines.append("| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |")
     for group, rows in sorted(groups.items()):
-        success_rows = [row for row in rows if row.get("status") in SUCCESS_STATUSES]
+        cases, best_rows, case_times = summarize_cases(rows)
         lines.append(
-            f"| {group} | {len(rows)} | {len(success_rows)} | "
-            f"{mean(success_rows, 'achieved_II'):.3f} | "
-            f"{mean(rows, 'mapping_time_sec'):.3f} | "
-            f"{mean(success_rows, 'compute_pe_utilization'):.3f} | "
-            f"{mean(success_rows, 'route_to_compute_ratio'):.3f} | "
-            f"{mean(success_rows, 'avg_manhattan_distance'):.3f} | "
-            f"{mean(success_rows, 'compute_bbox_utilization'):.3f} |"
+            f"| {group} | {len(cases)} | {len(best_rows)} | {len(rows)} | "
+            f"{mean(best_rows, 'achieved_II'):.3f} | "
+            f"{mean_values(case_times):.3f} | "
+            f"{mean(best_rows, 'compute_pe_utilization'):.3f} | "
+            f"{mean(best_rows, 'route_to_compute_ratio'):.3f} | "
+            f"{mean(best_rows, 'avg_manhattan_distance'):.3f} | "
+            f"{mean(best_rows, 'compute_bbox_utilization'):.3f} |"
         )
     lines.append("")
 

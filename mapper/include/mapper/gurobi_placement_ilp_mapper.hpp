@@ -4,7 +4,7 @@
 
 namespace mapper {
 
-class GurobiPlacementILPMapper : public IILPMapper {
+class GurobiPlacementILPMapper : public IMapper {
  public:
   GurobiPlacementILPMapper(){};
   GurobiPlacementILPMapper(const std::shared_ptr<entity::DFG> dfg_ptr,

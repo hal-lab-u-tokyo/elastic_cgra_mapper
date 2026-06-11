@@ -120,8 +120,8 @@ int main(int argc, char* argv[]) {
     dfg_ptr = AddDFG(dfg_ptr, dfg_ptr_to_add, dfg_ptr_to_add->GetNodeNum() * i);
   }
 
-  std::unique_ptr<mapper::IILPMapper> mapper_impl =
-      mapper::CreateMapper(mapper_config.algorithm_config.algorithm, dfg_ptr,
+  std::unique_ptr<mapper::IMapper> mapper_impl =
+      mapper::CreateMapper(mapper_config.algorithm_config.type, dfg_ptr,
                            mrrg_ptr);
   mapper_impl->SetLogFilePath(logger.GetGurobiLogFilePath());
   mapper_impl->SetTimeOut(timeout_s);

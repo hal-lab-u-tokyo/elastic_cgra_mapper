@@ -6,7 +6,7 @@
 #include <io/dfg_io.hpp>
 #include <io/mapping_io.hpp>
 #include <iostream>
-#include <mapper/gurobi_mapper.hpp>
+#include <mapper/gurobi_ilp_mapper.hpp>
 #include <vector>
 
 TEST(VerilogSimulatorTest, synchronous_CGRA_test) {

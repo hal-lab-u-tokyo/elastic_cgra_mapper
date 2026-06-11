@@ -8,7 +8,7 @@
 #include <io/mapping_io.hpp>
 #include <io/output_to_log_file.hpp>
 #include <iostream>
-#include <mapper/gurobi_placement_mapper.hpp>
+#include <mapper/gurobi_placement_ilp_mapper.hpp>
 
 std::vector<entity::MRRGConfig> GetMRRGToTest(int dfg_node_num) {
   std::vector<entity::MRRGConfig> mrrg_config_vec;

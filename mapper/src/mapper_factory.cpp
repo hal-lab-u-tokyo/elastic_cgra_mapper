@@ -2,28 +2,63 @@
 
 #include <cstdlib>
 #include <iostream>
-#include <mapper/gurobi_mapper.hpp>
-#include <mapper/gurobi_placement_mapper.hpp>
-#include <mapper/placement_first_heuristic_mapper.hpp>
+#include <map>
+#include <sstream>
+#include <utility>
 
-std::unique_ptr<mapper::IILPMapper> mapper::CreateMapper(
-    entity::AlgorithmType algorithm,
+namespace {
+
+std::map<std::string, mapper::MapperCreator>& MapperRegistry() {
+  static std::map<std::string, mapper::MapperCreator> registry;
+  return registry;
+}
+
+std::string JoinRegisteredMapperTypes() {
+  std::ostringstream oss;
+  bool first = true;
+  for (const auto& entry : MapperRegistry()) {
+    if (!first) {
+      oss << ", ";
+    }
+    oss << entry.first;
+    first = false;
+  }
+  return oss.str();
+}
+
+}  // namespace
+
+bool mapper::RegisterMapper(const std::string& type, MapperCreator creator) {
+  auto& registry = MapperRegistry();
+  if (registry.count(type) > 0) {
+    std::cerr << "Duplicate mapper type registration: " << type << std::endl;
+    std::abort();
+  }
+  registry.emplace(type, std::move(creator));
+  return true;
+}
+
+std::unique_ptr<mapper::IMapper> mapper::CreateMapper(
+    const std::string& algorithm_type,
     const std::shared_ptr<entity::DFG> dfg_ptr,
     const std::shared_ptr<entity::MRRG> mrrg_ptr) {
-  switch (algorithm) {
-    case entity::AlgorithmType::kILPMapper:
-      return std::unique_ptr<mapper::IILPMapper>(
-          mapper::GurobiILPMapper().CreateMapper(dfg_ptr, mrrg_ptr));
-    case entity::AlgorithmType::kPlacementILPMapper:
-      return std::unique_ptr<mapper::IILPMapper>(
-          mapper::GurobiPlacementILPMapper().CreateMapper(dfg_ptr, mrrg_ptr));
-    case entity::AlgorithmType::kPlacementFirstHeuristicMapper:
-      return std::unique_ptr<mapper::IILPMapper>(
-          mapper::PlacementFirstHeuristicMapper().CreateMapper(dfg_ptr,
-                                                               mrrg_ptr));
+  const auto& registry = MapperRegistry();
+  auto mapper_it = registry.find(algorithm_type);
+  if (mapper_it != registry.end()) {
+    return mapper_it->second(dfg_ptr, mrrg_ptr);
   }
 
-  std::cerr << "Invalid algorithm type in mapper config: "
-            << static_cast<int>(algorithm) << std::endl;
+  std::cerr << "Invalid mapper type in mapper config: " << algorithm_type
+            << std::endl;
+  std::cerr << "Registered mapper types: " << JoinRegisteredMapperTypes()
+            << std::endl;
   std::abort();
+}
+
+std::vector<std::string> mapper::GetRegisteredMapperTypes() {
+  std::vector<std::string> types;
+  for (const auto& entry : MapperRegistry()) {
+    types.push_back(entry.first);
+  }
+  return types;
 }

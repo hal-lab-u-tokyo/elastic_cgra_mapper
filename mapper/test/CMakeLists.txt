@@ -1,4 +1,4 @@
-add_executable(mapper_test gurobi_mapper_test.cpp)
+add_executable(mapper_test gurobi_ilp_mapper_test.cpp)
 
 include(GoogleTest)
 
