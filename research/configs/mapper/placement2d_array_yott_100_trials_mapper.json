@@ -1,0 +1,13 @@
+{
+  "Algorithm": {
+    "type": "Placement2DArrayYOTTMapper",
+    "accept_feasible_solution": true,
+    "max_trials": 100,
+    "seed_count": 1,
+    "routing_retry_count": 1,
+    "random_seed": 1706961029
+  },
+  "DFG": {
+    "operation_name_label": "node_id"
+  }
+}

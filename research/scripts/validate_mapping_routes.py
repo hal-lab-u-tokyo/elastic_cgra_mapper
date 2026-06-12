@@ -104,12 +104,18 @@ def build_mapping_graph(mapping: dict) -> tuple:
     outgoing = defaultdict(list)
     incoming = defaultdict(list)
     out_of_range_edges = []
-    non_adjacent_edges = []
+    invalid_connection_edges = []
+    connection_stats = {
+        "total": 0,
+        "same_context": 0,
+        "cross_context": 0,
+    }
 
     rows = int(mapping["row"])
     cols = int(mapping["column"])
     context_size = int(mapping["context_size"])
     network_type = mapping.get("network_type", "")
+    cgra_type = mapping.get("cgra_type", "default")
 
     for pe in mapping.get("PE_config", []):
         row = int(pe["row_id"])
@@ -129,45 +135,75 @@ def build_mapping_graph(mapping: dict) -> tuple:
         return 0 <= row < rows and 0 <= col < cols and 0 <= context < context_size
 
     def spatially_adjacent(src: tuple, dst: tuple) -> bool:
-        if network_type != "orthogonal":
+        row_delta = abs(src[0] - dst[0])
+        col_delta = abs(src[1] - dst[1])
+        if row_delta == 0 and col_delta == 0:
             return True
-        return abs(src[0] - dst[0]) + abs(src[1] - dst[1]) <= 1
+        if network_type == "orthogonal":
+            return row_delta + col_delta == 1
+        return max(row_delta, col_delta) == 1
+
+    def legal_mrrg_connection(src: tuple, dst: tuple) -> bool:
+        if not spatially_adjacent(src, dst):
+            return False
+        next_context = (src[2] + 1) % context_size
+        same_pe = src[0] == dst[0] and src[1] == dst[1]
+        if cgra_type == "elastic":
+            return dst[2] == next_context if same_pe else True
+        return dst[2] == next_context
 
     for src, config in configs.items():
         for dst in config["to"]:
+            connection_stats["total"] += 1
+            if src[2] == dst[2]:
+                connection_stats["same_context"] += 1
+            else:
+                connection_stats["cross_context"] += 1
             outgoing[src].append(dst)
             incoming[dst].append(src)
             if dst not in configs or not in_bounds(dst):
                 out_of_range_edges.append((src, dst))
-            elif not spatially_adjacent(src, dst):
-                non_adjacent_edges.append((src, dst))
+            elif not legal_mrrg_connection(src, dst):
+                invalid_connection_edges.append((src, dst))
 
-    return configs, outgoing, incoming, out_of_range_edges, non_adjacent_edges
+    return configs, outgoing, incoming, out_of_range_edges, invalid_connection_edges, connection_stats
 
 
-def has_valid_route_path(src_ids: list, dst_ids: list, configs: dict, outgoing: dict) -> bool:
+def find_valid_route_path(src_ids: list, dst_ids: list, configs: dict, outgoing: dict) -> list:
     dst_set = set(dst_ids)
     for start in src_ids:
-        queue = deque([start])
+        queue = deque([(start, [start])])
         seen = {start}
         while queue:
-            current = queue.popleft()
+            current, path = queue.popleft()
             for nxt in outgoing.get(current, []):
                 if nxt in dst_set:
-                    return True
+                    return path + [nxt]
                 if nxt in seen or nxt not in configs:
                     continue
                 if configs[nxt]["operation_type"] != ROUTE_OP:
                     continue
                 seen.add(nxt)
-                queue.append(nxt)
-    return False
+                queue.append((nxt, path + [nxt]))
+    return []
+
+
+def path_crosses_context(path: list) -> bool:
+    return any(src[2] != dst[2] for src, dst in zip(path, path[1:]))
 
 
 def validate_row(row: dict, row_id: int, repo_root: Path) -> tuple:
     failures = []
     warnings = []
-    checked_edges = 0
+    stats = {
+        "checked_edges": 0,
+        "route_paths": 0,
+        "same_context_route_paths": 0,
+        "cross_context_route_paths": 0,
+        "mapping_connections": 0,
+        "same_context_connections": 0,
+        "cross_context_connections": 0,
+    }
     prefix = (
         f"row {row_id} ({row.get('benchmark', '')}/{row.get('mapper', '')}/"
         f"II={row.get('achieved_II', '')})"
@@ -176,26 +212,36 @@ def validate_row(row: dict, row_id: int, repo_root: Path) -> tuple:
     mapping_file = row.get("mapping_file", "")
     if not mapping_file:
         failures.append(f"{prefix}: successful row has no mapping_file")
-        return failures, warnings, checked_edges
+        return failures, warnings, stats
 
     mapping_path = Path(mapping_file)
     if not mapping_path.exists():
         failures.append(f"{prefix}: mapping_file does not exist: {mapping_file}")
-        return failures, warnings, checked_edges
+        return failures, warnings, stats
 
     dfg_path = resolve_dfg(row, repo_root)
     if dfg_path is None or not dfg_path.exists():
         failures.append(f"{prefix}: DFG file could not be resolved")
-        return failures, warnings, checked_edges
+        return failures, warnings, stats
 
     dfg_nodes, dfg_edges = parse_dot(dfg_path)
     mapping = load_mapping(mapping_path)
-    configs, outgoing, incoming, out_of_range_edges, non_adjacent_edges = build_mapping_graph(mapping)
+    (
+        configs,
+        outgoing,
+        incoming,
+        out_of_range_edges,
+        invalid_connection_edges,
+        connection_stats,
+    ) = build_mapping_graph(mapping)
+    stats["mapping_connections"] += connection_stats["total"]
+    stats["same_context_connections"] += connection_stats["same_context"]
+    stats["cross_context_connections"] += connection_stats["cross_context"]
 
     if out_of_range_edges:
         failures.append(f"{prefix}: {len(out_of_range_edges)} mapping connections point outside the CGRA")
-    if non_adjacent_edges:
-        failures.append(f"{prefix}: {len(non_adjacent_edges)} mapping connections skip non-adjacent PEs")
+    if invalid_connection_edges:
+        failures.append(f"{prefix}: {len(invalid_connection_edges)} mapping connections are not legal MRRG edges")
 
     for src, dsts in outgoing.items():
         for dst in dsts:
@@ -227,17 +273,24 @@ def validate_row(row: dict, row_id: int, repo_root: Path) -> tuple:
             )
 
     for src, dst in dfg_edges:
-        checked_edges += 1
+        stats["checked_edges"] += 1
         if src not in op_locations or dst not in op_locations:
             continue
-        if not has_valid_route_path(op_locations[src], op_locations[dst], configs, outgoing):
+        route_path = find_valid_route_path(op_locations[src], op_locations[dst], configs, outgoing)
+        if not route_path:
             failures.append(f"{prefix}: no route path for DFG edge `{src}` -> `{dst}`")
+            continue
+        stats["route_paths"] += 1
+        if path_crosses_context(route_path):
+            stats["cross_context_route_paths"] += 1
+        else:
+            stats["same_context_route_paths"] += 1
 
     mapped_extra_ops = sorted(set(op_locations) - set(dfg_nodes))
     if mapped_extra_ops:
         warnings.append(f"{prefix}: mapping contains non-DFG op names: {', '.join(mapped_extra_ops[:8])}")
 
-    return failures, warnings, checked_edges
+    return failures, warnings, stats
 
 
 def add_items(lines: list, title: str, items: list) -> None:
@@ -258,23 +311,48 @@ def main() -> None:
     args = parser.parse_args()
 
     rows = []
+    skipped_placement_only = 0
     with args.metrics.open() as f:
         for row in csv.DictReader(f):
+            if row.get("evaluation_mode") == "placement_only":
+                skipped_placement_only += 1
+                continue
             if row.get("status") in SUCCESS_STATUSES:
                 rows.append(row)
 
     failures = []
     warnings = []
-    edge_count = 0
+    totals = {
+        "checked_edges": 0,
+        "route_paths": 0,
+        "same_context_route_paths": 0,
+        "cross_context_route_paths": 0,
+        "mapping_connections": 0,
+        "same_context_connections": 0,
+        "cross_context_connections": 0,
+    }
     for idx, row in enumerate(rows, start=1):
-        row_failures, row_warnings, checked_edges = validate_row(row, idx, args.repo_root)
+        row_failures, row_warnings, row_stats = validate_row(row, idx, args.repo_root)
         failures.extend(row_failures)
         warnings.extend(row_warnings)
-        edge_count += checked_edges
+        for key, value in row_stats.items():
+            totals[key] += value
 
     lines = ["# Routing Validation", ""]
+    lines.append(f"Placement-only rows skipped: {skipped_placement_only}")
     lines.append(f"Successful mapping rows checked: {len(rows)}")
-    lines.append(f"DFG edges checked: {edge_count}")
+    lines.append(f"DFG edges checked: {totals['checked_edges']}")
+    lines.append(f"Route paths found: {totals['route_paths']}")
+    lines.append(
+        "Route paths by context: "
+        f"same={totals['same_context_route_paths']}, "
+        f"cross={totals['cross_context_route_paths']}"
+    )
+    lines.append(
+        "Mapping connections by context: "
+        f"same={totals['same_context_connections']}, "
+        f"cross={totals['cross_context_connections']}"
+    )
     lines.append(f"Overall status: {'FAIL' if failures else 'PASS'}")
     lines.append("")
     add_items(lines, "Failures", failures)
@@ -283,9 +361,10 @@ def main() -> None:
         [
             "## Checks",
             "",
+            "- Rows with `evaluation_mode=placement_only` are skipped because they intentionally do not claim routed connectivity.",
             "- Every successful row must have an existing `mapping_file` and resolvable DFG `.dot` file.",
             "- Every DFG operation must appear exactly once in the mapping with the expected opcode.",
-            "- Every mapping connection must stay inside the CGRA and, for orthogonal networks, connect only the same PE or an adjacent PE.",
+            "- Every mapping connection must stay inside the CGRA and match a legal MRRG edge, including context transitions.",
             "- Every `to_config_id` connection must have a reciprocal `from_config_id` entry.",
             "- Every DFG edge must be reachable from its source operation to its destination operation through zero or more `route` configs.",
             "",

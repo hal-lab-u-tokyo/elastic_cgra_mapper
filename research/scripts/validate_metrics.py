@@ -18,6 +18,8 @@ RATIO_FIELDS = [
     "memory_pe_ratio",
     "context_active_ratio",
     "compute_bbox_utilization",
+    "placement_direct_edge_ratio",
+    "placement_optimal_edge_ratio",
 ]
 
 
@@ -98,7 +100,11 @@ def validate_row(row: dict, row_id: int) -> tuple:
         warnings.append(f"{prefix}: start_II is larger than MII; this is fine for smoke tests but not for achieved-II evaluation")
     if row.get("status") == "timeout_feasible":
         warnings.append(f"{prefix}: feasible incumbent accepted after timeout; compare quality separately from proven optimality")
-    if row.get("status") in SUCCESS_STATUSES and route_ops == 0:
+    if (
+        row.get("status") in SUCCESS_STATUSES
+        and row.get("evaluation_mode") != "placement_only"
+        and route_ops == 0
+    ):
         warnings.append(f"{prefix}: route_ops is zero; this benchmark may be too easy to stress routing")
 
     return failures, warnings

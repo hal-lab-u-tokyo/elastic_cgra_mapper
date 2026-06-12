@@ -48,14 +48,17 @@ enum MRRGCGRAType {
 };
 
 enum MRRGMemoryIOType {
-  kAll,
-  kBothEnds,
-  kOneEnd,
+  kAll = 0,
+  kBothEnds = 1,
+  kOneEnd = 2,
+  kPerimeter = 3,
+  kPerimeterNoCorners = 4,
 };
 
 enum MRRGNetworkType {
   kOrthogonal,
   kDiagonal,
+  kOneHopAxis2,
 };
 
 struct MRRGGraphProperty {

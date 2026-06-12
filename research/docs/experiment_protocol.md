@@ -1,8 +1,8 @@
 # Experiment Protocol
 
-The default research protocol compares mappers under the same DFG, architecture template, II search range, timeout, and metric extraction logic.
+Compare mappers under the same DFG, architecture template, II range, timeout, and metric extraction logic.
 
-Before running a long experiment, run `research/scripts/preflight_manifest.py` on the manifest. A final baseline manifest should have no missing files, no unsupported operations, a computable MII for every benchmark/architecture pair, and a non-empty II range.
+Before a long run, run `research/scripts/preflight_manifest.py`. A valid manifest has no missing files, no unsupported operations, a computable MII for each modulo benchmark/architecture pair, and a non-empty II range.
 
 1. Select benchmark `.dot` files from `benchmark/kernel/` or converted CGRA-Bench inputs.
 2. Select an architecture template from `research/configs/arch_templates/`.
@@ -12,13 +12,22 @@ Before running a long experiment, run `research/scripts/preflight_manifest.py` o
 6. Stop at the first successful mapping and record it as `achieved_II`.
 7. Normalize logs into `metrics.csv` and use the same CSV columns for all mappers.
 
-The small baseline manifest is `research/configs/experiments/modulo_baseline_small.json`. It is intentionally conservative and should be treated as a starting point rather than a publication-scale evaluation.
+Standard manifests:
 
-Use `research/configs/experiments/algorithm_design_compare.json` as the exploration suite while designing new mapper algorithms. It currently uses a 6x6 default CGRA, auto-MII II sweep, `ii_max: 16`, a 20-second per-II timeout, and four representative benchmarks: `fixed_stencil`, `fixed_ellpack`, `fixed_convolution2d`, and `fixed_fft_pro`. ILP-based mappers are intentionally excluded, so add new heuristic or placement/routing mapper entries to this manifest for iterative comparisons.
+- `research/configs/experiments/modulo/search.json`: modulo mappers only.
+- `research/configs/experiments/modulo/all_mappers.json`: modulo mappers plus routed/context-aware ILP mappers.
+- `research/configs/experiments/placement2d/search.json`: 2D placement mappers only.
+- `research/configs/experiments/placement2d/all_mappers.json`: 2D placement mappers plus the placement-only ILP baseline.
 
-Use `research/configs/experiments/algorithm_design_reference_small.json` for small all-mapper comparisons across the currently implemented mappers. It includes `ILPMapper`, `ILPPlacementMapper`, `ConnectivityBasedILPMapper`, and `PlacementFirstHeuristicMapper`, but only on small kernels and with a longer timeout. Switch between the two settings by changing only the `--manifest` argument to `run_suite.py`.
+The modulo search manifest uses a 6x6 default CGRA and native kernel benchmarks. The placement2d search manifest uses a representative LISA/m_bench subset with cpu_mapping-style auto grid sizing, perimeter I/O without corners, the 1-hop cost model, and placement-only evaluation.
 
-Use `ILPMapper` as the first baseline because it is already wired into the executable and solves placement together with DFG-edge-level routing flow constraints on the ordinary `default` CGRA model. This makes it a stricter correctness baseline, but routing-stress kernels can become much slower or time out under short exploration timeouts. Use `ILPPlacementMapper` as a second baseline when you want to compare against the placement-focused ILP formulation, and always inspect `routing_validation.md` before treating a placement-focused result as route-correct.
+For 2D placement, one physical PE is one placement slot, context size/II is fixed to 1, and the runner checks `DFG nodes <= physical PEs`.
+
+For stochastic placement-first mappers, keep the per-II timeout fixed and control search effort from the mapper config. Use explicit `random_seed`; increase `seed_count`, `routing_retry_count`, or `max_iterations` when measuring success rate.
+
+Use the `all_mappers.json` manifests when ILP mappers should be included. Switch settings by changing only the `--manifest` argument to `run_suite.py`.
+
+`FullRoutingILPMapper` solves placement and DFG-edge routing together. `ConnectivityPathILPMapper` solves a path-candidate routing ILP. `PlacementOnlyILPMapper` solves only the placement objective. Always inspect `routing_validation.md` before treating placement-first results as route-correct.
 
 Use `research/scripts/normalize_benchmarks.py` when evaluating benchmark collections that are not already in the mapper's DOT format. The normalizer scans `.dot` and Revamp `.xml` files, writes mapper-compatible `.dot` files, and can generate a probe manifest at the same time. It handles the current in-repository CGRA-Bench evaluation DOTs, CGRA-Bench kernel DOTs, GenMap DOTs, Revamp XMLs, and the native `benchmark/kernel`, `benchmark/cgrame_kernel`, and `benchmark/parallel` DOTs.
 
@@ -44,6 +53,6 @@ Use `research/scripts/report_by_benchmark.py` after a suite finishes to inspect 
 
 Use `research/scripts/validate_metrics.py` before interpreting a run. It checks internal consistency, highlights smoke-test shortcuts such as `start_II > MII`, and records a short prior-work sanity checklist.
 
-`run_suite.py` creates the standard `benchmark_report.md`, `summary_by_mapper.md`, `summary_by_arch.md`, `summary_by_set.md`, `validation.md`, and `routing_validation.md` files automatically unless `--skip-reports` is passed. `validation.md` checks metric consistency, while `routing_validation.md` checks that each successful mapping connects every DFG edge through valid mapping connections and route configs. Use `research/scripts/generate_reports.py --result-dir <result_dir>` when you want to regenerate reports for an existing result directory.
+`run_suite.py` creates `benchmark_report.md`, `summary_by_mapper.md`, `summary_by_arch.md`, `summary_by_set.md`, `validation.md`, and `routing_validation.md` unless `--skip-reports` is passed. `validation.md` checks metric consistency. `routing_validation.md` checks legal MRRG connections, DFG-edge route reachability, and same-context/cross-context route counts.
 
 If `run_suite.py --out` is omitted, the result directory is created automatically under `research/results/<result_group>/<timestamp>`. A manifest can set `result_group`, and otherwise the manifest filename is used. Every run writes `run_metadata.json` and `run_info.md`, and `metrics.csv` includes columns that point to per-II stdout/stderr, generated architecture files, raw mapper outputs, mapping JSON files, and Gurobi logs.

@@ -1,0 +1,60 @@
+{
+  "name": "modulo_search",
+  "problem_type": "modulo",
+  "mode": "modulo_default_ii_sweep",
+  "result_group": "modulo/search",
+  "mapping_bin": "/home/ubuntu/elastic_cgra_mapper/build/mapping",
+  "benchmark_sets": [
+    {
+      "name": "quick_smoke",
+      "benchmark_root": "/home/ubuntu/elastic_cgra_mapper/benchmark/kernel",
+      "benchmarks": [
+        "fixed_stencil"
+      ]
+    },
+    {
+      "name": "memory",
+      "benchmark_root": "/home/ubuntu/elastic_cgra_mapper/benchmark/kernel",
+      "benchmarks": [
+        "fixed_ellpack"
+      ]
+    },
+    {
+      "name": "routing_stress",
+      "benchmark_root": "/home/ubuntu/elastic_cgra_mapper/benchmark/kernel",
+      "benchmarks": [
+        "fixed_convolution2d",
+        "fixed_fft_pro"
+      ]
+    }
+  ],
+  "architectures": [
+    {
+      "name": "mesh6x6_default_all",
+      "template": "/home/ubuntu/elastic_cgra_mapper/research/configs/arch_templates/mesh_6x6_default.json",
+      "ii_max": 16,
+      "mii": "auto"
+    }
+  ],
+  "mappers": [
+    {
+      "name": "modulo_yoto_mapper",
+      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/modulo_yoto_mapper.json"
+    },
+    {
+      "name": "modulo_yott_mapper",
+      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/modulo_yott_mapper.json"
+    },
+    {
+      "name": "modulo_sa_mapper",
+      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/modulo_sa_mapper.json"
+    },
+    {
+      "name": "modulo_placement_first",
+      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/modulo_placement_first_mapper.json"
+    }
+  ],
+  "timeout_sec": 20,
+  "parallel_num": 1,
+  "mii_missing_distance_policy": "self_loop"
+}

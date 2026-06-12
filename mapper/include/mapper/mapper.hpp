@@ -25,5 +25,11 @@ class IMapper {
   virtual void SetLogFilePath(const std::string& log_file_path) = 0;
   virtual void SetTimeOut(double time_out_s) = 0;
   virtual void SetAcceptFeasibleSolution(bool accept_feasible_solution) = 0;
+  virtual void SetMaxTrials(int max_trials) {}
+  virtual void SetSeedCount(int seed_count) {}
+  virtual void SetRoutingRetryCount(int routing_retry_count) {}
+  virtual void SetRandomSeed(int random_seed) {}
+  virtual void SetMaxIterations(int max_iterations) {}
+  virtual void SetPlacementOnly(bool placement_only) {}
 };
 }  // namespace mapper

@@ -127,6 +127,27 @@ int main(int argc, char* argv[]) {
   mapper_impl->SetTimeOut(timeout_s);
   mapper_impl->SetAcceptFeasibleSolution(
       mapper_config.algorithm_config.accept_feasible_solution);
+  mapper_impl->SetPlacementOnly(mapper_config.algorithm_config.placement_only);
+  if (mapper_config.algorithm_config.max_trials.has_value()) {
+    mapper_impl->SetMaxTrials(
+        mapper_config.algorithm_config.max_trials.value());
+  }
+  if (mapper_config.algorithm_config.seed_count.has_value()) {
+    mapper_impl->SetSeedCount(
+        mapper_config.algorithm_config.seed_count.value());
+  }
+  if (mapper_config.algorithm_config.routing_retry_count.has_value()) {
+    mapper_impl->SetRoutingRetryCount(
+        mapper_config.algorithm_config.routing_retry_count.value());
+  }
+  if (mapper_config.algorithm_config.random_seed.has_value()) {
+    mapper_impl->SetRandomSeed(
+        mapper_config.algorithm_config.random_seed.value());
+  }
+  if (mapper_config.algorithm_config.max_iterations.has_value()) {
+    mapper_impl->SetMaxIterations(
+        mapper_config.algorithm_config.max_iterations.value());
+  }
 
   const auto result = mapper_impl->Execution();
 

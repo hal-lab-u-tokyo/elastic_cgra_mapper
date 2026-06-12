@@ -10,6 +10,7 @@ The recommended way to run this repository is through Docker Compose. The contai
 - Gurobi >= 9.5.1
 - CMake >= 3.20.2
 - Graphviz
+- VTR/VPR v8.0.0, optional for the external VPR placement baseline
 
 The Docker image uses Gurobi 9.5.2 by default. The Compose service pins `linux/amd64`, so it also runs on Apple Silicon hosts through Docker Desktop's emulation layer.
 
@@ -20,6 +21,12 @@ Initialize the required submodules:
 ```bash
 git submodule update --init --recursive third_party/boost third_party/googletest
 git submodule update --init --recursive benchmark/CGRA-Bench
+```
+
+For the optional VPR baseline, also initialize VTR:
+
+```bash
+git submodule update --init --recursive third_party/vtr
 ```
 
 Download a Gurobi WLS license from [Web License Manager](https://license.gurobi.com/manager/licenses), then place it at:
@@ -56,6 +63,12 @@ Build:
 
 ```bash
 sh scripts/build.sh
+```
+
+Build the optional VPR baseline:
+
+```bash
+sh scripts/build_vpr.sh
 ```
 
 Run tests:
@@ -192,45 +205,34 @@ For research on new mapping algorithms, use the `research/` workflow. It keeps e
 
 The standard modulo-style evaluation treats `context_size` as the candidate II, forces `CGRA_type: "default"`, keeps `parallel_num: 1`, and tries `II = MII, MII + 1, ...` until the first successful mapping is found. That first success is reported as `achieved_II`.
 
-Run the smoke experiment:
+Use one of the standard manifests:
 
 ```bash
 python3 research/scripts/run_suite.py \
-  --manifest research/configs/experiments/smoke_test.json \
-  --out research/results/baselines/smoke_test
+  --manifest research/configs/experiments/modulo/search.json
 ```
 
-Create a compact comparison table:
+Available manifests:
+
+- `research/configs/experiments/modulo/search.json`: modulo mappers only; quick iteration.
+- `research/configs/experiments/modulo/all_mappers.json`: modulo mappers plus ILP mappers.
+- `research/configs/experiments/placement2d/search.json`: 2D placement mappers only; quick iteration.
+- `research/configs/experiments/placement2d/all_mappers.json`: 2D placement mappers plus ILP mappers.
+
+Run preflight before long runs:
 
 ```bash
-python3 research/scripts/compare_results.py \
-  --metrics research/results/baselines/smoke_test/metrics.csv \
-  --group-by mapper \
-  --out research/results/baselines/smoke_test/summary.md
+python3 research/scripts/preflight_manifest.py \
+  --manifest research/configs/experiments/modulo/all_mappers.json \
+  --repo-root /home/ubuntu/elastic_cgra_mapper \
+  --out-dir research/results/preflight/modulo_all_mappers
 ```
 
-Create a benchmark-level report:
+Regenerate reports for an existing result directory:
 
 ```bash
-python3 research/scripts/report_by_benchmark.py \
-  --metrics research/results/baselines/smoke_test/metrics.csv \
-  --out research/results/baselines/smoke_test/benchmark_report.md
-```
-
-Validate the metrics for internal consistency:
-
-```bash
-python3 research/scripts/validate_metrics.py \
-  --metrics research/results/baselines/smoke_test/metrics.csv \
-  --out research/results/baselines/smoke_test/validation.md
-```
-
-For a small baseline comparison across multiple benchmarks, architectures, and existing ILP mappers, use:
-
-```bash
-python3 research/scripts/run_suite.py \
-  --manifest research/configs/experiments/modulo_baseline_small.json \
-  --out research/results/baselines/modulo_baseline_small
+python3 research/scripts/generate_reports.py \
+  --result-dir <result_dir>
 ```
 
 The primary output is `metrics.csv`. Important columns are `MII`, `start_II`, `achieved_II`, `II_ratio`, `status`, `mapping_time_sec`, `wall_time_sec`, `compute_pe_utilization`, `pe_context_utilization`, `route_to_compute_ratio`, `avg_manhattan_distance`, `compute_bbox_utilization`, `objective_value`, `best_bound`, and `mip_gap`.
@@ -263,11 +265,9 @@ python3 research/scripts/generate_reports.py \
   --result-dir research/results/benchmark_compatibility/all_normalized_ilp_probe
 ```
 
-For placement-oriented comparisons, `research/configs/experiments/placement_routing_stress_baseline.json` evaluates 4x4, 6x6, and 8x8 default CGRAs with `mii: "auto"`, larger `ii_max`, a longer timeout, existing ILP baselines, and the initial `PlacementFirstHeuristicMapper`. Use `placement_routing_stress_probe.json` only as a short routing-stress check. Use `placement_comprehensive_baseline.json` for the broad placement baseline, and run `preflight_manifest.py` before long runs.
-
 New mapping algorithms should derive from `mapper::IMapper` and register their `Algorithm.type` string with the mapper registry. This keeps mapper selection string-based and avoids editing enum or JSON parser code for each research prototype.
 
-Use `research/configs/experiments/algorithm_design_compare.json` as the exploration suite while designing algorithms. It currently uses a 6x6 default CGRA, `mii: "auto"`, `ii_max: 16`, a 20-second per-II timeout, four representative benchmarks covering smoke, memory, and routing-stress behavior, and no ILP-based mappers. Add new heuristic or placement/routing algorithm entries to that manifest for iterative comparison. Use `research/configs/experiments/algorithm_design_reference_small.json` for a small all-mapper comparison that includes `ILPMapper`, `ILPPlacementMapper`, `ConnectivityBasedILPMapper`, and `PlacementFirstHeuristicMapper`. Both are run with `research/scripts/run_suite.py --manifest <manifest>`; the runner prints a timestamped result directory, then reports completed benchmark/architecture/mapper conditions with status label, run time, elapsed time, and estimated remaining time. Each run records `run_metadata.json`, `run_info.md`, manifest snapshots, metrics, per-II stdout/stderr, mapping files, Gurobi logs, and `routing_validation.md` for independent DFG-edge route reachability checks.
+For modulo algorithms, add mapper configs to `research/configs/experiments/modulo/search.json` or `research/configs/experiments/modulo/all_mappers.json`. For 2D placement algorithms, use `research/configs/experiments/placement2d/search.json` or `research/configs/experiments/placement2d/all_mappers.json`. Each run records `run_metadata.json`, `run_info.md`, metrics, per-II logs, mapping files, Gurobi logs, and `routing_validation.md`.
 
 See `research/README.md` and `research/docs/` for the experiment protocol, MII definition, metric meanings, and the recommended next steps for adding a new mapper implementation.
 

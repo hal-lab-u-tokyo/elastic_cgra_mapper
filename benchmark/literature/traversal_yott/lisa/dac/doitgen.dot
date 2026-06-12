@@ -1,0 +1,41 @@
+digraph doitgen {
+    0 [label = reg0 op = reg ] ;
+    1 [label = in1 op = in ] ;
+    2 [label = out2 op = out ] ;
+    3 [label = reg3 op = reg ] ;
+    4 [label = reg4 op = reg ] ;
+    5 [label = reg5 op = reg ] ;
+    6 [label = mul6 op = mul ] ;
+    7 [label = in7 op = in ] ;
+    8 [label = reg8 op = reg ] ;
+    9 [label = mul9 op = mul ] ;
+    10 [label = in10 op = in ] ;
+    11 [label = reg11 op = reg ] ;
+    12 [label = reg12 op = reg ] ;
+    13 [label = mul13 op = mul ] ;
+    14 [label = add14 op = add ] ;
+    15 [label = out15 op = out ] ;
+    16 [label = add16 op = addi value = 2 ] ;
+    17 [label = in17 op = in ] ;
+    18 [label = out18 op = out ] ;
+    
+    1 -> 0 [port = 0  weight = 0 ] ;
+    0 -> 2 [port = 0  weight = 0 ] ;
+    0 -> 3 [port = 0  weight = 0 ] ;
+    3 -> 4 [port = 0  weight = 0 ] ;
+    4 -> 5 [port = 0  weight = 0 ] ;
+    7 -> 6 [port = 0  weight = 0 ] ;
+    16 -> 6 [port = 1  weight = 0 ] ;
+    6 -> 8 [port = 0  weight = 0 ] ;
+    10 -> 9 [port = 0  weight = 0 ] ;
+    16 -> 9 [port = 1  weight = 0 ] ;
+    9 -> 11 [port = 0  weight = 0 ] ;
+    11 -> 12 [port = 0  weight = 0 ] ;
+    8 -> 13 [port = 0  weight = 0 ] ;
+    12 -> 13 [port = 1  weight = 0 ] ;
+    5 -> 14 [port = 0  weight = 0 ] ;
+    13 -> 14 [port = 1  weight = 0 ] ;
+    4 -> 18 [port = 0  weight = 0 ] ;
+    14 -> 15 [port = 0  weight = 0 ] ;
+    17 -> 16 [port = 0  weight = 0 ] ;
+}

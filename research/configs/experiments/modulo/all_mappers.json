@@ -1,0 +1,65 @@
+{
+  "name": "modulo_all_mappers",
+  "problem_type": "modulo",
+  "mode": "modulo_default_ii_sweep",
+  "result_group": "modulo/all_mappers",
+  "mapping_bin": "/home/ubuntu/elastic_cgra_mapper/build/mapping",
+  "benchmark_sets": [
+    {
+      "name": "small_smoke",
+      "benchmark_root": "/home/ubuntu/elastic_cgra_mapper/benchmark/kernel",
+      "benchmarks": [
+        "fixed_fir_pro",
+        "fixed_stencil"
+      ]
+    },
+    {
+      "name": "small_memory",
+      "benchmark_root": "/home/ubuntu/elastic_cgra_mapper/benchmark/kernel",
+      "benchmarks": [
+        "fixed_ellpack"
+      ]
+    }
+  ],
+  "architectures": [
+    {
+      "name": "mesh6x6_default_all",
+      "template": "/home/ubuntu/elastic_cgra_mapper/research/configs/arch_templates/mesh_6x6_default.json",
+      "ii_max": 8,
+      "mii": "auto"
+    }
+  ],
+  "mappers": [
+    {
+      "name": "full_routing_ilp_mapper",
+      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/full_routing_ilp_mapper.json"
+    },
+    {
+      "name": "placement_only_ilp_mapper",
+      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/placement_only_ilp_mapper.json"
+    },
+    {
+      "name": "connectivity_path_ilp_mapper",
+      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/connectivity_path_ilp_mapper.json"
+    },
+    {
+      "name": "modulo_placement_first",
+      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/modulo_placement_first_mapper.json"
+    },
+    {
+      "name": "modulo_yoto_mapper",
+      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/modulo_yoto_mapper.json"
+    },
+    {
+      "name": "modulo_yott_mapper",
+      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/modulo_yott_mapper.json"
+    },
+    {
+      "name": "modulo_sa_mapper",
+      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/modulo_sa_mapper.json"
+    }
+  ],
+  "timeout_sec": 60,
+  "parallel_num": 1,
+  "mii_missing_distance_policy": "self_loop"
+}

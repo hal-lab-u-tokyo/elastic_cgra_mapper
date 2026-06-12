@@ -14,3 +14,8 @@
 	path = benchmark/CGRA-Bench
 	url = https://github.com/tancheng/CGRA-Bench.git
 	ignore = untracked
+[submodule "third_party/vtr"]
+	path = third_party/vtr
+	url = https://github.com/verilog-to-routing/vtr-verilog-to-routing.git
+	ignore = untracked
+	shallow = true

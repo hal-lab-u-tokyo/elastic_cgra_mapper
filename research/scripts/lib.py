@@ -86,27 +86,42 @@ def population_stddev(values: list):
 def read_dfg_stats(dfg_path: Path) -> dict:
     graph = nx.nx_pydot.read_dot(str(dfg_path))
     op_counts: Dict[str, int] = {}
+    nodes = []
     node_count = 0
     for node_name, attrs in graph.nodes(data=True):
-        if str(node_name).strip() in {"", "\\n", "\n"}:
+        clean_name = clean_node_name(node_name)
+        if clean_name in {"", "\\n", "\n"}:
             continue
         opcode = clean_dot_value(attrs.get("opcode", ""))
         if not opcode:
             continue
+        nodes.append(clean_name)
         op_counts[opcode] = op_counts.get(opcode, 0) + 1
         node_count += 1
 
     edge_count = 0
+    predecessors = {node: 0 for node in nodes}
+    successors = {node: 0 for node in nodes}
     for src, dst in graph.edges():
-        if str(src).strip() in {"", "\\n", "\n"}:
+        clean_src = clean_node_name(src)
+        clean_dst = clean_node_name(dst)
+        if clean_src in {"", "\\n", "\n"}:
             continue
-        if str(dst).strip() in {"", "\\n", "\n"}:
+        if clean_dst in {"", "\\n", "\n"}:
             continue
+        if clean_src not in successors or clean_dst not in predecessors:
+            continue
+        successors[clean_src] += 1
+        predecessors[clean_dst] += 1
         edge_count += 1
 
+    input_count = sum(1 for node in nodes if predecessors[node] == 0)
+    output_count = sum(1 for node in nodes if successors[node] == 0)
     return {
         "node_count": node_count,
         "edge_count": edge_count,
+        "input_count": input_count,
+        "output_count": output_count,
         "op_counts": op_counts,
     }
 
@@ -129,6 +144,10 @@ def resource_count_for_op(opcode: str, arch: dict) -> int:
     if opcode in MEMORY_OPS:
         if memory_io == "all":
             return total_pe
+        if memory_io in {"perimeter", "border"}:
+            return total_pe - max(0, row - 2) * max(0, column - 2)
+        if memory_io in {"perimeter_no_corners", "border_no_corners"}:
+            return max(0, 2 * row + 2 * column - 8)
         if memory_io == "both_ends":
             return 2 * row if column > 1 else row
         if memory_io == "one_end":
@@ -320,6 +339,39 @@ def compute_res_mii(
     }
 
 
+def placement2d_capacity_check(dfg_path: Path, arch_template_path: Path) -> dict:
+    arch = load_json(arch_template_path)
+    return placement2d_capacity_check_for_arch(dfg_path, arch)
+
+
+def placement2d_capacity_check_for_arch(dfg_path: Path, arch: dict) -> dict:
+    stats = read_dfg_stats(dfg_path)
+    total_pes = int(arch["row"]) * int(arch["column"])
+    dfg_nodes = int(stats["node_count"])
+    return {
+        "dfg_nodes": dfg_nodes,
+        "physical_pes": total_pes,
+        "ok": dfg_nodes <= total_pes,
+        "detail": f"dfg_nodes={dfg_nodes}, physical_pes={total_pes}",
+    }
+
+
+def auto_square_arch_for_dfg(arch_template_path: Path, dfg_path: Path, policy: str) -> dict:
+    arch = load_json(arch_template_path)
+    stats = read_dfg_stats(dfg_path)
+    node_count = int(stats["node_count"])
+    if policy in {"ceil_sqrt_nodes", "traversal_fully_pipelined"}:
+        grid_size = math.ceil(math.sqrt(node_count))
+    elif policy in {"cpu_mapping_yoto_yott", "ceil_sqrt_non_io_plus_2"}:
+        io_count = int(stats.get("input_count", 0)) + int(stats.get("output_count", 0))
+        grid_size = math.ceil(math.sqrt(max(0, node_count - io_count))) + 2
+    else:
+        raise ValueError(f"Unknown auto_grid policy: {policy}")
+    arch["row"] = int(grid_size)
+    arch["column"] = int(grid_size)
+    return arch
+
+
 def make_arch_for_ii(arch_template_path: Path, ii: int, force_default: bool = True) -> dict:
     arch = load_json(arch_template_path)
     arch["context_size"] = int(ii)
@@ -371,7 +423,24 @@ def parse_gurobi_log(log_path: Optional[Path]) -> dict:
     return result
 
 
-def mapping_utilization(mapping_path: Optional[Path]) -> dict:
+def placement_cost(dx: int, dy: int, model: str) -> int:
+    if dx == 0 and dy == 0:
+        return 1
+    if model in {"one_hop_axis2", "cpu_mapping_1hop"}:
+        return max(1, math.ceil(dx / 2) + math.ceil(dy / 2))
+    return max(1, dx + dy)
+
+
+def mapping_utilization(
+    mapping_path: Optional[Path],
+    dfg_path: Optional[Path] = None,
+    arch_path: Optional[Path] = None,
+) -> dict:
+    placement_cost_model = "mesh"
+    if arch_path and arch_path.exists():
+        arch = load_json(arch_path)
+        placement_cost_model = str(arch.get("placement_cost_model", placement_cost_model))
+
     empty = {
         "rows": "",
         "cols": "",
@@ -379,6 +448,7 @@ def mapping_utilization(mapping_path: Optional[Path]) -> dict:
         "memory_io": "",
         "cgra_type": "",
         "network_type": "",
+        "placement_cost_model": placement_cost_model,
         "used_ops": "",
         "compute_ops": "",
         "memory_ops": "",
@@ -420,11 +490,38 @@ def mapping_utilization(mapping_path: Optional[Path]) -> dict:
         "avg_fanout": "",
         "compute_bbox_area": "",
         "compute_bbox_utilization": "",
+        "placement_edge_count": "",
+        "placement_wirelength_sum": "",
+        "placement_avg_wirelength": "",
+        "placement_max_wirelength": "",
+        "placement_direct_edge_count": "",
+        "placement_direct_edge_ratio": "",
+        "placement_fifo_sum": "",
+        "placement_avg_fifo": "",
+        "placement_max_fifo": "",
+        "placement_cost_sum": "",
+        "placement_avg_cost": "",
+        "placement_max_cost": "",
+        "placement_optimal_edge_count": "",
+        "placement_optimal_edge_ratio": "",
+        "placement_fifo_like_sum": "",
+        "placement_avg_fifo_like": "",
+        "placement_max_fifo_like": "",
+        "direct_dfg_edge_count": "",
+        "routed_dfg_edge_count": "",
+        "direct_dfg_edge_ratio": "",
     }
     if not mapping_path or not mapping_path.exists():
         return empty
 
     mapping = load_json(mapping_path)
+    if placement_cost_model == "mesh" and mapping.get("network_type") in {
+        "one_hop_axis2",
+        "one_hop",
+        "1hop",
+    }:
+        placement_cost_model = "one_hop_axis2"
+        empty["placement_cost_model"] = placement_cost_model
     rows = int(mapping["row"])
     cols = int(mapping["column"])
     context_size = int(mapping["context_size"])
@@ -441,6 +538,8 @@ def mapping_utilization(mapping_path: Optional[Path]) -> dict:
     active_memory_pes = set()
     context_loads = [0 for _ in range(context_size)]
     compute_contexts_per_pe = {}
+    op_position_by_name = {}
+    to_config_ids_by_name = {}
     fanouts = []
     connection_count = 0
     inter_pe_connection_count = 0
@@ -479,6 +578,12 @@ def mapping_utilization(mapping_path: Optional[Path]) -> dict:
 
             to_config_ids = parse_config_id_list(config.get("to_config_id", []))
             if op != NOP_OP:
+                op_name = clean_dot_value(config.get("operation_name", ""))
+                if op != ROUTE_OP and op_name:
+                    op_position_by_name[op_name] = (row, col, context_id)
+                    to_config_ids_by_name[op_name] = [
+                        config_id_tuple(to_config_id) for to_config_id in to_config_ids
+                    ]
                 fanouts.append(len(to_config_ids))
             for to_config_id in to_config_ids:
                 to_row, to_col, to_context = config_id_tuple(to_config_id)
@@ -506,6 +611,75 @@ def mapping_utilization(mapping_path: Optional[Path]) -> dict:
     else:
         compute_bbox_area = 0
 
+    direct_dfg_edge_count = ""
+    routed_dfg_edge_count = ""
+    direct_dfg_edge_ratio = ""
+    placement_edge_count = ""
+    placement_wirelength_sum = ""
+    placement_avg_wirelength = ""
+    placement_max_wirelength = ""
+    placement_direct_edge_count = ""
+    placement_direct_edge_ratio = ""
+    placement_fifo_sum = ""
+    placement_avg_fifo = ""
+    placement_max_fifo = ""
+    placement_cost_sum = ""
+    placement_avg_cost = ""
+    placement_max_cost = ""
+    placement_optimal_edge_count = ""
+    placement_optimal_edge_ratio = ""
+    placement_fifo_like_sum = ""
+    placement_avg_fifo_like = ""
+    placement_max_fifo_like = ""
+    if dfg_path and dfg_path.exists():
+        raw_graph = nx.nx_pydot.read_dot(str(dfg_path))
+        total_dfg_edges = 0
+        direct_edges = 0
+        placement_wirelengths = []
+        placement_costs = []
+        for src, dst in raw_graph.edges():
+            clean_src = clean_node_name(src)
+            clean_dst = clean_node_name(dst)
+            if clean_src not in op_position_by_name or clean_dst not in op_position_by_name:
+                continue
+            total_dfg_edges += 1
+            src_position = op_position_by_name[clean_src]
+            dst_position = op_position_by_name[clean_dst]
+            manhattan = abs(src_position[0] - dst_position[0]) + abs(src_position[1] - dst_position[1])
+            placement_wirelengths.append(manhattan)
+            placement_costs.append(
+                placement_cost(
+                    abs(src_position[0] - dst_position[0]),
+                    abs(src_position[1] - dst_position[1]),
+                    placement_cost_model,
+                )
+            )
+            if op_position_by_name[clean_dst] in to_config_ids_by_name.get(clean_src, []):
+                direct_edges += 1
+        if total_dfg_edges:
+            direct_dfg_edge_count = direct_edges
+            routed_dfg_edge_count = total_dfg_edges - direct_edges
+            direct_dfg_edge_ratio = direct_edges / total_dfg_edges
+            placement_edge_count = total_dfg_edges
+            placement_wirelength_sum = sum(placement_wirelengths)
+            placement_avg_wirelength = placement_wirelength_sum / total_dfg_edges
+            placement_max_wirelength = max(placement_wirelengths)
+            placement_direct_edge_count = sum(1 for distance in placement_wirelengths if distance <= 1)
+            placement_direct_edge_ratio = placement_direct_edge_count / total_dfg_edges
+            placement_fifo_values = [max(0, distance - 1) for distance in placement_wirelengths]
+            placement_fifo_sum = sum(placement_fifo_values)
+            placement_avg_fifo = placement_fifo_sum / total_dfg_edges
+            placement_max_fifo = max(placement_fifo_values)
+            placement_cost_sum = sum(placement_costs)
+            placement_avg_cost = placement_cost_sum / total_dfg_edges
+            placement_max_cost = max(placement_costs)
+            placement_optimal_edge_count = sum(1 for cost in placement_costs if cost <= 1)
+            placement_optimal_edge_ratio = placement_optimal_edge_count / total_dfg_edges
+            placement_fifo_like_values = [max(0, cost - 1) for cost in placement_costs]
+            placement_fifo_like_sum = sum(placement_fifo_like_values)
+            placement_avg_fifo_like = placement_fifo_like_sum / total_dfg_edges
+            placement_max_fifo_like = max(placement_fifo_like_values)
+
     empty.update(
         {
             "rows": rows,
@@ -514,6 +688,7 @@ def mapping_utilization(mapping_path: Optional[Path]) -> dict:
             "memory_io": mapping.get("memory_io_type", ""),
             "cgra_type": mapping.get("cgra_type", ""),
             "network_type": mapping.get("network_type", ""),
+            "placement_cost_model": placement_cost_model,
             "used_ops": used_ops,
             "compute_ops": compute_ops,
             "memory_ops": memory_ops,
@@ -569,6 +744,26 @@ def mapping_utilization(mapping_path: Optional[Path]) -> dict:
             "compute_bbox_utilization": safe_ratio(
                 active_compute_pe_count, compute_bbox_area
             ),
+            "placement_edge_count": placement_edge_count,
+            "placement_wirelength_sum": placement_wirelength_sum,
+            "placement_avg_wirelength": placement_avg_wirelength,
+            "placement_max_wirelength": placement_max_wirelength,
+            "placement_direct_edge_count": placement_direct_edge_count,
+            "placement_direct_edge_ratio": placement_direct_edge_ratio,
+            "placement_fifo_sum": placement_fifo_sum,
+            "placement_avg_fifo": placement_avg_fifo,
+            "placement_max_fifo": placement_max_fifo,
+            "placement_cost_sum": placement_cost_sum,
+            "placement_avg_cost": placement_avg_cost,
+            "placement_max_cost": placement_max_cost,
+            "placement_optimal_edge_count": placement_optimal_edge_count,
+            "placement_optimal_edge_ratio": placement_optimal_edge_ratio,
+            "placement_fifo_like_sum": placement_fifo_like_sum,
+            "placement_avg_fifo_like": placement_avg_fifo_like,
+            "placement_max_fifo_like": placement_max_fifo_like,
+            "direct_dfg_edge_count": direct_dfg_edge_count,
+            "routed_dfg_edge_count": routed_dfg_edge_count,
+            "direct_dfg_edge_ratio": direct_dfg_edge_ratio,
         }
     )
     return empty
@@ -583,6 +778,8 @@ def normalize_run(
     achieved_ii: Optional[int],
     start_ii: Optional[int] = None,
     dfg_path: Optional[Path] = None,
+    arch_path: Optional[Path] = None,
+    evaluation_mode: str = "routing",
 ) -> dict:
     input_log_path = find_one(run_dir, "input_log_*.json")
     output_log_path = find_one(run_dir, "output_log_*.json")
@@ -591,11 +788,11 @@ def normalize_run(
 
     input_log = load_json(input_log_path) if input_log_path else {}
     output_log = load_json(output_log_path) if output_log_path else {}
-    cgra_metrics = mapping_utilization(mapping_path)
-    gurobi_metrics = parse_gurobi_log(gurobi_log_path)
-
     if dfg_path is None and input_log.get("dfg_file"):
         dfg_path = Path(input_log["dfg_file"])
+    cgra_metrics = mapping_utilization(mapping_path, dfg_path, arch_path)
+    gurobi_metrics = parse_gurobi_log(gurobi_log_path)
+
     dfg_stats = read_dfg_stats(dfg_path) if dfg_path and dfg_path.exists() else {
         "node_count": "",
         "edge_count": "",
@@ -618,9 +815,11 @@ def normalize_run(
         "benchmark": benchmark,
         "mapper": mapper,
         "arch_name": arch_name,
+        "evaluation_mode": evaluation_mode,
         "cgra_type": cgra_metrics["cgra_type"],
         "network_type": cgra_metrics["network_type"],
         "memory_io": cgra_metrics["memory_io"],
+        "placement_cost_model": cgra_metrics["placement_cost_model"],
         "rows": cgra_metrics["rows"],
         "cols": cgra_metrics["cols"],
         "context_size": cgra_metrics["context_size"],
@@ -677,6 +876,26 @@ def normalize_run(
         "avg_fanout": cgra_metrics["avg_fanout"],
         "compute_bbox_area": cgra_metrics["compute_bbox_area"],
         "compute_bbox_utilization": cgra_metrics["compute_bbox_utilization"],
+        "placement_edge_count": cgra_metrics["placement_edge_count"],
+        "placement_wirelength_sum": cgra_metrics["placement_wirelength_sum"],
+        "placement_avg_wirelength": cgra_metrics["placement_avg_wirelength"],
+        "placement_max_wirelength": cgra_metrics["placement_max_wirelength"],
+        "placement_direct_edge_count": cgra_metrics["placement_direct_edge_count"],
+        "placement_direct_edge_ratio": cgra_metrics["placement_direct_edge_ratio"],
+        "placement_fifo_sum": cgra_metrics["placement_fifo_sum"],
+        "placement_avg_fifo": cgra_metrics["placement_avg_fifo"],
+        "placement_max_fifo": cgra_metrics["placement_max_fifo"],
+        "placement_cost_sum": cgra_metrics["placement_cost_sum"],
+        "placement_avg_cost": cgra_metrics["placement_avg_cost"],
+        "placement_max_cost": cgra_metrics["placement_max_cost"],
+        "placement_optimal_edge_count": cgra_metrics["placement_optimal_edge_count"],
+        "placement_optimal_edge_ratio": cgra_metrics["placement_optimal_edge_ratio"],
+        "placement_fifo_like_sum": cgra_metrics["placement_fifo_like_sum"],
+        "placement_avg_fifo_like": cgra_metrics["placement_avg_fifo_like"],
+        "placement_max_fifo_like": cgra_metrics["placement_max_fifo_like"],
+        "direct_dfg_edge_count": cgra_metrics["direct_dfg_edge_count"],
+        "routed_dfg_edge_count": cgra_metrics["routed_dfg_edge_count"],
+        "direct_dfg_edge_ratio": cgra_metrics["direct_dfg_edge_ratio"],
         "gurobi_status": gurobi_metrics["gurobi_status"],
         "objective_value": gurobi_metrics["objective_value"],
         "best_bound": gurobi_metrics["best_bound"],
@@ -693,9 +912,11 @@ CSV_FIELDS = [
     "benchmark_set",
     "mapper",
     "arch_name",
+    "evaluation_mode",
     "cgra_type",
     "network_type",
     "memory_io",
+    "placement_cost_model",
     "rows",
     "cols",
     "context_size",
@@ -752,12 +973,34 @@ CSV_FIELDS = [
     "avg_fanout",
     "compute_bbox_area",
     "compute_bbox_utilization",
+    "placement_edge_count",
+    "placement_wirelength_sum",
+    "placement_avg_wirelength",
+    "placement_max_wirelength",
+    "placement_direct_edge_count",
+    "placement_direct_edge_ratio",
+    "placement_fifo_sum",
+    "placement_avg_fifo",
+    "placement_max_fifo",
+    "placement_cost_sum",
+    "placement_avg_cost",
+    "placement_max_cost",
+    "placement_optimal_edge_count",
+    "placement_optimal_edge_ratio",
+    "placement_fifo_like_sum",
+    "placement_avg_fifo_like",
+    "placement_max_fifo_like",
+    "direct_dfg_edge_count",
+    "routed_dfg_edge_count",
+    "direct_dfg_edge_ratio",
     "gurobi_status",
     "objective_value",
     "best_bound",
     "mip_gap",
     "mapping_file",
     "gurobi_log_file",
+    "external_reason",
+    "external_log_file",
     "run_dir",
     "trial_dir",
     "stdout_file",

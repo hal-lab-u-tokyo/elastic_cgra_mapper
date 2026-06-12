@@ -13,7 +13,7 @@ cd build
 if [ $DEBUG_ENABLE -eq 1 ]; then
     cmake -U "GUROBI_*" -GNinja -DCMAKE_BUILD_TYPE=Debug ..
 else
-    cmake -U "GUROBI_*" -GNinja ..
+    cmake -U "GUROBI_*" -GNinja -DCMAKE_BUILD_TYPE=Release ..
 fi
 
 ninja

@@ -1,9 +1,0 @@
-{
-  "Algorithm": {
-    "type": "PlacementFirstHeuristicMapper",
-    "accept_feasible_solution": true
-  },
-  "DFG": {
-    "operation_name_label": "node_id"
-  }
-}

@@ -12,6 +12,7 @@ from lib import (
     find_single_run_dir,
     make_arch_for_ii,
     normalize_run,
+    placement2d_capacity_check,
     write_json,
     write_metrics_csv,
 )
@@ -48,23 +49,49 @@ def run_one(
     timeout_sec: float,
     parallel_num: int,
     missing_distance_policy: str = "self_loop",
+    problem_type: str = "modulo",
+    evaluation_mode: str = "routing",
     progress: bool = False,
 ) -> dict:
     output_dir.mkdir(parents=True, exist_ok=True)
-    computed_mii, start_ii = resolve_mii(
-        mii, dfg, arch_template, output_dir, missing_distance_policy
-    )
+    if problem_type == "placement2d":
+        capacity = placement2d_capacity_check(dfg, arch_template)
+        write_json(
+            output_dir / "mii.json",
+            {
+                "problem_type": problem_type,
+                "MII": 1,
+                "ResMII": 1,
+                "RecMII": "",
+                "placement2d_capacity": capacity,
+                "notes": "2D placement fixes context_size/II to 1; modulo MII is not used.",
+            },
+        )
+        if not capacity["ok"]:
+            raise ValueError(
+                "2D placement capacity check failed: "
+                f"{capacity['detail']}. Use a larger 2D CGRA or a modulo-aware manifest."
+            )
+        computed_mii, start_ii, effective_ii_max = 1, 1, 1
+    else:
+        computed_mii, start_ii = resolve_mii(
+            mii, dfg, arch_template, output_dir, missing_distance_policy
+        )
+        effective_ii_max = ii_max
     rows = []
     summary = {
         "benchmark": benchmark,
         "mapper": mapper_name,
         "arch_name": arch_name,
+        "problem_type": problem_type,
+        "evaluation_mode": evaluation_mode,
         "dfg": str(dfg),
         "arch_template": str(arch_template),
         "mapper_config": str(mapper_config),
         "MII": computed_mii,
         "start_II": start_ii,
-        "ii_max": ii_max,
+        "ii_max": effective_ii_max,
+        "requested_ii_max": ii_max,
         "timeout_sec": timeout_sec,
         "parallel_num": parallel_num,
         "missing_distance_policy": missing_distance_policy,
@@ -78,11 +105,12 @@ def run_one(
 
     if progress:
         print(
-            f"  MII={computed_mii}, start_II={start_ii}, ii_max={ii_max}",
+            f"  problem_type={problem_type}, MII={computed_mii}, "
+            f"start_II={start_ii}, ii_max={effective_ii_max}",
             flush=True,
         )
 
-    for ii in range(start_ii, ii_max + 1):
+    for ii in range(start_ii, effective_ii_max + 1):
         trial_dir = output_dir / "tried_ii" / f"ii_{ii}"
         attempt_id = f"attempt_{time.time_ns()}"
         raw_output_dir = trial_dir / "raw" / attempt_id
@@ -126,6 +154,8 @@ def run_one(
             achieved_ii=ii if is_success else None,
             start_ii=start_ii,
             dfg_path=dfg,
+            arch_path=arch_path,
+            evaluation_mode=evaluation_mode,
         )
         row["process_returncode"] = proc.returncode
         row["wall_time_sec"] = elapsed
@@ -188,6 +218,18 @@ def main() -> None:
         default="self_loop",
         help="How to handle recurrence edges without explicit distance.",
     )
+    parser.add_argument(
+        "--problem-type",
+        choices=["modulo", "placement2d"],
+        default="modulo",
+        help="Mapping problem setting. placement2d fixes context_size/II to 1.",
+    )
+    parser.add_argument(
+        "--evaluation-mode",
+        choices=["routing", "placement_only"],
+        default="routing",
+        help="routing requires valid mapped routes; placement_only measures placement quality.",
+    )
     parser.add_argument("--progress", action="store_true", help="Print per-II progress to stdout.")
     args = parser.parse_args()
 
@@ -208,6 +250,8 @@ def main() -> None:
         timeout_sec=args.timeout_sec,
         parallel_num=args.parallel_num,
         missing_distance_policy=args.missing_distance_policy,
+        problem_type=args.problem_type,
+        evaluation_mode=args.evaluation_mode,
         progress=args.progress,
     )
     print(json.dumps(summary, indent=2))

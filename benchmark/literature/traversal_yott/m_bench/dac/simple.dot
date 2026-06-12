@@ -1,0 +1,32 @@
+digraph simple {
+0 [label=mul0 op=mul];
+1 [label=in1 op=in];
+2 [label=reg2 op=reg];
+3 [label=mul3 op=mul];
+4 [label=in4 op=in];
+5 [label=reg5 op=reg];
+6 [label=add6 op=add];
+7 [label=mul7 op=mul];
+8 [label=in8 op=in];
+9 [label=out9 op=out];
+10 [label=add10 op=addi value=2];
+11 [label=in11 op=in];
+12 [label=reg0 op=reg];
+13 [label=reg1 op=reg];
+
+10 -> 0 [port=0 weight=0];
+1 -> 0 [port=1 weight=0];
+0 -> 2 [port=0 weight=0];
+10 -> 3 [port=0 weight=0];
+4 -> 3 [port=1 weight=0];
+3 -> 5 [port=0 weight=0];
+2 -> 6 [port=0 weight=0];
+5 -> 6 [port=1 weight=0];
+10 -> 7 [port=0 weight=0];
+8 -> 7 [port=1 weight=0];
+6 -> 9 [port=0 weight=0];
+13 -> 9 [port=1 weight=0];
+11 -> 10 [port=0 weight=0];
+7 -> 12 [port=0 weight=0];
+12 -> 13 [port=0 weight=0];
+}

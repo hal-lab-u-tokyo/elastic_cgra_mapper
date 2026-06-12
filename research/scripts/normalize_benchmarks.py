@@ -43,6 +43,7 @@ CONTROL_OPS = {"br", "branch"}
 # memory operations stay memory operations, control-only operations are removed,
 # and ALU/logic variants are folded into supported one-cycle ALU opcodes.
 OP_ALIASES = {
+    "in": "load",
     "input": "load",
     "ld": "load",
     "load": "load",
@@ -50,16 +51,20 @@ OP_ALIASES = {
     "oload": "load",
     "ls": "load",
     "getelementptr": "load",
+    "out": "output",
     "store": "output",
     "st": "output",
     "storeb": "output",
     "ostore": "output",
     "output": "output",
     "add": "add",
+    "addi": "add",
     "fadd": "add",
     "sub": "sub",
+    "subi": "sub",
     "fsub": "sub",
     "mul": "mul",
+    "muli": "mul",
     "mult": "mul",
     "fmul": "mul",
     "div": "div",
@@ -105,6 +110,7 @@ OP_ALIASES = {
     "sel": "select",
     "movc": "select",
     "cmerge": "select",
+    "reg": "select",
     "phi": "const",
     "const": "const",
     "constant": "const",
@@ -196,6 +202,10 @@ def infer_dot_node_op(node_name: str, attrs: dict) -> str:
     opcode = clean_value(attrs.get("opcode", ""))
     if opcode:
         return opcode
+
+    op = clean_value(attrs.get("op", ""))
+    if op:
+        return op
 
     node_type = clean_value(attrs.get("type", ""))
     if node_type == "input":
@@ -512,6 +522,7 @@ def write_manifest(
 
     manifest = {
         "name": "all_normalized_benchmark_probe",
+        "problem_type": "modulo",
         "mode": "modulo_default_ii_sweep",
         "mapping_bin": str(repo_root_for_manifest / "build/mapping"),
         "benchmark_sets": [
@@ -534,8 +545,8 @@ def write_manifest(
         ],
         "mappers": [
             {
-                "name": "ilp_mapper",
-                "mapper_config": str(repo_root_for_manifest / "research/configs/mapper/ilp_mapper.json"),
+                "name": "full_routing_ilp_mapper",
+                "mapper_config": str(repo_root_for_manifest / "research/configs/mapper/full_routing_ilp_mapper.json"),
             }
         ],
         "timeout_sec": 3,

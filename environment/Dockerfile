@@ -15,11 +15,22 @@ RUN apt-get update && \
     build-essential \
     clang \
     clang-format \
+    flex \
+    bison \
+    fontconfig \
+    libcairo2-dev \
+    libfontconfig1-dev \
+    libx11-dev \
+    libxft-dev \
     vim \
     git \
     ninja-build \
     gdb \
     python3-pip \
+    python-is-python3 \
+    perl \
+    liblist-moreutils-perl \
+    time \
     graphviz
 RUN apt-get install -y verilator
 RUN apt-get update && \
@@ -27,6 +38,9 @@ RUN apt-get update && \
 
 ENV PATH="${GUROBI_HOME}/bin:/home/verilator/bin:${PATH}"
 ENV GRB_LICENSE_FILE="/opt/gurobi/gurobi.lic"
+ENV VTR_ROOT="${APPLICATION_DIRECTORY}/third_party/vtr"
+ENV VPR_BIN="${APPLICATION_DIRECTORY}/third_party/vtr/build/vpr/vpr"
+ENV VPR_ARCH_XML="${APPLICATION_DIRECTORY}/third_party/vtr/vtr_flow/arch/timing/k6_N10_40nm.xml"
 
 COPY ../requirements.txt ${APPLICATION_DIRECTORY}/requirements.txt
 RUN pip install -r ${APPLICATION_DIRECTORY}/requirements.txt

@@ -14,8 +14,16 @@ try:
 except ImportError:
     ZoneInfo = None
 
-from lib import load_json, write_json, write_metrics_csv
+from lib import (
+    auto_square_arch_for_dfg,
+    load_json,
+    placement2d_capacity_check,
+    placement2d_capacity_check_for_arch,
+    write_json,
+    write_metrics_csv,
+)
 from run_modulo_mapping import run_one
+from run_vpr_baseline import run_one_vpr
 
 LOCAL_TIMEZONE = ZoneInfo("Asia/Tokyo") if ZoneInfo else timezone(timedelta(hours=9), "JST")
 ANSI_STYLES = {
@@ -30,8 +38,9 @@ ANSI_STYLES = {
     "cyan": "\033[36m",
 }
 SUCCESS_STATUSES = {"optimal", "success"}
-WARNING_STATUSES = {"timeout_feasible", "feasible"}
+WARNING_STATUSES = {"timeout_feasible", "feasible", "skipped"}
 FAILURE_STATUSES = {"failed", "timeout", "infeasible", "error"}
+EXTERNAL_RUNNERS = {"vpr"}
 
 
 def parse_filter(values: list) -> set:
@@ -46,6 +55,97 @@ def parse_filter(values: list) -> set:
 
 def selected(value: str, filter_values: set) -> bool:
     return not filter_values or value in filter_values
+
+
+def mapper_runner(mapper: dict) -> str:
+    return str(mapper.get("runner", mapper.get("external_runner", "cgra"))).lower()
+
+
+def manifest_problem_type(manifest: dict) -> str:
+    if "problem_type" in manifest:
+        return str(manifest["problem_type"])
+    mode = str(manifest.get("mode", ""))
+    if mode.startswith("placement2d"):
+        return "placement2d"
+    return "modulo"
+
+
+def placement2d_arch_ii(arch: dict):
+    for key in ("ii", "context_size", "ii_max"):
+        if key in arch:
+            return int(arch[key])
+    return None
+
+
+def arch_has_auto_grid(arch: dict) -> bool:
+    return bool(arch.get("auto_grid"))
+
+
+def auto_grid_policy(arch: dict) -> str:
+    auto_grid = arch.get("auto_grid", {})
+    if isinstance(auto_grid, str):
+        return auto_grid
+    return str(auto_grid.get("policy", "traversal_fully_pipelined"))
+
+
+def apply_arch_overrides(arch_config: dict, arch_manifest: dict) -> dict:
+    result = dict(arch_config)
+    for key in ("memory_io", "network_type", "CGRA_type", "local_reg_size", "placement_cost_model"):
+        if key in arch_manifest:
+            result[key] = arch_manifest[key]
+    return result
+
+
+def effective_arch_dict_for_plan_item(item: dict) -> dict:
+    arch = item["arch"]
+    if arch_has_auto_grid(arch):
+        arch_config = auto_square_arch_for_dfg(
+            Path(arch["template"]),
+            item["dfg"],
+            auto_grid_policy(arch),
+        )
+    else:
+        arch_config = load_json(Path(arch["template"]))
+    return apply_arch_overrides(arch_config, arch)
+
+
+def prepare_arch_template_for_run(item: dict, run_dir: Path) -> Path:
+    arch = item["arch"]
+    arch_template = Path(arch["template"])
+    has_overrides = any(
+        key in arch for key in ("memory_io", "network_type", "CGRA_type", "local_reg_size", "placement_cost_model")
+    )
+    if not arch_has_auto_grid(arch) and not has_overrides:
+        return arch_template
+
+    effective_arch = effective_arch_dict_for_plan_item(item)
+    generated_dir = run_dir / "generated_inputs"
+    generated_dir.mkdir(parents=True, exist_ok=True)
+    generated_arch_path = generated_dir / "arch_template.json"
+    write_json(generated_arch_path, effective_arch)
+    return generated_arch_path
+
+
+def prepare_mapper_config_for_run(
+    mapper: dict,
+    run_dir: Path,
+    evaluation_mode: str,
+) -> Path:
+    if mapper_runner(mapper) in EXTERNAL_RUNNERS:
+        return Path()
+    mapper_config_path = Path(mapper["mapper_config"])
+    if evaluation_mode != "placement_only":
+        return mapper_config_path
+
+    mapper_config = load_json(mapper_config_path)
+    algorithm = dict(mapper_config.get("Algorithm", {}))
+    algorithm["placement_only"] = True
+    mapper_config["Algorithm"] = algorithm
+    generated_dir = run_dir / "generated_inputs"
+    generated_dir.mkdir(parents=True, exist_ok=True)
+    generated_mapper_path = generated_dir / "mapper_config.json"
+    write_json(generated_mapper_path, mapper_config)
+    return generated_mapper_path
 
 
 def expand_benchmark_sets(manifest: dict) -> list:
@@ -105,6 +205,48 @@ def build_run_plan(manifest: dict, filters: dict) -> list:
                         }
                     )
     return run_plan
+
+
+def validate_run_plan_for_problem_type(run_plan: list, problem_type: str) -> None:
+    if problem_type != "placement2d":
+        return
+    issues = []
+    for item in run_plan:
+        arch = item["arch"]
+        arch_ii = placement2d_arch_ii(arch)
+        if arch_ii != 1:
+            issues.append(
+                f"{item['benchmark_set']}/{item['benchmark']} | {arch['name']}: "
+                "placement2d requires explicit ii/context_size/ii_max = 1"
+            )
+        has_overrides = any(
+            key in arch
+            for key in (
+                "memory_io",
+                "network_type",
+                "CGRA_type",
+                "local_reg_size",
+                "placement_cost_model",
+            )
+        )
+        if arch_has_auto_grid(arch) or has_overrides:
+            capacity = placement2d_capacity_check_for_arch(
+                item["dfg"],
+                effective_arch_dict_for_plan_item(item),
+            )
+        else:
+            capacity = placement2d_capacity_check(item["dfg"], Path(arch["template"]))
+        if not capacity["ok"]:
+            issues.append(
+                f"{item['benchmark_set']}/{item['benchmark']} | {arch['name']}: "
+                f"{capacity['detail']}"
+            )
+    if issues:
+        issue_text = "\n".join(f"- {issue}" for issue in issues)
+        raise ValueError(
+            "placement2d manifest preflight failed before running mappings:\n"
+            f"{issue_text}"
+        )
 
 
 def now_local() -> datetime:
@@ -169,6 +311,8 @@ def status_color(status: str) -> str:
 def status_label(status: str) -> str:
     if status in SUCCESS_STATUSES:
         return "OK"
+    if status == "skipped":
+        return "SKIP"
     if status in WARNING_STATUSES:
         return "FEAS"
     if status in FAILURE_STATUSES:
@@ -267,6 +411,8 @@ def write_run_info(result_dir: Path, metadata: dict) -> None:
         f"- duration_sec: `{metadata.get('duration_sec', '')}`",
         f"- manifest: `{metadata.get('manifest_path', '')}`",
         f"- result_dir: `{metadata.get('result_dir', '')}`",
+        f"- problem_type: `{metadata.get('problem_type', '')}`",
+        f"- evaluation_mode: `{metadata.get('evaluation_mode', '')}`",
         f"- reports_generated: `{metadata.get('reports_generated', '')}`",
         f"- git_commit: `{git.get('commit', '')}`",
         f"- git_branch: `{git.get('branch', '')}`",
@@ -326,6 +472,7 @@ def main() -> None:
     started_at = now_local()
     started_monotonic = time.monotonic()
     manifest = load_json(args.manifest)
+    problem_type = manifest_problem_type(manifest)
     result_dir = resolve_result_dir(args, manifest, started_at)
     filters = {
         "benchmark_set": sorted(parse_filter(args.only_benchmark_set)),
@@ -335,6 +482,8 @@ def main() -> None:
     }
     result_dir.mkdir(parents=True, exist_ok=True)
     metadata = build_metadata(args, result_dir, started_at, filters)
+    metadata["problem_type"] = problem_type
+    metadata["evaluation_mode"] = str(manifest.get("evaluation_mode", "routing"))
     write_json(result_dir / "run_metadata.json", metadata)
     write_run_info(result_dir, metadata)
     completed = {"ok": False}
@@ -361,6 +510,8 @@ def main() -> None:
     mapping_bin = Path(manifest["mapping_bin"])
     missing_distance_policy = manifest.get("mii_missing_distance_policy", "self_loop")
     run_plan = build_run_plan(manifest, filters)
+    validate_run_plan_for_problem_type(run_plan, problem_type)
+    evaluation_mode = str(manifest.get("evaluation_mode", "routing"))
 
     if not args.quiet:
         print(
@@ -371,6 +522,8 @@ def main() -> None:
             f"Planned runs: {len(run_plan)} mapper/benchmark/architecture combinations",
             flush=True,
         )
+        print(f"Problem type: {problem_type}", flush=True)
+        print(f"Evaluation mode: {evaluation_mode}", flush=True)
         if args.verbose:
             print(
                 "Verbose progress: per-II attempts are shown.",
@@ -385,11 +538,10 @@ def main() -> None:
         arch = item["arch"]
         mapper = item["mapper"]
         arch_name = arch["name"]
-        arch_template = Path(arch["template"])
-        ii_max = int(arch["ii_max"])
+        ii_max = 1 if problem_type == "placement2d" else int(arch["ii_max"])
         mii = str(arch.get("mii", "auto"))
         mapper_name = mapper["name"]
-        mapper_config = Path(mapper["mapper_config"])
+        runner = mapper_runner(mapper)
         run_dir = (
             result_dir
             / f"set={benchmark_set_name}"
@@ -397,28 +549,51 @@ def main() -> None:
             / f"arch={arch_name}"
             / f"mapper={mapper_name}"
         )
+        arch_template = prepare_arch_template_for_run(item, run_dir)
         if args.verbose and not args.quiet:
             print(
                 f"{progress_prefix(index, len(run_plan), color_enabled)} "
                 f"START {benchmark_set_name}/{benchmark} | {arch_name} | {mapper_name}",
                 flush=True,
             )
-        summary = run_one(
-            mapping_bin=mapping_bin,
-            dfg=dfg,
-            arch_template=arch_template,
-            mapper_config=mapper_config,
-            output_dir=run_dir,
-            benchmark=benchmark,
-            mapper_name=mapper_name,
-            arch_name=arch_name,
-            mii=mii,
-            ii_max=ii_max,
-            timeout_sec=timeout_sec,
-            parallel_num=parallel_num,
-            missing_distance_policy=missing_distance_policy,
-            progress=args.verbose and not args.quiet,
-        )
+        if runner == "vpr":
+            summary = run_one_vpr(
+                dfg=dfg,
+                arch_template=arch_template,
+                output_dir=run_dir,
+                benchmark=benchmark,
+                mapper_name=mapper_name,
+                arch_name=arch_name,
+                timeout_sec=timeout_sec,
+                mapper_config=mapper,
+                problem_type=problem_type,
+                evaluation_mode=evaluation_mode,
+                progress=args.verbose and not args.quiet,
+            )
+        else:
+            mapper_config = prepare_mapper_config_for_run(
+                mapper,
+                run_dir,
+                evaluation_mode,
+            )
+            summary = run_one(
+                mapping_bin=mapping_bin,
+                dfg=dfg,
+                arch_template=arch_template,
+                mapper_config=mapper_config,
+                output_dir=run_dir,
+                benchmark=benchmark,
+                mapper_name=mapper_name,
+                arch_name=arch_name,
+                mii=mii,
+                ii_max=ii_max,
+                timeout_sec=timeout_sec,
+                parallel_num=parallel_num,
+                missing_distance_policy=missing_distance_policy,
+                problem_type=problem_type,
+                evaluation_mode=evaluation_mode,
+                progress=args.verbose and not args.quiet,
+            )
         summary["benchmark_set"] = benchmark_set_name
         summaries.append(summary)
         if not args.quiet:

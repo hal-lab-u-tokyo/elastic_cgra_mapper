@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <io/mapping_io.hpp>
-#include <mapper/gurobi_ilp_mapper.hpp>
+#include <mapper/modulo/full_routing_ilp_mapper.hpp>
 
 TEST(IOTest, maping_io_test) {
   // create mapping
@@ -47,7 +47,7 @@ TEST(IOTest, maping_io_test) {
   *mrrg_ptr = entity::MRRG(mrrg_config);
 
   // exec mapping
-  auto mapper_ptr = mapper::GurobiILPMapper().CreateMapper(dfg_ptr, mrrg_ptr);
+  auto mapper_ptr = mapper::FullRoutingILPMapper().CreateMapper(dfg_ptr, mrrg_ptr);
   entity::Mapping input_mapping;
   const auto result = mapper_ptr->Execution();
 
