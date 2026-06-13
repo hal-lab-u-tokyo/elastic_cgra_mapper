@@ -52,6 +52,18 @@
     {
       "name": "modulo_placement_first",
       "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/modulo_placement_first_mapper.json"
+    },
+    {
+      "name": "vpr_sa_routed",
+      "runner": "vpr_modulo",
+      "vpr_bin": "${VPR_BIN:-third_party/vtr/build/vpr/vpr}",
+      "arch_xml": "${VPR_ARCH_XML:-third_party/vtr/vtr_flow/arch/timing/k6_N10_40nm.xml}",
+      "pack_capacity": 1,
+      "place_algorithm": "bounding_box",
+      "place_all_ops": true,
+      "context_seed_count": 16,
+      "routing_retry_count": 8,
+      "random_seed": 3001
     }
   ],
   "timeout_sec": 20,

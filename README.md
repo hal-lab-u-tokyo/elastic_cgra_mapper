@@ -214,8 +214,8 @@ python3 research/scripts/run_suite.py \
 
 Available manifests:
 
-- `research/configs/experiments/modulo/search.json`: modulo mappers only; quick iteration.
-- `research/configs/experiments/modulo/all_mappers.json`: modulo mappers plus ILP mappers.
+- `research/configs/experiments/modulo/search.json`: modulo heuristic mappers plus the lightweight VPR SA routed baseline.
+- `research/configs/experiments/modulo/all_mappers.json`: modulo mappers plus ILP mappers and strict VPR routed baselines.
 - `research/configs/experiments/placement2d/search.json`: 2D placement mappers only; quick iteration.
 - `research/configs/experiments/placement2d/all_mappers.json`: 2D placement mappers plus ILP mappers.
 

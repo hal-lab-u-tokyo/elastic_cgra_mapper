@@ -169,7 +169,9 @@ class PlacementSearchEngine {
     successors_ = BuildSuccessors(dfg_);
     predecessors_ = BuildPredecessors(dfg_);
     BuildMRRGCache();
-    BuildAllPairsDistances();
+    if (NeedsAllPairsDistances()) {
+      BuildAllPairsDistances();
+    }
     annotation_ = BuildAnnotation();
   }
 
@@ -251,6 +253,10 @@ class PlacementSearchEngine {
         return "YOTO";
       case PlacementSearchKind::kYOTT:
         return "YOTT";
+      case PlacementSearchKind::kYOTOWithFallback:
+        return "YOTOWithFallback";
+      case PlacementSearchKind::kYOTTWithFallback:
+        return "YOTTWithFallback";
       case PlacementSearchKind::kSA:
         return "SA";
       case PlacementSearchKind::kPlacement2DYOTO:
@@ -270,6 +276,7 @@ class PlacementSearchEngine {
 
   bool IsYOTTLike() const {
     return search_kind_ == PlacementSearchKind::kYOTT ||
+           search_kind_ == PlacementSearchKind::kYOTTWithFallback ||
            search_kind_ == PlacementSearchKind::kPlacement2DYOTT;
   }
 
@@ -278,9 +285,32 @@ class PlacementSearchEngine {
            search_kind_ == PlacementSearchKind::kPlacement2DYOTT;
   }
 
+  bool UsesPaperTraversalPlan() const {
+    return search_kind_ == PlacementSearchKind::kYOTO ||
+           search_kind_ == PlacementSearchKind::kYOTT ||
+           search_kind_ == PlacementSearchKind::kYOTOWithFallback ||
+           search_kind_ == PlacementSearchKind::kYOTTWithFallback ||
+           IsPlacement2DTraversalLike();
+  }
+
+  bool UsesModuloFallbackCandidates() const {
+    return search_kind_ == PlacementSearchKind::kYOTOWithFallback ||
+           search_kind_ == PlacementSearchKind::kYOTTWithFallback;
+  }
+
   bool UsesPhysicalPeExclusivePlacement() const {
     return IsPlacement2DTraversalLike() ||
            search_kind_ == PlacementSearchKind::kPlacement2DSA;
+  }
+
+  bool UsesApproximatePlacementDistance() const {
+    return search_kind_ == PlacementSearchKind::kPlacement2DYOTO ||
+           search_kind_ == PlacementSearchKind::kPlacement2DYOTT ||
+           search_kind_ == PlacementSearchKind::kPlacement2DSA;
+  }
+
+  bool NeedsAllPairsDistances() const {
+    return !UsesApproximatePlacementDistance();
   }
 
   int SeedCount() const {
@@ -484,11 +514,17 @@ class PlacementSearchEngine {
 
   int ResourceDistance(int from_mrrg_node, int to_mrrg_node) const {
     if (from_mrrg_node < 0 || to_mrrg_node < 0) return kInfDistance;
-    return std::min(distance_[from_mrrg_node][to_mrrg_node],
-                    distance_[to_mrrg_node][from_mrrg_node]);
+    return std::min(DirectedResourceDistance(from_mrrg_node, to_mrrg_node),
+                    DirectedResourceDistance(to_mrrg_node, from_mrrg_node));
   }
 
-  int PhysicalDistance(int from_mrrg_node, int to_mrrg_node) const {
+  int DirectedResourceDistance(int from_mrrg_node, int to_mrrg_node) const {
+    if (from_mrrg_node < 0 || to_mrrg_node < 0) return kInfDistance;
+    if (!distance_.empty()) return distance_[from_mrrg_node][to_mrrg_node];
+    return ApproximateDirectedResourceDistance(from_mrrg_node, to_mrrg_node);
+  }
+
+  int SpatialStepDistance(int from_mrrg_node, int to_mrrg_node) const {
     if (from_mrrg_node < 0 || to_mrrg_node < 0) return kInfDistance;
     const auto from = mrrg_.GetNodeProperty(from_mrrg_node).position_id;
     const auto to = mrrg_.GetNodeProperty(to_mrrg_node).position_id;
@@ -496,13 +532,40 @@ class PlacementSearchEngine {
     const int column_distance = std::abs(from.second - to.second);
     const auto config = mrrg_.GetMRRGConfig();
     if (config.network_type == entity::MRRGNetworkType::kOneHopAxis2) {
-      return std::max(1, (row_distance + 1) / 2 +
-                             (column_distance + 1) / 2);
+      return (row_distance + 1) / 2 + (column_distance + 1) / 2;
     }
     if (config.network_type == entity::MRRGNetworkType::kDiagonal) {
-      return std::max(1, std::max(row_distance, column_distance));
+      return std::max(row_distance, column_distance);
     }
-    return std::max(1, row_distance + column_distance);
+    return row_distance + column_distance;
+  }
+
+  int ApproximateDirectedResourceDistance(int from_mrrg_node,
+                                          int to_mrrg_node) const {
+    if (from_mrrg_node == to_mrrg_node) return 0;
+    const auto from = mrrg_.GetNodeProperty(from_mrrg_node);
+    const auto to = mrrg_.GetNodeProperty(to_mrrg_node);
+    const int context_size = std::max(1, from.context_size);
+    const int context_delta =
+        (to.context_id - from.context_id + context_size) % context_size;
+    const int spatial_steps = SpatialStepDistance(from_mrrg_node, to_mrrg_node);
+
+    if (mrrg_.GetMRRGConfig().cgra_type == entity::MRRGCGRAType::kElastic) {
+      if (spatial_steps > 0) return std::max(1, spatial_steps);
+      return context_delta == 0 ? 0 : context_delta;
+    }
+
+    int steps = std::max(spatial_steps, context_delta);
+    if (steps == 0) steps = context_size;
+    while (steps % context_size != context_delta) {
+      steps++;
+    }
+    return steps;
+  }
+
+  int PhysicalDistance(int from_mrrg_node, int to_mrrg_node) const {
+    if (from_mrrg_node < 0 || to_mrrg_node < 0) return kInfDistance;
+    return std::max(1, SpatialStepDistance(from_mrrg_node, to_mrrg_node));
   }
 
   int ResourceFreedom(int mrrg_node_id, const PlacementState& state) const {
@@ -730,7 +793,7 @@ class PlacementSearchEngine {
     for (int root : GetRawOutputTraversalRoots()) stack.push_back({root, 1});
     const auto critical_path = BuildCriticalPathScore();
     int selection_mode = 0;
-    if (search_kind_ == PlacementSearchKind::kPlacement2DYOTT) {
+    if (annotate && IsYOTTLike()) {
       std::uniform_int_distribution<int> mode_dist(0, 3);
       selection_mode = mode_dist(rng_);
     }
@@ -1121,9 +1184,9 @@ class PlacementSearchEngine {
     return true;
   }
 
-  std::optional<PlacementState> ConstructTraversalPlacement() {
-    const bool use_annotations = IsYOTTLike();
-    TraversalPlan plan = IsPlacement2DTraversalLike()
+  std::optional<PlacementState> ConstructTraversalPlacement(
+      bool use_paper_traversal_plan, bool use_annotations) {
+    TraversalPlan plan = use_paper_traversal_plan
                              ? BuildPlacement2DTraversalPlan(use_annotations)
                              : BuildTraversalPlan(use_annotations);
     PlacementState state;
@@ -1142,7 +1205,33 @@ class PlacementSearchEngine {
   }
 
   std::optional<PlacementState> ConstructGreedyPlacement() {
-    return ConstructTraversalPlacement();
+    return ConstructTraversalPlacement(UsesPaperTraversalPlan(), IsYOTTLike());
+  }
+
+  std::vector<PlacementState> ConstructGreedyPlacementCandidates() {
+    std::vector<PlacementState> result;
+    auto primary =
+        ConstructTraversalPlacement(UsesPaperTraversalPlan(), IsYOTTLike());
+    if (primary.has_value()) result.push_back(*primary);
+
+    // Fallback variants intentionally mix the paper-style traversal with older
+    // routing-aware placements. The pure YOTO/YOTT mappers do not enter this
+    // block, so comparison results remain attributable to one strategy.
+    if (UsesModuloFallbackCandidates()) {
+      auto fallback = ConstructTraversalPlacement(false, IsYOTTLike());
+      if (fallback.has_value()) result.push_back(*fallback);
+      if (IsYOTTLike()) {
+        auto yoto_style_primary = ConstructTraversalPlacement(true, false);
+        if (yoto_style_primary.has_value()) {
+          result.push_back(*yoto_style_primary);
+        }
+        auto yoto_style_fallback = ConstructTraversalPlacement(false, false);
+        if (yoto_style_fallback.has_value()) {
+          result.push_back(*yoto_style_fallback);
+        }
+      }
+    }
+    return result;
   }
 
   std::optional<PlacementState> RunGreedyMultiStart(
@@ -1154,9 +1243,15 @@ class PlacementSearchEngine {
     std::vector<std::pair<double, PlacementState>> elite;
     const bool route_all_placement_trials =
         search_kind_ == PlacementSearchKind::kYOTO ||
-        search_kind_ == PlacementSearchKind::kYOTT || IsPlacement2DTraversalLike();
+        search_kind_ == PlacementSearchKind::kYOTT ||
+        search_kind_ == PlacementSearchKind::kYOTOWithFallback ||
+        search_kind_ == PlacementSearchKind::kYOTTWithFallback ||
+        IsPlacement2DTraversalLike();
+    const int placement_variants_per_trial =
+        UsesModuloFallbackCandidates() ? (IsYOTTLike() ? 4 : 2) : 1;
     const int elite_limit = route_all_placement_trials
-                                ? std::max(8, max_trials * seed_count)
+                                ? std::max(8, max_trials * seed_count *
+                                                  placement_variants_per_trial)
                                 : std::max(8, RoutingRetryCount() * 2);
     int total_trials = 0;
 
@@ -1167,20 +1262,21 @@ class PlacementSearchEngine {
       for (int trial = 0;
            trial < max_trials && !HasTimedOut(start, 0.1);
            trial++, total_trials++) {
-        auto placement = ConstructGreedyPlacement();
-        if (!placement.has_value()) continue;
-        const double cost = PlacementCost(*placement);
-        if (cost < best_unrouted_cost) {
-          best_unrouted = placement;
-          best_unrouted_cost = cost;
-        }
-        elite.push_back({cost, *placement});
-        std::sort(elite.begin(), elite.end(),
-                  [](const auto& a, const auto& b) {
-                    return a.first < b.first;
-                  });
-        if (static_cast<int>(elite.size()) > elite_limit) {
-          elite.pop_back();
+        auto placements = ConstructGreedyPlacementCandidates();
+        for (const auto& placement : placements) {
+          const double cost = PlacementCost(placement);
+          if (cost < best_unrouted_cost) {
+            best_unrouted = placement;
+            best_unrouted_cost = cost;
+          }
+          elite.push_back({cost, placement});
+          std::sort(elite.begin(), elite.end(),
+                    [](const auto& a, const auto& b) {
+                      return a.first < b.first;
+                    });
+          if (static_cast<int>(elite.size()) > elite_limit) {
+            elite.pop_back();
+          }
         }
       }
     }
@@ -1215,7 +1311,7 @@ class PlacementSearchEngine {
       const int from = state.dfg_to_mrrg[edge.source];
       const int to = state.dfg_to_mrrg[edge.target];
       if (from < 0 || to < 0) return kImpossibleCost;
-      const int d = distance_[from][to];
+      const int d = DirectedResourceDistance(from, to);
       if (d >= kInfDistance) {
         cost += kImpossibleCost;
       } else {
@@ -1467,10 +1563,10 @@ class PlacementSearchEngine {
     route_orders.push_back(dfg_edges_);
     std::sort(route_orders.back().begin(), route_orders.back().end(),
               [&](const auto& a, const auto& b) {
-      const int da = distance_[state.dfg_to_mrrg[a.source]]
-                              [state.dfg_to_mrrg[a.target]];
-      const int db = distance_[state.dfg_to_mrrg[b.source]]
-                              [state.dfg_to_mrrg[b.target]];
+      const int da = DirectedResourceDistance(state.dfg_to_mrrg[a.source],
+                                              state.dfg_to_mrrg[a.target]);
+      const int db = DirectedResourceDistance(state.dfg_to_mrrg[b.source],
+                                              state.dfg_to_mrrg[b.target]);
       return da > db;
     });
 

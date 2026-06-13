@@ -63,10 +63,6 @@
     {
       "name": "placement2d_yott_1000",
       "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/placement2d_yott_1000_trials_mapper.json"
-    },
-    {
-      "name": "placement2d_sa",
-      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/placement2d_sa_mapper.json"
     }
   ],
   "timeout_sec": 90,

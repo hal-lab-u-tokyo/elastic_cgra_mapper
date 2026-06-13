@@ -15,6 +15,7 @@ from lib import (
     write_json,
 )
 from run_suite import (
+    EXTERNAL_RUNNERS,
     apply_arch_overrides,
     arch_has_auto_grid,
     auto_grid_policy,
@@ -51,7 +52,7 @@ def status_for_row(row: dict) -> str:
             return "placement2d_capacity_error"
     if row["MII"] == "":
         return "invalid_mii"
-    if row.get("runner") != "vpr" and row["unsupported_ops"]:
+    if row.get("runner") not in EXTERNAL_RUNNERS and row["unsupported_ops"]:
         return "unsupported_ops"
     if row["ii_max"] < row["start_II"]:
         return "ii_range_empty"
@@ -205,7 +206,7 @@ def main() -> None:
                     runner = mapper_runner(mapper)
                     mapper_config_path = (
                         resolve_repo_path(mapper["mapper_config"], repo_root)
-                        if runner != "vpr"
+                        if runner not in EXTERNAL_RUNNERS
                         else Path()
                     )
                     missing_files = []
@@ -213,7 +214,7 @@ def main() -> None:
                         ("dfg", dfg_path),
                         ("arch", arch_path),
                     ]
-                    if runner != "vpr":
+                    if runner not in EXTERNAL_RUNNERS:
                         required_files.append(("mapper", mapper_config_path))
                     for label, path in required_files:
                         if not path.exists():

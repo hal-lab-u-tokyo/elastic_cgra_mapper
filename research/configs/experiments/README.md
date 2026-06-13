@@ -2,13 +2,13 @@
 
 Use these manifests for ordinary experiments:
 
-- `modulo/search.json`: modulo mappers only; quick iteration.
-- `modulo/all_mappers.json`: modulo mappers plus routed/context-aware ILP mappers.
-- `placement2d/search.json`: paper-like 2D placement subset with fast array mappers and VPR.
-- `placement2d/all_mappers.json`: the same paper-like setting with shared-engine mappers, array mappers, VPR, and placement-only ILP.
+- `modulo/search.json`: pure modulo heuristic mappers plus the lightweight VPR SA routed baseline.
+- `modulo/all_mappers.json`: modulo mappers plus routed/context-aware ILP mappers and strict VPR routed baselines.
+- `placement2d/search.json`: paper-like 2D placement subset with fast array mappers and VPR SA.
+- `placement2d/all_mappers.json`: the same paper-like setting with shared-engine mappers, array mappers, VPR SA, and placement-only ILP.
 - `placement2d/traversal_yott.json`: TRAVERSAL/YOTT-style DOT benchmarks, 100 trials.
 - `placement2d/traversal_yott_1000_trials.json`: same benchmarks, 1000 trials for YOTO/YOTT.
-- `placement2d/traversal_yott_placement_quality.json`: placement-only TRAVERSAL/YOTT comparison using the imported LISA/m_bench DOTs, cpu_mapping-style grid sizing, border I/O without corners, mesh and 1-hop cost models, YOTO/YOTT trial counts from the paper tables, array fast-path mappers, placement-only ILP, and VPR external baselines.
+- `placement2d/traversal_yott_placement_quality.json`: placement-only TRAVERSAL/YOTT comparison using the imported LISA/m_bench DOTs, cpu_mapping-style grid sizing, border I/O without corners, mesh and 1-hop cost models, YOTO/YOTT trial counts from the paper tables, array fast-path mappers, placement-only ILP, and VPR SA baselines.
 
 See `research/docs/traversal_yott_reproduction.md` for the reproduction scope, metrics, and command examples.
 
@@ -18,7 +18,9 @@ Problem type rules:
 - `problem_type: "placement2d"`: II/context size is fixed to 1; use `Placement2D*` and `PlacementOnlyILPMapper` configs.
 - `evaluation_mode: "routing"`: a successful result must include valid routing.
 - `evaluation_mode: "placement_only"`: routing is skipped; compare direct edge ratio, wire length, and FIFO-like distance. Routing validation reports these rows as skipped because they do not claim routed paths.
-- `runner: "vpr"` in a mapper entry: run VPR as an external placement-only baseline. Run `scripts/build_vpr.sh`, or set `VPR_BIN` and `VPR_ARCH_XML`; missing VPR is recorded as `skipped`. Set `pack_capacity: 1` for a strict one-DFG-node-per-site comparison.
+- `runner: "vpr"` in a mapper entry: run VPR as an external placement-only SA baseline. Run `scripts/build_vpr.sh`, or set `VPR_BIN` and `VPR_ARCH_XML`; missing VPR is recorded as `skipped`. Set `pack_capacity: 1` for a strict one-DFG-node-per-site comparison.
+- `runner: "vpr_modulo"` in a mapper entry: run VPR SA placement, then assign modulo contexts and route on this repository's CGRA MRRG. This is a VPR placement-seeded routed baseline, not VPR's FPGA router.
+- `runner: "vpr_modulo_full_route"` in a mapper entry: run VPR placement over PE/context slots, generate a CGRA modulo RR graph, route with VPR, import the `.route` file, and emit a CGRA mapping only when the imported route passes legal PE/context checks. Set `modulo_placement_mode: "physical_then_context"` only for diagnostic runs that separate physical placement from context assignment.
 
 Architecture rules:
 
@@ -35,3 +37,5 @@ Before a run:
 3. Run `research/scripts/run_suite.py --manifest <manifest>`.
 
 For new algorithms, choose the manifest that matches the problem type and keep the benchmark, architecture, timeout, and metric settings unchanged while comparing mappers.
+
+Fallback-based modulo configs are named `*_with_fallback_mapper.json` and are for diagnosis, not default comparisons.

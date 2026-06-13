@@ -10,6 +10,10 @@ PlacementSearchKind ToCommonSearchKind(ModuloPlacementSearchKind search_kind) {
       return PlacementSearchKind::kYOTO;
     case ModuloPlacementSearchKind::kYOTT:
       return PlacementSearchKind::kYOTT;
+    case ModuloPlacementSearchKind::kYOTOWithFallback:
+      return PlacementSearchKind::kYOTOWithFallback;
+    case ModuloPlacementSearchKind::kYOTTWithFallback:
+      return PlacementSearchKind::kYOTTWithFallback;
     case ModuloPlacementSearchKind::kSA:
       return PlacementSearchKind::kSA;
   }

@@ -62,15 +62,7 @@
       "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/placement2d_array_yott_100_trials_mapper.json"
     },
     {
-      "name": "sa_100",
-      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/placement2d_sa_100_grids_mapper.json"
-    },
-    {
-      "name": "array_sa_100",
-      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/placement2d_array_sa_100_grids_mapper.json"
-    },
-    {
-      "name": "vpr_bb",
+      "name": "vpr_sa",
       "runner": "vpr",
       "vpr_bin": "${VPR_BIN:-third_party/vtr/build/vpr/vpr}",
       "arch_xml": "${VPR_ARCH_XML:-third_party/vtr/vtr_flow/arch/timing/k6_N10_40nm.xml}",
@@ -79,7 +71,7 @@
       "allow_missing": true
     },
     {
-      "name": "vpr_fast",
+      "name": "vpr_sa_fast",
       "runner": "vpr",
       "vpr_bin": "${VPR_BIN:-third_party/vtr/build/vpr/vpr}",
       "arch_xml": "${VPR_ARCH_XML:-third_party/vtr/vtr_flow/arch/timing/k6_N10_40nm.xml}",

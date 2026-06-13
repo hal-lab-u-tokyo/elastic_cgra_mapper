@@ -13,6 +13,11 @@ enum class PlacementSearchKind {
   // different operations.
   kYOTO,
   kYOTT,
+  // Explicit hybrid variants. They try the paper-style traversal first, then
+  // routing-aware fallback placements. Keep them out of default comparisons
+  // unless the experiment intentionally evaluates mixed strategies.
+  kYOTOWithFallback,
+  kYOTTWithFallback,
   kSA,
   // 2D placement variants: one physical PE is one placement slot, matching the
   // single-layer public cpu_mapping implementation.

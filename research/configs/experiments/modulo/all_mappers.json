@@ -57,6 +57,33 @@
     {
       "name": "modulo_sa_mapper",
       "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/modulo_sa_mapper.json"
+    },
+    {
+      "name": "vpr_sa_routed",
+      "runner": "vpr_modulo",
+      "vpr_bin": "${VPR_BIN:-third_party/vtr/build/vpr/vpr}",
+      "arch_xml": "${VPR_ARCH_XML:-third_party/vtr/vtr_flow/arch/timing/k6_N10_40nm.xml}",
+      "pack_capacity": 1,
+      "place_algorithm": "bounding_box",
+      "place_all_ops": true,
+      "context_seed_count": 16,
+      "routing_retry_count": 8,
+      "random_seed": 3001
+    },
+    {
+      "name": "vpr_sa_full_route",
+      "runner": "vpr_modulo_full_route",
+      "vpr_bin": "${VPR_BIN:-third_party/vtr/build/vpr/vpr}",
+      "arch_xml": "${VPR_ARCH_XML:-third_party/vtr/vtr_flow/arch/timing/k6_N10_40nm.xml}",
+      "pack_capacity": 1,
+      "place_algorithm": "bounding_box",
+      "place_all_ops": true,
+      "modulo_placement_mode": "vpr_context",
+      "context_seed_count": 4,
+      "route_bb_factor": 1000,
+      "route_chan_width": 32,
+      "segment_length": 1,
+      "random_seed": 3001
     }
   ],
   "timeout_sec": 60,

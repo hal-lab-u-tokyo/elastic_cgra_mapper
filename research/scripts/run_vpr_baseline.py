@@ -409,7 +409,7 @@ def vpr_command(vpr_bin: str, arch_xml: Path, blif_path: Path, mapper_config: di
         return [vpr_bin, str(arch_xml), str(blif_path)] + [expand_env(arg) for arg in args]
 
     place_algorithm = str(mapper_config.get("place_algorithm", "bounding_box"))
-    return [
+    command = [
         vpr_bin,
         str(arch_xml),
         str(blif_path),
@@ -422,6 +422,26 @@ def vpr_command(vpr_bin: str, arch_xml: Path, blif_path: Path, mapper_config: di
         "--disp",
         "off",
     ]
+    if bool(mapper_config.get("place_all_ops", False)):
+        command.extend(
+            [
+                "--timing_analysis",
+                "off",
+                "--const_gen_inference",
+                "none",
+                "--constant_net_method",
+                "route",
+                "--sweep_dangling_primary_ios",
+                "off",
+                "--sweep_dangling_nets",
+                "off",
+                "--sweep_dangling_blocks",
+                "off",
+                "--sweep_constant_primary_outputs",
+                "off",
+            ]
+        )
+    return command
 
 
 def skipped_summary(

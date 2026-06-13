@@ -24,6 +24,8 @@ from lib import (
 )
 from run_modulo_mapping import run_one
 from run_vpr_baseline import run_one_vpr
+from run_vpr_modulo_full_routing import run_one_vpr_modulo_full_route
+from run_vpr_modulo_routing import run_one_vpr_modulo
 
 LOCAL_TIMEZONE = ZoneInfo("Asia/Tokyo") if ZoneInfo else timezone(timedelta(hours=9), "JST")
 ANSI_STYLES = {
@@ -40,7 +42,7 @@ ANSI_STYLES = {
 SUCCESS_STATUSES = {"optimal", "success"}
 WARNING_STATUSES = {"timeout_feasible", "feasible", "skipped"}
 FAILURE_STATUSES = {"failed", "timeout", "infeasible", "error"}
-EXTERNAL_RUNNERS = {"vpr"}
+EXTERNAL_RUNNERS = {"vpr", "vpr_modulo", "vpr_modulo_full_route"}
 
 
 def parse_filter(values: list) -> set:
@@ -568,6 +570,36 @@ def main() -> None:
                 mapper_config=mapper,
                 problem_type=problem_type,
                 evaluation_mode=evaluation_mode,
+                progress=args.verbose and not args.quiet,
+            )
+        elif runner == "vpr_modulo":
+            summary = run_one_vpr_modulo(
+                dfg=dfg,
+                arch_template=arch_template,
+                output_dir=run_dir,
+                benchmark=benchmark,
+                mapper_name=mapper_name,
+                arch_name=arch_name,
+                mii=mii,
+                ii_max=ii_max,
+                timeout_sec=timeout_sec,
+                mapper_config=mapper,
+                missing_distance_policy=missing_distance_policy,
+                progress=args.verbose and not args.quiet,
+            )
+        elif runner == "vpr_modulo_full_route":
+            summary = run_one_vpr_modulo_full_route(
+                dfg=dfg,
+                arch_template=arch_template,
+                output_dir=run_dir,
+                benchmark=benchmark,
+                mapper_name=mapper_name,
+                arch_name=arch_name,
+                mii=mii,
+                ii_max=ii_max,
+                timeout_sec=timeout_sec,
+                mapper_config=mapper,
+                missing_distance_policy=missing_distance_policy,
                 progress=args.verbose and not args.quiet,
             )
         else:

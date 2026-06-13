@@ -13,6 +13,10 @@ garbage/*
 .DS_Store
 __pycache__/
 *.pyc
+*.net
+*.place
+*.rpt
+vpr_stdout.log
 research/results/**
 !research/results/
 !research/results/.gitkeep

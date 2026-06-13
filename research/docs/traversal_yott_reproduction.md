@@ -11,11 +11,10 @@ This manifest matches the public `cpu_mapping` setup used for the TRAVERSAL/YOTT
 - `mesh_perimeter_io` uses the mesh cost model.
 - `one_hop_perimeter_io` uses `one_hop_axis2`, matching the public 1-hop cost `ceil(dx / 2) + ceil(dy / 2)`.
 - YOTO/YOTT trial counts are exposed as 1, 10, 100, and 1000.
-- `sa_100` uses 100 independent SA seeds as the local SA baseline.
-- `array_yoto_*`, `array_yott_*`, and `array_sa_100` use direct 2D grid arrays instead of the shared placement engine. They use the same grid, I/O legality checks, output mapping format, random seed controls, and placement metrics, so they can be compared with the shared-engine mappers.
+- `array_yoto_*` and `array_yott_*` use direct 2D grid arrays instead of the shared placement engine. They use the same grid, I/O legality checks, output mapping format, random seed controls, and placement metrics, so they can be compared with the shared-engine mappers.
 - The array YOTO/YOTT variants reserve perimeter I/O-capable slots for `load`, `store`, and `output` nodes by penalizing ordinary operations on those slots. This avoids greedy placement failures where compute nodes consume scarce I/O slots before memory/output nodes are placed.
 - `placement_only_ilp` solves the same placement-only objective with Gurobi when it finishes within the manifest timeout.
-- `vpr_bb` and `vpr_fast` use VPR as external placement baselines with `pack_capacity = 1`, so each DFG node is kept as one placeable VPR block for fair placement-quality comparison.
+- `vpr_sa` and `vpr_sa_fast` use VPR simulated annealing as external placement baselines with `pack_capacity = 1`, so each DFG node is kept as one placeable VPR block for fair placement-quality comparison.
 
 The paper-facing placement metrics are:
 
@@ -26,7 +25,7 @@ The paper-facing placement metrics are:
 
 For paper-style runtime comparison, use `mapping_time_sec`. This is the mapper-reported algorithm time. `wall_time_sec` is also shown in reports, but it includes the Python suite runner, process startup, generated input/output files, and log collection. That overhead is useful for workflow cost, but it should not be compared directly with the TRAVERSAL/YOTT placement kernel runtime.
 
-`vpr_bb` runs VPR as an external bounding-box placement baseline. `vpr_fast` runs a lower-effort VPR placement setting for a fast baseline. The repository pins VTR/VPR v8.0.0 as `third_party/vtr` for these baselines. If VPR is not built or the XML is not found, the row is recorded as `skipped` instead of failing the full suite.
+`vpr_sa` runs VPR simulated-annealing placement with the bounding-box cost model. `vpr_sa_fast` runs a lower-effort VPR placement setting for a fast baseline. The repository pins VTR/VPR v8.0.0 as `third_party/vtr` for these baselines. If VPR is not built or the XML is not found, the row is recorded as `skipped` instead of failing the full suite.
 
 VPR setup:
 
@@ -59,7 +58,7 @@ cd /home/ubuntu/elastic_cgra_mapper &&
 python3 research/scripts/run_suite.py \
   --manifest research/configs/experiments/placement2d/traversal_yott_placement_quality.json \
   --only-benchmark atax \
-  --only-mapper yoto_1,yott_1,sa_100,vpr_bb \
+  --only-mapper yoto_1,yott_1,vpr_sa \
   --tag repro_smoke
 '
 ```

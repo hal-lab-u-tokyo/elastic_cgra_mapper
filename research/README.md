@@ -50,16 +50,18 @@ The `modulo_*_mapper.json` configs solve modulo mapping and may use multiple con
 
 See `research/docs/mapper_extension_guide.md` for the exact checklist.
 
+See `research/docs/vpr_modulo_routing.md` for the VPR routed baseline scope and limitations.
+
 ## Mapper Comparison
 
 Use these four manifests:
 
-- `configs/experiments/modulo/search.json`: modulo mappers only; quick iteration.
-- `configs/experiments/modulo/all_mappers.json`: modulo mappers plus routed/context-aware ILP mappers.
+- `configs/experiments/modulo/search.json`: modulo heuristic mappers plus the lightweight VPR SA routed baseline.
+- `configs/experiments/modulo/all_mappers.json`: modulo mappers plus routed/context-aware ILP mappers and strict VPR routed baselines.
 - `configs/experiments/placement2d/search.json`: 2D placement mappers only; quick iteration.
 - `configs/experiments/placement2d/all_mappers.json`: 2D placement mappers plus the placement-only ILP baseline.
 
-`modulo/search.json` uses one 6x6 default CGRA and a small native kernel set for routed modulo mapping. `placement2d/search.json` uses a representative LISA/m_bench subset, cpu_mapping-style auto grid sizing, perimeter I/O without corners, the 1-hop cost model, and placement-only evaluation.
+`modulo/search.json` uses one 6x6 default CGRA and a small native kernel set for routed modulo mapping. It includes the internal heuristic mappers, `modulo_sa_mapper`, and `vpr_sa_routed`, which runs VPR simulated-annealing placement first, assigns modulo contexts, then routes on this repository's MRRG. The slower `vpr_sa_full_route` baseline is kept in `modulo/all_mappers.json`. `placement2d/search.json` uses a representative LISA/m_bench subset, cpu_mapping-style auto grid sizing, perimeter I/O without corners, the 1-hop cost model, and placement-only evaluation.
 
 To compare a new mapper, add or remove entries in the manifest's `mappers` list, then run:
 
@@ -77,14 +79,16 @@ python3 research/scripts/run_suite.py \
 
 This manifest uses small kernels and a longer per-II timeout. `FullRoutingILPMapper` solves placement and DFG-edge routing together. `ConnectivityPathILPMapper` uses precomputed MRRG paths. `PlacementOnlyILPMapper` is a placement-first exact baseline and is implemented with the 2D placement mappers because it does not model routed paths.
 
-Use `configs/experiments/placement2d/search.json` for quick TRAVERSAL/YOTT-style 2D placement comparisons. It includes array YOTO/YOTT/SA and a VPR bounding-box baseline:
+`vpr_sa_full_route` is the strict VPR-routing baseline for modulo runs. It routes over a generated CGRA RR graph, imports the VPR route tree, and accepts a result only when the imported mapping passes the same reachability and legal-edge checks as native mappers. It is intended for `modulo/all_mappers.json`, not the lightweight search manifest.
+
+Use `configs/experiments/placement2d/search.json` for quick TRAVERSAL/YOTT-style 2D placement comparisons. It includes array YOTO/YOTT and a VPR simulated-annealing placement baseline:
 
 ```bash
 python3 research/scripts/run_suite.py \
   --manifest research/configs/experiments/placement2d/search.json
 ```
 
-Use `configs/experiments/placement2d/all_mappers.json` to include shared-engine mappers, array fast-path mappers, VPR baselines, and the placement-only ILP baseline under the same paper-like II=1 setting. It uses a representative subset that avoids very large ILP timeouts; use `placement2d/traversal_yott_placement_quality.json` for the full LISA/m_bench reproduction run. For placement2d manifests, one physical PE is one placement slot and II/context size is fixed to 1. `preflight_manifest.py` checks that DFG node count is not larger than physical PE count.
+Use `configs/experiments/placement2d/all_mappers.json` to include shared-engine mappers, array fast-path mappers, VPR simulated-annealing baselines, and the placement-only ILP baseline under the same paper-like II=1 setting. It uses a representative subset that avoids very large ILP timeouts; use `placement2d/traversal_yott_placement_quality.json` for the full LISA/m_bench reproduction run. For placement2d manifests, one physical PE is one placement slot and II/context size is fixed to 1. `preflight_manifest.py` checks that DFG node count is not larger than physical PE count.
 
 Use `configs/experiments/placement2d/traversal_yott_placement_quality.json` for TRAVERSAL/YOTT-style placement-only comparisons. It includes VPR external baselines, which use `third_party/vtr/build/vpr/vpr` and `third_party/vtr/vtr_flow/arch/timing/k6_N10_40nm.xml` by default. Set `VPR_BIN` or `VPR_ARCH_XML` to override them. The VPR mapper entries set `pack_capacity: 1`, so the runner derives a temporary N=1 VPR architecture and keeps one DFG node per placement site for strict placement-quality comparison.
 

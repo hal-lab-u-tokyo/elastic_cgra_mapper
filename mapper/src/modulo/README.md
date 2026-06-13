@@ -7,6 +7,11 @@ ILP-backed modulo mappers live here when they model routed or context-aware modu
 - `FullRoutingILPMapper`: exact placement and DFG-edge routing flow ILP.
 - `ConnectivityPathILPMapper`: ILP over precomputed MRRG connectivity/path candidates.
 
+Traversal-style mappers are split by interpretation:
+
+- `ModuloYOTOMapper` / `ModuloYOTTMapper`: pure placement-first variants followed by route validation.
+- `ModuloYOTOWithFallbackMapper` / `ModuloYOTTWithFallbackMapper`: diagnostic hybrids that add routing-aware fallback placements. Do not include them in ordinary comparisons unless mixed strategies are the object of study.
+
 To add a mapper:
 
 1. Add `mapper/include/mapper/modulo/<name>.hpp`.
