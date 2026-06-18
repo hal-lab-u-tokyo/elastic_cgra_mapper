@@ -1,6 +1,7 @@
 #include <time.h>
 
 #include <chrono>
+#include <cxxopts.hpp>
 #include <filesystem>
 #include <fstream>
 #include <io/architecture_io.hpp>
@@ -75,19 +76,44 @@ std::shared_ptr<entity::DFG> AddDFG(
 }
 
 int main(int argc, char* argv[]) {
-  if (argc != 7) {
-    std::cerr << "invalid arguments" << std::endl;
-    abort();
+  cxxopts::Options options("mapping", "Run mapping for a DFG and CGRA.");
+  options.add_options()("dfg_file", "Absolute path to the input DFG dot file",
+                        cxxopts::value<std::string>())(
+      "cgra_file", "Absolute path to the input CGRA/MRRG json file",
+      cxxopts::value<std::string>())("output_dir",
+                                     "Absolute path to the output directory",
+                                     cxxopts::value<std::string>())(
+      "mapper_config", "Path to the mapper config json file",
+      cxxopts::value<std::string>())("timeout_s", "Mapping timeout in seconds",
+                                     cxxopts::value<double>())(
+      "parallel_num", "Number of parallel DFG instances",
+      cxxopts::value<int>())("h,help", "Print usage");
+
+  std::string dfg_dot_file_path;
+  std::string mrrg_file_path;
+  std::string output_dir;
+  std::string mapper_config_file_path;
+  double timeout_s = 0;
+  int parallel_num = 0;
+  try {
+    const auto result = options.parse(argc, argv);
+    if (result.count("help")) {
+      std::cout << options.help();
+      return 0;
+    }
+    dfg_dot_file_path = result["dfg_file"].as<std::string>();
+    mrrg_file_path = result["cgra_file"].as<std::string>();
+    output_dir = result["output_dir"].as<std::string>();
+    mapper_config_file_path = result["mapper_config"].as<std::string>();
+    timeout_s = result["timeout_s"].as<double>();
+    parallel_num = result["parallel_num"].as<int>();
+  } catch (const cxxopts::exceptions::exception& e) {
+    std::cerr << "invalid arguments: " << e.what() << std::endl;
+    std::cerr << options.help();
+    return 1;
   }
 
   io::MappingLogger logger;
-
-  std::string dfg_dot_file_path = argv[1];
-  std::string mrrg_file_path = argv[2];
-  std::string output_dir = argv[3];
-  std::string mapper_config_file_path = argv[4];
-  double timeout_s = std::stod(argv[5]);
-  int parallel_num = std::stoi(argv[6]);
 
   if (!std::filesystem::exists(output_dir)) {
     std::filesystem::create_directories(output_dir);

@@ -1,6 +1,7 @@
 #include <time.h>
 
 #include <chrono>
+#include <cxxopts.hpp>
 #include <entity/mapping.hpp>
 #include <filesystem>
 #include <fstream>
@@ -8,6 +9,7 @@
 #include <io/mapping_io.hpp>
 #include <io/output_to_log_file.hpp>
 #include <io/select_database.hpp>
+#include <iostream>
 #include <remapper/mapping_concater.hpp>
 #include <remapper/remapper.hpp>
 
@@ -33,19 +35,47 @@ io::MappingTransformOp ConvertMappingTransformOp(
 }
 
 int main(int argc, char* argv[]) {
-  if (argc != 8) {
-    std::cerr << "invalid arguments" << std::endl;
-    abort();
-  }
+  cxxopts::Options options("remapping",
+                           "Run remapping from a mapping database.");
+  options.add_options()("database_dir", "Absolute path to the database root",
+                        cxxopts::value<std::string>())(
+      "dfg_file", "Absolute path to the input DFG file",
+      cxxopts::value<std::string>())(
+      "cgra_file", "Absolute path to the input CGRA/MRRG json file",
+      cxxopts::value<std::string>())("output_dir",
+                                     "Absolute path to the output directory",
+                                     cxxopts::value<std::string>())(
+      "remapper_mode", "Remapper mode as integer", cxxopts::value<int>())(
+      "timeout_s", "Remapping timeout in seconds", cxxopts::value<double>())(
+      "num_available_mappings", "Maximum number of database mappings to use",
+      cxxopts::value<int>())("h,help", "Print usage");
 
-  std::string database_dir_path = argv[1];
-  std::string dfg_file_path = argv[2];
-  std::string mrrg_file_path = argv[3];
-  std::string output_dir = argv[4];
-  remapper::RemappingMode mode =
-      static_cast<remapper::RemappingMode>(std::stoi(argv[5]));
-  const double timeout_s = std::stod(argv[6]);
-  const int num_available_mappings = std::stoi(argv[7]);
+  std::string database_dir_path;
+  std::string dfg_file_path;
+  std::string mrrg_file_path;
+  std::string output_dir;
+  remapper::RemappingMode mode;
+  double timeout_s = 0;
+  int num_available_mappings = 0;
+  try {
+    const auto result = options.parse(argc, argv);
+    if (result.count("help")) {
+      std::cout << options.help();
+      return 0;
+    }
+    database_dir_path = result["database_dir"].as<std::string>();
+    dfg_file_path = result["dfg_file"].as<std::string>();
+    mrrg_file_path = result["cgra_file"].as<std::string>();
+    output_dir = result["output_dir"].as<std::string>();
+    mode =
+        static_cast<remapper::RemappingMode>(result["remapper_mode"].as<int>());
+    timeout_s = result["timeout_s"].as<double>();
+    num_available_mappings = result["num_available_mappings"].as<int>();
+  } catch (const cxxopts::exceptions::exception& e) {
+    std::cerr << "invalid arguments: " << e.what() << std::endl;
+    std::cerr << options.help();
+    return 1;
+  }
   const auto start_time = std::chrono::system_clock::now();
 
   assert(std::filesystem::path(database_dir_path).is_absolute());

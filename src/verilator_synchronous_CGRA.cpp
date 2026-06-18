@@ -2,6 +2,7 @@
 #include <verilated.h>
 #include <verilated_vcd_c.h>
 
+#include <cxxopts.hpp>
 #include <io/architecture_io.hpp>
 #include <io/dfg_io.hpp>
 #include <io/mapper_config_io.hpp>
@@ -10,16 +11,40 @@
 #include <mapper/gurobi_placement_mapper.hpp>
 
 int main(int argc, char** argv) {
-  if (argc != 5) {
-    std::cerr << "invalid arguments" << std::endl;
-    abort();
-  }
+  cxxopts::Options options("verilator_synchronous_CGRA",
+                           "Run Verilator synchronous CGRA simulation.");
+  options.add_options()("dfg_file", "Absolute path to the input DFG dot file",
+                        cxxopts::value<std::string>())(
+      "cgra_file", "Absolute path to the input CGRA/MRRG json file",
+      cxxopts::value<std::string>())(
+      "mapping_file", "Absolute path to write the mapping json file",
+      cxxopts::value<std::string>())("mapper_config",
+                                     "Path to the mapper config json file",
+                                     cxxopts::value<std::string>())(
+      "fst_output_file", "Path to write the waveform output file",
+      cxxopts::value<std::string>())("h,help", "Print usage");
 
-  std::string dfg_dot_file_path = argv[1];
-  std::string mrrg_file_path = argv[2];
-  std::string mapping_file_path = argv[3];
-  std::string mapper_config_file_path = argv[4];
-  std::string fst_output_file_path = argv[5];
+  std::string dfg_dot_file_path;
+  std::string mrrg_file_path;
+  std::string mapping_file_path;
+  std::string mapper_config_file_path;
+  std::string fst_output_file_path;
+  try {
+    const auto result = options.parse(argc, argv);
+    if (result.count("help")) {
+      std::cout << options.help();
+      return 0;
+    }
+    dfg_dot_file_path = result["dfg_file"].as<std::string>();
+    mrrg_file_path = result["cgra_file"].as<std::string>();
+    mapping_file_path = result["mapping_file"].as<std::string>();
+    mapper_config_file_path = result["mapper_config"].as<std::string>();
+    fst_output_file_path = result["fst_output_file"].as<std::string>();
+  } catch (const cxxopts::exceptions::exception& e) {
+    std::cerr << "invalid arguments: " << e.what() << std::endl;
+    std::cerr << options.help();
+    return 1;
+  }
 
   // create mapping
   std::shared_ptr<entity::DFG> dfg_ptr = std::make_shared<entity::DFG>();
