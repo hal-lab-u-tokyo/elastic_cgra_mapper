@@ -255,9 +255,8 @@ void io::RemapperLogger::LogRemapperInput(const io::RemapperInput& input) {
   CopyFile(input.cgra_file_path, arch_file_path_);
 
   if (!std::filesystem::exists(database_mapping_dir_path)) {
-    std::cerr
-        << "No mapping directory is found in the selected database directory."
-        << std::endl;
+    std::cerr << "No mapping directory is found in the database directory."
+              << std::endl;
     return;
   }
   for (const auto& dir_path :
@@ -321,6 +320,7 @@ void io::RemapperLogger::LogRemapperOutput(const io::RemapperOutput& output) {
   transform_file.close();
 
   std::unordered_map<std::string, std::string> json_str_vec;
+  json_str_vec["is_success"] = "true";
   json_str_vec["remapping_time_s"] = std::to_string(output.remapping_time_s);
   json_str_vec["parallel_num"] = std::to_string(output.parallel_num);
   json_str_vec["mapping_type_num"] = std::to_string(output.mapping_type_num);
@@ -328,6 +328,20 @@ void io::RemapperLogger::LogRemapperOutput(const io::RemapperOutput& output) {
   OutputJsonLog(output_summary_file_path_, json_str_vec);
 
   WriteMappingFile(mapping_file_path_, output.mapping_ptr, output.mrrg_config);
+}
+
+void io::RemapperLogger::LogRemapperFailure(double remapping_time_s,
+                                            const std::string& error_message) {
+  assert(remapping_time_s >= 0);
+
+  std::unordered_map<std::string, std::string> json_str_vec;
+  json_str_vec["is_success"] = "false";
+  json_str_vec["remapping_time_s"] = std::to_string(remapping_time_s);
+  json_str_vec["parallel_num"] = "0";
+  json_str_vec["mapping_type_num"] = "0";
+  json_str_vec["mapping_file"] = "\"\"";
+  json_str_vec["error_message"] = "\"" + error_message + "\"";
+  OutputJsonLog(output_summary_file_path_, json_str_vec);
 }
 
 std::string GetCGRAId(const std::filesystem::path& cgra_file_path) {

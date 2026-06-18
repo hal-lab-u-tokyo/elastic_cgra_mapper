@@ -22,13 +22,17 @@ def load_remapper_result(remapper_dir_path):
     if not os.path.exists(os.path.join(remapper_dir_path, output_summary_file_name)):
         success = False
     else:
-        success = True
         with open(os.path.join(remapper_dir_path, output_summary_file_name), 'r') as f:
             output_summary_json = json.load(f)
-        with open(os.path.join(remapper_dir_path, remapping_file_name), 'r') as f:
-            remapping_json = json.load(f)
-        with open(os.path.join(remapper_dir_path, transform_op_name), 'r') as f:
-            transform_op_json = json.load(f)
+        success = output_summary_json.get("is_success", True)
+        if not success:
+            remapping_json = {}
+            transform_op_json = {}
+        else:
+            with open(os.path.join(remapper_dir_path, remapping_file_name), 'r') as f:
+                remapping_json = json.load(f)
+            with open(os.path.join(remapper_dir_path, transform_op_name), 'r') as f:
+                transform_op_json = json.load(f)
 
     remapper_result = RemapperLogInfo()
 

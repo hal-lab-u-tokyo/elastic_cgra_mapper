@@ -119,7 +119,23 @@ def remapper_exec(input):
 
   remapper_mode_int = remapping_type_to_int(input.remapper_mode)
 
-  subprocess.run(["/home/ubuntu/elastic_cgra_mapper/build/remapping", input.mapping_dir_path, input.dfg_file_path, cgra_file_path, input.output_dir_path, str(remapper_mode_int), str(input.timeout_s), str(input.num_available_mappings)])
+  result = subprocess.run(
+    ["/home/ubuntu/elastic_cgra_mapper/build/remapping", input.mapping_dir_path, input.dfg_file_path, cgra_file_path, input.output_dir_path, str(remapper_mode_int), str(input.timeout_s), str(input.num_available_mappings)],
+    capture_output=True,
+    text=True
+  )
+
+  lock.acquire()
+  try:
+    experiment_log_file = open(experiment_log_file_path, "a")
+    experiment_log_file.write("return_code: " + str(result.returncode) + "\n")
+    if result.stdout:
+      experiment_log_file.write("stdout:\n" + result.stdout + "\n")
+    if result.stderr:
+      experiment_log_file.write("stderr:\n" + result.stderr + "\n")
+    experiment_log_file.close()
+  finally:
+    lock.release()
 
   os.remove(cgra_file_path)
 

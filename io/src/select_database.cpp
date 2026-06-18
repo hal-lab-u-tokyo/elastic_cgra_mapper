@@ -5,7 +5,7 @@
 #include <io/mapping_io.hpp>
 #include <io/select_database.hpp>
 
-io::SelectedDatabase io::select_database(
+entity::Database io::select_database(
     const std::filesystem::path& database_dir_path,
     const entity::MRRGConfig& mrrg_config,
     const std::filesystem::path& dfg_path) {
@@ -117,8 +117,10 @@ io::SelectedDatabase io::select_database(
       }
     }
 
-    return SelectedDatabase{database, database_dir.path(), true};
+    database.SetDatabaseDirPath(database_dir.path());
+    database.SetExist(true);
+    return database;
   }
 
-  return SelectedDatabase{entity::Database(), std::filesystem::path(), false};
+  return entity::Database();
 }

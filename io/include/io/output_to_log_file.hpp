@@ -108,6 +108,8 @@ class RemapperLogger : public Logger {
   RemapperLogger() : Logger() {}
   void LogRemapperInput(const RemapperInput& input);
   void LogRemapperOutput(const RemapperOutput& output);
+  void LogRemapperFailure(double remapping_time_s,
+                          const std::string& error_message);
   std::string GetRemapperExecLogFilePath() const {
     return remapper_exec_log_file_path.string();
   };
