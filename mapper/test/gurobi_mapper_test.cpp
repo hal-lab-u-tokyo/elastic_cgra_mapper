@@ -10,7 +10,7 @@ TEST(MapperTest, gurobi_placement_mapper_test) {
   entity::DFGGraph g;
   for (int i = 0; i < node_num; i++) {
     auto v1 = boost::add_vertex(g);
-    g[v1].op = entity::OpType::ADD;
+    g[v1].op = entity::OpType::kAdd;
   }
 
   boost::graph_traits<entity::DFGGraph>::edge_descriptor e;
@@ -52,7 +52,7 @@ TEST(MapperTest, gurobi_mapper_test) {
   entity::DFGGraph g;
   for (int i = 0; i < node_num; i++) {
     auto v1 = boost::add_vertex(g);
-    g[v1].op = entity::OpType::ADD;
+    g[v1].op = entity::OpType::kAdd;
   }
 
   boost::graph_traits<entity::DFGGraph>::edge_descriptor e;

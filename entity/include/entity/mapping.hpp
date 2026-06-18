@@ -25,7 +25,7 @@ class Mapping {
     if (config_map_.count(config_id) > 0) {
       return config_map_.at(config_id);
     } else {
-      return CGRAConfig(OpType::NOP, OpTypeToString(OpType::NOP));
+      return CGRAConfig(OpType::kNop, OpTypeToString(OpType::kNop));
     }
   };
   size_t GetOpNum() const;

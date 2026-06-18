@@ -42,18 +42,18 @@ struct MRRGNodeProperty {
 
 struct MRRGEdgeProperty {};
 
-enum MRRGCGRAType {
+enum class MRRGCGRAType {
   kDefault,
   kElastic,
 };
 
-enum MRRGMemoryIOType {
+enum class MRRGMemoryIOType {
   kAll,
   kBothEnds,
   kOneEnd,
 };
 
-enum MRRGNetworkType {
+enum class MRRGNetworkType {
   kOrthogonal,
   kDiagonal,
 };

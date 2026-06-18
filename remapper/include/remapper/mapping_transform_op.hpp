@@ -3,15 +3,15 @@
 #include <vector>
 
 namespace remapper {
-enum RotateOp {
-  TopIsTop = 0,
-  TopIsRight = 1,
-  TopIsBottom = 2,
-  TopIsLeft = 3,
-  TopIsTopMirror = 4,
-  TopIsRightMirror = 5,
-  TopIsBottomMirror = 6,
-  TopIsLeftMirror = 7
+enum class RotateOp {
+  kTopIsTop = 0,
+  kTopIsRight = 1,
+  kTopIsBottom = 2,
+  kTopIsLeft = 3,
+  kTopIsTopMirror = 4,
+  kTopIsRightMirror = 5,
+  kTopIsBottomMirror = 6,
+  kTopIsLeftMirror = 7
 };
 
 std::string RotateOpToString(RotateOp rotate_op);
@@ -20,16 +20,16 @@ RotateOp CombineRotateOp(const RotateOp& lhs, const RotateOp& rhs);
 
 constexpr int kRotateOpNum = 8;
 
-enum class RotateType { All = 0, WithoutMirror = 1 };
+enum class RotateType { kAll = 0, kWithoutMirror = 1 };
 
 const std::vector<RotateOp> kAllRotateOpVec = {
-    RotateOp::TopIsTop,          RotateOp::TopIsRight,
-    RotateOp::TopIsBottom,       RotateOp::TopIsLeft,
-    RotateOp::TopIsTopMirror,    RotateOp::TopIsRightMirror,
-    RotateOp::TopIsBottomMirror, RotateOp::TopIsLeftMirror};
+    RotateOp::kTopIsTop,          RotateOp::kTopIsRight,
+    RotateOp::kTopIsBottom,       RotateOp::kTopIsLeft,
+    RotateOp::kTopIsTopMirror,    RotateOp::kTopIsRightMirror,
+    RotateOp::kTopIsBottomMirror, RotateOp::kTopIsLeftMirror};
 const std::vector<RotateOp> kAllRotateOpVecWithoutMirror = {
-    RotateOp::TopIsTop, RotateOp::TopIsRight, RotateOp::TopIsBottom,
-    RotateOp::TopIsLeft};
+    RotateOp::kTopIsTop, RotateOp::kTopIsRight, RotateOp::kTopIsBottom,
+    RotateOp::kTopIsLeft};
 
 struct MappingTransformOp {
   MappingTransformOp()

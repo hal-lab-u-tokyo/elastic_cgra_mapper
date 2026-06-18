@@ -6,7 +6,7 @@
 #include <string>
 
 namespace remapper {
-enum RemappingMode { FullSearch, Greedy, DP, DPAndFullSearch };
+enum class RemappingMode { kFullSearch, kGreedy, kDP, kDPAndFullSearch };
 
 std::string RemappingModeToString(RemappingMode mode);
 

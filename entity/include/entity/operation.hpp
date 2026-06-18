@@ -4,30 +4,30 @@
 #include <vector>
 
 namespace entity {
-enum OpType {
-  ADD,
-  FADD,
-  SUB,
-  MUL,
-  FMUL,
-  DIV,
-  SDIV,
-  FDIV,
-  CONST,
-  LOAD,
-  OUTPUT,
-  STORE,
-  NOP,
-  ROUTE,
-  OR,
-  SHIFT,
-  ICMP,
-  CMPGT,
-  CMPGE,
-  CMPEQ,
-  FSUB,
-  LOOP,
-  SELECT
+enum class OpType {
+  kAdd,
+  kFAdd,
+  kSub,
+  kMul,
+  kFMul,
+  kDiv,
+  kSDiv,
+  kFDiv,
+  kConst,
+  kLoad,
+  kOutput,
+  kStore,
+  kNop,
+  kRoute,
+  kOr,
+  kShift,
+  kIcmp,
+  kCmpGt,
+  kCmpGe,
+  kCmpEq,
+  kFSub,
+  kLoop,
+  kSelect
 };
 std::string OpTypeToString(OpType op);
 OpType OpTypeFromString(std::string op_string);

@@ -46,20 +46,20 @@ TEST(RemapperTest, remapper_test) {
   std::ofstream log_file(kDatabaseDirPath / "test_remapper.log");
 
   // test dynamic programming remapping
-  const auto remapping_result_dp =
-      remapper::Remapper::Remapping(mapping_vec, mrrg_config, parallel_num,
-                                    log_file, remapper::RemappingMode::DP, 100);
+  const auto remapping_result_dp = remapper::Remapper::Remapping(
+      mapping_vec, mrrg_config, parallel_num, log_file,
+      remapper::RemappingMode::kDP, 100);
   EXPECT_EQ(remapping_result_dp.result_mapping_id_vec.size(), 3);
 
   // test greedy remapping
   const auto remapping_result_greedy = remapper::Remapper::Remapping(
       mapping_vec, mrrg_config, parallel_num, log_file,
-      remapper::RemappingMode::Greedy, 100);
+      remapper::RemappingMode::kGreedy, 100);
   EXPECT_EQ(remapping_result_greedy.result_mapping_id_vec.size(), 3);
 
   // test full search remapping
   const auto remapping_result_full_search = remapper::Remapper::Remapping(
       mapping_vec, mrrg_config, parallel_num, log_file,
-      remapper::RemappingMode::FullSearch, 100);
+      remapper::RemappingMode::kFullSearch, 100);
   EXPECT_EQ(remapping_result_full_search.result_mapping_id_vec.size(), 4);
 }

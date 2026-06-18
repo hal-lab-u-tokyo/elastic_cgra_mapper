@@ -35,7 +35,7 @@ entity::Mapping::Mapping(
     auto GetOpTypeFromPEId = [&](int PE_id) {
       int op_id = PE_id_to_op_id_map.at(PE_id);
       if (op_id == kRouteOpId) {
-        return entity::OpType::ROUTE;
+        return entity::OpType::kRoute;
       }
       return dfg.GetNodeProperty(op_id).op;
     };
@@ -65,7 +65,7 @@ entity::Mapping::Mapping(
         config_map_.emplace(from_config_id,
                             entity::CGRAConfig(from_op_type, from_op_name));
       }
-      if (from_op_type == entity::OpType::CONST) {
+      if (from_op_type == entity::OpType::kConst) {
         int op_id = PE_id_to_op_id_map.at(from_PE_id);
         if (dfg.GetNodeProperty(op_id).const_value.has_value()) {
           config_map_[from_config_id].SetConstValue(
@@ -93,7 +93,7 @@ entity::Mapping::Mapping(
           config_map_[to_config_id].AddFromConfig(from_config_id, to_op_type,
                                                   to_op_name);
           if (searched_PE_id.count(adj_PE_id) == 0) {
-            if (to_op_type == entity::OpType::ROUTE) {
+            if (to_op_type == entity::OpType::kRoute) {
               from_PE_id_queue.push(to_PE_id);
             }
             searched_PE_id.emplace(to_PE_id);
@@ -136,7 +136,7 @@ entity::Mapping entity::GenerateMappingFromRoutingResult(
     auto GetOpTypeFromPEId = [&](int PE_id) {
       int op_id = PE_id_to_op_id_map.at(PE_id);
       if (op_id == kRouteOpId) {
-        return entity::OpType::ROUTE;
+        return entity::OpType::kRoute;
       }
       return dfg.GetNodeProperty(op_id).op;
     };
@@ -188,14 +188,14 @@ entity::Mapping entity::GenerateMappingFromRoutingResult(
       config_map_[to_config_id].AddFromConfig(from_config_id, to_op_type,
                                               to_op_name);
 
-      if (from_op_type == entity::OpType::CONST) {
+      if (from_op_type == entity::OpType::kConst) {
         if (dfg.GetNodeProperty(from_op_id).const_value.has_value()) {
           config_map_[from_config_id].SetConstValue(
               dfg.GetNodeProperty(from_op_id).const_value.value());
         }
       }
 
-      if (to_op_type != entity::OpType::ROUTE) {
+      if (to_op_type != entity::OpType::kRoute) {
         continue;
       }
 
@@ -221,7 +221,7 @@ entity::Mapping entity::GenerateMappingFromRoutingResult(
 size_t entity::Mapping::GetOpNum() const {
   size_t result = 0;
   for (const auto& id_and_config : config_map_) {
-    if (id_and_config.second.operation_type != entity::OpType::NOP) {
+    if (id_and_config.second.operation_type != entity::OpType::kNop) {
       result++;
     }
   }

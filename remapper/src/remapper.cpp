@@ -12,13 +12,13 @@
 
 std::string remapper::RemappingModeToString(RemappingMode mode) {
   switch (mode) {
-    case RemappingMode::FullSearch:
+    case RemappingMode::kFullSearch:
       return "full_search";
-    case RemappingMode::Greedy:
+    case RemappingMode::kGreedy:
       return "greedy";
-    case RemappingMode::DP:
+    case RemappingMode::kDP:
       return "dp";
-    case RemappingMode::DPAndFullSearch:
+    case RemappingMode::kDPAndFullSearch:
       return "dp_and_full_search";
   }
 }
@@ -26,13 +26,13 @@ std::string remapper::RemappingModeToString(RemappingMode mode) {
 remapper::RemappingMode remapper::RemappingModeFromString(
     const std::string& mode_str) {
   if (mode_str == "full_search") {
-    return RemappingMode::FullSearch;
+    return RemappingMode::kFullSearch;
   } else if (mode_str == "greedy") {
-    return RemappingMode::Greedy;
+    return RemappingMode::kGreedy;
   } else if (mode_str == "dp") {
-    return RemappingMode::DP;
+    return RemappingMode::kDP;
   } else if (mode_str == "dp_and_full_search") {
-    return RemappingMode::DPAndFullSearch;
+    return RemappingMode::kDPAndFullSearch;
   } else {
     assert(false);
   }
@@ -62,20 +62,20 @@ remapper::RemappingResult remapper::Remapper::Remapping(
   RemappingResult result;
   const auto start_time = std::chrono::system_clock::now();
   switch (mode) {
-    case RemappingMode::FullSearch:
+    case RemappingMode::kFullSearch:
       result = remapper::FullSearchRemapping(mapping_matrix_vec, cgra_matrix,
                                              target_parallel_num, log_file,
                                              timeout_s);
       break;
-    case RemappingMode::Greedy:
+    case RemappingMode::kGreedy:
       result = remapper::GreedyRemapping(mapping_matrix_vec, cgra_matrix,
                                          target_parallel_num, log_file);
       break;
-    case RemappingMode::DP:
+    case RemappingMode::kDP:
       result = remapper::DPRemapping(mapping_matrix_vec, cgra_matrix,
                                      target_parallel_num, log_file);
       break;
-    case RemappingMode::DPAndFullSearch:
+    case RemappingMode::kDPAndFullSearch:
       result = remapper::DPAndFullSearchElasticRemapping(
           mapping_matrix_vec, cgra_matrix, target_parallel_num, log_file);
       break;
@@ -99,5 +99,6 @@ void remapper::OutputToLogFile(entity::MRRGConfig mapping_mrrg_config,
   log_file << "context_size: " << mapping_mrrg_config.context_size << std::endl;
   log_file << "row shift: " << transform_op.row << std::endl;
   log_file << "column shift: " << transform_op.column << std::endl;
-  log_file << "rotation: " << transform_op.rotate_op << std::endl;
+  log_file << "rotation: " << static_cast<int>(transform_op.rotate_op)
+           << std::endl;
 }

@@ -6,42 +6,42 @@ entity::ConfigId remapper::RotateConfigId(
     const remapper::RotateOp& rotate_op) {
   int rotated_row_id, rotated_column_id;
   switch (rotate_op) {
-    case remapper::RotateOp::TopIsRight:
+    case remapper::RotateOp::kTopIsRight:
       rotated_row_id = config_id.column_id;
       rotated_column_id = target_mrrg_config.row - 1 - config_id.row_id;
       break;
 
-    case remapper::RotateOp::TopIsBottom:
+    case remapper::RotateOp::kTopIsBottom:
       rotated_row_id = target_mrrg_config.row - 1 - config_id.row_id;
       rotated_column_id = target_mrrg_config.column - 1 - config_id.column_id;
       break;
 
-    case remapper::RotateOp::TopIsLeft:
+    case remapper::RotateOp::kTopIsLeft:
       rotated_row_id = target_mrrg_config.column - 1 - config_id.column_id;
       rotated_column_id = config_id.row_id;
       break;
 
-    case remapper::RotateOp::TopIsTop:
+    case remapper::RotateOp::kTopIsTop:
       rotated_row_id = config_id.row_id;
       rotated_column_id = config_id.column_id;
       break;
 
-    case remapper::RotateOp::TopIsRightMirror:
+    case remapper::RotateOp::kTopIsRightMirror:
       rotated_row_id = config_id.column_id;
       rotated_column_id = config_id.row_id;
       break;
 
-    case remapper::RotateOp::TopIsBottomMirror:
+    case remapper::RotateOp::kTopIsBottomMirror:
       rotated_row_id = target_mrrg_config.row - 1 - config_id.row_id;
       rotated_column_id = config_id.column_id;
       break;
 
-    case remapper::RotateOp::TopIsLeftMirror:
+    case remapper::RotateOp::kTopIsLeftMirror:
       rotated_row_id = target_mrrg_config.column - 1 - config_id.column_id;
       rotated_column_id = target_mrrg_config.row - 1 - config_id.row_id;
       break;
 
-    case remapper::RotateOp::TopIsTopMirror:
+    case remapper::RotateOp::kTopIsTopMirror:
       rotated_row_id = config_id.row_id;
       rotated_column_id = target_mrrg_config.column - 1 - config_id.column_id;
       break;
@@ -56,42 +56,42 @@ entity::MRRGConfig RotateMRRGConfig(const entity::MRRGConfig& mrrg_config,
   entity::MRRGConfig rotated_mrrg_config = mrrg_config;
 
   switch (rotate_op) {
-    case remapper::RotateOp::TopIsRight:
+    case remapper::RotateOp::kTopIsRight:
       rotated_mrrg_config.column = mrrg_config.row;
       rotated_mrrg_config.row = mrrg_config.column;
       break;
 
-    case remapper::RotateOp::TopIsBottom:
+    case remapper::RotateOp::kTopIsBottom:
       rotated_mrrg_config.column = mrrg_config.column;
       rotated_mrrg_config.row = mrrg_config.row;
       break;
 
-    case remapper::RotateOp::TopIsLeft:
+    case remapper::RotateOp::kTopIsLeft:
       rotated_mrrg_config.column = mrrg_config.row;
       rotated_mrrg_config.row = mrrg_config.column;
       break;
 
-    case remapper::RotateOp::TopIsTop:
+    case remapper::RotateOp::kTopIsTop:
       rotated_mrrg_config.column = mrrg_config.column;
       rotated_mrrg_config.row = mrrg_config.row;
       break;
 
-    case remapper::RotateOp::TopIsRightMirror:
+    case remapper::RotateOp::kTopIsRightMirror:
       rotated_mrrg_config.column = mrrg_config.row;
       rotated_mrrg_config.row = mrrg_config.column;
       break;
 
-    case remapper::RotateOp::TopIsBottomMirror:
+    case remapper::RotateOp::kTopIsBottomMirror:
       rotated_mrrg_config.column = mrrg_config.column;
       rotated_mrrg_config.row = mrrg_config.row;
       break;
 
-    case remapper::RotateOp::TopIsLeftMirror:
+    case remapper::RotateOp::kTopIsLeftMirror:
       rotated_mrrg_config.column = mrrg_config.row;
       rotated_mrrg_config.row = mrrg_config.column;
       break;
 
-    case remapper::RotateOp::TopIsTopMirror:
+    case remapper::RotateOp::kTopIsTopMirror:
       rotated_mrrg_config.column = mrrg_config.column;
       rotated_mrrg_config.row = mrrg_config.row;
       break;
@@ -129,20 +129,20 @@ entity::Mapping remapper::MappingRotater(const entity::Mapping& mapping,
 }
 
 remapper::RotateOp remapper::Rotate180(const remapper::RotateOp& tmp) {
-  if (tmp == remapper::RotateOp::TopIsTop)
-    return remapper::RotateOp::TopIsBottom;
-  if (tmp == remapper::RotateOp::TopIsBottom)
-    return remapper::RotateOp::TopIsTop;
-  if (tmp == remapper::RotateOp::TopIsRight)
-    return remapper::RotateOp::TopIsLeft;
-  if (tmp == remapper::RotateOp::TopIsLeft)
-    return remapper::RotateOp::TopIsRight;
-  if (tmp == remapper::RotateOp::TopIsTopMirror)
-    return remapper::RotateOp::TopIsBottomMirror;
-  if (tmp == remapper::RotateOp::TopIsBottomMirror)
-    return remapper::RotateOp::TopIsTopMirror;
-  if (tmp == remapper::RotateOp::TopIsRightMirror)
-    return remapper::RotateOp::TopIsLeftMirror;
-  if (tmp == remapper::RotateOp::TopIsLeftMirror)
-    return remapper::RotateOp::TopIsRightMirror;
+  if (tmp == remapper::RotateOp::kTopIsTop)
+    return remapper::RotateOp::kTopIsBottom;
+  if (tmp == remapper::RotateOp::kTopIsBottom)
+    return remapper::RotateOp::kTopIsTop;
+  if (tmp == remapper::RotateOp::kTopIsRight)
+    return remapper::RotateOp::kTopIsLeft;
+  if (tmp == remapper::RotateOp::kTopIsLeft)
+    return remapper::RotateOp::kTopIsRight;
+  if (tmp == remapper::RotateOp::kTopIsTopMirror)
+    return remapper::RotateOp::kTopIsBottomMirror;
+  if (tmp == remapper::RotateOp::kTopIsBottomMirror)
+    return remapper::RotateOp::kTopIsTopMirror;
+  if (tmp == remapper::RotateOp::kTopIsRightMirror)
+    return remapper::RotateOp::kTopIsLeftMirror;
+  if (tmp == remapper::RotateOp::kTopIsLeftMirror)
+    return remapper::RotateOp::kTopIsRightMirror;
 }

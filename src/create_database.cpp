@@ -49,9 +49,10 @@ std::vector<entity::MRRGConfig> GetMRRGOfSubCGRA(
 
         if (target_mrrg_config.memory_io != entity::MRRGMemoryIOType::kAll) {
           int memory_access_pe_num = 0;
-          if (mrrg_config.memory_io == entity::kBothEnds) {
+          if (mrrg_config.memory_io == entity::MRRGMemoryIOType::kBothEnds) {
             memory_access_pe_num = 2 * row_num * context_size;
-          } else if (mrrg_config.memory_io == entity::kOneEnd) {
+          } else if (mrrg_config.memory_io ==
+                     entity::MRRGMemoryIOType::kOneEnd) {
             memory_access_pe_num = row_num * context_size;
           }
           if (memory_access_pe_num < memory_access_node_num) {

@@ -59,7 +59,7 @@ void simulator::ElasticPE::SetConfig(int id, entity::CGRAConfig config) {
     input_mux_2_.SetConfig(id, config.from_config_id_vec[1].GetPositionId());
   }
 
-  if (config.operation_type == entity::OpType::ROUTE) {
+  if (config.operation_type == entity::OpType::kRoute) {
     output_mux_.SetConfig(id, kBypassPosition);
     bypass_mux_.SetConfig(id, config.from_config_id_vec[0].GetPositionId());
   } else {
