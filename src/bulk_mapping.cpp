@@ -1,6 +1,7 @@
 #include <time.h>
 
 #include <chrono>
+#include <cxxopts.hpp>
 #include <filesystem>
 #include <io/architecture_io.hpp>
 #include <io/dfg_io.hpp>
@@ -38,15 +39,36 @@ std::vector<entity::MRRGConfig> GetMRRGToTest(int dfg_node_num) {
 }
 
 int main(int argc, char* argv[]) {
-  if (argc != 6) {
-    std::cerr << "invalid arguments" << std::endl;
-    abort();
-  }
+  cxxopts::Options options("bulk_mapping",
+                           "Run bulk mapping over generated CGRA configs.");
+  options.add_options()("dfg_file", "Absolute path to the input DFG dot file",
+                        cxxopts::value<std::string>())(
+      "output_dir", "Absolute path to the output directory",
+      cxxopts::value<std::string>())("mapper_config",
+                                     "Path to the mapper config json file",
+                                     cxxopts::value<std::string>())(
+      "timeout_s", "Mapping timeout in seconds", cxxopts::value<double>())(
+      "h,help", "Print usage");
 
-  const std::string dfg_dot_file_path(argv[1]);
-  const std::string output_dir = argv[2];
-  const std::string mapper_config_file_path = argv[3];
-  double timeout_s = std::stod(argv[3]);
+  std::string dfg_dot_file_path;
+  std::string output_dir;
+  std::string mapper_config_file_path;
+  double timeout_s = 0;
+  try {
+    const auto result = options.parse(argc, argv);
+    if (result.count("help")) {
+      std::cout << options.help();
+      return 0;
+    }
+    dfg_dot_file_path = result["dfg_file"].as<std::string>();
+    output_dir = result["output_dir"].as<std::string>();
+    mapper_config_file_path = result["mapper_config"].as<std::string>();
+    timeout_s = result["timeout_s"].as<double>();
+  } catch (const cxxopts::exceptions::exception& e) {
+    std::cerr << "invalid arguments: " << e.what() << std::endl;
+    std::cerr << options.help();
+    return 1;
+  }
 
   assert(std::filesystem::path(dfg_dot_file_path).is_absolute());
   assert(std::filesystem::path(output_dir).is_absolute());

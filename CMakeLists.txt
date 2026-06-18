@@ -25,18 +25,20 @@ add_subdirectory(remapper)
 add_executable(mapping src/mapping.cpp)
 set_property(TARGET mapping PROPERTY CXX_STANDARD 17)
 target_compile_options(mapping INTERFACE -Wall -Wextra -Wno-deprecated)
-target_link_libraries(mapping PRIVATE io entity mapper cpp_simulator)
+target_link_libraries(mapping PRIVATE io entity mapper cpp_simulator
+                                      cxxopts::cxxopts)
 
 add_executable(create_database src/create_database.cpp)
 set_property(TARGET create_database PROPERTY CXX_STANDARD 17)
 target_compile_options(create_database INTERFACE -Wall -Wextra -Wno-deprecated)
 target_link_libraries(create_database PRIVATE io entity mapper cpp_simulator
-                                              remapper)
+                                              remapper cxxopts::cxxopts)
 
 add_executable(bulk_mapping src/bulk_mapping.cpp)
 set_property(TARGET bulk_mapping PROPERTY CXX_STANDARD 17)
 target_compile_options(bulk_mapping INTERFACE -Wall -Wextra -Wno-deprecated)
-target_link_libraries(bulk_mapping PRIVATE io entity mapper cpp_simulator)
+target_link_libraries(bulk_mapping PRIVATE io entity mapper cpp_simulator
+                                           cxxopts::cxxopts)
 
 add_executable(verilator_synchronous_CGRA src/verilator_synchronous_CGRA.cpp)
 verilate(verilator_synchronous_CGRA TRACE INCLUDE_DIRS
@@ -45,9 +47,9 @@ verilate(verilator_synchronous_CGRA TRACE INCLUDE_DIRS
 set_property(TARGET verilator_synchronous_CGRA PROPERTY CXX_STANDARD 17)
 target_compile_options(verilator_synchronous_CGRA INTERFACE -Wall -Wextra
                                                             -Wno-deprecated)
-target_link_libraries(verilator_synchronous_CGRA PRIVATE io entity mapper
-                                                         cpp_simulator)
+target_link_libraries(verilator_synchronous_CGRA
+                      PRIVATE io entity mapper cpp_simulator cxxopts::cxxopts)
 add_executable(remapping src/remapping.cpp)
 set_property(TARGET remapping PROPERTY CXX_STANDARD 17)
 target_compile_options(remapping INTERFACE -Wall -Wextra -Wno-deprecated)
-target_link_libraries(remapping PRIVATE io entity remapper)
+target_link_libraries(remapping PRIVATE io entity remapper cxxopts::cxxopts)

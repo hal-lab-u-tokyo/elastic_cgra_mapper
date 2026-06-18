@@ -60,7 +60,15 @@ def mapping_exec(input):
   finally:
     lock.release()
 
-  subprocess.run(["/home/ubuntu/elastic_cgra_mapper/build/mapping", input.dfg_file_path, cgra_file_path, input.output_dir_path,input.mapping_config_path, str(input.timeout_s), str(input.parallel_num)])
+  subprocess.run([
+    "/home/ubuntu/elastic_cgra_mapper/build/mapping",
+    "--dfg_file", input.dfg_file_path,
+    "--cgra_file", cgra_file_path,
+    "--output_dir", input.output_dir_path,
+    "--mapper_config", input.mapping_config_path,
+    "--timeout_s", str(input.timeout_s),
+    "--parallel_num", str(input.parallel_num),
+  ])
 
   os.remove(cgra_file_path)
 
@@ -88,7 +96,15 @@ def create_database_exec(input):
   finally:
     lock.release()
 
-  subprocess.run(["/home/ubuntu/elastic_cgra_mapper/build/create_database", input.dfg_file_path, cgra_file_path, input.output_dir_path, input.mapping_config_path, str(input.db_timeout_s), str(input.max_database_size)])
+  subprocess.run([
+    "/home/ubuntu/elastic_cgra_mapper/build/create_database",
+    "--dfg_file", input.dfg_file_path,
+    "--cgra_file", cgra_file_path,
+    "--output_dir", input.output_dir_path,
+    "--mapper_config", input.mapping_config_path,
+    "--db_timeout_s", str(input.db_timeout_s),
+    "--max_database_size", str(input.max_database_size),
+  ])
 
   os.remove(cgra_file_path)
 
@@ -120,7 +136,16 @@ def remapper_exec(input):
   remapper_mode_int = remapping_type_to_int(input.remapper_mode)
 
   result = subprocess.run(
-    ["/home/ubuntu/elastic_cgra_mapper/build/remapping", input.mapping_dir_path, input.dfg_file_path, cgra_file_path, input.output_dir_path, str(remapper_mode_int), str(input.timeout_s), str(input.num_available_mappings)],
+    [
+      "/home/ubuntu/elastic_cgra_mapper/build/remapping",
+      "--database_dir", input.mapping_dir_path,
+      "--dfg_file", input.dfg_file_path,
+      "--cgra_file", cgra_file_path,
+      "--output_dir", input.output_dir_path,
+      "--remapper_mode", str(remapper_mode_int),
+      "--timeout_s", str(input.timeout_s),
+      "--num_available_mappings", str(input.num_available_mappings),
+    ],
     capture_output=True,
     text=True
   )

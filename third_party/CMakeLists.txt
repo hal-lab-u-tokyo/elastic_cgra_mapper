@@ -1,3 +1,11 @@
+set(CXXOPTS_BUILD_EXAMPLES
+    OFF
+    CACHE INTERNAL "" FORCE)
+set(CXXOPTS_BUILD_TESTS
+    OFF
+    CACHE INTERNAL "" FORCE)
+add_subdirectory(cxxopts)
+
 set(BOOST_ENABLE_CMAKE ON)
 add_subdirectory(boost)
 
