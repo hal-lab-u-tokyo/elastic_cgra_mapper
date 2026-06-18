@@ -114,6 +114,7 @@ class RectangleKnapsack {
 
               for (int pattern = 0; pattern < 6; pattern++) {
                 int new_dp_value = score;
+                bool is_available_split_pattern = true;
                 for (int rectangle_id = 0; rectangle_id < 3; rectangle_id++) {
                   Eigen::Vector3d tmp_shift_size =
                       GetRectangleShiftSize(rectangle_id, rotated_item_size);
@@ -121,44 +122,52 @@ class RectangleKnapsack {
                       dp_splited_rectangle_size[pattern][rectangle_id];
                   if (!is_available_transform_(tmp_shift_size,
                                                rectangle_size)) {
-                    continue;
+                    is_available_split_pattern = false;
+                    break;
                   }
                   new_dp_value += dp_score_[DPItemId(rectangle_size)];
+                }
+                if (!is_available_split_pattern) {
+                  continue;
                 }
 
                 if (new_dp_value <= dp_score_[dp_size_id]) {
                   continue;
                 }
 
-                // update dp
-                dp_score_[dp_size_id] = new_dp_value;
-                dp_id_to_placement_[dp_size_id].clear();
+                std::vector<IdAndPlacement> new_placement_result;
+                bool is_available_placement_result = true;
                 for (int rectangle_id = 0; rectangle_id < 3; rectangle_id++) {
                   Eigen::Vector3d tmp_shift_size =
                       GetRectangleShiftSize(rectangle_id, rotated_item_size);
                   Eigen::Vector3d rectangle_size =
                       dp_splited_rectangle_size[pattern][rectangle_id];
-                  if (!is_available_transform_(tmp_shift_size,
-                                               rectangle_size)) {
-                    continue;
-                  }
                   DPItemId rectangle_item_id(
                       dp_splited_rectangle_size[pattern][rectangle_id]);
                   for (const IdAndPlacement& result :
                        dp_id_to_placement_[rectangle_item_id]) {
-                    IdAndPlacement new_result = result;
-                    Eigen::Vector3d tmp_shift_size =
-                        GetRectangleShiftSize(rectangle_id, rotated_item_size);
-
-                    new_result = get_shifted_placement_(
+                    IdAndPlacement new_result = get_shifted_placement_(
                         result, tmp_shift_size.x(), tmp_shift_size.y(),
                         rectangle_size);
-
-                    dp_id_to_placement_[dp_size_id].push_back(new_result);
+                    if (!is_available_placement_(new_result)) {
+                      is_available_placement_result = false;
+                      break;
+                    }
+                    new_placement_result.push_back(new_result);
+                  }
+                  if (!is_available_placement_result) {
+                    break;
                   }
                 }
+                if (!is_available_placement_result) {
+                  continue;
+                }
                 IdAndPlacement new_placement(item_id, 0, 0, rotation_type);
-                dp_id_to_placement_[dp_size_id].push_back(new_placement);
+                new_placement_result.push_back(new_placement);
+
+                // update dp
+                dp_score_[dp_size_id] = new_dp_value;
+                dp_id_to_placement_[dp_size_id] = new_placement_result;
               }
             }
           }
@@ -174,6 +183,11 @@ class RectangleKnapsack {
   void SetIsAvailableItemPlacement(
       const std::function<bool(int, int)>& is_available_item_placement) {
     is_available_item_placement_ = is_available_item_placement;
+  }
+
+  void SetIsAvailablePlacement(const std::function<bool(const IdAndPlacement&)>&
+                                   is_available_placement) {
+    is_available_placement_ = is_available_placement;
   }
 
   void SetIsAvailableTransform(
@@ -270,6 +284,7 @@ class RectangleKnapsack {
   }
 
   std::function<bool(int, int)> is_available_item_placement_;
+  std::function<bool(const IdAndPlacement&)> is_available_placement_;
   std::function<bool(Eigen::Vector3d, Eigen::Vector3d)> is_available_transform_;
   std::function<Eigen::Vector3d(int, int)> get_rotated_item_size_;
   std::function<IdAndPlacement(IdAndPlacement, int, int, Eigen::Vector3d)>
@@ -354,6 +369,15 @@ class DPRemappingHelper {
     const remapper::RotateOp rotate_op =
         static_cast<remapper::RotateOp>(rotation_type);
     const remapper::MappingTransformOp transform_op(0, 0, rotate_op);
+    return cgra_matrix_.IsAvailableRemapping(mapping_matrix, transform_op);
+  }
+
+  bool IsAvailablePlacement(const IdAndPlacement& placement) const {
+    const remapper::MappingMatrix& mapping_matrix =
+        mapping_matrix_vec_[placement.id];
+    const remapper::MappingTransformOp transform_op(
+        placement.x, placement.y,
+        static_cast<remapper::RotateOp>(placement.rotation_type));
     return cgra_matrix_.IsAvailableRemapping(mapping_matrix, transform_op);
   }
 
@@ -501,6 +525,9 @@ remapper::RemappingResult remapper::DPRemapping(
   solver.SetIsAvailableItemPlacement([&](int item_id, int rotation_type) {
     return helper.IsAvailableItemPlacement(item_id, rotation_type);
   });
+  solver.SetIsAvailablePlacement([&](const IdAndPlacement& placement) {
+    return helper.IsAvailablePlacement(placement);
+  });
   solver.SetIsAvailableTransform(
       [&](Eigen::Vector3d shift_size, Eigen::Vector3d rectangle_size) {
         return helper.IsAvailableTransform(shift_size, rectangle_size);
@@ -518,6 +545,7 @@ remapper::RemappingResult remapper::DPRemapping(
 
   remapper::RemappingResult result =
       helper.ConvertPlacementResultToRemappingResult(solver.GetResult());
+
   const auto end_time = clock();
   result.remapping_time_s =
       (end_time - start_time) / static_cast<double>(CLOCKS_PER_SEC);
