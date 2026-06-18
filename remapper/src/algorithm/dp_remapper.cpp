@@ -412,7 +412,7 @@ class DPRemappingHelper {
     if (need_rotation) {
       remapper::RotateOp new_rotate_op = remapper::CombineRotateOp(
           static_cast<remapper::RotateOp>(placement.rotation_type),
-          remapper::RotateOp::TopIsBottom);
+          remapper::RotateOp::kTopIsBottom);
       new_placement.rotation_type = static_cast<int>(new_rotate_op);
     } else {
       new_placement.rotation_type = placement.rotation_type;

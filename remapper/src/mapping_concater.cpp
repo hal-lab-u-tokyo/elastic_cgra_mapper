@@ -44,7 +44,8 @@ entity::Mapping remapper::MappingConcater(
     };
 
     for (const auto& id_config_pair : rotated_mapping.GetConfigMap()) {
-      if (id_config_pair.second.operation_type == entity::OpType::NOP) continue;
+      if (id_config_pair.second.operation_type == entity::OpType::kNop)
+        continue;
       entity::ConfigId shifted_id = ShiftConfigId(id_config_pair.first);
       assert(shifted_id.context_id < target_mrrg_config.context_size);
       tmp_mapping_matrix(shifted_id.row_id, shifted_id.column_id)++;
@@ -67,9 +68,9 @@ entity::Mapping remapper::MappingConcater(
 
   if (target_mrrg_config.memory_io == entity::MRRGMemoryIOType::kBothEnds) {
     for (const auto& config : result_config_map) {
-      if (config.second.operation_type == entity::OpType::STORE ||
-          config.second.operation_type == entity::OpType::LOAD ||
-          config.second.operation_type == entity::OpType::OUTPUT) {
+      if (config.second.operation_type == entity::OpType::kStore ||
+          config.second.operation_type == entity::OpType::kLoad ||
+          config.second.operation_type == entity::OpType::kOutput) {
         assert(config.first.column_id == 0 ||
                config.first.column_id == target_mrrg_config.column - 1);
       }

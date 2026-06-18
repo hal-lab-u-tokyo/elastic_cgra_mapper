@@ -7,7 +7,7 @@ class RemappingManager {
  public:
   RemappingManager(
       const remapper::CGRAMatrix& cgra_matrix,
-      const remapper::RotateType& rotate_type = remapper::RotateType::All)
+      const remapper::RotateType& rotate_type = remapper::RotateType::kAll)
       : cgra_matrix_(cgra_matrix), rotate_type_(rotate_type){};
   ~RemappingManager() = default;
   void SetMappingMatrix(const remapper::MappingMatrix& mapping_matrix);

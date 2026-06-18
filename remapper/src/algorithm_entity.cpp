@@ -56,7 +56,7 @@ remapper::MappingMatrix::MappingMatrix(
            context_id < mapping.GetMRRGConfig().context_size; context_id++) {
         const entity::ConfigId config_id(row_id, column_id, context_id);
         const auto config = mapping.GetConfig(config_id);
-        if (config.operation_type != entity::OpType::NOP) {
+        if (config.operation_type != entity::OpType::kNop) {
           pe_op_count++;
         }
         if (entity::IsDFGOp(config.operation_type)) {
@@ -131,21 +131,21 @@ remapper::MappingMatrix::MappingMatrix(
 
 Eigen::MatrixXi remapper::MappingMatrix::GetRotatedMatrix(
     const Eigen::MatrixXi& matrix, remapper::RotateOp rotate_op) const {
-  if (rotate_op == remapper::RotateOp::TopIsTop) {
+  if (rotate_op == remapper::RotateOp::kTopIsTop) {
     return matrix;
-  } else if (rotate_op == remapper::RotateOp::TopIsLeft) {
+  } else if (rotate_op == remapper::RotateOp::kTopIsLeft) {
     return matrix.transpose().colwise().reverse().eval();
-  } else if (rotate_op == remapper::RotateOp::TopIsBottom) {
+  } else if (rotate_op == remapper::RotateOp::kTopIsBottom) {
     return matrix.colwise().reverse().rowwise().reverse().eval();
-  } else if (rotate_op == remapper::RotateOp::TopIsRight) {
+  } else if (rotate_op == remapper::RotateOp::kTopIsRight) {
     return matrix.colwise().reverse().transpose().eval();
-  } else if (rotate_op == remapper::RotateOp::TopIsTopMirror) {
+  } else if (rotate_op == remapper::RotateOp::kTopIsTopMirror) {
     return matrix.rowwise().reverse().eval();
-  } else if (rotate_op == remapper::RotateOp::TopIsLeftMirror) {
+  } else if (rotate_op == remapper::RotateOp::kTopIsLeftMirror) {
     return matrix.transpose().colwise().reverse().rowwise().reverse().eval();
-  } else if (rotate_op == remapper::RotateOp::TopIsBottomMirror) {
+  } else if (rotate_op == remapper::RotateOp::kTopIsBottomMirror) {
     return matrix.colwise().reverse().eval();
-  } else if (rotate_op == remapper::RotateOp::TopIsRightMirror) {
+  } else if (rotate_op == remapper::RotateOp::kTopIsRightMirror) {
     return matrix.transpose().eval();
   } else {
     assert(false);

@@ -67,7 +67,7 @@ TEST(SimulatorTest, simulator_default_result_test) {
 
   int output_config_id;
   for (auto config_pair : result.mapping_ptr->GetConfigMap()) {
-    if (config_pair.second.operation_type == entity::OpType::OUTPUT) {
+    if (config_pair.second.operation_type == entity::OpType::kOutput) {
       output_config_id = config_pair.first.context_id;
     }
   }

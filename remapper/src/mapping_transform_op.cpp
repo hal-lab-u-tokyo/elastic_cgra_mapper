@@ -37,21 +37,21 @@ remapper::RotateOp remapper::CombineRotateOp(const remapper::RotateOp& lhs,
 
 std::string remapper::RotateOpToString(remapper::RotateOp rotate_op) {
   switch (rotate_op) {
-    case remapper::RotateOp::TopIsTop:
+    case remapper::RotateOp::kTopIsTop:
       return "TopIsTop";
-    case remapper::RotateOp::TopIsRight:
+    case remapper::RotateOp::kTopIsRight:
       return "TopIsRight";
-    case remapper::RotateOp::TopIsBottom:
+    case remapper::RotateOp::kTopIsBottom:
       return "TopIsBottom";
-    case remapper::RotateOp::TopIsLeft:
+    case remapper::RotateOp::kTopIsLeft:
       return "TopIsLeft";
-    case remapper::RotateOp::TopIsTopMirror:
+    case remapper::RotateOp::kTopIsTopMirror:
       return "TopIsTopMirror";
-    case remapper::RotateOp::TopIsRightMirror:
+    case remapper::RotateOp::kTopIsRightMirror:
       return "TopIsRightMirror";
-    case remapper::RotateOp::TopIsBottomMirror:
+    case remapper::RotateOp::kTopIsBottomMirror:
       return "TopIsBottomMirror";
-    case remapper::RotateOp::TopIsLeftMirror:
+    case remapper::RotateOp::kTopIsLeftMirror:
       return "TopIsLeftMirror";
     default:
       return "Unknown";

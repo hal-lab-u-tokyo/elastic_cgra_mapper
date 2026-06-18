@@ -13,9 +13,9 @@ class Rectangle {
   int context_size;
 };
 
-enum PEType {
-  MEMORY_ACCESS,
-  NON_MEMORY_ACCESS,
+enum class PEType {
+  kMemoryAccess,
+  kNonMemoryAccess,
 };
 
 class MappingMatrix : public Rectangle {
@@ -81,18 +81,18 @@ class CGRAMatrix : public Rectangle {
     }
 
     if (mrrg_config_.memory_io == entity::MRRGMemoryIOType::kAll) {
-      return remapper::PEType::MEMORY_ACCESS;
+      return remapper::PEType::kMemoryAccess;
     } else if (mrrg_config_.memory_io == entity::MRRGMemoryIOType::kOneEnd) {
       if (column_id == 0) {
-        return remapper::PEType::MEMORY_ACCESS;
+        return remapper::PEType::kMemoryAccess;
       }
     } else if (mrrg_config_.memory_io == entity::MRRGMemoryIOType::kBothEnds) {
       if (column_id == 0 || column_id == column_size - 1) {
-        return remapper::PEType::MEMORY_ACCESS;
+        return remapper::PEType::kMemoryAccess;
       }
     }
 
-    return remapper::PEType::NON_MEMORY_ACCESS;
+    return remapper::PEType::kNonMemoryAccess;
   }
 
  private:
