@@ -17,11 +17,12 @@ class MappingInput:
     self.parallel_num = parallel_num
 
 class CreateDatabaseInput:
-  def __init__(self, dfg_file_path, output_dir_path, cgra, mapping_config_path, db_timeout_s):
+  def __init__(self, dfg_file_path, output_dir_path, cgra, mapping_config_path, db_timeout_s, max_database_size):
     self.dfg_file_path = dfg_file_path
     self.cgra = cgra
     self.output_dir_path = output_dir_path
     self.db_timeout_s = db_timeout_s
+    self.max_database_size = max_database_size
     self.mapping_config_path = mapping_config_path
 
 class RemapperInput:
@@ -87,7 +88,7 @@ def create_database_exec(input):
   finally:
     lock.release()
 
-  subprocess.run(["/home/ubuntu/elastic_cgra_mapper/build/create_database", input.dfg_file_path, cgra_file_path, input.output_dir_path, input.mapping_config_path, str(input.db_timeout_s)])
+  subprocess.run(["/home/ubuntu/elastic_cgra_mapper/build/create_database", input.dfg_file_path, cgra_file_path, input.output_dir_path, input.mapping_config_path, str(input.db_timeout_s), str(input.max_database_size)])
 
   os.remove(cgra_file_path)
 
@@ -118,7 +119,23 @@ def remapper_exec(input):
 
   remapper_mode_int = remapping_type_to_int(input.remapper_mode)
 
-  subprocess.run(["/home/ubuntu/elastic_cgra_mapper/build/remapping", input.mapping_dir_path, input.dfg_file_path, cgra_file_path, input.output_dir_path, str(remapper_mode_int), str(input.timeout_s), str(input.num_available_mappings)])
+  result = subprocess.run(
+    ["/home/ubuntu/elastic_cgra_mapper/build/remapping", input.mapping_dir_path, input.dfg_file_path, cgra_file_path, input.output_dir_path, str(remapper_mode_int), str(input.timeout_s), str(input.num_available_mappings)],
+    capture_output=True,
+    text=True
+  )
+
+  lock.acquire()
+  try:
+    experiment_log_file = open(experiment_log_file_path, "a")
+    experiment_log_file.write("return_code: " + str(result.returncode) + "\n")
+    if result.stdout:
+      experiment_log_file.write("stdout:\n" + result.stdout + "\n")
+    if result.stderr:
+      experiment_log_file.write("stderr:\n" + result.stderr + "\n")
+    experiment_log_file.close()
+  finally:
+    lock.release()
 
   os.remove(cgra_file_path)
 

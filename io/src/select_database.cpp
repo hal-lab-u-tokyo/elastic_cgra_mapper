@@ -117,10 +117,10 @@ entity::Database io::select_database(
       }
     }
 
+    database.SetDatabaseDirPath(database_dir.path());
+    database.SetExist(true);
     return database;
   }
 
-  std::cerr << "No valid database is found for the given MRRG config and DFG."
-            << std::endl;
-  abort();
+  return entity::Database();
 }

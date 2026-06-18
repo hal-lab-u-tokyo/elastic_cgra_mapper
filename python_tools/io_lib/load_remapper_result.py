@@ -22,13 +22,17 @@ def load_remapper_result(remapper_dir_path):
     if not os.path.exists(os.path.join(remapper_dir_path, output_summary_file_name)):
         success = False
     else:
-        success = True
         with open(os.path.join(remapper_dir_path, output_summary_file_name), 'r') as f:
             output_summary_json = json.load(f)
-        with open(os.path.join(remapper_dir_path, remapping_file_name), 'r') as f:
-            remapping_json = json.load(f)
-        with open(os.path.join(remapper_dir_path, transform_op_name), 'r') as f:
-            transform_op_json = json.load(f)
+        success = output_summary_json.get("is_success", True)
+        if not success:
+            remapping_json = {}
+            transform_op_json = {}
+        else:
+            with open(os.path.join(remapper_dir_path, remapping_file_name), 'r') as f:
+                remapping_json = json.load(f)
+            with open(os.path.join(remapper_dir_path, transform_op_name), 'r') as f:
+                transform_op_json = json.load(f)
 
     remapper_result = RemapperLogInfo()
 
@@ -40,6 +44,7 @@ def load_remapper_result(remapper_dir_path):
     remapper_result.timeout_s = input_summary_json["timeout_s"]
     remapper_result.num_available_mappings = input_summary_json["num_available_mappings"]
     remapper_result.database_mapping_files_num = len(input_summary_json["mapping_files"])
+    remapper_result.remapper_mode = RemapperType.from_string(input_summary_json["remapper_mode"])
 
 
     cgra_file_path = os.path.join(remapper_dir_path, cgra_file_name)

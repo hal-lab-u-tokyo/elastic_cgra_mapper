@@ -173,7 +173,14 @@ void io::MappingLogger::LogMappingOutput(const io::MappingOutput& output) {
 
 void io::RemapperLogger::LogRemapperInput(const io::RemapperInput& input) {
   InitializePath(input.output_dir_path / "remapping" / log_id_);
-  assert(input.mapping_dir_path.is_absolute());
+  bool exist_database = true;
+  if (!std::filesystem::exists(input.database_dir_path)) {
+    exist_database = false;
+  }
+
+  if (exist_database) {
+    assert(input.database_dir_path.is_absolute());
+  }
   assert(input.cgra_file_path.is_absolute());
   assert(input.remapper_mode == "dp" || input.remapper_mode == "greedy" ||
          input.remapper_mode == "full_search" ||
@@ -215,7 +222,7 @@ void io::RemapperLogger::LogRemapperInput(const io::RemapperInput& input) {
   }
 
   std::unordered_map<std::string, std::string> json_str_vec;
-  json_str_vec["mapping_dir"] = "\"" + input.mapping_dir_path.string() + "\"";
+  json_str_vec["database_dir"] = "\"" + input.database_dir_path.string() + "\"";
   json_str_vec["dfg_file"] = "\"" + input.dfg_file_path.string() + "\"";
   json_str_vec["cgra_file"] = "\"" + arch_file_path_.string() + "\"";
   json_str_vec["output_dir"] = "\"" + output_dir_path_.string() + "\"";
@@ -226,13 +233,18 @@ void io::RemapperLogger::LogRemapperInput(const io::RemapperInput& input) {
   json_str_vec["host_name"] = "\"" + host_name_ + "\"";
   json_str_vec["git_commit_id"] = "\"" + git_commit_id_ + "\"";
 
+  std::filesystem::path database_mapping_dir_path =
+      input.database_dir_path / "database" / "mapping";
+
   std::string mapping_files_str = "[";
-  for (const auto& file :
-       std::filesystem::directory_iterator(input.mapping_dir_path)) {
-    mapping_files_str += "\"" + file.path().string() + "\",";
-  }
-  if (!mapping_files_str.empty()) {
-    mapping_files_str.pop_back();  // Remove the last comma
+  if (exist_database) {
+    for (const auto& dir_path :
+         std::filesystem::directory_iterator(database_mapping_dir_path)) {
+      mapping_files_str += "\"" + dir_path.path().string() + "\",";
+    }
+    if (!mapping_files_str.empty()) {
+      mapping_files_str.pop_back();  // Remove the last comma
+    }
   }
   mapping_files_str += "]";
 
@@ -241,11 +253,27 @@ void io::RemapperLogger::LogRemapperInput(const io::RemapperInput& input) {
   OutputJsonLog(input_summary_file_path_, json_str_vec);
 
   CopyFile(input.cgra_file_path, arch_file_path_);
-  for (const auto& file :
-       std::filesystem::directory_iterator(input.mapping_dir_path)) {
-    if (file.path().extension() == ".json") {
-      CopyFile(file.path(),
-               input_mapping_dir_path_ / file.path().filename().string());
+
+  if (!std::filesystem::exists(database_mapping_dir_path)) {
+    std::cerr << "No mapping directory is found in the database directory."
+              << std::endl;
+    return;
+  }
+  for (const auto& dir_path :
+       std::filesystem::directory_iterator(database_mapping_dir_path)) {
+    if (!dir_path.is_directory()) {
+      continue;
+    }
+    for (const auto& file :
+         std::filesystem::directory_iterator(dir_path.path())) {
+      if (!file.is_regular_file()) {
+        if (file.path().extension() == ".json" &&
+            file.path().filename().string().find("mapping") !=
+                std::string::npos) {
+          CopyFile(file.path(),
+                   input_mapping_dir_path_ / file.path().filename().string());
+        }
+      }
     }
   }
 
@@ -292,6 +320,7 @@ void io::RemapperLogger::LogRemapperOutput(const io::RemapperOutput& output) {
   transform_file.close();
 
   std::unordered_map<std::string, std::string> json_str_vec;
+  json_str_vec["is_success"] = "true";
   json_str_vec["remapping_time_s"] = std::to_string(output.remapping_time_s);
   json_str_vec["parallel_num"] = std::to_string(output.parallel_num);
   json_str_vec["mapping_type_num"] = std::to_string(output.mapping_type_num);
@@ -299,6 +328,20 @@ void io::RemapperLogger::LogRemapperOutput(const io::RemapperOutput& output) {
   OutputJsonLog(output_summary_file_path_, json_str_vec);
 
   WriteMappingFile(mapping_file_path_, output.mapping_ptr, output.mrrg_config);
+}
+
+void io::RemapperLogger::LogRemapperFailure(double remapping_time_s,
+                                            const std::string& error_message) {
+  assert(remapping_time_s >= 0);
+
+  std::unordered_map<std::string, std::string> json_str_vec;
+  json_str_vec["is_success"] = "false";
+  json_str_vec["remapping_time_s"] = std::to_string(remapping_time_s);
+  json_str_vec["parallel_num"] = "0";
+  json_str_vec["mapping_type_num"] = "0";
+  json_str_vec["mapping_file"] = "\"\"";
+  json_str_vec["error_message"] = "\"" + error_message + "\"";
+  OutputJsonLog(output_summary_file_path_, json_str_vec);
 }
 
 std::string GetCGRAId(const std::filesystem::path& cgra_file_path) {

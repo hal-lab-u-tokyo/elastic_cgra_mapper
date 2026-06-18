@@ -330,8 +330,9 @@ class DPRemappingHelper {
     for (const remapper::MappingMatrix& mapping_matrix : mapping_matrix_vec_) {
       item_size_vec.emplace_back(mapping_matrix.row_size,
                                  mapping_matrix.column_size,
-                                 mapping_matrix.context_size);
+                                 GetContextSize(mapping_matrix));
     }
+
     return item_size_vec;
   }
 
@@ -389,7 +390,7 @@ class DPRemappingHelper {
         mapping_matrix.GetRotatedOpNumMatrix(transform_op.rotate_op);
 
     return {rotated_op_num_mat.rows(), rotated_op_num_mat.cols(),
-            rotated_op_num_mat.maxCoeff()};
+            GetContextSize(mapping_matrix)};
   }
 
   IdAndPlacement GetShiftedPlacement(IdAndPlacement placement, int x_shift,
@@ -408,9 +409,15 @@ class DPRemappingHelper {
     }
 
     IdAndPlacement new_placement = placement;
-    new_placement.rotation_type =
-        need_rotation ? static_cast<int>(remapper::RotateOp::TopIsBottom)
-                      : static_cast<int>(remapper::RotateOp::TopIsTop);
+    if (need_rotation) {
+      remapper::RotateOp new_rotate_op = remapper::CombineRotateOp(
+          static_cast<remapper::RotateOp>(placement.rotation_type),
+          remapper::RotateOp::TopIsBottom);
+      new_placement.rotation_type = static_cast<int>(new_rotate_op);
+    } else {
+      new_placement.rotation_type = placement.rotation_type;
+    }
+
     if (need_rotation) {
       new_placement.x = x_shift + rectangle_size.x() - 1 - placement.x;
       new_placement.y = y_shift + rectangle_size.y() - 1 - placement.y;
@@ -427,6 +434,16 @@ class DPRemappingHelper {
   std::unordered_map<int, int> mapping_id_to_index_;
   std::unordered_map<int, int> mapping_index_to_id_;
   remapper::CGRAMatrix cgra_matrix_;
+
+  int GetContextSize(remapper::MappingMatrix mapping_matrix) const {
+    bool is_elastic = cgra_matrix_.GetMRRGConfig().cgra_type ==
+                      entity::MRRGCGRAType::kElastic;
+    if (is_elastic) {
+      return mapping_matrix.context_size;
+    } else {
+      return cgra_matrix_.context_size;
+    }
+  }
 
   bool IsAvailableTransformWithRotation(Eigen::Vector3d shift_size,
                                         Eigen::Vector3d rectangle_size) const {
