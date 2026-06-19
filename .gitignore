@@ -16,7 +16,10 @@ __pycache__/
 *.net
 *.place
 *.rpt
+*.route
+*_preproc.v
 vpr_stdout.log
+benchmark/literature/prisa_vpr8_generated/
 research/results/**
 !research/results/
 !research/results/.gitkeep

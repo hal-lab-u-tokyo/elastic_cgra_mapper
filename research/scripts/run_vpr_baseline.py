@@ -470,10 +470,30 @@ def compute_bbox_metrics(positions: dict) -> tuple:
     return area, safe_ratio(len(set(positions.values())), area)
 
 
+def has_vpr_option(command: list, option: str) -> bool:
+    return any(str(arg) == option for arg in command)
+
+
+def with_vpr_output_files(command: list, blif_path: Path, include_route: bool = False, route_file: Path = None) -> list:
+    work_dir = blif_path.parent
+    stem = blif_path.stem
+    outputs = [
+        ("--net_file", work_dir / f"{stem}.net"),
+        ("--place_file", work_dir / f"{stem}.place"),
+    ]
+    if include_route:
+        outputs.append(("--route_file", route_file if route_file else work_dir / f"{stem}.route"))
+    for option, path in outputs:
+        if not has_vpr_option(command, option):
+            command.extend([option, str(Path(path).resolve())])
+    return command
+
+
 def vpr_command(vpr_bin: str, arch_xml: Path, blif_path: Path, mapper_config: dict) -> list:
     args = mapper_config.get("vpr_args")
     if args:
-        return [vpr_bin, str(arch_xml), str(blif_path)] + [expand_env(arg) for arg in args]
+        command = [vpr_bin, str(arch_xml), str(blif_path)] + [expand_env(arg) for arg in args]
+        return with_vpr_output_files(command, blif_path, include_route=has_vpr_option(command, "--route"))
 
     place_algorithm = str(mapper_config.get("place_algorithm", "bounding_box"))
     command = [
@@ -508,7 +528,7 @@ def vpr_command(vpr_bin: str, arch_xml: Path, blif_path: Path, mapper_config: di
                 "off",
             ]
         )
-    return command
+    return with_vpr_output_files(command, blif_path)
 
 
 def skipped_summary(

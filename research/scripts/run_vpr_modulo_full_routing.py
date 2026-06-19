@@ -28,6 +28,7 @@ from run_vpr_baseline import (
     sanitize_blif_name,
     unique_blif_names,
     unresolved_env,
+    with_vpr_output_files,
 )
 from run_vpr_modulo_routing import (
     NOP_OP,
@@ -160,8 +161,9 @@ def make_fixed_modulo_vpr_arch(arch_xml: Path, mapper_config: dict, work_dir: Pa
 def vpr_full_route_command(vpr_bin: str, arch_xml: Path, blif_path: Path, route_file: Path, mapper_config: dict) -> list:
     args = mapper_config.get("vpr_args")
     if args:
-        return [vpr_bin, str(arch_xml), str(blif_path)] + [expand_env(arg) for arg in args]
-    return [
+        command = [vpr_bin, str(arch_xml), str(blif_path)] + [expand_env(arg) for arg in args]
+        return with_vpr_output_files(command, blif_path, include_route=True, route_file=route_file)
+    command = [
         vpr_bin,
         str(arch_xml),
         str(blif_path),
@@ -183,10 +185,11 @@ def vpr_full_route_command(vpr_bin: str, arch_xml: Path, blif_path: Path, route_
         "--disp",
         "off",
     ]
+    return with_vpr_output_files(command, blif_path, include_route=True, route_file=route_file)
 
 
 def vpr_pack_place_command(vpr_bin: str, arch_xml: Path, blif_path: Path, rr_graph_file: Path, mapper_config: dict) -> list:
-    return [
+    command = [
         vpr_bin,
         str(arch_xml),
         str(blif_path),
@@ -219,6 +222,7 @@ def vpr_pack_place_command(vpr_bin: str, arch_xml: Path, blif_path: Path, rr_gra
         "--disp",
         "off",
     ]
+    return with_vpr_output_files(command, blif_path)
 
 
 def vpr_route_with_rr_graph_command(vpr_bin: str, arch_xml: Path, blif_path: Path, net_file: Path, place_file: Path, rr_graph_file: Path, route_file: Path, mapper_config: dict) -> list:
