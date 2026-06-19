@@ -30,6 +30,11 @@ Routing pressure metrics:
 - `avg_manhattan_distance` and `max_manhattan_distance`: spatial PE distance over mapped outgoing connections.
 - `avg_context_distance` and `max_context_distance`: modulo context distance over mapped outgoing connections.
 - `max_fanout` and `avg_fanout`: outgoing connections per non-`nop` context.
+- `routed_path_count` and `routed_unreachable_edge_count`: number of DFG edges for which a routed path is found or missing in the emitted mapping.
+- `routed_avg_path_length` and `routed_max_path_length`: number of mapping connections on each recovered DFG-edge route path. A direct producer-to-consumer connection has length `1`.
+- `routed_avg_fifo` and `routed_max_fifo`: actual routed FIFO proxy computed from recovered route paths as `max(0, routed_path_length - 1)` per DFG edge. Lower is better. Unlike `placement_avg_fifo`, this uses the emitted route path rather than only the physical placement distance.
+- `routed_avg_spatial_hop` and `routed_max_spatial_hop`: spatial hop count accumulated along the recovered route path.
+- `routed_mapped_lp`: longest DFG path after routing when each DFG edge is weighted by `max(1, routed_path_length)`.
 
 Placement shape and balance metrics:
 
@@ -42,12 +47,17 @@ Placement shape and balance metrics:
 Placement-only quality metrics:
 
 - `placement_avg_wirelength` and `placement_max_wirelength`: Manhattan distance between the placed endpoints of each DFG edge.
-- `placement_direct_edge_ratio`: fraction of DFG edges whose endpoints are on the same PE or adjacent PEs. Higher is better and approximates the optimal mapped edge ratio used by YOTT-style placement papers.
-- `placement_avg_fifo` and `placement_max_fifo`: FIFO-like distance estimate, computed as `max(0, wirelength - 1)` per DFG edge. Lower is better. This is a placement-quality proxy, not a cycle-accurate elastic FIFO simulation.
+- `placement_direct_edge_ratio`: fraction of DFG edges whose endpoints are on the same PE or adjacent PEs.
+- `placement_avg_fifo` and `placement_max_fifo`: placement FIFO count under the paper-style Manhattan routing assumption, computed as `max(0, wirelength - 1)` per DFG edge. Lower is better. This is the FIFO metric to use for placement-only PRISA/TRAVERSAL/YOTT comparisons.
 - `placement_cost_model`: placement cost model used for paper-style edge quality. `mesh` uses Manhattan distance. `one_hop_axis2` uses `ceil(row_distance / 2) + ceil(column_distance / 2)`, matching the public TRAVERSAL/YOTT `cpu_mapping` 1-hop model.
 - `placement_avg_cost` and `placement_max_cost`: edge placement cost under `placement_cost_model`.
-- `placement_optimal_edge_ratio`: fraction of DFG edges whose placement cost is 1. This is the closest in-repository counterpart to the optimal mapped edge percentage reported by YOTT-style papers.
-- `placement_avg_fifo_like` and `placement_max_fifo_like`: `max(0, placement_cost - 1)` under `placement_cost_model`. These are the preferred FIFO-like metrics for TRAVERSAL/YOTT reproduction runs.
+- `placement_optimal_distance_ratio`: fraction of DFG edges whose mapped endpoints are exactly one physical mesh hop apart. This follows the PRISA paper definition: communication distance equal to 1 HC is optimal, otherwise non-optimal.
+- `placement_optimal_edge_ratio`: legacy placement-cost-model counterpart, counting edges whose `placement_cost <= 1`.
+- `placement_avg_fifo_like` and `placement_max_fifo_like`: legacy compatibility fields for `max(0, placement_cost - 1)` under `placement_cost_model`. Prefer `placement_avg_fifo` and `placement_max_fifo` in new reports.
+- `placement_avg_mesh_hop` and `placement_max_mesh_hop`: Manhattan hop count on the physical 2D mesh, independent of `placement_cost_model`.
+- `placement_mesh_optimal_edge_ratio`: fraction of DFG edges whose endpoints are on the same PE or adjacent mesh PEs under the physical mesh model.
+- `placement_avg_mesh_fifo` and `placement_max_mesh_fifo`: aliases of the physical mesh placement FIFO, computed as `max(0, mesh_hop - 1)` per DFG edge.
+- `placement_mapped_lp_mesh_hop`: longest DFG path after placement when each DFG edge is weighted by `max(1, mesh_hop)`. This is the paper-style mapped critical path proxy for placement-only runs.
 - `direct_dfg_edge_ratio`: fraction of DFG edges directly represented in the emitted mapping connections. In `placement_only` mode, prefer `placement_direct_edge_ratio` because routed paths are intentionally omitted.
 
 Memory-related metrics:
@@ -76,6 +86,7 @@ Routing correctness report:
 - Rows with `evaluation_mode = placement_only` are skipped by `routing_validation.md` because they do not claim routed connectivity.
 - The routing validation also checks that DFG operations appear exactly once, mapping connections stay inside the CGRA, each connection matches a legal MRRG edge including context transitions, and `to_config_id` / `from_config_id` entries agree.
 - The report counts same-context and cross-context mapping connections and route paths.
+- The report also summarizes recovered route-path length, routed FIFO, routed spatial hop, and routed mapped LP for route-correct successful rows.
 - This is different from routing pressure metrics: `route_ops`, `route_to_compute_ratio`, and distance metrics describe routing cost, while `routing_validation.md` checks whether the emitted routes are structurally valid.
 - For ILP-backed comparisons, prefer route-correct successful rows. `FullRoutingILPMapper` enforces DFG-edge-level routing flow internally, while placement-focused or heuristic mappers should still be checked with `routing_validation.md` because a fast placement can otherwise look successful without a valid route for every DFG edge.
 

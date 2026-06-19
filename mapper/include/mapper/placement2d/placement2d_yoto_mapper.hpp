@@ -1,6 +1,7 @@
 #pragma once
 
 #include <mapper/mapper.hpp>
+#include <mapper/placement2d/placement2d_array_mapper_base.hpp>
 
 #include <memory>
 #include <optional>
@@ -35,6 +36,24 @@ class Placement2DYOTOMapper : public IMapper {
   std::optional<int> routing_retry_count_;
   std::optional<int> random_seed_;
   bool placement_only_ = false;
+};
+
+class Placement2DArrayYOTOMapper : public Placement2DArrayMapperBase {
+ public:
+  Placement2DArrayYOTOMapper(
+      const std::shared_ptr<entity::DFG> dfg_ptr,
+      const std::shared_ptr<entity::MRRG> mrrg_ptr)
+      : Placement2DArrayMapperBase(Placement2DArrayKind::kYOTO, dfg_ptr,
+                                   mrrg_ptr) {}
+};
+
+class Placement2DCPUMappingYOTOMapper : public Placement2DArrayMapperBase {
+ public:
+  Placement2DCPUMappingYOTOMapper(
+      const std::shared_ptr<entity::DFG> dfg_ptr,
+      const std::shared_ptr<entity::MRRG> mrrg_ptr)
+      : Placement2DArrayMapperBase(Placement2DArrayKind::kCPUMappingYOTO,
+                                   dfg_ptr, mrrg_ptr) {}
 };
 
 }  // namespace mapper

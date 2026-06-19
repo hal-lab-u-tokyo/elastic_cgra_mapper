@@ -13,6 +13,12 @@ enum class PlacementSearchKind {
   // different operations.
   kYOTO,
   kYOTT,
+  // Two-stage modulo adaptations: first place on the 2D physical PE grid, then
+  // assign modulo contexts on the selected physical PEs before routing.
+  kModuloPhysicalYOTO,
+  kModuloPhysicalYOTT,
+  kModuloPhysicalPRISA,
+  kModuloPhysicalPRISAManhattan,
   // Explicit hybrid variants. They try the paper-style traversal first, then
   // routing-aware fallback placements. Keep them out of default comparisons
   // unless the experiment intentionally evaluates mixed strategies.
@@ -23,7 +29,10 @@ enum class PlacementSearchKind {
   // single-layer public cpu_mapping implementation.
   kPlacement2DYOTO,
   kPlacement2DYOTT,
-  kPlacement2DSA
+  kPlacement2DSA,
+  kPlacement2DPRISA,
+  kPlacement2DPRISANoSIS,
+  kPlacement2DCostAwarePRISA
 };
 
 struct PlacementSearchOptions {

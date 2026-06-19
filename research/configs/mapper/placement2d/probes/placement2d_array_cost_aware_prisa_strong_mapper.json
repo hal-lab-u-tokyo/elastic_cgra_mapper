@@ -1,0 +1,14 @@
+{
+  "Algorithm": {
+    "type": "Placement2DArrayCostAwarePRISAMapper",
+    "accept_feasible_solution": true,
+    "placement_only": true,
+    "seed_count": 4,
+    "random_seed": 4101,
+    "max_iterations": 4000,
+    "max_trials": 4096
+  },
+  "DFG": {
+    "operation_name_label": "node_id"
+  }
+}

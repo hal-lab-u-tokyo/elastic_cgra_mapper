@@ -1,8 +1,8 @@
 {
-  "name": "placement2d_traversal_yott_1000_trials",
+  "name": "placement2d_traversal_yott_cpu_mapping_like",
   "problem_type": "placement2d",
   "mode": "placement2d_fixed_ii",
-  "result_group": "placement2d/traversal_yott_1000_trials",
+  "result_group": "placement2d/archive/traversal_yott_cpu_mapping_like",
   "mapping_bin": "/home/ubuntu/elastic_cgra_mapper/build/mapping",
   "benchmark_sets": [
     {
@@ -39,22 +39,25 @@
   ],
   "architectures": [
     {
-      "name": "mesh10x10_default_all",
+      "name": "cpu_mapping_square_mesh",
       "template": "/home/ubuntu/elastic_cgra_mapper/research/configs/arch_templates/mesh_10x10_default.json",
+      "auto_grid": {
+        "policy": "cpu_mapping_yoto_yott"
+      },
       "ii": 1
     }
   ],
   "mappers": [
     {
-      "name": "placement2d_yoto_1000_trials_mapper",
-      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/placement2d_yoto_1000_trials_mapper.json"
+      "name": "placement2d_yoto_1000",
+      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/placement2d/reproduction/placement2d_yoto_1000_trials_mapper.json"
     },
     {
-      "name": "placement2d_yott_1000_trials_mapper",
-      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/placement2d_yott_1000_trials_mapper.json"
+      "name": "placement2d_yott_1000",
+      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/placement2d/reproduction/placement2d_yott_1000_trials_mapper.json"
     }
   ],
-  "timeout_sec": 60,
+  "timeout_sec": 90,
   "parallel_num": 1,
   "mii_missing_distance_policy": "self_loop"
 }

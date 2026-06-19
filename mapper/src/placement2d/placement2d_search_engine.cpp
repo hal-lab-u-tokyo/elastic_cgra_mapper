@@ -12,6 +12,12 @@ PlacementSearchKind ToCommonSearchKind(Placement2DSearchKind search_kind) {
       return PlacementSearchKind::kPlacement2DYOTT;
     case Placement2DSearchKind::kSA:
       return PlacementSearchKind::kPlacement2DSA;
+    case Placement2DSearchKind::kPRISA:
+      return PlacementSearchKind::kPlacement2DPRISA;
+    case Placement2DSearchKind::kPRISANoSIS:
+      return PlacementSearchKind::kPlacement2DPRISANoSIS;
+    case Placement2DSearchKind::kCostAwarePRISA:
+      return PlacementSearchKind::kPlacement2DCostAwarePRISA;
   }
   return PlacementSearchKind::kPlacement2DYOTO;
 }

@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Dict, List, Optional, Set, Tuple
 
 import networkx as nx
+import pydot
 
 
 SUPPORTED_MAPPER_OPS = {
@@ -44,28 +45,37 @@ CONTROL_OPS = {"br", "branch"}
 # and ALU/logic variants are folded into supported one-cycle ALU opcodes.
 OP_ALIASES = {
     "in": "load",
+    "i": "load",
     "input": "load",
     "ld": "load",
+    "lod": "load",
     "load": "load",
     "loadb": "load",
     "oload": "load",
     "ls": "load",
+    "cof": "load",
     "getelementptr": "load",
     "out": "output",
     "store": "output",
     "st": "output",
+    "str": "output",
     "storeb": "output",
     "ostore": "output",
     "output": "output",
     "add": "add",
     "addi": "add",
+    "iadd": "add",
+    "atadd": "add",
+    "stadd": "add",
     "fadd": "add",
     "sub": "sub",
     "subi": "sub",
+    "neg": "sub",
     "fsub": "sub",
     "mul": "mul",
     "muli": "mul",
     "mult": "mul",
+    "imult": "mul",
     "fmul": "mul",
     "div": "div",
     "sdiv": "sdiv",
@@ -81,6 +91,8 @@ OP_ALIASES = {
     "sl": "shift",
     "sr": "shift",
     "sra": "shift",
+    "asr": "shift",
+    "lsr": "shift",
     "sext": "shift",
     "zext": "shift",
     "trunc": "shift",
@@ -111,9 +123,20 @@ OP_ALIASES = {
     "movc": "select",
     "cmerge": "select",
     "reg": "select",
+    "copy": "select",
+    "pas": "select",
+    "sep": "select",
     "phi": "const",
     "const": "const",
     "constant": "const",
+    "imp": "add",
+    "exp": "add",
+    "bne": "add",
+    "beq": "add",
+    "x": "add",
+    "a": "add",
+    "g": "add",
+    "s": "add",
     "nop": "nop",
     "loop": "loop",
 }
@@ -170,9 +193,24 @@ def sanitize_id(value: str, fallback: str) -> str:
 
 def normalize_op(raw_op: str) -> Optional[str]:
     key = clean_value(raw_op).lower()
+    if re.fullmatch(r"\d+", key):
+        return "add"
     if key in CONTROL_OPS:
         return None
-    return OP_ALIASES.get(key, key)
+    if key in OP_ALIASES:
+        return OP_ALIASES[key]
+    candidates = []
+    if "_" in key:
+        candidates.append(key.split("_", 1)[0])
+    match = re.match(r"([a-z]+)", key)
+    if match:
+        candidates.append(match.group(1))
+    for candidate in candidates:
+        if candidate in CONTROL_OPS:
+            return None
+        if candidate in OP_ALIASES:
+            return OP_ALIASES[candidate]
+    return key
 
 
 def infer_cgra_bench_op(node_name: str) -> str:
@@ -225,6 +263,13 @@ def infer_dot_node_op(node_name: str, attrs: dict) -> str:
     if label_op:
         return label_op
 
+    if re.fullmatch(r"\d+", clean_name(node_name)):
+        return "add"
+
+    name_match = re.match(r"([A-Za-z]+)", clean_name(node_name))
+    if name_match:
+        return name_match.group(1)
+
     return name_op
 
 
@@ -258,8 +303,24 @@ def edge_data_items(graph, src, dst):
     return [data]
 
 
+def read_dot_graph(path: Path):
+    try:
+        return nx.nx_pydot.read_dot(str(path))
+    except Exception:
+        text = path.read_text()
+        # Some public cpu_mapping DOTs put semicolons inside attribute lists
+        # such as `[label = ADD_1;]`, which Graphviz tolerates less consistently
+        # and pydot rejects. Removing only the in-list terminator preserves the
+        # graph structure while letting pydot parse these benchmark files.
+        text = re.sub(r";\s*\]", "]", text)
+        graphs = pydot.graph_from_dot_data(text)
+        if not graphs:
+            raise
+        return nx.nx_pydot.from_pydot(graphs[0])
+
+
 def parse_dot(path: Path) -> GraphData:
-    raw_graph = nx.nx_pydot.read_dot(str(path))
+    raw_graph = read_dot_graph(path)
     graph = GraphData()
     control_nodes = set()
 

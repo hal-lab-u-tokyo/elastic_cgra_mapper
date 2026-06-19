@@ -4,6 +4,7 @@ import csv
 import json
 import math
 import re
+from collections import defaultdict, deque
 from pathlib import Path
 from typing import Dict, Iterable, Optional
 
@@ -431,6 +432,60 @@ def placement_cost(dx: int, dy: int, model: str) -> int:
     return max(1, dx + dy)
 
 
+def longest_path_cost(nodes: Iterable[str], weighted_edges: Iterable[tuple]) -> object:
+    node_list = list(nodes)
+    node_set = set(node_list)
+    successors = {node: [] for node in node_list}
+    indegree = {node: 0 for node in node_list}
+    for src, dst, weight in weighted_edges:
+        if src not in node_set or dst not in node_set:
+            continue
+        successors[src].append((dst, max(1, int(weight))))
+        indegree[dst] += 1
+
+    queue = deque(node for node in node_list if indegree[node] == 0)
+    distance = {node: 0 for node in node_list}
+    visited = 0
+    while queue:
+        src = queue.popleft()
+        visited += 1
+        for dst, weight in successors[src]:
+            distance[dst] = max(distance[dst], distance[src] + weight)
+            indegree[dst] -= 1
+            if indegree[dst] == 0:
+                queue.append(dst)
+
+    if visited != len(node_list):
+        return ""
+    return max(distance.values()) if distance else ""
+
+
+def find_routed_path(src_ids: list, dst_ids: list, configs: dict, outgoing: dict) -> list:
+    dst_set = set(dst_ids)
+    for start in src_ids:
+        queue = deque([(start, [start])])
+        seen = {start}
+        while queue:
+            current, path = queue.popleft()
+            for nxt in outgoing.get(current, []):
+                if nxt in dst_set:
+                    return path + [nxt]
+                if nxt in seen or nxt not in configs:
+                    continue
+                if configs[nxt]["operation_type"] != ROUTE_OP:
+                    continue
+                seen.add(nxt)
+                queue.append((nxt, path + [nxt]))
+    return []
+
+
+def path_spatial_hop(path: list) -> int:
+    return sum(
+        abs(src[0] - dst[0]) + abs(src[1] - dst[1])
+        for src, dst in zip(path, path[1:])
+    )
+
+
 def mapping_utilization(
     mapping_path: Optional[Path],
     dfg_path: Optional[Path] = None,
@@ -504,12 +559,35 @@ def mapping_utilization(
         "placement_max_cost": "",
         "placement_optimal_edge_count": "",
         "placement_optimal_edge_ratio": "",
+        "placement_optimal_distance_count": "",
+        "placement_optimal_distance_ratio": "",
         "placement_fifo_like_sum": "",
         "placement_avg_fifo_like": "",
         "placement_max_fifo_like": "",
+        "placement_mesh_hop_sum": "",
+        "placement_avg_mesh_hop": "",
+        "placement_max_mesh_hop": "",
+        "placement_mesh_optimal_edge_count": "",
+        "placement_mesh_optimal_edge_ratio": "",
+        "placement_mesh_fifo_sum": "",
+        "placement_avg_mesh_fifo": "",
+        "placement_max_mesh_fifo": "",
+        "placement_mapped_lp_mesh_hop": "",
         "direct_dfg_edge_count": "",
         "routed_dfg_edge_count": "",
         "direct_dfg_edge_ratio": "",
+        "routed_path_count": "",
+        "routed_unreachable_edge_count": "",
+        "routed_path_length_sum": "",
+        "routed_avg_path_length": "",
+        "routed_max_path_length": "",
+        "routed_spatial_hop_sum": "",
+        "routed_avg_spatial_hop": "",
+        "routed_max_spatial_hop": "",
+        "routed_fifo_sum": "",
+        "routed_avg_fifo": "",
+        "routed_max_fifo": "",
+        "routed_mapped_lp": "",
     }
     if not mapping_path or not mapping_path.exists():
         return empty
@@ -538,6 +616,9 @@ def mapping_utilization(
     active_memory_pes = set()
     context_loads = [0 for _ in range(context_size)]
     compute_contexts_per_pe = {}
+    config_by_id = {}
+    outgoing_by_config = defaultdict(list)
+    op_locations_by_name = defaultdict(list)
     op_position_by_name = {}
     to_config_ids_by_name = {}
     fanouts = []
@@ -576,17 +657,23 @@ def mapping_utilization(
                 if op == "const":
                     const_ops += 1
 
+            config_id = (row, col, context_id)
             to_config_ids = parse_config_id_list(config.get("to_config_id", []))
+            to_config_tuples = [config_id_tuple(to_config_id) for to_config_id in to_config_ids]
+            op_name = clean_dot_value(config.get("operation_name", "")) if op != NOP_OP else ""
+            config_by_id[config_id] = {
+                "operation_type": op,
+                "operation_name": op_name,
+            }
+            outgoing_by_config[config_id].extend(to_config_tuples)
             if op != NOP_OP:
-                op_name = clean_dot_value(config.get("operation_name", ""))
                 if op != ROUTE_OP and op_name:
-                    op_position_by_name[op_name] = (row, col, context_id)
-                    to_config_ids_by_name[op_name] = [
-                        config_id_tuple(to_config_id) for to_config_id in to_config_ids
-                    ]
+                    op_position_by_name[op_name] = config_id
+                    op_locations_by_name[op_name].append(config_id)
+                    to_config_ids_by_name[op_name] = to_config_tuples
                 fanouts.append(len(to_config_ids))
-            for to_config_id in to_config_ids:
-                to_row, to_col, to_context = config_id_tuple(to_config_id)
+            for to_config_id in to_config_tuples:
+                to_row, to_col, to_context = to_config_id
                 connection_count += 1
                 manhattan_distance = abs(row - to_row) + abs(col - to_col)
                 context_distance = (to_context - context_id) % context_size
@@ -614,6 +701,18 @@ def mapping_utilization(
     direct_dfg_edge_count = ""
     routed_dfg_edge_count = ""
     direct_dfg_edge_ratio = ""
+    routed_path_count = ""
+    routed_unreachable_edge_count = ""
+    routed_path_length_sum = ""
+    routed_avg_path_length = ""
+    routed_max_path_length = ""
+    routed_spatial_hop_sum = ""
+    routed_avg_spatial_hop = ""
+    routed_max_spatial_hop = ""
+    routed_fifo_sum = ""
+    routed_avg_fifo = ""
+    routed_max_fifo = ""
+    routed_mapped_lp = ""
     placement_edge_count = ""
     placement_wirelength_sum = ""
     placement_avg_wirelength = ""
@@ -628,15 +727,32 @@ def mapping_utilization(
     placement_max_cost = ""
     placement_optimal_edge_count = ""
     placement_optimal_edge_ratio = ""
+    placement_optimal_distance_count = ""
+    placement_optimal_distance_ratio = ""
     placement_fifo_like_sum = ""
     placement_avg_fifo_like = ""
     placement_max_fifo_like = ""
+    placement_mesh_hop_sum = ""
+    placement_avg_mesh_hop = ""
+    placement_max_mesh_hop = ""
+    placement_mesh_optimal_edge_count = ""
+    placement_mesh_optimal_edge_ratio = ""
+    placement_mesh_fifo_sum = ""
+    placement_avg_mesh_fifo = ""
+    placement_max_mesh_fifo = ""
+    placement_mapped_lp_mesh_hop = ""
     if dfg_path and dfg_path.exists():
         raw_graph = nx.nx_pydot.read_dot(str(dfg_path))
         total_dfg_edges = 0
         direct_edges = 0
         placement_wirelengths = []
         placement_costs = []
+        mesh_weighted_edges = []
+        routed_path_lengths = []
+        routed_spatial_hops = []
+        routed_fifo_values = []
+        routed_weighted_edges = []
+        unreachable_edges = 0
         for src, dst in raw_graph.edges():
             clean_src = clean_node_name(src)
             clean_dst = clean_node_name(dst)
@@ -647,6 +763,7 @@ def mapping_utilization(
             dst_position = op_position_by_name[clean_dst]
             manhattan = abs(src_position[0] - dst_position[0]) + abs(src_position[1] - dst_position[1])
             placement_wirelengths.append(manhattan)
+            mesh_weighted_edges.append((clean_src, clean_dst, max(1, manhattan)))
             placement_costs.append(
                 placement_cost(
                     abs(src_position[0] - dst_position[0]),
@@ -656,6 +773,20 @@ def mapping_utilization(
             )
             if op_position_by_name[clean_dst] in to_config_ids_by_name.get(clean_src, []):
                 direct_edges += 1
+            route_path = find_routed_path(
+                op_locations_by_name.get(clean_src, []),
+                op_locations_by_name.get(clean_dst, []),
+                config_by_id,
+                outgoing_by_config,
+            )
+            if route_path:
+                path_length = len(route_path) - 1
+                routed_path_lengths.append(path_length)
+                routed_spatial_hops.append(path_spatial_hop(route_path))
+                routed_fifo_values.append(max(0, path_length - 1))
+                routed_weighted_edges.append((clean_src, clean_dst, max(1, path_length)))
+            else:
+                unreachable_edges += 1
         if total_dfg_edges:
             direct_dfg_edge_count = direct_edges
             routed_dfg_edge_count = total_dfg_edges - direct_edges
@@ -675,10 +806,43 @@ def mapping_utilization(
             placement_max_cost = max(placement_costs)
             placement_optimal_edge_count = sum(1 for cost in placement_costs if cost <= 1)
             placement_optimal_edge_ratio = placement_optimal_edge_count / total_dfg_edges
+            placement_optimal_distance_count = sum(
+                1 for distance in placement_wirelengths if distance == 1
+            )
+            placement_optimal_distance_ratio = (
+                placement_optimal_distance_count / total_dfg_edges
+            )
             placement_fifo_like_values = [max(0, cost - 1) for cost in placement_costs]
             placement_fifo_like_sum = sum(placement_fifo_like_values)
             placement_avg_fifo_like = placement_fifo_like_sum / total_dfg_edges
             placement_max_fifo_like = max(placement_fifo_like_values)
+            placement_mesh_hop_sum = placement_wirelength_sum
+            placement_avg_mesh_hop = placement_avg_wirelength
+            placement_max_mesh_hop = placement_max_wirelength
+            placement_mesh_optimal_edge_count = placement_direct_edge_count
+            placement_mesh_optimal_edge_ratio = placement_direct_edge_ratio
+            placement_mesh_fifo_sum = placement_fifo_sum
+            placement_avg_mesh_fifo = placement_avg_fifo
+            placement_max_mesh_fifo = placement_max_fifo
+            placement_mapped_lp_mesh_hop = longest_path_cost(
+                op_position_by_name.keys(), mesh_weighted_edges
+            )
+            routed_path_count = len(routed_path_lengths)
+            routed_unreachable_edge_count = unreachable_edges
+            if routed_path_lengths:
+                routed_path_length_sum = sum(routed_path_lengths)
+                routed_avg_path_length = routed_path_length_sum / len(routed_path_lengths)
+                routed_max_path_length = max(routed_path_lengths)
+                routed_spatial_hop_sum = sum(routed_spatial_hops)
+                routed_avg_spatial_hop = routed_spatial_hop_sum / len(routed_spatial_hops)
+                routed_max_spatial_hop = max(routed_spatial_hops)
+                routed_fifo_sum = sum(routed_fifo_values)
+                routed_avg_fifo = routed_fifo_sum / len(routed_fifo_values)
+                routed_max_fifo = max(routed_fifo_values)
+            if routed_path_count == total_dfg_edges:
+                routed_mapped_lp = longest_path_cost(
+                    op_position_by_name.keys(), routed_weighted_edges
+                )
 
     empty.update(
         {
@@ -758,12 +922,35 @@ def mapping_utilization(
             "placement_max_cost": placement_max_cost,
             "placement_optimal_edge_count": placement_optimal_edge_count,
             "placement_optimal_edge_ratio": placement_optimal_edge_ratio,
+            "placement_optimal_distance_count": placement_optimal_distance_count,
+            "placement_optimal_distance_ratio": placement_optimal_distance_ratio,
             "placement_fifo_like_sum": placement_fifo_like_sum,
             "placement_avg_fifo_like": placement_avg_fifo_like,
             "placement_max_fifo_like": placement_max_fifo_like,
+            "placement_mesh_hop_sum": placement_mesh_hop_sum,
+            "placement_avg_mesh_hop": placement_avg_mesh_hop,
+            "placement_max_mesh_hop": placement_max_mesh_hop,
+            "placement_mesh_optimal_edge_count": placement_mesh_optimal_edge_count,
+            "placement_mesh_optimal_edge_ratio": placement_mesh_optimal_edge_ratio,
+            "placement_mesh_fifo_sum": placement_mesh_fifo_sum,
+            "placement_avg_mesh_fifo": placement_avg_mesh_fifo,
+            "placement_max_mesh_fifo": placement_max_mesh_fifo,
+            "placement_mapped_lp_mesh_hop": placement_mapped_lp_mesh_hop,
             "direct_dfg_edge_count": direct_dfg_edge_count,
             "routed_dfg_edge_count": routed_dfg_edge_count,
             "direct_dfg_edge_ratio": direct_dfg_edge_ratio,
+            "routed_path_count": routed_path_count,
+            "routed_unreachable_edge_count": routed_unreachable_edge_count,
+            "routed_path_length_sum": routed_path_length_sum,
+            "routed_avg_path_length": routed_avg_path_length,
+            "routed_max_path_length": routed_max_path_length,
+            "routed_spatial_hop_sum": routed_spatial_hop_sum,
+            "routed_avg_spatial_hop": routed_avg_spatial_hop,
+            "routed_max_spatial_hop": routed_max_spatial_hop,
+            "routed_fifo_sum": routed_fifo_sum,
+            "routed_avg_fifo": routed_avg_fifo,
+            "routed_max_fifo": routed_max_fifo,
+            "routed_mapped_lp": routed_mapped_lp,
         }
     )
     return empty
@@ -890,12 +1077,45 @@ def normalize_run(
         "placement_max_cost": cgra_metrics["placement_max_cost"],
         "placement_optimal_edge_count": cgra_metrics["placement_optimal_edge_count"],
         "placement_optimal_edge_ratio": cgra_metrics["placement_optimal_edge_ratio"],
+        "placement_optimal_distance_count": cgra_metrics[
+            "placement_optimal_distance_count"
+        ],
+        "placement_optimal_distance_ratio": cgra_metrics[
+            "placement_optimal_distance_ratio"
+        ],
         "placement_fifo_like_sum": cgra_metrics["placement_fifo_like_sum"],
         "placement_avg_fifo_like": cgra_metrics["placement_avg_fifo_like"],
         "placement_max_fifo_like": cgra_metrics["placement_max_fifo_like"],
+        "placement_mesh_hop_sum": cgra_metrics["placement_mesh_hop_sum"],
+        "placement_avg_mesh_hop": cgra_metrics["placement_avg_mesh_hop"],
+        "placement_max_mesh_hop": cgra_metrics["placement_max_mesh_hop"],
+        "placement_mesh_optimal_edge_count": cgra_metrics[
+            "placement_mesh_optimal_edge_count"
+        ],
+        "placement_mesh_optimal_edge_ratio": cgra_metrics[
+            "placement_mesh_optimal_edge_ratio"
+        ],
+        "placement_mesh_fifo_sum": cgra_metrics["placement_mesh_fifo_sum"],
+        "placement_avg_mesh_fifo": cgra_metrics["placement_avg_mesh_fifo"],
+        "placement_max_mesh_fifo": cgra_metrics["placement_max_mesh_fifo"],
+        "placement_mapped_lp_mesh_hop": cgra_metrics[
+            "placement_mapped_lp_mesh_hop"
+        ],
         "direct_dfg_edge_count": cgra_metrics["direct_dfg_edge_count"],
         "routed_dfg_edge_count": cgra_metrics["routed_dfg_edge_count"],
         "direct_dfg_edge_ratio": cgra_metrics["direct_dfg_edge_ratio"],
+        "routed_path_count": cgra_metrics["routed_path_count"],
+        "routed_unreachable_edge_count": cgra_metrics["routed_unreachable_edge_count"],
+        "routed_path_length_sum": cgra_metrics["routed_path_length_sum"],
+        "routed_avg_path_length": cgra_metrics["routed_avg_path_length"],
+        "routed_max_path_length": cgra_metrics["routed_max_path_length"],
+        "routed_spatial_hop_sum": cgra_metrics["routed_spatial_hop_sum"],
+        "routed_avg_spatial_hop": cgra_metrics["routed_avg_spatial_hop"],
+        "routed_max_spatial_hop": cgra_metrics["routed_max_spatial_hop"],
+        "routed_fifo_sum": cgra_metrics["routed_fifo_sum"],
+        "routed_avg_fifo": cgra_metrics["routed_avg_fifo"],
+        "routed_max_fifo": cgra_metrics["routed_max_fifo"],
+        "routed_mapped_lp": cgra_metrics["routed_mapped_lp"],
         "gurobi_status": gurobi_metrics["gurobi_status"],
         "objective_value": gurobi_metrics["objective_value"],
         "best_bound": gurobi_metrics["best_bound"],
@@ -911,6 +1131,9 @@ CSV_FIELDS = [
     "benchmark",
     "benchmark_set",
     "mapper",
+    "mapper_role",
+    "placement_method",
+    "routing_method",
     "arch_name",
     "evaluation_mode",
     "cgra_type",
@@ -987,12 +1210,35 @@ CSV_FIELDS = [
     "placement_max_cost",
     "placement_optimal_edge_count",
     "placement_optimal_edge_ratio",
+    "placement_optimal_distance_count",
+    "placement_optimal_distance_ratio",
     "placement_fifo_like_sum",
     "placement_avg_fifo_like",
     "placement_max_fifo_like",
+    "placement_mesh_hop_sum",
+    "placement_avg_mesh_hop",
+    "placement_max_mesh_hop",
+    "placement_mesh_optimal_edge_count",
+    "placement_mesh_optimal_edge_ratio",
+    "placement_mesh_fifo_sum",
+    "placement_avg_mesh_fifo",
+    "placement_max_mesh_fifo",
+    "placement_mapped_lp_mesh_hop",
     "direct_dfg_edge_count",
     "routed_dfg_edge_count",
     "direct_dfg_edge_ratio",
+    "routed_path_count",
+    "routed_unreachable_edge_count",
+    "routed_path_length_sum",
+    "routed_avg_path_length",
+    "routed_max_path_length",
+    "routed_spatial_hop_sum",
+    "routed_avg_spatial_hop",
+    "routed_max_spatial_hop",
+    "routed_fifo_sum",
+    "routed_avg_fifo",
+    "routed_max_fifo",
+    "routed_mapped_lp",
     "gurobi_status",
     "objective_value",
     "best_bound",

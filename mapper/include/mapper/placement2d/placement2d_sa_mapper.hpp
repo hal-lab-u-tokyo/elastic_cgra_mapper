@@ -1,6 +1,7 @@
 #pragma once
 
 #include <mapper/mapper.hpp>
+#include <mapper/placement2d/placement2d_array_mapper_base.hpp>
 
 #include <memory>
 #include <optional>
@@ -37,6 +38,15 @@ class Placement2DSAMapper : public IMapper {
   std::optional<int> random_seed_;
   std::optional<int> max_iterations_;
   bool placement_only_ = false;
+};
+
+class Placement2DArraySAMapper : public Placement2DArrayMapperBase {
+ public:
+  Placement2DArraySAMapper(
+      const std::shared_ptr<entity::DFG> dfg_ptr,
+      const std::shared_ptr<entity::MRRG> mrrg_ptr)
+      : Placement2DArrayMapperBase(Placement2DArrayKind::kSA, dfg_ptr,
+                                   mrrg_ptr) {}
 };
 
 }  // namespace mapper

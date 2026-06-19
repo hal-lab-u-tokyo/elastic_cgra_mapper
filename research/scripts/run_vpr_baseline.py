@@ -16,6 +16,7 @@ from lib import (
     clean_dot_value,
     clean_node_name,
     load_json,
+    longest_path_cost,
     placement_cost,
     read_dfg_stats,
     safe_ratio,
@@ -102,6 +103,41 @@ def unique_blif_names(nodes: list) -> tuple:
     return name_map, reverse_map
 
 
+def emit_names_node(lines: list, input_names: list, output: str) -> None:
+    lines.append(".names " + " ".join(input_names + [output]))
+    if input_names:
+        lines.append(f"{'1' * len(input_names)} 1")
+    else:
+        lines.append("1")
+
+
+def emit_lut_tree(lines: list, input_names: list, output: str,
+                  lut_size: int, used_names: set, prefix: str) -> None:
+    if len(input_names) <= lut_size:
+        emit_names_node(lines, input_names, output)
+        return
+
+    level = list(input_names)
+    temp_index = 0
+    while len(level) > lut_size:
+        next_level = []
+        for start in range(0, len(level), lut_size):
+            chunk = level[start:start + lut_size]
+            if len(chunk) == 1:
+                next_level.append(chunk[0])
+                continue
+            temp_index += 1
+            temp = f"__{prefix}_lut{temp_index}"
+            while temp in used_names:
+                temp_index += 1
+                temp = f"__{prefix}_lut{temp_index}"
+            used_names.add(temp)
+            emit_names_node(lines, chunk, temp)
+            next_level.append(temp)
+        level = next_level
+    emit_names_node(lines, level, output)
+
+
 def write_blif(dfg_path: Path, out_path: Path, name_map_path: Path) -> dict:
     nodes, edges, predecessors, successors = read_dfg(dfg_path)
     name_map, reverse_map = unique_blif_names(nodes)
@@ -116,17 +152,16 @@ def write_blif(dfg_path: Path, out_path: Path, name_map_path: Path) -> dict:
     lines.append(".inputs " + " ".join(name_map[node] for node in input_nodes))
     lines.append(".outputs " + " ".join(name_map[node] for node in output_nodes))
 
+    used_blif_names = set(name_map.values())
+    lut_size = 6
     for node in nodes:
         if node in input_nodes:
             continue
         fanin = predecessors[node]
         output = name_map[node]
         input_names = [name_map[src] for src in fanin]
-        lines.append(".names " + " ".join(input_names + [output]))
-        if input_names:
-            lines.append(f"{'1' * len(input_names)} 1")
-        else:
-            lines.append("1")
+        emit_lut_tree(lines, input_names, output, lut_size,
+                      used_blif_names, sanitize_blif_name(node))
 
     lines.append(".end")
     out_path.parent.mkdir(parents=True, exist_ok=True)
@@ -332,7 +367,7 @@ def prepare_vpr_arch_xml(arch_xml: Path, mapper_config: dict, work_dir: Path) ->
 
 
 def placement_metrics(dfg_path: Path, positions: dict, cost_model: str) -> dict:
-    _, edges, _, _ = read_dfg(dfg_path)
+    nodes, edges, _, _ = read_dfg(dfg_path)
     placed_edges = []
     for src, dst in edges:
         if src in positions and dst in positions:
@@ -340,12 +375,15 @@ def placement_metrics(dfg_path: Path, positions: dict, cost_model: str) -> dict:
 
     wirelengths = []
     costs = []
+    mesh_weighted_edges = []
     for src, dst in placed_edges:
         src_row, src_col = positions[src]
         dst_row, dst_col = positions[dst]
         dx = abs(src_col - dst_col)
         dy = abs(src_row - dst_row)
-        wirelengths.append(dx + dy)
+        mesh_hop = dx + dy
+        wirelengths.append(mesh_hop)
+        mesh_weighted_edges.append((src, dst, max(1, mesh_hop)))
         costs.append(placement_cost(dx, dy, cost_model))
 
     if not placed_edges:
@@ -364,13 +402,25 @@ def placement_metrics(dfg_path: Path, positions: dict, cost_model: str) -> dict:
             "placement_max_cost": "",
             "placement_optimal_edge_count": "",
             "placement_optimal_edge_ratio": "",
+            "placement_optimal_distance_count": "",
+            "placement_optimal_distance_ratio": "",
             "placement_fifo_like_sum": "",
             "placement_avg_fifo_like": "",
             "placement_max_fifo_like": "",
+            "placement_mesh_hop_sum": "",
+            "placement_avg_mesh_hop": "",
+            "placement_max_mesh_hop": "",
+            "placement_mesh_optimal_edge_count": "",
+            "placement_mesh_optimal_edge_ratio": "",
+            "placement_mesh_fifo_sum": "",
+            "placement_avg_mesh_fifo": "",
+            "placement_max_mesh_fifo": "",
+            "placement_mapped_lp_mesh_hop": "",
         }
 
     fifo_values = [max(0, wirelength - 1) for wirelength in wirelengths]
     fifo_like_values = [max(0, cost - 1) for cost in costs]
+    placed_nodes = [node for node in nodes if node in positions]
     return {
         "placement_edge_count": len(placed_edges),
         "placement_wirelength_sum": sum(wirelengths),
@@ -388,9 +438,26 @@ def placement_metrics(dfg_path: Path, positions: dict, cost_model: str) -> dict:
         "placement_max_cost": max(costs),
         "placement_optimal_edge_count": sum(1 for cost in costs if cost <= 1),
         "placement_optimal_edge_ratio": safe_ratio(sum(1 for cost in costs if cost <= 1), len(placed_edges)),
+        "placement_optimal_distance_count": sum(1 for wirelength in wirelengths if wirelength == 1),
+        "placement_optimal_distance_ratio": safe_ratio(
+            sum(1 for wirelength in wirelengths if wirelength == 1), len(placed_edges)
+        ),
         "placement_fifo_like_sum": sum(fifo_like_values),
         "placement_avg_fifo_like": safe_ratio(sum(fifo_like_values), len(placed_edges)),
         "placement_max_fifo_like": max(fifo_like_values),
+        "placement_mesh_hop_sum": sum(wirelengths),
+        "placement_avg_mesh_hop": safe_ratio(sum(wirelengths), len(placed_edges)),
+        "placement_max_mesh_hop": max(wirelengths),
+        "placement_mesh_optimal_edge_count": sum(1 for wirelength in wirelengths if wirelength <= 1),
+        "placement_mesh_optimal_edge_ratio": safe_ratio(
+            sum(1 for wirelength in wirelengths if wirelength <= 1), len(placed_edges)
+        ),
+        "placement_mesh_fifo_sum": sum(fifo_values),
+        "placement_avg_mesh_fifo": safe_ratio(sum(fifo_values), len(placed_edges)),
+        "placement_max_mesh_fifo": max(fifo_values),
+        "placement_mapped_lp_mesh_hop": longest_path_cost(
+            placed_nodes, mesh_weighted_edges
+        ),
     }
 
 
@@ -586,8 +653,11 @@ def run_one_vpr(
     recovered_buffer_nodes = []
     if bool(mapper_config.get("recover_optimized_buffers", True)):
         positions, recovered_buffer_nodes = recover_buffer_like_positions(dfg, positions)
-    rows = parsed_rows or arch["rows"]
-    cols = parsed_cols or arch["cols"]
+    # Use the effective CGRA dimensions from the experiment manifest for
+    # fair metric denominators. VPR's `.place` array size may exclude how this
+    # repository accounts for DFG input/output nodes as CGRA operations.
+    rows = arch["rows"]
+    cols = arch["cols"]
     stats = read_dfg_stats(dfg)
     missing_nodes = sorted(node for node in dfg_data["nodes"] if node not in positions)
     status = "success"

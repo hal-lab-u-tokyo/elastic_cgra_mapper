@@ -219,6 +219,8 @@ Available manifests:
 - `research/configs/experiments/placement2d/search.json`: 2D placement mappers only; quick iteration.
 - `research/configs/experiments/placement2d/all_mappers.json`: 2D placement mappers plus ILP mappers.
 
+For modulo experiments, `mapper_matrix` in the manifest crosses placement-first methods with routing policies. Add a new placement-first mapper under `mapper_matrix.placements`, add a new routing policy under `mapper_matrix.routers`, and add integrated routing-aware placement methods under `routing_aware_mappers`.
+
 Run preflight before long runs:
 
 ```bash
@@ -235,7 +237,7 @@ python3 research/scripts/generate_reports.py \
   --result-dir <result_dir>
 ```
 
-The primary output is `metrics.csv`. Important columns are `MII`, `start_II`, `achieved_II`, `II_ratio`, `status`, `mapping_time_sec`, `wall_time_sec`, `compute_pe_utilization`, `pe_context_utilization`, `route_to_compute_ratio`, `avg_manhattan_distance`, `compute_bbox_utilization`, `objective_value`, `best_bound`, and `mip_gap`.
+The primary output is `metrics.csv`. Important columns are `mapper_role`, `placement_method`, `routing_method`, `MII`, `start_II`, `achieved_II`, `II_ratio`, `status`, `mapping_time_sec`, `wall_time_sec`, `compute_pe_utilization`, `pe_context_utilization`, `route_to_compute_ratio`, `avg_manhattan_distance`, `compute_bbox_utilization`, `objective_value`, `best_bound`, and `mip_gap`.
 
 Experiment manifests can either use a single `benchmark_root` plus `benchmarks`, or multiple `benchmark_sets`. Multiple sets are useful when comparing built-in kernels, converted CGRA-Bench kernels, and custom benchmarks in one run while keeping the result rows separable by `benchmark_set`.
 

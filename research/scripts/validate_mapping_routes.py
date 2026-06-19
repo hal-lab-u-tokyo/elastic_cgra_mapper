@@ -192,6 +192,40 @@ def path_crosses_context(path: list) -> bool:
     return any(src[2] != dst[2] for src, dst in zip(path, path[1:]))
 
 
+def path_spatial_hop(path: list) -> int:
+    return sum(
+        abs(src[0] - dst[0]) + abs(src[1] - dst[1])
+        for src, dst in zip(path, path[1:])
+    )
+
+
+def longest_path_cost(nodes: list, weighted_edges: list):
+    successors = {node: [] for node in nodes}
+    indegree = {node: 0 for node in nodes}
+    node_set = set(nodes)
+    for src, dst, weight in weighted_edges:
+        if src not in node_set or dst not in node_set:
+            continue
+        successors[src].append((dst, max(1, int(weight))))
+        indegree[dst] += 1
+
+    queue = deque(node for node in nodes if indegree[node] == 0)
+    distance = {node: 0 for node in nodes}
+    visited = 0
+    while queue:
+        src = queue.popleft()
+        visited += 1
+        for dst, weight in successors[src]:
+            distance[dst] = max(distance[dst], distance[src] + weight)
+            indegree[dst] -= 1
+            if indegree[dst] == 0:
+                queue.append(dst)
+
+    if visited != len(nodes):
+        return None
+    return max(distance.values()) if distance else 0
+
+
 def validate_row(row: dict, row_id: int, repo_root: Path) -> tuple:
     failures = []
     warnings = []
@@ -203,6 +237,15 @@ def validate_row(row: dict, row_id: int, repo_root: Path) -> tuple:
         "mapping_connections": 0,
         "same_context_connections": 0,
         "cross_context_connections": 0,
+        "routed_path_length_sum": 0,
+        "routed_max_path_length": 0,
+        "routed_spatial_hop_sum": 0,
+        "routed_max_spatial_hop": 0,
+        "routed_fifo_sum": 0,
+        "routed_max_fifo": 0,
+        "routed_lp_sum": 0,
+        "routed_lp_count": 0,
+        "routed_lp_max": 0,
     }
     prefix = (
         f"row {row_id} ({row.get('benchmark', '')}/{row.get('mapper', '')}/"
@@ -272,6 +315,7 @@ def validate_row(row: dict, row_id: int, repo_root: Path) -> tuple:
                 f"(dfg={opcode}, mapping={op_types.get(node_name)})"
             )
 
+    routed_weighted_edges = []
     for src, dst in dfg_edges:
         stats["checked_edges"] += 1
         if src not in op_locations or dst not in op_locations:
@@ -281,10 +325,27 @@ def validate_row(row: dict, row_id: int, repo_root: Path) -> tuple:
             failures.append(f"{prefix}: no route path for DFG edge `{src}` -> `{dst}`")
             continue
         stats["route_paths"] += 1
+        path_length = len(route_path) - 1
+        fifo_count = max(0, path_length - 1)
+        spatial_hop = path_spatial_hop(route_path)
+        stats["routed_path_length_sum"] += path_length
+        stats["routed_max_path_length"] = max(stats["routed_max_path_length"], path_length)
+        stats["routed_spatial_hop_sum"] += spatial_hop
+        stats["routed_max_spatial_hop"] = max(stats["routed_max_spatial_hop"], spatial_hop)
+        stats["routed_fifo_sum"] += fifo_count
+        stats["routed_max_fifo"] = max(stats["routed_max_fifo"], fifo_count)
+        routed_weighted_edges.append((src, dst, max(1, path_length)))
         if path_crosses_context(route_path):
             stats["cross_context_route_paths"] += 1
         else:
             stats["same_context_route_paths"] += 1
+
+    if stats["route_paths"] == stats["checked_edges"]:
+        routed_lp = longest_path_cost(list(dfg_nodes.keys()), routed_weighted_edges)
+        if routed_lp is not None:
+            stats["routed_lp_sum"] += routed_lp
+            stats["routed_lp_count"] += 1
+            stats["routed_lp_max"] = max(stats["routed_lp_max"], routed_lp)
 
     mapped_extra_ops = sorted(set(op_locations) - set(dfg_nodes))
     if mapped_extra_ops:
@@ -330,13 +391,30 @@ def main() -> None:
         "mapping_connections": 0,
         "same_context_connections": 0,
         "cross_context_connections": 0,
+        "routed_path_length_sum": 0,
+        "routed_max_path_length": 0,
+        "routed_spatial_hop_sum": 0,
+        "routed_max_spatial_hop": 0,
+        "routed_fifo_sum": 0,
+        "routed_max_fifo": 0,
+        "routed_lp_sum": 0,
+        "routed_lp_count": 0,
+        "routed_lp_max": 0,
     }
     for idx, row in enumerate(rows, start=1):
         row_failures, row_warnings, row_stats = validate_row(row, idx, args.repo_root)
         failures.extend(row_failures)
         warnings.extend(row_warnings)
         for key, value in row_stats.items():
-            totals[key] += value
+            if key in {
+                "routed_max_path_length",
+                "routed_max_spatial_hop",
+                "routed_max_fifo",
+                "routed_lp_max",
+            }:
+                totals[key] = max(totals[key], value)
+            else:
+                totals[key] += value
 
     lines = ["# Routing Validation", ""]
     lines.append(f"Placement-only rows skipped: {skipped_placement_only}")
@@ -353,6 +431,28 @@ def main() -> None:
         f"same={totals['same_context_connections']}, "
         f"cross={totals['cross_context_connections']}"
     )
+    if totals["route_paths"]:
+        lines.append(
+            "Routed path length: "
+            f"avg={totals['routed_path_length_sum'] / totals['route_paths']:.3f}, "
+            f"max={totals['routed_max_path_length']}"
+        )
+        lines.append(
+            "Routed spatial hop: "
+            f"avg={totals['routed_spatial_hop_sum'] / totals['route_paths']:.3f}, "
+            f"max={totals['routed_max_spatial_hop']}"
+        )
+        lines.append(
+            "Routed FIFO: "
+            f"avg={totals['routed_fifo_sum'] / totals['route_paths']:.3f}, "
+            f"max={totals['routed_max_fifo']}"
+        )
+    if totals["routed_lp_count"]:
+        lines.append(
+            "Routed mapped LP: "
+            f"avg={totals['routed_lp_sum'] / totals['routed_lp_count']:.3f}, "
+            f"max={totals['routed_lp_max']}"
+        )
     lines.append(f"Overall status: {'FAIL' if failures else 'PASS'}")
     lines.append("")
     add_items(lines, "Failures", failures)

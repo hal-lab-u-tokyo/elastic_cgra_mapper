@@ -1,0 +1,41 @@
+{
+  "name": "placement2d_prisa_vpr8_ilp_probe",
+  "problem_type": "placement2d",
+  "evaluation_mode": "placement_only",
+  "mode": "placement2d_fixed_ii",
+  "result_group": "placement2d/probes/prisa_vpr8_ilp_probe",
+  "mapping_bin": "/home/ubuntu/elastic_cgra_mapper/build/mapping",
+  "benchmark_sets": [
+    {
+      "name": "vpr8_small",
+      "benchmark_root": "/home/ubuntu/elastic_cgra_mapper/benchmark/literature/prisa_vpr8_normalized/vpr8",
+      "benchmarks": [
+        "motion_vec",
+        "fir1",
+        "fir2",
+        "interpolate"
+      ]
+    }
+  ],
+  "architectures": [
+    {
+      "name": "min_square_all_io",
+      "template": "/home/ubuntu/elastic_cgra_mapper/research/configs/arch_templates/mesh_10x10_default.json",
+      "auto_grid": {
+        "policy": "ceil_sqrt_nodes"
+      },
+      "memory_io": "all",
+      "network_type": "orthogonal",
+      "ii": 1
+    }
+  ],
+  "mappers": [
+    {
+      "name": "placement_only_ilp",
+      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/placement2d/placement_only_ilp_mapper.json"
+    }
+  ],
+  "timeout_sec": 120,
+  "parallel_num": 1,
+  "mii_missing_distance_policy": "self_loop"
+}

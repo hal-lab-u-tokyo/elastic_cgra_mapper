@@ -1,41 +1,38 @@
 # Experiment Manifests
 
-Use these manifests for ordinary experiments:
+Use the four manifests below for normal experiments.
 
-- `modulo/search.json`: pure modulo heuristic mappers plus the lightweight VPR SA routed baseline.
-- `modulo/all_mappers.json`: modulo mappers plus routed/context-aware ILP mappers and strict VPR routed baselines.
-- `placement2d/search.json`: paper-like 2D placement subset with fast array mappers and VPR SA.
-- `placement2d/all_mappers.json`: the same paper-like setting with shared-engine mappers, array mappers, VPR SA, and placement-only ILP.
-- `placement2d/traversal_yott.json`: TRAVERSAL/YOTT-style DOT benchmarks, 100 trials.
-- `placement2d/traversal_yott_1000_trials.json`: same benchmarks, 1000 trials for YOTO/YOTT.
-- `placement2d/traversal_yott_placement_quality.json`: placement-only TRAVERSAL/YOTT comparison using the imported LISA/m_bench DOTs, cpu_mapping-style grid sizing, border I/O without corners, mesh and 1-hop cost models, YOTO/YOTT trial counts from the paper tables, array fast-path mappers, placement-only ILP, and VPR SA baselines.
+| problem | purpose | manifest |
+| --- | --- | --- |
+| modulo placement + routing | heuristic search | `modulo/search.json` |
+| modulo placement + routing | broad comparison with ILP/VPR baselines | `modulo/all_mappers.json` |
+| 2D placement only | heuristic search | `placement2d/search.json` |
+| 2D placement only | broad comparison with placement-only ILP/VPR baselines | `placement2d/all_mappers.json` |
 
-See `research/docs/traversal_yott_reproduction.md` for the reproduction scope, metrics, and command examples.
+Use `placement2d/reproduction/` only when checking prior-work reproduction.
 
-Problem type rules:
+| paper setting | manifest |
+| --- | --- |
+| TRAVERSAL/YOTT-style LISA and m_bench placement quality | `placement2d/reproduction/traversal_yott.json` |
+| PRISA VPR-8 placement quality | `placement2d/reproduction/prisa_vpr8.json` |
 
-- `problem_type: "modulo"`: II is swept from MII to `ii_max`; use `Modulo*`, `FullRoutingILPMapper`, and `ConnectivityPathILPMapper` configs.
-- `problem_type: "placement2d"`: II/context size is fixed to 1; use `Placement2D*` and `PlacementOnlyILPMapper` configs.
-- `evaluation_mode: "routing"`: a successful result must include valid routing.
-- `evaluation_mode: "placement_only"`: routing is skipped; compare direct edge ratio, wire length, and FIFO-like distance. Routing validation reports these rows as skipped because they do not claim routed paths.
-- `runner: "vpr"` in a mapper entry: run VPR as an external placement-only SA baseline. Run `scripts/build_vpr.sh`, or set `VPR_BIN` and `VPR_ARCH_XML`; missing VPR is recorded as `skipped`. Set `pack_capacity: 1` for a strict one-DFG-node-per-site comparison.
-- `runner: "vpr_modulo"` in a mapper entry: run VPR SA placement, then assign modulo contexts and route on this repository's CGRA MRRG. This is a VPR placement-seeded routed baseline, not VPR's FPGA router.
-- `runner: "vpr_modulo_full_route"` in a mapper entry: run VPR placement over PE/context slots, generate a CGRA modulo RR graph, route with VPR, import the `.route` file, and emit a CGRA mapping only when the imported route passes legal PE/context checks. Set `modulo_placement_mode: "physical_then_context"` only for diagnostic runs that separate physical placement from context assignment.
+Use `placement2d/probes/` for convergence checks, ablations, and one-off diagnostics. Use `placement2d/archive/` only to inspect older exploratory manifests; do not start new experiments from those files.
 
-Architecture rules:
+## Problem Types
 
-- Set `memory_io: "all"` to allow memory/I/O operations on every PE.
-- Set `memory_io: "perimeter"` to allow memory/I/O operations only on the outer border.
-- Set `memory_io: "perimeter_no_corners"` to match the TRAVERSAL/YOTT cpu_mapping convention: border I/O slots, excluding the four corners.
-- Existing `memory_io: "both_ends"` and `memory_io: "one_end"` restrict memory/I/O to the left/right columns or left column.
-- Set `network_type: "one_hop_axis2"` for the TRAVERSAL/YOTT 1-hop model, where a placement edge cost is `ceil(row_distance / 2) + ceil(column_distance / 2)`.
+- `problem_type: "placement2d"` fixes `II = 1`, places each operation on one physical PE, and normally uses `evaluation_mode: "placement_only"`.
+- `problem_type: "modulo"` sweeps II from MII to `ii_max`, places operations on `(PE, context)`, and requires routed connectivity unless a manifest explicitly says otherwise.
+- `runner: "vpr"` is an external VPR simulated-annealing placement baseline for 2D placement-only experiments.
+- `runner: "vpr_modulo"` places with VPR SA, then assigns contexts and routes with this repository's CGRA router.
+- `runner: "vpr_modulo_full_route"` uses a generated CGRA RR graph and VPR routing; keep it in broad comparison manifests, not search manifests.
+- Modulo manifests can use `mapper_matrix` to cross placement-first mapper configs with routing policies. Generated results include `placement_method`, `routing_method`, and `mapper_role` columns.
 
-Before a run:
+## Before Running
 
-1. Add or remove entries in `mappers`.
-2. Run `research/scripts/preflight_manifest.py`.
-3. Run `research/scripts/run_suite.py --manifest <manifest>`.
+1. Choose one of the four normal manifests unless reproducing a paper.
+2. Add a new mapper entry to the selected manifest. For modulo placement-first methods, add it to `mapper_matrix.placements`; for routing-aware methods, add it to `routing_aware_mappers`.
+3. Keep benchmark, architecture, timeout, and metric settings unchanged while comparing mappers.
+4. Run `research/scripts/preflight_manifest.py`.
+5. Run `research/scripts/run_suite.py --manifest <manifest>`.
 
-For new algorithms, choose the manifest that matches the problem type and keep the benchmark, architecture, timeout, and metric settings unchanged while comparing mappers.
-
-Fallback-based modulo configs are named `*_with_fallback_mapper.json` and are for diagnosis, not default comparisons.
+Fallback-based mapper configs are named `*_with_fallback_mapper.json` and are for diagnosis, not default comparisons.

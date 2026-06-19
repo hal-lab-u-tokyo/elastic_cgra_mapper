@@ -104,9 +104,9 @@ def main() -> None:
 
     lines = [f"# Comparison by `{args.group_by}`", ""]
     lines.append(
-        "| group | cases | solved | attempts | achieved II mean | mapping time mean | wall time mean | optimal edge mean | placement cost mean | fifo-like mean | fifo-like max | compute PE util mean | context util mean | route/compute mean | avg hop mean | bbox util mean |"
+        "| group | cases | solved | attempts | achieved II mean | mapping time mean | wall time mean | optimal distance mean | mesh optimal mean | placement cost mean | mesh hop mean | FIFO mean | max FIFO | mapped LP | routed FIFO | routed max FIFO | routed LP | compute PE util mean | context util mean | route/compute mean | avg hop mean | bbox util mean |"
     )
-    lines.append("| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |")
+    lines.append("| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |")
     for group, rows in sorted(groups.items()):
         cases, best_rows, case_mapping_times, case_wall_times = summarize_cases(rows)
         lines.append(
@@ -114,10 +114,16 @@ def main() -> None:
             f"{mean(best_rows, 'achieved_II'):.3f} | "
             f"{mean_values(case_mapping_times):.6f} | "
             f"{mean_values(case_wall_times):.3f} | "
-            f"{mean_prefer3(best_rows, 'placement_optimal_edge_ratio', 'placement_direct_edge_ratio', 'direct_dfg_edge_ratio'):.3f} | "
+            f"{mean_prefer3(best_rows, 'placement_optimal_distance_ratio', 'placement_optimal_edge_ratio', 'placement_direct_edge_ratio'):.3f} | "
+            f"{mean(best_rows, 'placement_mesh_optimal_edge_ratio'):.3f} | "
             f"{mean_prefer(best_rows, 'placement_avg_cost', 'placement_avg_wirelength'):.3f} | "
-            f"{mean_prefer(best_rows, 'placement_avg_fifo_like', 'placement_avg_fifo'):.3f} | "
-            f"{mean_prefer(best_rows, 'placement_max_fifo_like', 'placement_max_fifo'):.3f} | "
+            f"{mean(best_rows, 'placement_avg_mesh_hop'):.3f} | "
+            f"{mean_prefer(best_rows, 'placement_avg_fifo', 'placement_avg_fifo_like'):.3f} | "
+            f"{mean_prefer(best_rows, 'placement_max_fifo', 'placement_max_mesh_fifo'):.3f} | "
+            f"{mean(best_rows, 'placement_mapped_lp_mesh_hop'):.3f} | "
+            f"{mean(best_rows, 'routed_avg_fifo'):.3f} | "
+            f"{mean(best_rows, 'routed_max_fifo'):.3f} | "
+            f"{mean(best_rows, 'routed_mapped_lp'):.3f} | "
             f"{mean(best_rows, 'compute_pe_utilization'):.3f} | "
             f"{mean(best_rows, 'pe_context_utilization'):.3f} | "
             f"{mean(best_rows, 'route_to_compute_ratio'):.3f} | "

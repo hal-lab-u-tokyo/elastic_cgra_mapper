@@ -3,6 +3,10 @@
 #include <mapper/placement2d/placement2d_search_engine.hpp>
 #include <mapper/mapper_factory.hpp>
 
+// This file is the YOTT-facing mapper entry point. It registers the public
+// Algorithm.type names and forwards execution to either the shared placement
+// search engine or the direct-grid array engine.
+
 namespace {
 
 const bool kPlacement2DYOTTMapperRegistered =
@@ -10,6 +14,18 @@ const bool kPlacement2DYOTTMapperRegistered =
         "Placement2DYOTTMapper");
 const bool kPlacement2DYOTTShortNameRegistered =
     mapper::RegisterMapperType<mapper::Placement2DYOTTMapper>("Placement2DYOTT");
+const bool kPlacement2DArrayYOTTMapperRegistered =
+    mapper::RegisterMapperType<mapper::Placement2DArrayYOTTMapper>(
+        "Placement2DArrayYOTTMapper");
+const bool kPlacement2DArrayYOTTShortNameRegistered =
+    mapper::RegisterMapperType<mapper::Placement2DArrayYOTTMapper>(
+        "Placement2DArrayYOTT");
+const bool kPlacement2DCPUMappingYOTTMapperRegistered =
+    mapper::RegisterMapperType<mapper::Placement2DCPUMappingYOTTMapper>(
+        "Placement2DCPUMappingYOTTMapper");
+const bool kPlacement2DCPUMappingYOTTShortNameRegistered =
+    mapper::RegisterMapperType<mapper::Placement2DCPUMappingYOTTMapper>(
+        "Placement2DCPUMappingYOTT");
 
 }  // namespace
 

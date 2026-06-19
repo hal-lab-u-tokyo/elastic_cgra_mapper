@@ -1,8 +1,8 @@
 {
-  "name": "placement2d_traversal_yott",
+  "name": "placement2d_traversal_yott_1000_trials",
   "problem_type": "placement2d",
   "mode": "placement2d_fixed_ii",
-  "result_group": "placement2d/traversal_yott",
+  "result_group": "placement2d/archive/traversal_yott_legacy_1000_trials",
   "mapping_bin": "/home/ubuntu/elastic_cgra_mapper/build/mapping",
   "benchmark_sets": [
     {
@@ -46,15 +46,15 @@
   ],
   "mappers": [
     {
-      "name": "placement2d_yoto_mapper",
-      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/placement2d_yoto_mapper.json"
+      "name": "placement2d_yoto_1000_trials_mapper",
+      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/placement2d/reproduction/placement2d_yoto_1000_trials_mapper.json"
     },
     {
-      "name": "placement2d_yott_mapper",
-      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/placement2d_yott_mapper.json"
+      "name": "placement2d_yott_1000_trials_mapper",
+      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/placement2d/reproduction/placement2d_yott_1000_trials_mapper.json"
     }
   ],
-  "timeout_sec": 20,
+  "timeout_sec": 60,
   "parallel_num": 1,
   "mii_missing_distance_policy": "self_loop"
 }

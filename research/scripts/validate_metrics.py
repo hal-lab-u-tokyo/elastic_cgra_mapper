@@ -20,6 +20,7 @@ RATIO_FIELDS = [
     "compute_bbox_utilization",
     "placement_direct_edge_ratio",
     "placement_optimal_edge_ratio",
+    "placement_mesh_optimal_edge_ratio",
 ]
 
 

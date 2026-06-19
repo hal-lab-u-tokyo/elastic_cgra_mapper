@@ -3,6 +3,9 @@
 #include <mapper/placement2d/placement2d_search_engine.hpp>
 #include <mapper/mapper_factory.hpp>
 
+// This file is the internal SA-facing mapper entry point. VPR SA is an external
+// runner in the research layer; this mapper is the in-repo heuristic baseline.
+
 namespace {
 
 const bool kPlacement2DSAMapperRegistered =
@@ -10,13 +13,20 @@ const bool kPlacement2DSAMapperRegistered =
         "Placement2DSAMapper");
 const bool kPlacement2DSAShortNameRegistered =
     mapper::RegisterMapperType<mapper::Placement2DSAMapper>("Placement2DSA");
+const bool kPlacement2DArraySAMapperRegistered =
+    mapper::RegisterMapperType<mapper::Placement2DArraySAMapper>(
+        "Placement2DArraySAMapper");
+const bool kPlacement2DArraySAShortNameRegistered =
+    mapper::RegisterMapperType<mapper::Placement2DArraySAMapper>(
+        "Placement2DArraySA");
 
 }  // namespace
 
 namespace mapper {
 
-Placement2DSAMapper::Placement2DSAMapper(const std::shared_ptr<entity::DFG> dfg_ptr,
-                               const std::shared_ptr<entity::MRRG> mrrg_ptr)
+Placement2DSAMapper::Placement2DSAMapper(
+    const std::shared_ptr<entity::DFG> dfg_ptr,
+    const std::shared_ptr<entity::MRRG> mrrg_ptr)
     : dfg_ptr_(dfg_ptr), mrrg_ptr_(mrrg_ptr) {}
 
 MappingResult Placement2DSAMapper::Execution() {
@@ -36,9 +46,12 @@ void Placement2DSAMapper::SetLogFilePath(const std::string& log_file_path) {
   log_file_path_ = log_file_path;
 }
 
-void Placement2DSAMapper::SetTimeOut(double time_out_s) { timeout_s_ = time_out_s; }
+void Placement2DSAMapper::SetTimeOut(double time_out_s) {
+  timeout_s_ = time_out_s;
+}
 
-void Placement2DSAMapper::SetAcceptFeasibleSolution(bool accept_feasible_solution) {
+void Placement2DSAMapper::SetAcceptFeasibleSolution(
+    bool accept_feasible_solution) {
   accept_feasible_solution_ = accept_feasible_solution;
 }
 

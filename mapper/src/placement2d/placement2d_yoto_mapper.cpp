@@ -3,6 +3,10 @@
 #include <mapper/placement2d/placement2d_search_engine.hpp>
 #include <mapper/mapper_factory.hpp>
 
+// This file is the YOTO-facing mapper entry point. It registers the public
+// Algorithm.type names and forwards execution to either the shared placement
+// search engine or the direct-grid array engine.
+
 namespace {
 
 const bool kPlacement2DYOTOMapperRegistered =
@@ -10,6 +14,18 @@ const bool kPlacement2DYOTOMapperRegistered =
         "Placement2DYOTOMapper");
 const bool kPlacement2DYOTOShortNameRegistered =
     mapper::RegisterMapperType<mapper::Placement2DYOTOMapper>("Placement2DYOTO");
+const bool kPlacement2DArrayYOTOMapperRegistered =
+    mapper::RegisterMapperType<mapper::Placement2DArrayYOTOMapper>(
+        "Placement2DArrayYOTOMapper");
+const bool kPlacement2DArrayYOTOShortNameRegistered =
+    mapper::RegisterMapperType<mapper::Placement2DArrayYOTOMapper>(
+        "Placement2DArrayYOTO");
+const bool kPlacement2DCPUMappingYOTOMapperRegistered =
+    mapper::RegisterMapperType<mapper::Placement2DCPUMappingYOTOMapper>(
+        "Placement2DCPUMappingYOTOMapper");
+const bool kPlacement2DCPUMappingYOTOShortNameRegistered =
+    mapper::RegisterMapperType<mapper::Placement2DCPUMappingYOTOMapper>(
+        "Placement2DCPUMappingYOTO");
 
 }  // namespace
 

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+import csv
 import subprocess
 import sys
 from pathlib import Path
@@ -8,6 +9,14 @@ from pathlib import Path
 
 def run_script(script_dir: Path, script_name: str, args: list) -> None:
     subprocess.run([sys.executable, str(script_dir / script_name), *args], check=True)
+
+
+def csv_has_values(metrics: Path, field: str) -> bool:
+    with metrics.open() as f:
+        for row in csv.DictReader(f):
+            if row.get(field):
+                return True
+    return False
 
 
 def main() -> None:
@@ -41,6 +50,17 @@ def main() -> None:
         "compare_results.py",
         ["--metrics", str(metrics), "--group-by", "benchmark_set", "--out", str(result_dir / "summary_by_set.md")],
     )
+    for field, out_name in (
+        ("mapper_role", "summary_by_mapper_role.md"),
+        ("placement_method", "summary_by_placement_method.md"),
+        ("routing_method", "summary_by_routing_method.md"),
+    ):
+        if csv_has_values(metrics, field):
+            run_script(
+                script_dir,
+                "compare_results.py",
+                ["--metrics", str(metrics), "--group-by", field, "--out", str(result_dir / out_name)],
+            )
     run_script(
         script_dir,
         "validate_metrics.py",

@@ -81,16 +81,16 @@ This manifest uses small kernels and a longer per-II timeout. `FullRoutingILPMap
 
 `vpr_sa_full_route` is the strict VPR-routing baseline for modulo runs. It routes over a generated CGRA RR graph, imports the VPR route tree, and accepts a result only when the imported mapping passes the same reachability and legal-edge checks as native mappers. It is intended for `modulo/all_mappers.json`, not the lightweight search manifest.
 
-Use `configs/experiments/placement2d/search.json` for quick TRAVERSAL/YOTT-style 2D placement comparisons. It includes array YOTO/YOTT and a VPR simulated-annealing placement baseline:
+Use `configs/experiments/placement2d/search.json` for quick 2D placement comparisons. It includes cpu_mapping-style YOTO/YOTT 1000-trial baselines, PRISA, PRISA without SIS, and VPR simulated-annealing placement baselines:
 
 ```bash
 python3 research/scripts/run_suite.py \
   --manifest research/configs/experiments/placement2d/search.json
 ```
 
-Use `configs/experiments/placement2d/all_mappers.json` to include shared-engine mappers, array fast-path mappers, VPR simulated-annealing baselines, and the placement-only ILP baseline under the same paper-like II=1 setting. It uses a representative subset that avoids very large ILP timeouts; use `placement2d/traversal_yott_placement_quality.json` for the full LISA/m_bench reproduction run. For placement2d manifests, one physical PE is one placement slot and II/context size is fixed to 1. `preflight_manifest.py` checks that DFG node count is not larger than physical PE count.
+Use `configs/experiments/placement2d/all_mappers.json` to add the placement-only ILP baseline under the same II=1 setting. It uses a representative subset that avoids very large ILP timeouts. For placement2d manifests, one physical PE is one placement slot and II/context size is fixed to 1. `preflight_manifest.py` checks that DFG node count is not larger than physical PE count.
 
-Use `configs/experiments/placement2d/traversal_yott_placement_quality.json` for TRAVERSAL/YOTT-style placement-only comparisons. It includes VPR external baselines, which use `third_party/vtr/build/vpr/vpr` and `third_party/vtr/vtr_flow/arch/timing/k6_N10_40nm.xml` by default. Set `VPR_BIN` or `VPR_ARCH_XML` to override them. The VPR mapper entries set `pack_capacity: 1`, so the runner derives a temporary N=1 VPR architecture and keeps one DFG node per placement site for strict placement-quality comparison.
+Use `configs/experiments/placement2d/reproduction/traversal_yott.json` for TRAVERSAL/YOTT-style placement-only reproduction, and `configs/experiments/placement2d/reproduction/prisa_vpr8.json` for PRISA VPR-8 reproduction. These manifests include VPR external baselines, which use `third_party/vtr/build/vpr/vpr` and `third_party/vtr/vtr_flow/arch/timing/k6_N10_40nm.xml` by default. Set `VPR_BIN` or `VPR_ARCH_XML` to override them. The VPR mapper entries set `pack_capacity: 1`, so the runner derives a temporary N=1 VPR architecture and keeps one DFG node per placement site for strict placement-quality comparison.
 
 If `--out` is omitted, `run_suite.py` creates a timestamped result directory under the manifest's `result_group`. It prints one progress line after each benchmark/architecture/mapper condition. Reports are generated automatically unless `--skip-reports` is passed. `routing_validation.md` checks DFG-edge reachability, legal MRRG edges, reciprocal connections, and same-context/cross-context route counts.
 

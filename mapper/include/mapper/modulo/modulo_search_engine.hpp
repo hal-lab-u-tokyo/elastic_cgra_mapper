@@ -7,6 +7,10 @@ namespace mapper::detail {
 enum class ModuloPlacementSearchKind {
   kYOTO,
   kYOTT,
+  kPhysicalYOTO,
+  kPhysicalYOTT,
+  kPhysicalPRISA,
+  kPhysicalPRISAManhattan,
   kYOTOWithFallback,
   kYOTTWithFallback,
   kSA,

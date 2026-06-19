@@ -1,0 +1,75 @@
+{
+  "name": "placement2d_prisa_vpr8_derived",
+  "problem_type": "placement2d",
+  "evaluation_mode": "placement_only",
+  "mode": "placement2d_fixed_ii",
+  "result_group": "placement2d/probes/prisa_vpr8_derived",
+  "mapping_bin": "/home/ubuntu/elastic_cgra_mapper/build/mapping",
+  "benchmark_sets": [
+    {
+      "name": "vpr8_available",
+      "benchmark_root": "/home/ubuntu/elastic_cgra_mapper/benchmark/literature/prisa_vpr8_normalized/vpr8",
+      "benchmarks": [
+        "motion_vec",
+        "fir1",
+        "fir2",
+        "k4n4op",
+        "h2v2_smo",
+        "fir16",
+        "cosine2",
+        "interpolate",
+        "w_bmp_head",
+        "invert_matrix"
+      ]
+    }
+  ],
+  "architectures": [
+    {
+      "name": "min_square_all_io",
+      "template": "/home/ubuntu/elastic_cgra_mapper/research/configs/arch_templates/mesh_10x10_default.json",
+      "auto_grid": {
+        "policy": "ceil_sqrt_nodes"
+      },
+      "memory_io": "all",
+      "network_type": "orthogonal",
+      "ii": 1
+    }
+  ],
+  "mappers": [
+    {
+      "name": "cpu_mapping_yoto_1000",
+      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/placement2d/placement2d_cpu_mapping_yoto_1000_trials_mapper.json"
+    },
+    {
+      "name": "cpu_mapping_yott_1000",
+      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/placement2d/placement2d_cpu_mapping_yott_1000_trials_mapper.json"
+    },
+    {
+      "name": "shared_prisa_no_sis",
+      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/placement2d/placement2d_prisa_no_sis_mapper.json"
+    },
+    {
+      "name": "shared_prisa",
+      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/placement2d/placement2d_prisa_mapper.json"
+    },
+    {
+      "name": "array_prisa_no_sis",
+      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/placement2d/reproduction/placement2d_array_prisa_no_sis_mapper.json"
+    },
+    {
+      "name": "array_prisa",
+      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/placement2d/reproduction/placement2d_array_prisa_mapper.json"
+    },
+    {
+      "name": "array_cost_aware_prisa",
+      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/placement2d/probes/placement2d_array_cost_aware_prisa_mapper.json"
+    },
+    {
+      "name": "cost_aware_prisa",
+      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/placement2d/probes/placement2d_cost_aware_prisa_mapper.json"
+    }
+  ],
+  "timeout_sec": 300,
+  "parallel_num": 1,
+  "mii_missing_distance_policy": "self_loop"
+}

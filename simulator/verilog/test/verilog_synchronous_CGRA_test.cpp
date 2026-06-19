@@ -6,7 +6,7 @@
 #include <io/dfg_io.hpp>
 #include <io/mapping_io.hpp>
 #include <iostream>
-#include <mapper/ilp/full_routing_ilp_mapper.hpp>
+#include <mapper/modulo/full_routing_ilp_mapper.hpp>
 #include <vector>
 
 TEST(VerilogSimulatorTest, synchronous_CGRA_test) {

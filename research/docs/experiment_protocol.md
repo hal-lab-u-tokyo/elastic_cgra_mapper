@@ -53,6 +53,6 @@ Use `research/scripts/report_by_benchmark.py` after a suite finishes to inspect 
 
 Use `research/scripts/validate_metrics.py` before interpreting a run. It checks internal consistency, highlights smoke-test shortcuts such as `start_II > MII`, and records a short prior-work sanity checklist.
 
-`run_suite.py` creates `benchmark_report.md`, `summary_by_mapper.md`, `summary_by_arch.md`, `summary_by_set.md`, `validation.md`, and `routing_validation.md` unless `--skip-reports` is passed. `validation.md` checks metric consistency. `routing_validation.md` checks legal MRRG connections, DFG-edge route reachability, and same-context/cross-context route counts.
+`run_suite.py` creates `benchmark_report.md`, `summary_by_mapper.md`, `summary_by_arch.md`, `summary_by_set.md`, `validation.md`, and `routing_validation.md` unless `--skip-reports` is passed. `validation.md` checks metric consistency. `routing_validation.md` checks legal MRRG connections, DFG-edge route reachability, same-context/cross-context route counts, routed FIFO, route-path length, and routed mapped LP.
 
 If `run_suite.py --out` is omitted, the result directory is created automatically under `research/results/<result_group>/<timestamp>`. A manifest can set `result_group`, and otherwise the manifest filename is used. Every run writes `run_metadata.json` and `run_info.md`, and `metrics.csv` includes columns that point to per-II stdout/stderr, generated architecture files, raw mapper outputs, mapping JSON files, and Gurobi logs.

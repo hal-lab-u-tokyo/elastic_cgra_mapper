@@ -8,6 +8,9 @@ enum class Placement2DSearchKind {
   kYOTO,
   kYOTT,
   kSA,
+  kPRISA,
+  kPRISANoSIS,
+  kCostAwarePRISA,
 };
 
 MappingResult RunPlacement2DSearchMapper(

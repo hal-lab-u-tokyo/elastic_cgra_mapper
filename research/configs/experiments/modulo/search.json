@@ -38,24 +38,89 @@
   ],
   "mappers": [
     {
-      "name": "modulo_yoto_mapper",
-      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/modulo_yoto_mapper.json"
-    },
+      "name": "modulo_placement_first__integrated_bfs",
+      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/modulo/modulo_placement_first_mapper.json",
+      "mapper_role": "placement_then_routing",
+      "placement_method": "placement_first",
+      "routing_method": "integrated_bfs"
+    }
+  ],
+  "mapper_matrix": {
+    "name_template": "{placement}__{routing}",
+    "mapper_role": "placement_then_routing",
+    "placements": [
+      {
+        "name": "modulo_yoto_physical_context",
+        "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/modulo/modulo_physical_yoto_mapper.json",
+        "placement_method": "yoto_physical_context",
+        "algorithm_overrides": {
+          "max_trials": 100,
+          "seed_count": 1,
+          "random_seed": 1706961029
+        }
+      },
+      {
+        "name": "modulo_yott_physical_context",
+        "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/modulo/modulo_physical_yott_mapper.json",
+        "placement_method": "yott_physical_context",
+        "algorithm_overrides": {
+          "max_trials": 100,
+          "seed_count": 1,
+          "random_seed": 1706961029
+        }
+      },
+      {
+        "name": "modulo_prisa_physical_context",
+        "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/modulo/modulo_prisa_mapper.json",
+        "placement_method": "prisa_physical_context",
+        "algorithm_overrides": {
+          "seed_count": 1,
+          "random_seed": 1005,
+          "max_iterations": 500
+        }
+      },
+      {
+        "name": "modulo_yoto_direct_context",
+        "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/modulo/modulo_yoto_mapper.json",
+        "placement_method": "yoto_direct_context",
+        "algorithm_overrides": {
+          "max_trials": 100,
+          "seed_count": 1,
+          "random_seed": 1706961029
+        }
+      },
+      {
+        "name": "modulo_yott_direct_context",
+        "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/modulo/modulo_yott_mapper.json",
+        "placement_method": "yott_direct_context",
+        "algorithm_overrides": {
+          "max_trials": 100,
+          "seed_count": 1,
+          "random_seed": 1706961029
+        }
+      },
+      {
+        "name": "modulo_sa",
+        "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/modulo/modulo_sa_mapper.json",
+        "placement_method": "sa"
+      }
+    ],
+    "routers": [
+      {
+        "name": "cgra_bfs_retry6",
+        "routing_method": "cgra_bfs_retry6",
+        "algorithm_overrides": {
+          "routing_retry_count": 6
+        }
+      }
+    ]
+  },
+  "external_mappers": [
     {
-      "name": "modulo_yott_mapper",
-      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/modulo_yott_mapper.json"
-    },
-    {
-      "name": "modulo_sa_mapper",
-      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/modulo_sa_mapper.json"
-    },
-    {
-      "name": "modulo_placement_first",
-      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/modulo_placement_first_mapper.json"
-    },
-    {
-      "name": "vpr_sa_routed",
+      "name": "vpr_sa__cgra_bfs",
       "runner": "vpr_modulo",
+      "placement_method": "vpr_sa",
+      "routing_method": "cgra_bfs",
       "vpr_bin": "${VPR_BIN:-third_party/vtr/build/vpr/vpr}",
       "arch_xml": "${VPR_ARCH_XML:-third_party/vtr/vtr_flow/arch/timing/k6_N10_40nm.xml}",
       "pack_capacity": 1,

@@ -1,6 +1,6 @@
 # TRAVERSAL/YOTT Reproduction
 
-The placement-only reproduction entry point is `research/configs/experiments/placement2d/traversal_yott_placement_quality.json`.
+The placement-only reproduction entry point is `research/configs/experiments/placement2d/reproduction/traversal_yott.json`.
 
 This manifest matches the public `cpu_mapping` setup used for the TRAVERSAL/YOTT-style benchmarks as closely as this mapper framework allows:
 
@@ -16,12 +16,23 @@ This manifest matches the public `cpu_mapping` setup used for the TRAVERSAL/YOTT
 - `placement_only_ilp` solves the same placement-only objective with Gurobi when it finishes within the manifest timeout.
 - `vpr_sa` and `vpr_sa_fast` use VPR simulated annealing as external placement baselines with `pack_capacity = 1`, so each DFG node is kept as one placeable VPR block for fair placement-quality comparison.
 
+Fidelity notes:
+
+- The public `cpu_mapping` repository is a placement-and-routing codebase for YOTO, YOTT, and SA. Its executable fixes the random seed to `1706961029`, takes a trial count, and supports mesh and 1-hop architectures.
+- TRAVERSAL/YOTO is a one-traversal placement-and-routing approach. The public YOTO path builds a traversal edge sequence, places nodes greedily near already placed neighbors, runs the local routing routine, and then selects the best successful trial.
+- YOTT is a two-traversal placement approach. The paper's key additions over YOTO are I/O annotation, reconvergent annotation, degree matching, and look-ahead placement. The paper then treats routing as a small downstream step because most edges are expected to be adjacent; it describes maze routing for the remaining non-adjacent edges.
+- The public YOTT source computes the annotated placement sequence, but its direct call to the YOTO/YOTT routing routine is commented out in the checked version. For paper-style comparison, use `evaluation_mode: "placement_only"` and the placement metrics below.
+- `Placement2DYOTOMapper` and `Placement2DYOTTMapper` are the closest in-repository reproductions of the paper algorithms: they use the YOTO/YOTT traversal sequence, perimeter I/O legality when the architecture distinguishes I/O cells, Brandes betweenness centrality for YOTT's centrality traversal mode, reconvergent/I/O annotations, degree matching, and look-ahead scoring.
+- `Placement2DArrayYOTOMapper` and `Placement2DArrayYOTTMapper` are fast 2D-array baselines. They keep the same grid policy, I/O legality, cost model, trial count, and output format, but they are not line-by-line reproductions of the public code. In particular, the array YOTT fast path uses a compact incremental-cost scoring rule instead of the full annotation/backpropagation machinery. Treat array results as high-speed traversal-style baselines, not exact paper/runtime baselines.
+- `Placement2DCPUMappingYOTOMapper` and `Placement2DCPUMappingYOTTMapper` are direct-grid local-neighborhood variants for PRISA runtime comparisons. They preserve the same output format and placement metrics, but follow the public `cpu_mapping` placement kernel more closely than the shared engine or compact array fast path.
+
 The paper-facing placement metrics are:
 
-- `placement_optimal_edge_ratio`: fraction of DFG edges whose placement cost is 1.
+- `placement_optimal_distance_ratio`: fraction of DFG edges whose mapped endpoints are exactly one physical mesh hop apart.
+- `placement_optimal_edge_ratio`: legacy cost-model counterpart, retained for older runs.
 - `placement_avg_cost`: mean edge placement cost under the selected cost model.
-- `placement_avg_fifo_like`: mean `max(0, placement_cost - 1)`.
-- `placement_max_fifo_like`: maximum `max(0, placement_cost - 1)`.
+- `placement_avg_fifo`: mean placement FIFO count, computed as `max(0, mesh_hop - 1)`.
+- `placement_max_fifo`: maximum placement FIFO count, computed as `max(0, mesh_hop - 1)`.
 
 For paper-style runtime comparison, use `mapping_time_sec`. This is the mapper-reported algorithm time. `wall_time_sec` is also shown in reports, but it includes the Python suite runner, process startup, generated input/output files, and log collection. That overhead is useful for workflow cost, but it should not be compared directly with the TRAVERSAL/YOTT placement kernel runtime.
 
@@ -46,7 +57,7 @@ Typical command:
 docker compose -f environment/docker-compose.yaml exec gurobi bash -lc '
 cd /home/ubuntu/elastic_cgra_mapper &&
 python3 research/scripts/run_suite.py \
-  --manifest research/configs/experiments/placement2d/traversal_yott_placement_quality.json
+  --manifest research/configs/experiments/placement2d/reproduction/traversal_yott.json
 '
 ```
 
@@ -56,7 +67,7 @@ For a short check:
 docker compose -f environment/docker-compose.yaml exec gurobi bash -lc '
 cd /home/ubuntu/elastic_cgra_mapper &&
 python3 research/scripts/run_suite.py \
-  --manifest research/configs/experiments/placement2d/traversal_yott_placement_quality.json \
+  --manifest research/configs/experiments/placement2d/reproduction/traversal_yott.json \
   --only-benchmark atax \
   --only-mapper yoto_1,yott_1,vpr_sa \
   --tag repro_smoke

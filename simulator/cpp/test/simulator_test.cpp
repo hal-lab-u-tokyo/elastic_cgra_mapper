@@ -3,7 +3,7 @@
 #include <cpp_simulator/CGRA.hpp>
 #include <io/architecture_io.hpp>
 #include <io/dfg_io.hpp>
-#include <mapper/ilp/placement_only_ilp_mapper.hpp>
+#include <mapper/placement2d/placement_only_ilp_mapper.hpp>
 
 TEST(SimulatorTest, simulator_default_result_test) {
   std::shared_ptr<entity::DFG> dfg_ptr = std::make_shared<entity::DFG>();

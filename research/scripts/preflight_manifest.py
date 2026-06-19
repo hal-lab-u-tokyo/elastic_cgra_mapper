@@ -20,6 +20,7 @@ from run_suite import (
     arch_has_auto_grid,
     auto_grid_policy,
     expand_benchmark_sets,
+    manifest_mappers,
     manifest_problem_type,
     mapper_runner,
     parse_filter,
@@ -91,8 +92,8 @@ def add_issue_table(lines: list, rows: list) -> None:
         lines.extend(["None.", ""])
         return
 
-    lines.append("| benchmark set | benchmark | arch | mapper | runner | status | detail |")
-    lines.append("| --- | --- | --- | --- | --- | --- | --- |")
+    lines.append("| benchmark set | benchmark | arch | mapper | role | placement | routing | runner | status | detail |")
+    lines.append("| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |")
     for row in issue_rows:
         detail_parts = []
         if row["missing_files"]:
@@ -111,7 +112,8 @@ def add_issue_table(lines: list, rows: list) -> None:
             )
         lines.append(
             f"| {row['benchmark_set']} | {row['benchmark']} | {row['arch_name']} | "
-            f"{row['mapper']} | {row['runner']} | {row['preflight_status']} | {'; '.join(detail_parts)} |"
+            f"{row['mapper']} | {row.get('mapper_role', '')} | {row.get('placement_method', '')} | "
+            f"{row.get('routing_method', '')} | {row['runner']} | {row['preflight_status']} | {'; '.join(detail_parts)} |"
         )
     lines.append("")
 
@@ -123,11 +125,12 @@ def add_ready_table(lines: list, rows: list) -> None:
         lines.extend(["None.", ""])
         return
 
-    lines.append("| benchmark set | benchmark | arch | mapper | runner | MII | start II | ii max | max trials | dfg nodes | dfg edges |")
-    lines.append("| --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |")
+    lines.append("| benchmark set | benchmark | arch | mapper | role | placement | routing | runner | MII | start II | ii max | max trials | dfg nodes | dfg edges |")
+    lines.append("| --- | --- | --- | --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |")
     for row in ready_rows:
         lines.append(
-            f"| {row['benchmark_set']} | {row['benchmark']} | {row['arch_name']} | {row['mapper']} | {row['runner']} | "
+            f"| {row['benchmark_set']} | {row['benchmark']} | {row['arch_name']} | {row['mapper']} | "
+            f"{row.get('mapper_role', '')} | {row.get('placement_method', '')} | {row.get('routing_method', '')} | {row['runner']} | "
             f"{row['MII']} | {row['start_II']} | {row['ii_max']} | {row['max_trials']} | "
             f"{row['dfg_nodes']} | {row['dfg_edges']} |"
         )
@@ -200,7 +203,7 @@ def main() -> None:
                     arch_ii = None
                     ii_max = int(arch["ii_max"])
                 mii_arg = str(arch.get("mii", "auto"))
-                for mapper in manifest["mappers"]:
+                for mapper in manifest_mappers(manifest):
                     if not selected(mapper["name"], filters["mapper"]):
                         continue
                     runner = mapper_runner(mapper)
@@ -285,6 +288,9 @@ def main() -> None:
                     row = {
                         "problem_type": problem_type,
                         "runner": runner,
+                        "mapper_role": mapper.get("mapper_role", ""),
+                        "placement_method": mapper.get("placement_method", ""),
+                        "routing_method": mapper.get("routing_method", ""),
                         "benchmark_set": benchmark_set["name"],
                         "benchmark": benchmark,
                         "mapper": mapper["name"],
