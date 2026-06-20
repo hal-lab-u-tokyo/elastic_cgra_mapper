@@ -14,15 +14,14 @@ from lib import (
     read_dfg_stats,
     write_json,
 )
+from run_mapper_case import EXTERNAL_RUNNERS, mapper_runner
 from run_suite import (
-    EXTERNAL_RUNNERS,
     apply_arch_overrides,
     arch_has_auto_grid,
     auto_grid_policy,
     expand_benchmark_sets,
     manifest_mappers,
     manifest_problem_type,
-    mapper_runner,
     parse_filter,
     placement2d_arch_ii,
     selected,

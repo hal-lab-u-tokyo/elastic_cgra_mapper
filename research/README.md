@@ -37,7 +37,7 @@ The generated files under `research/results/` are ignored by git except for layo
 - `configs/arch_templates/`: CGRA templates without `context_size`; the runner fills it with each candidate II.
 - `configs/mapper/`: mapper configuration files. Modulo mapper implementations live under `mapper/src/modulo/`; 2D placement implementations live under `mapper/src/placement2d/`.
 - `configs/experiments/`: experiment manifests grouped by problem type.
-- `scripts/`: II sweep runner, MII calculator, metrics normalizer, and comparison helper.
+- `scripts/`: manifest runner, per-mapper runner, MII calculator, metrics normalizer, and comparison helper.
 - `docs/`: short notes on the problem setting, metrics, and extension points.
 
 ## Adding a Mapper
@@ -69,6 +69,8 @@ To compare a new mapper, add or remove entries in the manifest's `mappers` list,
 python3 research/scripts/run_suite.py \
   --manifest research/configs/experiments/modulo/search.json
 ```
+
+`run_suite.py` expands the manifest into benchmark/architecture/mapper cases and delegates each case to `scripts/run_mapper_case.py`. Native C++ mappers, VPR placement baselines, and VPR modulo baselines therefore share the same result layout and report generation path. Older direct calls to `scripts/run_modulo_mapping.py` still work through a compatibility wrapper.
 
 Use `configs/experiments/modulo/all_mappers.json` for small modulo runs that include ILP mappers:
 

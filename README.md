@@ -205,6 +205,8 @@ For research on new mapping algorithms, use the `research/` workflow. It keeps e
 
 The standard modulo-style evaluation treats `context_size` as the candidate II, forces `CGRA_type: "default"`, keeps `parallel_num: 1`, and tries `II = MII, MII + 1, ...` until the first successful mapping is found. That first success is reported as `achieved_II`.
 
+`research/scripts/run_suite.py` is the normal entry point. It expands a manifest into benchmark/architecture/mapper cases and dispatches each case through `research/scripts/run_mapper_case.py`, so native C++ mappers and VPR-based baselines use the same result layout, metrics, and report generation flow.
+
 Use one of the standard manifests:
 
 ```bash
