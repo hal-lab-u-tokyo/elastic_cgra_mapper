@@ -1,6 +1,6 @@
 import os
 import sys
-sys.path.append("/home/ubuntu/elastic_cgra_mapper/python_tools")
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from io_lib.load_remapper_result import *
 from io_lib.load_plotter_config import *
 from visualizer.plot_remapping_result import RemappingResultPlotter
