@@ -211,10 +211,28 @@ class RectangleKnapsack {
   }
 
   std::vector<IdAndPlacement> GetResult() const {
-    if (dp_score_.find(container_size_id_) == dp_score_.end()) {
+    auto best_iter = dp_id_to_placement_.find(container_size_id_);
+    int best_score = 0;
+    if (best_iter != dp_id_to_placement_.end()) {
+      best_score = dp_score_.at(container_size_id_);
+    }
+
+    for (const auto& [dp_item_id, score] : dp_score_) {
+      const auto placement_iter = dp_id_to_placement_.find(dp_item_id);
+      if (placement_iter == dp_id_to_placement_.end() ||
+          placement_iter->second.empty()) {
+        continue;
+      }
+      if (best_iter == dp_id_to_placement_.end() || score > best_score) {
+        best_iter = placement_iter;
+        best_score = score;
+      }
+    }
+
+    if (best_iter == dp_id_to_placement_.end() || best_iter->second.empty()) {
       return {};
     }
-    return dp_id_to_placement_.at(container_size_id_);
+    return best_iter->second;
   }
 
  private:
