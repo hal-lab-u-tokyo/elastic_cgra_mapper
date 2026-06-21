@@ -21,7 +21,14 @@ python3 analyze.py "$experiment_dir_path" "$plotter_config_file_path"
 if [ -n "$baseline_experiment_dir_path" ]; then
     python3 analyze.py "$baseline_experiment_dir_path" "$plotter_config_file_path"
     cd $repo_dir
+    comparison_output_path="$experiment_dir_path/remapper/analysis/remapper_quality_compare.txt"
+    set +e
     python_tools/analyzer/compare_remapper_result_quality.py \
         "$baseline_experiment_dir_path/remapper/analysis/remapper_result.csv" \
-        "$experiment_dir_path/remapper/analysis/remapper_result.csv"
+        "$experiment_dir_path/remapper/analysis/remapper_result.csv" \
+        2>&1 | tee "$comparison_output_path"
+    compare_status=${PIPESTATUS[0]}
+    set -e
+    echo "Saved remapper quality comparison to $comparison_output_path"
+    exit $compare_status
 fi
