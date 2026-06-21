@@ -21,7 +21,7 @@ python3 analyze.py "$experiment_dir_path" "$plotter_config_file_path"
 if [ -n "$baseline_experiment_dir_path" ]; then
     python3 analyze.py "$baseline_experiment_dir_path" "$plotter_config_file_path"
     cd $repo_dir
-    scripts/compare_remapper_result_quality.py \
+    python_tools/analyzer/compare_remapper_result_quality.py \
         "$baseline_experiment_dir_path/remapper/analysis/remapper_result.csv" \
         "$experiment_dir_path/remapper/analysis/remapper_result.csv"
 fi
