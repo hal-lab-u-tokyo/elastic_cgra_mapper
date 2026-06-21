@@ -120,12 +120,12 @@ class RectangleKnapsack {
                       GetRectangleShiftSize(rectangle_id, rotated_item_size);
                   Eigen::Vector3d rectangle_size =
                       dp_splited_rectangle_size[pattern][rectangle_id];
+                  DPItemId rectangle_item_id(rectangle_size);
                   if (!is_available_transform_(tmp_shift_size,
                                                rectangle_size)) {
-                    is_available_split_pattern = false;
-                    break;
+                    continue;
                   }
-                  new_dp_value += dp_score_[DPItemId(rectangle_size)];
+                  new_dp_value += dp_score_[rectangle_item_id];
                 }
                 if (!is_available_split_pattern) {
                   continue;
@@ -142,8 +142,11 @@ class RectangleKnapsack {
                       GetRectangleShiftSize(rectangle_id, rotated_item_size);
                   Eigen::Vector3d rectangle_size =
                       dp_splited_rectangle_size[pattern][rectangle_id];
-                  DPItemId rectangle_item_id(
-                      dp_splited_rectangle_size[pattern][rectangle_id]);
+                  DPItemId rectangle_item_id(rectangle_size);
+                  if (!is_available_transform_(tmp_shift_size,
+                                               rectangle_size)) {
+                    continue;
+                  }
                   for (const IdAndPlacement& result :
                        dp_id_to_placement_[rectangle_item_id]) {
                     IdAndPlacement new_result = get_shifted_placement_(
