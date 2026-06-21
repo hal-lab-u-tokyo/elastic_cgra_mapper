@@ -26,9 +26,10 @@ if [ -n "$baseline_experiment_dir_path" ]; then
     python_tools/analyzer/compare_remapper_result_quality.py \
         "$baseline_experiment_dir_path/remapper/analysis/remapper_result.csv" \
         "$experiment_dir_path/remapper/analysis/remapper_result.csv" \
-        2>&1 | tee "$comparison_output_path"
-    compare_status=${PIPESTATUS[0]}
+        > "$comparison_output_path" 2>&1
+    compare_status=$?
     set -e
+    cat "$comparison_output_path"
     echo "Saved remapper quality comparison to $comparison_output_path"
     exit $compare_status
 fi
