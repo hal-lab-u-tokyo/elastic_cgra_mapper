@@ -67,19 +67,6 @@ python3 research/scripts/run_suite.py \
 - Preflight: `research/scripts/preflight_manifest.py`
 - Reports: `research/scripts/generate_reports.py`
 
-## Standard Manifests
-
-| setting | manifest |
-| --- | --- |
-| Modulo mapper search | `research/configs/experiments/modulo/search.json` |
-| Modulo comparison with ILP and VPR | `research/configs/experiments/modulo/all_mappers.json` |
-| 2D placement search | `research/configs/experiments/placement2d/search.json` |
-| 2D placement comparison with ILP | `research/configs/experiments/placement2d/all_mappers.json` |
-| TRAVERSAL/YOTT reproduction | `research/configs/experiments/placement2d/reproduction/traversal_yott.json` |
-| YOTT 2021 benchmark reproduction | `research/configs/experiments/placement2d/reproduction/yott_cases2021.json` |
-| PRISA reproduction | `research/configs/experiments/placement2d/reproduction/prisa_vpr8.json` |
-
-Manifest schema: `research/configs/experiments/README.md`.
 
 ## Add a Mapper
 
