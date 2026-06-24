@@ -1,19 +1,24 @@
 # 2D Placement Manifests
 
-Use these first:
+Use these manifests for 2D placement experiments:
 
-- `search.json`: normal 2D placement search with YOTO/YOTT 1000, PRISA, PRISA without SIS, and VPR SA baselines.
-- `all_mappers.json`: the same search setting plus placement-only ILP.
+- `search.json`: YOTO/YOTT, PRISA, and VPR SA on a representative benchmark mix.
+- `all_mappers.json`: `search.json` plus placement-only ILP.
+- `ilp_yoto_yott.json`: focused ILP/YOTO/YOTT comparison on an ILP-tractable subset.
 
-Grid and I/O conventions:
-
-- `ceil_sqrt_non_io_plus_2`: choose a square grid from non-I/O operation count, then add one border PE ring for perimeter I/O.
-- `perimeter_no_corners`: only non-corner border PEs can host memory/input/output operations. This is useful for TRAVERSAL/YOTT-style 2D placement with peripheral I/O.
-- Use `memory_io: "all"` for PRISA VPR-8 reproduction or homogeneous placement-quality comparisons.
-
-Use these for paper reproduction:
+Reproduction manifests:
 
 - `reproduction/traversal_yott.json`
+- `reproduction/yott_cases2021.json`
 - `reproduction/prisa_vpr8.json`
 
-Use `probes/` for convergence studies and implementation diagnostics. Use `archive/` only for old exploratory manifests.
+Grid and I/O settings:
+
+- `ceil_sqrt_non_io_plus_2`: choose a square grid from non-I/O operation count, then add one border PE ring for I/O.
+- `ceil_sqrt_nodes_plus_2`: choose a square grid from all DFG nodes, then add one border PE ring for I/O.
+- `perimeter_no_corners`: allow I/O only on non-corner border PEs.
+- `memory_io: "all"`: allow every PE to host memory/I/O operations.
+- `network_type: "one_hop_axis2"`: use the one-hop fully pipelined placement-cost model.
+- `network_type: "mesh"`: use Manhattan mesh distance.
+
+Use `probes/` for diagnostics and ablations. Use `archive/` only for older manifests.

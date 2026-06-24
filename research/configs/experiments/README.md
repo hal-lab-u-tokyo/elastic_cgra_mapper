@@ -1,47 +1,49 @@
 # Experiment Manifests
 
-Use the four manifests below for normal experiments.
+Experiment manifests define benchmark sets, architecture settings, mapper entries, timeouts, and output groups for `research/scripts/run_suite.py`.
 
-| problem | purpose | manifest |
-| --- | --- | --- |
-| modulo placement + routing | heuristic search | `modulo/search.json` |
-| modulo placement + routing | broad comparison with ILP/VPR baselines | `modulo/all_mappers.json` |
-| 2D placement only | heuristic search | `placement2d/search.json` |
-| 2D placement only | broad comparison with placement-only ILP/VPR baselines | `placement2d/all_mappers.json` |
+## Standard Manifests
 
-Use `placement2d/reproduction/` only when checking prior-work reproduction.
-
-| paper setting | manifest |
+| setting | manifest |
 | --- | --- |
-| TRAVERSAL/YOTT-style LISA and m_bench placement quality | `placement2d/reproduction/traversal_yott.json` |
-| PRISA VPR-8 placement quality | `placement2d/reproduction/prisa_vpr8.json` |
+| Modulo mapper search | `modulo/search.json` |
+| Modulo comparison with ILP and VPR | `modulo/all_mappers.json` |
+| 2D placement search | `placement2d/search.json` |
+| 2D placement comparison with ILP | `placement2d/all_mappers.json` |
 
-Use `placement2d/probes/` for convergence checks, ablations, and one-off diagnostics. Use `placement2d/archive/` only to inspect older exploratory manifests; do not start new experiments from those files.
+Use `placement2d/reproduction/` for prior-work reproduction:
+
+| setting | manifest |
+| --- | --- |
+| TRAVERSAL/YOTT reproduction | `placement2d/reproduction/traversal_yott.json` |
+| YOTT 2021 benchmark reproduction | `placement2d/reproduction/yott_cases2021.json` |
+| PRISA reproduction | `placement2d/reproduction/prisa_vpr8.json` |
+
+Use `placement2d/probes/` for diagnostics and ablations. Use `placement2d/archive/` only to inspect older manifests.
 
 ## Problem Types
 
-- `problem_type: "placement2d"` fixes `II = 1`, places each operation on one physical PE, and normally uses `evaluation_mode: "placement_only"`.
-- `problem_type: "modulo"` sweeps II from MII to `ii_max`, places operations on `(PE, context)`, and requires routed connectivity unless a manifest explicitly says otherwise.
-- Modulo manifests can use `mapper_matrix` to cross placement-first mapper configs with routing policies. Generated results include `placement_method`, `routing_method`, and `mapper_role` columns.
+- `problem_type: "placement2d"` fixes II to 1 and evaluates physical PE placement.
+- `problem_type: "modulo"` sweeps II from MII to `ii_max` and validates routed connectivity.
+- Modulo manifests can use `mapper_matrix` to cross placement-first mapper configs with routing policies.
 
-## Runner Model
+## Runner Styles
 
-`run_suite.py` only expands the manifest and reports progress. Every benchmark/architecture/mapper condition is executed through `research/scripts/run_mapper_case.py::run_mapper_case`, so native C++ mappers and external baselines share the same result directory, metrics, summary, and report generation path. `run_modulo_mapping.py` remains as a compatibility wrapper for older commands.
+Mapper entries use one of these styles:
 
-Mapper entries use one of these runner styles:
+- no `runner`: run an in-repository C++ mapper through `build/mapping`.
+- `runner: "vpr"`: run VPR simulated-annealing placement for 2D placement.
+- `runner: "vpr_modulo"`: run VPR placement, assign contexts, then route with this repository's CGRA router.
+- `runner: "vpr_modulo_full_route"`: run generated CGRA routing resources through VPR route. Keep this in comparison manifests because it is slower.
 
-- no `runner`: run an in-repository C++ mapper through `build/mapping` and a `mapper_config` JSON.
-- `runner: "vpr"`: run the external VPR simulated-annealing placement baseline for 2D placement-only experiments.
-- `runner: "vpr_modulo"`: place with VPR SA, then assign contexts and route with this repository's CGRA router.
-- `runner: "vpr_modulo_full_route"`: use a generated CGRA RR graph and VPR routing; keep it in broad comparison manifests, not search manifests.
+`run_suite.py` expands the manifest and delegates every case to `research/scripts/run_mapper_case.py`, so C++ mappers and VPR entries share the same output layout and reports.
 
-## Before Running
+## Adding a Mapper Entry
 
-1. Choose one of the four normal manifests unless reproducing a paper.
-2. Add one mapper config under `research/configs/mapper/{placement2d,modulo}/`.
-3. Add a new mapper entry to the selected manifest. For modulo placement-first methods, add it to `mapper_matrix.placements`; for routing-aware methods, add it to `routing_aware_mappers`; for VPR-like baselines, set `runner`.
-4. Keep benchmark, architecture, timeout, and metric settings unchanged while comparing mappers.
-5. Run `research/scripts/preflight_manifest.py`.
-6. Run `research/scripts/run_suite.py --manifest <manifest>`.
+1. Add a mapper preset under `research/configs/mapper/`.
+2. Add it to one manifest.
+3. Keep benchmark, architecture, timeout, and metric settings fixed while comparing mappers.
+4. Run `research/scripts/preflight_manifest.py`.
+5. Run `research/scripts/run_suite.py --manifest <manifest>`.
 
-Fallback-based mapper configs are named `*_with_fallback_mapper.json` and are for diagnosis, not default comparisons.
+Fallback configs are named `*_with_fallback_mapper.json`. Use them when studying mixed strategies, not for clean comparisons.

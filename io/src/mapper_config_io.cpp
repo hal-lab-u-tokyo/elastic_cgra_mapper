@@ -44,6 +44,16 @@ entity::MapperConfig io::ReadMapperConfigFromJsonFile(std::string file_name) {
           algorithm_config_ptree.get_optional<int>("max_iterations")) {
     mapper_config.algorithm_config.max_iterations = max_iterations.get();
   }
+  if (auto cpu_mapping_bug_compatible_degree =
+          algorithm_config_ptree.get_optional<bool>(
+              "cpu_mapping_bug_compatible_degree")) {
+    mapper_config.algorithm_config.cpu_mapping_bug_compatible_degree =
+        cpu_mapping_bug_compatible_degree.get();
+  }
+  if (auto io_node_policy =
+          algorithm_config_ptree.get_optional<std::string>("io_node_policy")) {
+    mapper_config.algorithm_config.io_node_policy = io_node_policy.get();
+  }
 
   return mapper_config;
 }
@@ -82,6 +92,16 @@ void io::WriteMapperConfigToJsonFile(
     algorithm_config_ptree.put(
         "max_iterations",
         mapper_config.algorithm_config.max_iterations.value());
+  }
+  if (mapper_config.algorithm_config.cpu_mapping_bug_compatible_degree.has_value()) {
+    algorithm_config_ptree.put(
+        "cpu_mapping_bug_compatible_degree",
+        mapper_config.algorithm_config.cpu_mapping_bug_compatible_degree.value());
+  }
+  if (mapper_config.algorithm_config.io_node_policy.has_value()) {
+    algorithm_config_ptree.put(
+        "io_node_policy",
+        mapper_config.algorithm_config.io_node_policy.value());
   }
   ptree.add_child("Algorithm", algorithm_config_ptree);
   ptree.add_child("DFG", dfg_config_ptree);

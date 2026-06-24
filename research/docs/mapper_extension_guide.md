@@ -1,8 +1,8 @@
 # Mapper Extension Guide
 
-The executable selects mappers from `Algorithm.type` in a mapper config JSON. Main values are `FullRoutingILPMapper`, `PlacementOnlyILPMapper`, `ConnectivityPathILPMapper`, `ModuloPlacementFirstMapper`, `ModuloYOTOMapper`, `ModuloYOTTMapper`, `ModuloSAMapper`, `Placement2DYOTOMapper`, `Placement2DYOTTMapper`, `Placement2DSAMapper`, `Placement2DPRISAMapper`, and `Placement2DPRISANoSISMapper`. `ModuloYOTOWithFallbackMapper` and `ModuloYOTTWithFallbackMapper` are diagnostic hybrid variants; keep them separate from ordinary comparisons.
+The executable selects mappers from `Algorithm.type` in a mapper config JSON. Main values are `FullRoutingILPMapper`, `Placement2DILPMapper`, `ConnectivityPathILPMapper`, `ModuloPlacementFirstMapper`, `ModuloYOTOMapper`, `ModuloYOTTMapper`, `ModuloSAMapper`, `Placement2DYOTOMapper`, `Placement2DYOTTMapper`, `Placement2DSAMapper`, `Placement2DPRISAMapper`, and `Placement2DPRISANoSISMapper`. `ModuloYOTOWithFallbackMapper` and `ModuloYOTTWithFallbackMapper` are diagnostic hybrid variants; keep them separate from ordinary comparisons.
 
-First decide whether the mapper solves modulo mapping or 2D placement. Add the mapper behind the same executable interface, register it by name, add a config under `research/configs/mapper/`, and include it in the matching manifest. `FullRoutingILPMapper` and `ConnectivityPathILPMapper` are modulo mappers because they model routed/context-aware mapping. `PlacementOnlyILPMapper` lives with 2D placement mappers because it solves only the placement objective.
+First decide whether the mapper solves modulo mapping or 2D placement. Add the mapper behind the same executable interface, register it by name, add a config under `research/configs/mapper/`, and include it in the matching manifest. `FullRoutingILPMapper` and `ConnectivityPathILPMapper` are modulo mappers because they model routed/context-aware mapping. `Placement2DILPMapper` lives with 2D placement mappers because it solves only the placement objective.
 
 ## C++ Extension Points
 

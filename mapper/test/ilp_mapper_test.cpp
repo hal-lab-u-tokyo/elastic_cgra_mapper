@@ -1,9 +1,9 @@
 #include <gtest/gtest.h>
 
 #include <mapper/modulo/full_routing_ilp_mapper.hpp>
-#include <mapper/placement2d/placement_only_ilp_mapper.hpp>
+#include <mapper/placement2d/placement2d_ilp_mapper.hpp>
 
-TEST(MapperTest, placement_only_ilp_mapper_test) {
+TEST(MapperTest, placement2d_ilp_mapper_test) {
   // create dfg
   std::vector<entity::Edge> edges = {{0, 1}, {1, 2}, {2, 3}, {3, 4}, {4, 5}};
   int node_num = 6;
@@ -39,7 +39,7 @@ TEST(MapperTest, placement_only_ilp_mapper_test) {
   *mrrg_ptr = entity::MRRG(mrrg_config);
 
   auto mapper_ptr =
-      mapper::PlacementOnlyILPMapper().CreateMapper(dfg_ptr, mrrg_ptr);
+      mapper::Placement2DILPMapper().CreateMapper(dfg_ptr, mrrg_ptr);
   const auto result = mapper_ptr->Execution();
 
   EXPECT_EQ(result.is_success, true);

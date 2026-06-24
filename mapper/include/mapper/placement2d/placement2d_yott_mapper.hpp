@@ -38,13 +38,13 @@ class Placement2DYOTTMapper : public IMapper {
   bool placement_only_ = false;
 };
 
-class Placement2DArrayYOTTMapper : public Placement2DArrayMapperBase {
+class Placement2DFaithfulArrayYOTTMapper : public Placement2DArrayMapperBase {
  public:
-  Placement2DArrayYOTTMapper(
+  Placement2DFaithfulArrayYOTTMapper(
       const std::shared_ptr<entity::DFG> dfg_ptr,
       const std::shared_ptr<entity::MRRG> mrrg_ptr)
-      : Placement2DArrayMapperBase(Placement2DArrayKind::kYOTT, dfg_ptr,
-                                   mrrg_ptr) {}
+      : Placement2DArrayMapperBase(Placement2DArrayKind::kFaithfulYOTT,
+                                   dfg_ptr, mrrg_ptr) {}
 };
 
 class Placement2DCPUMappingYOTTMapper : public Placement2DArrayMapperBase {

@@ -38,8 +38,8 @@ class ModuloYOTOMapper : public IMapper {
 };
 
 // TRAVERSAL/YOTO-style physical placement followed by deterministic modulo
-// context assignment and route validation. This keeps the paper-like 2D
-// placement stage separate from the later modulo routing check.
+// context assignment and route validation. This keeps the 2D placement stage
+// separate from the later modulo routing check.
 class ModuloPhysicalYOTOMapper : public IMapper {
  public:
   ModuloPhysicalYOTOMapper() = default;

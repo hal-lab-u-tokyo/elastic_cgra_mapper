@@ -1,0 +1,71 @@
+{
+  "name": "placement2d_traversal_yott_historical",
+  "problem_type": "placement2d",
+  "mode": "placement2d_fixed_ii",
+  "result_group": "placement2d/archive/traversal_yott_historical",
+  "mapping_bin": "/home/ubuntu/elastic_cgra_mapper/build/mapping",
+  "benchmark_sets": [
+    {
+      "name": "lisa",
+      "benchmark_root": "/home/ubuntu/elastic_cgra_mapper/benchmark/literature/traversal_yott_normalized/lisa/dac",
+      "benchmarks": [
+        "atax",
+        "bicg",
+        "cholesky",
+        "doitgen",
+        "gemm",
+        "gemver",
+        "gesummv",
+        "mvt",
+        "symm",
+        "syrk",
+        "trmm"
+      ]
+    },
+    {
+      "name": "m_bench",
+      "benchmark_root": "/home/ubuntu/elastic_cgra_mapper/benchmark/literature/traversal_yott_normalized/m_bench/dac",
+      "benchmarks": [
+        "arf",
+        "collapse_pyr",
+        "conv3",
+        "ewf",
+        "h2v2_smooth",
+        "mac",
+        "mults1",
+        "simple"
+      ]
+    }
+  ],
+  "architectures": [
+    {
+      "name": "auto_square_mesh",
+      "template": "/home/ubuntu/elastic_cgra_mapper/research/configs/arch_templates/mesh_10x10_default.json",
+      "auto_grid": {
+        "policy": "traversal_fully_pipelined"
+      },
+      "ii": 1
+    }
+  ],
+  "mappers": [
+    {
+      "name": "placement2d_yoto_100",
+      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/placement2d/reproduction/placement2d_yoto_mapper.json"
+    },
+    {
+      "name": "placement2d_yoto_1000",
+      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/placement2d/reproduction/placement2d_yoto_1000_trials_mapper.json"
+    },
+    {
+      "name": "placement2d_yott_100",
+      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/placement2d/reproduction/placement2d_yott_mapper.json"
+    },
+    {
+      "name": "placement2d_yott_1000",
+      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/placement2d/reproduction/placement2d_yott_1000_trials_mapper.json"
+    }
+  ],
+  "timeout_sec": 90,
+  "parallel_num": 1,
+  "mii_missing_distance_policy": "self_loop"
+}

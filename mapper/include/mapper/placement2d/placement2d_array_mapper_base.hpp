@@ -11,8 +11,8 @@ namespace mapper {
 // Direct-grid engine variants. Method-specific mapper classes expose these as
 // normal Algorithm.type names; the enum is only the internal dispatch key.
 enum class Placement2DArrayKind {
-  kYOTO,
-  kYOTT,
+  kFaithfulYOTO,
+  kFaithfulYOTT,
   kSA,
   kCPUMappingYOTO,
   kCPUMappingYOTT,
@@ -37,6 +37,9 @@ class Placement2DArrayMapperBase : public IMapper {
   void SetRandomSeed(int random_seed) override;
   void SetMaxIterations(int max_iterations) override;
   void SetPlacementOnly(bool placement_only) override;
+  void SetCPUMappingBugCompatibleDegree(
+      bool cpu_mapping_bug_compatible_degree) override;
+  void SetIONodePolicy(const std::string& io_node_policy) override;
 
  protected:
   Placement2DArrayKind kind_;
@@ -50,6 +53,8 @@ class Placement2DArrayMapperBase : public IMapper {
   std::optional<int> routing_retry_count_;
   std::optional<int> random_seed_;
   std::optional<int> max_iterations_;
+  std::optional<bool> cpu_mapping_bug_compatible_degree_;
+  std::optional<std::string> io_node_policy_;
   bool placement_only_ = false;
 };
 
@@ -59,7 +64,9 @@ MappingResult RunPlacement2DArrayEngine(
     entity::DFG& dfg, entity::MRRG& mrrg, Placement2DArrayKind kind,
     double timeout_s, const std::optional<std::string>& log_file_path,
     std::optional<int> max_trials, std::optional<int> seed_count,
-    std::optional<int> random_seed, std::optional<int> max_iterations);
+    std::optional<int> random_seed, std::optional<int> max_iterations,
+    std::optional<bool> cpu_mapping_bug_compatible_degree,
+    const std::optional<std::string>& io_node_policy);
 
 }  // namespace detail
 

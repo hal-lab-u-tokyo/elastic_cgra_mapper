@@ -6,7 +6,7 @@
   "mapping_bin": "/home/ubuntu/elastic_cgra_mapper/build/mapping",
   "benchmark_sets": [
     {
-      "name": "small_smoke",
+      "name": "compute_small",
       "benchmark_root": "/home/ubuntu/elastic_cgra_mapper/benchmark/kernel",
       "benchmarks": [
         "fixed_fir_pro",
@@ -14,7 +14,7 @@
       ]
     },
     {
-      "name": "small_memory",
+      "name": "memory_small",
       "benchmark_root": "/home/ubuntu/elastic_cgra_mapper/benchmark/kernel",
       "benchmarks": [
         "fixed_ellpack"

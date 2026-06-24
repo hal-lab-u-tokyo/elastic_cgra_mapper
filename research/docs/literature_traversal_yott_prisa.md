@@ -1,6 +1,6 @@
 # TRAVERSAL, YOTT, and PRISA
 
-This note summarizes the problem settings, algorithms, benchmarks, and metrics used by the TRAVERSAL/YOTO, YOTT, and PRISA papers. It also records where each item is discussed in the papers so the claims can be checked later.
+Problem settings, algorithms, benchmarks, metrics, and paper locations for TRAVERSAL/YOTO, YOTT, and PRISA.
 
 Local paper files:
 

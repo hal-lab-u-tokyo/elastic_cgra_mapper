@@ -148,6 +148,16 @@ int main(int argc, char* argv[]) {
     mapper_impl->SetMaxIterations(
         mapper_config.algorithm_config.max_iterations.value());
   }
+  if (mapper_config.algorithm_config.cpu_mapping_bug_compatible_degree
+          .has_value()) {
+    mapper_impl->SetCPUMappingBugCompatibleDegree(
+        mapper_config.algorithm_config.cpu_mapping_bug_compatible_degree
+            .value());
+  }
+  if (mapper_config.algorithm_config.io_node_policy.has_value()) {
+    mapper_impl->SetIONodePolicy(
+        mapper_config.algorithm_config.io_node_policy.value());
+  }
 
   const auto result = mapper_impl->Execution();
 

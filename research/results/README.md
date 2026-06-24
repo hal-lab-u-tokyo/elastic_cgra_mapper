@@ -1,19 +1,39 @@
-# Research Results Layout
+# Research Results
 
-Generated experiment results are ignored by git, but the directory structure is kept stable so runs are easy to revisit.
+Generated experiment results are ignored by git. This directory keeps only layout markers and this guide.
 
-Recommended layout:
+The runner creates result directories from each manifest's `result_group`:
 
-- `algorithm_design/algorithm_design_compare/<YYYYMMDD-HHMMSS[_tag]>/`: standard short comparison runs used while designing new mapping algorithms.
-- `baselines/`: older sanity, smoke, and placement baseline runs.
-- `benchmark_compatibility/`: benchmark normalization and compatibility probes.
-- `preflight/`: manifest preflight reports.
-
-For new algorithm work, run:
-
-```bash
-python3 research/scripts/run_suite.py \
-  --manifest research/configs/experiments/algorithm_design_compare.json
+```text
+research/results/<result_group>/<YYYYMMDD-HHMMSS[_tag]>/
 ```
 
-The result directory is created automatically under `algorithm_design/algorithm_design_compare/`. Each run contains `run_info.md`, `run_metadata.json`, `metrics.csv`, standard summary reports, and per-II logs.
+Common groups:
+
+- `modulo/search/`
+- `modulo/all_mappers/`
+- `placement2d/search/`
+- `placement2d/all_mappers/`
+- `placement2d/reproduction/traversal_yott/`
+- `placement2d/reproduction/yott_cases2021/`
+- `placement2d/reproduction/prisa_vpr8/`
+- `preflight/`
+- `benchmark_compatibility/`
+
+Each run usually contains:
+
+- `run_info.md`
+- `run_metadata.json`
+- `metrics.csv`
+- `summary.json`
+- `summary_by_mapper.md`
+- `summary_by_set.md`
+- `benchmark_report.md`
+- `routing_validation.md` when route checks are applicable
+
+Run reports can be regenerated with:
+
+```bash
+python3 research/scripts/generate_reports.py \
+  --result-dir <result_dir>
+```

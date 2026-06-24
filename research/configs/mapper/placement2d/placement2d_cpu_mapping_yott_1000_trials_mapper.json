@@ -5,7 +5,9 @@
     "max_trials": 1000,
     "seed_count": 1,
     "routing_retry_count": 1,
-    "random_seed": 1706961029
+    "random_seed": 1706961029,
+    "cpu_mapping_bug_compatible_degree": true,
+    "io_node_policy": "structural"
   },
   "DFG": {
     "operation_name_label": "node_id"

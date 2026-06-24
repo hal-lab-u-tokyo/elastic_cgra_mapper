@@ -102,9 +102,9 @@ def summarize_cases(rows: list) -> tuple:
 def add_group_table(lines: list, title: str, groups: dict) -> None:
     lines.extend([f"## {title}", ""])
     lines.append(
-        "| group | cases | solved | attempts | achieved II mean | mapping time mean | wall time mean | optimal distance | mesh optimal | placement cost | mesh hop | FIFO avg | max FIFO | mapped LP | routed FIFO | routed max FIFO | routed LP | compute PE util | route/compute | avg hop | bbox util |"
+        "| group | cases | solved | attempts | achieved II mean | mapping_time_sec mean | wall_time_sec mean | optimal distance | mesh optimal | placement cost | mesh hop | crit hop | paper FIFO avg | paper max FIFO | mesh FIFO avg | p95 FIFO | mesh max FIFO | mapped LP | cut max | route demand max | routed FIFO | routed max FIFO | routed LP | compute PE util | route/compute | avg hop | bbox util |"
     )
-    lines.append("| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |")
+    lines.append("| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |")
     for group, rows in sorted(groups.items()):
         cases, best_rows, case_mapping_times, case_wall_times = summarize_cases(rows)
         lines.append(
@@ -116,9 +116,15 @@ def add_group_table(lines: list, title: str, groups: dict) -> None:
             f"{mean(best_rows, 'placement_mesh_optimal_edge_ratio'):.3f} | "
             f"{mean_prefer(best_rows, 'placement_avg_cost', 'placement_avg_wirelength'):.3f} | "
             f"{mean(best_rows, 'placement_avg_mesh_hop'):.3f} | "
-            f"{mean_prefer(best_rows, 'placement_avg_fifo', 'placement_avg_fifo_like'):.3f} | "
-            f"{mean_prefer(best_rows, 'placement_max_fifo', 'placement_max_mesh_fifo'):.3f} | "
+            f"{mean(best_rows, 'placement_criticality_weighted_mesh_hop'):.3f} | "
+            f"{mean_prefer(best_rows, 'placement_avg_paper_fifo', 'placement_avg_fifo_like'):.3f} | "
+            f"{mean_prefer(best_rows, 'placement_max_paper_fifo', 'placement_max_fifo_like'):.3f} | "
+            f"{mean_prefer(best_rows, 'placement_avg_mesh_fifo', 'placement_avg_fifo'):.3f} | "
+            f"{mean(best_rows, 'placement_p95_fifo'):.3f} | "
+            f"{mean_prefer(best_rows, 'placement_max_mesh_fifo', 'placement_max_fifo'):.3f} | "
             f"{mean(best_rows, 'placement_mapped_lp_mesh_hop'):.3f} | "
+            f"{mean(best_rows, 'placement_max_cut_congestion'):.3f} | "
+            f"{mean(best_rows, 'placement_estimated_max_link_demand'):.3f} | "
             f"{mean(best_rows, 'routed_avg_fifo'):.3f} | "
             f"{mean(best_rows, 'routed_max_fifo'):.3f} | "
             f"{mean(best_rows, 'routed_mapped_lp'):.3f} | "
@@ -158,9 +164,9 @@ def main() -> None:
     for benchmark, benchmark_rows in sorted(by_benchmark.items()):
         lines.extend([f"### {benchmark}", ""])
         lines.append(
-            "| set | mapper | arch | status | MII | achieved II | mapping time | wall time | optimal distance | mesh optimal | placement cost | mesh hop | FIFO avg | max FIFO | mapped LP | routed FIFO | routed max FIFO | routed LP | compute PE util | context util | route/compute | avg hop | bbox util |"
+            "| set | mapper | arch | status | MII | achieved II | mapping_time_sec | wall_time_sec | optimal distance | mesh optimal | placement cost | mesh hop | crit hop | paper FIFO avg | paper max FIFO | mesh FIFO avg | p95 FIFO | mesh max FIFO | mapped LP | cut max | route demand max | routed FIFO | routed max FIFO | routed LP | compute PE util | context util | route/compute | avg hop | bbox util |"
         )
-        lines.append("| --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |")
+        lines.append("| --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |")
         for row in sorted(benchmark_rows, key=lambda r: (r.get("mapper", ""), r.get("arch_name", ""), r.get("achieved_II", ""))):
             lines.append(
                 f"| {row.get('benchmark_set', '') or 'default'} | {row.get('mapper', '')} | {row.get('arch_name', '')} | {row.get('status', '')} | "
@@ -169,8 +175,15 @@ def main() -> None:
                 f"{row.get('placement_mesh_optimal_edge_ratio', '')} | "
                 f"{value_prefer(row, 'placement_avg_cost', 'placement_avg_wirelength')} | "
                 f"{row.get('placement_avg_mesh_hop', '')} | "
-                f"{value_prefer(row, 'placement_avg_fifo', 'placement_avg_fifo_like')} | {value_prefer(row, 'placement_max_fifo', 'placement_max_mesh_fifo')} | "
+                f"{row.get('placement_criticality_weighted_mesh_hop', '')} | "
+                f"{value_prefer(row, 'placement_avg_paper_fifo', 'placement_avg_fifo_like')} | "
+                f"{value_prefer(row, 'placement_max_paper_fifo', 'placement_max_fifo_like')} | "
+                f"{value_prefer(row, 'placement_avg_mesh_fifo', 'placement_avg_fifo')} | "
+                f"{row.get('placement_p95_fifo', '')} | "
+                f"{value_prefer(row, 'placement_max_mesh_fifo', 'placement_max_fifo')} | "
                 f"{row.get('placement_mapped_lp_mesh_hop', '')} | "
+                f"{row.get('placement_max_cut_congestion', '')} | "
+                f"{row.get('placement_estimated_max_link_demand', '')} | "
                 f"{row.get('routed_avg_fifo', '')} | {row.get('routed_max_fifo', '')} | "
                 f"{row.get('routed_mapped_lp', '')} | "
                 f"{row.get('compute_pe_utilization', '')} | {row.get('pe_context_utilization', '')} | "

@@ -111,6 +111,18 @@ def emit_names_node(lines: list, input_names: list, output: str) -> None:
         lines.append("1")
 
 
+def emit_protected_buffer_lut(lines: list, input_name: str, output: str) -> None:
+    """Keep an internal one-input DFG node from becoming a VPR buffer.
+
+    VPR's buffer absorption is still useful for structural output pads, but it
+    also removes one-input internal DFG nodes.  Repeating the same fanin makes
+    the atom a two-pin LUT for VPR packing while preserving pass-through
+    behavior and without adding a synthetic constant block to the device.
+    """
+    lines.append(".names " + " ".join([input_name, input_name, output]))
+    lines.append("11 1")
+
+
 def emit_lut_tree(lines: list, input_names: list, output: str,
                   lut_size: int, used_names: set, prefix: str) -> None:
     if len(input_names) <= lut_size:
@@ -138,7 +150,13 @@ def emit_lut_tree(lines: list, input_names: list, output: str,
     emit_names_node(lines, level, output)
 
 
-def write_blif(dfg_path: Path, out_path: Path, name_map_path: Path) -> dict:
+def write_blif(
+    dfg_path: Path,
+    out_path: Path,
+    name_map_path: Path,
+    protect_internal_buffer_luts: bool = False,
+    output_nodes_as_io_pads: bool = False,
+) -> dict:
     nodes, edges, predecessors, successors = read_dfg(dfg_path)
     name_map, reverse_map = unique_blif_names(nodes)
     input_nodes = [node for node in nodes if not predecessors[node]]
@@ -153,6 +171,8 @@ def write_blif(dfg_path: Path, out_path: Path, name_map_path: Path) -> dict:
     lines.append(".outputs " + " ".join(name_map[node] for node in output_nodes))
 
     used_blif_names = set(name_map.values())
+    output_io_pad_fanin = {}
+    output_io_pad_dropped_fanins = {}
     lut_size = 6
     for node in nodes:
         if node in input_nodes:
@@ -160,6 +180,22 @@ def write_blif(dfg_path: Path, out_path: Path, name_map_path: Path) -> dict:
         fanin = predecessors[node]
         output = name_map[node]
         input_names = [name_map[src] for src in fanin]
+        if output_nodes_as_io_pads and node in output_nodes:
+            if input_names:
+                emit_names_node(lines, [input_names[0]], output)
+                output_io_pad_fanin[node] = fanin[0]
+                if len(fanin) > 1:
+                    output_io_pad_dropped_fanins[node] = fanin[1:]
+            else:
+                emit_names_node(lines, [], output)
+            continue
+        if (
+            protect_internal_buffer_luts
+            and len(input_names) == 1
+            and node not in output_nodes
+        ):
+            emit_protected_buffer_lut(lines, input_names[0], output)
+            continue
         emit_lut_tree(lines, input_names, output, lut_size,
                       used_blif_names, sanitize_blif_name(node))
 
@@ -174,6 +210,10 @@ def write_blif(dfg_path: Path, out_path: Path, name_map_path: Path) -> dict:
             "input_nodes": input_nodes,
             "output_nodes": output_nodes,
             "edge_count": len(edges),
+            "protect_internal_buffer_luts": protect_internal_buffer_luts,
+            "output_nodes_as_io_pads": output_nodes_as_io_pads,
+            "output_io_pad_fanin": output_io_pad_fanin,
+            "output_io_pad_dropped_fanins": output_io_pad_dropped_fanins,
         },
     )
     return {
@@ -336,30 +376,63 @@ def architecture_summary(arch_path: Path) -> dict:
     }
 
 
-def prepare_vpr_arch_xml(arch_xml: Path, mapper_config: dict, work_dir: Path) -> Path:
-    if int(mapper_config.get("pack_capacity", 0) or 0) != 1:
+def fixed_layout_xml(rows: int, cols: int) -> str:
+    return f"""  <layout>
+    <fixed_layout name="cgra_{cols}x{rows}" width="{cols}" height="{rows}">
+        <!--Perimeter of 'io' blocks with 'EMPTY' blocks at corners-->
+        <perimeter type="io" priority="100"/>
+        <corners type="EMPTY" priority="101"/>
+        <!--Fill with 'clb'-->
+        <fill type="clb" priority="10"/>
+    </fixed_layout>
+</layout>"""
+
+
+def replace_vpr_layout(text: str, rows: int, cols: int) -> str:
+    pattern = re.compile(r"\s*<layout>.*?</layout>", re.DOTALL)
+    replaced, count = pattern.subn("\n" + fixed_layout_xml(rows, cols), text, count=1)
+    if count != 1:
+        raise ValueError("failed to replace VPR architecture layout with fixed CGRA layout")
+    return replaced
+
+
+def prepare_vpr_arch_xml(
+    arch_xml: Path,
+    mapper_config: dict,
+    work_dir: Path,
+    arch: dict = None,
+) -> Path:
+    use_pack_capacity_one = int(mapper_config.get("pack_capacity", 0) or 0) == 1
+    fix_layout_to_arch = bool(mapper_config.get("fixed_layout_to_arch", False))
+    if not use_pack_capacity_one and not fix_layout_to_arch:
         return arch_xml
 
     text = arch_xml.read_text()
-    replacements = {
-        '<input name="I" num_pins="40" equivalent="full"/>': '<input name="I" num_pins="6" equivalent="full"/>',
-        '<output name="O" num_pins="10" equivalent="instance"/>': '<output name="O" num_pins="1" equivalent="instance"/>',
-        '<pb_type name="fle" num_pb="10">': '<pb_type name="fle" num_pb="1">',
-        'input="clb.I fle[9:0].out" output="fle[9:0].in"': 'input="clb.I fle[0:0].out" output="fle[0:0].in"',
-        'out_port="fle[9:0].in"': 'out_port="fle[0:0].in"',
-        'in_port="fle[9:0].out"': 'in_port="fle[0:0].out"',
-        'input="clb.clk" output="fle[9:0].clk"': 'input="clb.clk" output="fle[0:0].clk"',
-        'input="fle[9:0].out" output="clb.O"': 'input="fle[0:0].out" output="clb.O"',
-    }
-    missing = [old for old in replacements if old not in text]
-    if missing:
-        raise ValueError(
-            "pack_capacity=1 currently expects the bundled k6_N10-style VPR architecture; "
-            f"missing patterns: {missing}"
-        )
-    for old, new in replacements.items():
-        text = text.replace(old, new)
-    text = text.replace("K = 6, N = 10", "K = 6, N = 1")
+    if use_pack_capacity_one:
+        replacements = {
+            '<input name="I" num_pins="40" equivalent="full"/>': '<input name="I" num_pins="6" equivalent="full"/>',
+            '<output name="O" num_pins="10" equivalent="instance"/>': '<output name="O" num_pins="1" equivalent="instance"/>',
+            '<pb_type name="fle" num_pb="10">': '<pb_type name="fle" num_pb="1">',
+            'input="clb.I fle[9:0].out" output="fle[9:0].in"': 'input="clb.I fle[0:0].out" output="fle[0:0].in"',
+            'out_port="fle[9:0].in"': 'out_port="fle[0:0].in"',
+            'in_port="fle[9:0].out"': 'in_port="fle[0:0].out"',
+            'input="clb.clk" output="fle[9:0].clk"': 'input="clb.clk" output="fle[0:0].clk"',
+            'input="fle[9:0].out" output="clb.O"': 'input="fle[0:0].out" output="clb.O"',
+        }
+        missing = [old for old in replacements if old not in text]
+        if missing:
+            raise ValueError(
+                "pack_capacity=1 currently expects the bundled k6_N10-style VPR architecture; "
+                f"missing patterns: {missing}"
+            )
+        for old, new in replacements.items():
+            text = text.replace(old, new)
+        text = text.replace("K = 6, N = 10", "K = 6, N = 1")
+
+    if fix_layout_to_arch:
+        if not arch:
+            raise ValueError("fixed_layout_to_arch requires an architecture summary")
+        text = replace_vpr_layout(text, int(arch["rows"]), int(arch["cols"]))
 
     generated_arch = work_dir / "vpr_k6_N1_40nm.xml"
     generated_arch.write_text(text)
@@ -407,6 +480,9 @@ def placement_metrics(dfg_path: Path, positions: dict, cost_model: str) -> dict:
             "placement_fifo_like_sum": "",
             "placement_avg_fifo_like": "",
             "placement_max_fifo_like": "",
+            "placement_paper_fifo_sum": "",
+            "placement_avg_paper_fifo": "",
+            "placement_max_paper_fifo": "",
             "placement_mesh_hop_sum": "",
             "placement_avg_mesh_hop": "",
             "placement_max_mesh_hop": "",
@@ -419,7 +495,7 @@ def placement_metrics(dfg_path: Path, positions: dict, cost_model: str) -> dict:
         }
 
     fifo_values = [max(0, wirelength - 1) for wirelength in wirelengths]
-    fifo_like_values = [max(0, cost - 1) for cost in costs]
+    paper_fifo_values = [max(0, cost - 1) for cost in costs]
     placed_nodes = [node for node in nodes if node in positions]
     return {
         "placement_edge_count": len(placed_edges),
@@ -442,9 +518,12 @@ def placement_metrics(dfg_path: Path, positions: dict, cost_model: str) -> dict:
         "placement_optimal_distance_ratio": safe_ratio(
             sum(1 for wirelength in wirelengths if wirelength == 1), len(placed_edges)
         ),
-        "placement_fifo_like_sum": sum(fifo_like_values),
-        "placement_avg_fifo_like": safe_ratio(sum(fifo_like_values), len(placed_edges)),
-        "placement_max_fifo_like": max(fifo_like_values),
+        "placement_fifo_like_sum": sum(paper_fifo_values),
+        "placement_avg_fifo_like": safe_ratio(sum(paper_fifo_values), len(placed_edges)),
+        "placement_max_fifo_like": max(paper_fifo_values),
+        "placement_paper_fifo_sum": sum(paper_fifo_values),
+        "placement_avg_paper_fifo": safe_ratio(sum(paper_fifo_values), len(placed_edges)),
+        "placement_max_paper_fifo": max(paper_fifo_values),
         "placement_mesh_hop_sum": sum(wirelengths),
         "placement_avg_mesh_hop": safe_ratio(sum(wirelengths), len(placed_edges)),
         "placement_max_mesh_hop": max(wirelengths),
@@ -496,6 +575,7 @@ def vpr_command(vpr_bin: str, arch_xml: Path, blif_path: Path, mapper_config: di
         return with_vpr_output_files(command, blif_path, include_route=has_vpr_option(command, "--route"))
 
     place_algorithm = str(mapper_config.get("place_algorithm", "bounding_box"))
+    absorb_buffer_luts = "on" if bool(mapper_config.get("absorb_buffer_luts", False)) else "off"
     command = [
         vpr_bin,
         str(arch_xml),
@@ -503,21 +583,23 @@ def vpr_command(vpr_bin: str, arch_xml: Path, blif_path: Path, mapper_config: di
         "--pack",
         "--place",
         "--absorb_buffer_luts",
-        "off",
+        absorb_buffer_luts,
         "--place_algorithm",
         place_algorithm,
         "--disp",
         "off",
     ]
     if bool(mapper_config.get("place_all_ops", False)):
+        const_gen_inference = str(mapper_config.get("const_gen_inference", "none"))
+        constant_net_method = str(mapper_config.get("constant_net_method", "route"))
         command.extend(
             [
                 "--timing_analysis",
                 "off",
                 "--const_gen_inference",
-                "none",
+                const_gen_inference,
                 "--constant_net_method",
-                "route",
+                constant_net_method,
                 "--sweep_dangling_primary_ios",
                 "off",
                 "--sweep_dangling_nets",
@@ -629,12 +711,23 @@ def run_one_vpr(
         raise FileNotFoundError(reason)
     arch_xml = arch_xml.resolve()
 
+    arch = architecture_summary(arch_template)
     work_dir = output_dir / "vpr"
     work_dir.mkdir(parents=True, exist_ok=True)
-    arch_xml = prepare_vpr_arch_xml(arch_xml, mapper_config, work_dir)
+    arch_xml = prepare_vpr_arch_xml(arch_xml, mapper_config, work_dir, arch)
     blif_path = (work_dir / f"{benchmark}.blif").resolve()
     name_map_path = work_dir / "vpr_name_map.json"
-    dfg_data = write_blif(dfg, blif_path, name_map_path)
+    dfg_data = write_blif(
+        dfg,
+        blif_path,
+        name_map_path,
+        protect_internal_buffer_luts=bool(
+            mapper_config.get("protect_internal_buffer_luts", False)
+        ),
+        output_nodes_as_io_pads=bool(
+            mapper_config.get("output_nodes_as_io_pads", False)
+        ),
+    )
     stdout_path = work_dir / "stdout.txt"
     stderr_path = work_dir / "stderr.txt"
     command_path = work_dir / "command.json"
@@ -665,7 +758,6 @@ def run_one_vpr(
         stderr_path.write_text(proc.stderr)
         returncode = proc.returncode
 
-    arch = architecture_summary(arch_template)
     place_path = find_place_file(work_dir, blif_path)
     net_path = find_net_file(work_dir, blif_path)
     top_positions, parsed_rows, parsed_cols = parse_place_file(place_path, dfg_data["reverse_map"])

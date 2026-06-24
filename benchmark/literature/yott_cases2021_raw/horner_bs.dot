@@ -1,0 +1,35 @@
+digraph horner_bezier_surf {
+	MUL_0 [label = MUL_0 ];
+	LOD_6 [label = LOD_6 ];
+	MUL_21 [label = MUL_21 ];
+	ADD_5 [label = ADD_5 ];
+	LOD_15 [label = LOD_15 ];
+	MUL_19 [label = MUL_19 ];
+	ADD_24 [label = ADD_24 ];
+	MUL_2 [label = MUL_2 ];
+	ADD_18 [label = ADD_18 ];
+	MUL_10 [label = MUL_10 ];
+	ADD_1 [label = ADD_1 ];
+	STR_25 [label = STR_25 ];
+	MUL_8 [label = MUL_8 ];
+	MUL_17 [label = MUL_17 ];
+	MUL_11 [label = MUL_11 ];
+	ADD_14 [label = ADD_14 ];
+	ADD_20 [label = ADD_20 ];
+	MUL_21 -> ADD_24 [ name = 0 ];
+	ADD_14 -> LOD_15 [ name = 1 ];
+	LOD_15 -> MUL_17 [ name = 2 ];
+	MUL_17 -> ADD_18 [ name = 3 ];
+	MUL_2 -> ADD_5 [ name = 4 ];
+	MUL_10 -> MUL_17 [ name = 5 ];
+	LOD_6 -> MUL_8 [ name = 6 ];
+	MUL_11 -> ADD_14 [ name = 7 ];
+	ADD_24 -> STR_25 [ name = 8 ];
+	ADD_1 -> MUL_2 [ name = 9 ];
+	ADD_5 -> LOD_6 [ name = 10 ];
+	ADD_18 -> STR_25 [ name = 11 ];
+	MUL_0 -> ADD_1 [ name = 12 ];
+	ADD_20 -> MUL_21 [ name = 13 ];
+	MUL_8 -> ADD_18 [ name = 14 ];
+	MUL_19 -> ADD_20 [ name = 15 ];
+}

@@ -1,0 +1,104 @@
+{
+  "name": "placement2d_yott_cases2021",
+  "problem_type": "placement2d",
+  "evaluation_mode": "placement_only",
+  "mode": "placement2d_fixed_ii",
+  "result_group": "placement2d/reproduction/yott_cases2021",
+  "mapping_bin": "/home/ubuntu/elastic_cgra_mapper/build/mapping",
+  "benchmark_sets": [
+    {
+      "name": "yott_cases2021",
+      "benchmark_root": "/home/ubuntu/elastic_cgra_mapper/benchmark/literature/yott_cases2021_normalized",
+      "benchmarks": [
+        "mac",
+        "simple",
+        "horner_bs",
+        "mults1",
+        "arf",
+        "conv3",
+        "motion_vec",
+        "fir2",
+        "fir1",
+        "fdback_pts",
+        "k4n4op",
+        "h2v2_smo",
+        "cosine1",
+        "ewf",
+        "Cplx8",
+        "Fir16",
+        "cosine2",
+        "FilterRGB",
+        "collapse_pyr",
+        "interpolate",
+        "w_bmp_head",
+        "matmul",
+        "invert_matrix"
+      ]
+    }
+  ],
+  "architectures": [
+    {
+      "name": "one_hop_ceil_sqrt_nodes_plus_2_fit_io_perimeter_no_corners_io",
+      "template": "/home/ubuntu/elastic_cgra_mapper/research/configs/arch_templates/mesh_10x10_default.json",
+      "auto_grid": {
+        "policy": "cpu_mapping_yoto_yott_fit_structural_io",
+        "margin": 0
+      },
+      "memory_io": "perimeter_no_corners",
+      "network_type": "one_hop_axis2",
+      "ii": 1
+    }
+  ],
+  "mappers": [
+    {
+      "name": "faithful_array_yoto_100",
+      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/placement2d/reproduction/placement2d_faithful_array_yoto_100_trials_mapper.json"
+    },
+    {
+      "name": "faithful_array_yoto_1000",
+      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/placement2d/reproduction/placement2d_faithful_array_yoto_1000_trials_mapper.json"
+    },
+    {
+      "name": "faithful_array_yott_100",
+      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/placement2d/reproduction/placement2d_faithful_array_yott_100_trials_mapper.json"
+    },
+    {
+      "name": "faithful_array_yott_1000",
+      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/placement2d/reproduction/placement2d_faithful_array_yott_1000_trials_mapper.json"
+    },
+    {
+      "name": "cpu_mapping_yoto_100",
+      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/placement2d/placement2d_cpu_mapping_yoto_100_trials_mapper.json"
+    },
+    {
+      "name": "cpu_mapping_yoto_1000",
+      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/placement2d/placement2d_cpu_mapping_yoto_1000_trials_mapper.json"
+    },
+    {
+      "name": "cpu_mapping_yott_100",
+      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/placement2d/placement2d_cpu_mapping_yott_100_trials_mapper.json"
+    },
+    {
+      "name": "cpu_mapping_yott_1000",
+      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/placement2d/placement2d_cpu_mapping_yott_1000_trials_mapper.json"
+    },
+    {
+      "name": "vpr_bb",
+      "runner": "vpr",
+      "vpr_bin": "${VPR_BIN:-third_party/vtr/build/vpr/vpr}",
+      "arch_xml": "${VPR_ARCH_XML:-third_party/vtr/vtr_flow/arch/timing/k6_N10_40nm.xml}",
+      "pack_capacity": 1,
+      "fixed_layout_to_arch": true,
+      "absorb_buffer_luts": true,
+      "protect_internal_buffer_luts": true,
+      "output_nodes_as_io_pads": true,
+      "const_gen_inference": "comb",
+      "place_algorithm": "bounding_box",
+      "place_all_ops": true,
+      "allow_missing": false
+    }
+  ],
+  "timeout_sec": 180,
+  "parallel_num": 1,
+  "mii_missing_distance_policy": "self_loop"
+}

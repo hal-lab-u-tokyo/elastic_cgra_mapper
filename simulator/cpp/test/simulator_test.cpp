@@ -3,7 +3,7 @@
 #include <cpp_simulator/CGRA.hpp>
 #include <io/architecture_io.hpp>
 #include <io/dfg_io.hpp>
-#include <mapper/placement2d/placement_only_ilp_mapper.hpp>
+#include <mapper/placement2d/placement2d_ilp_mapper.hpp>
 
 TEST(SimulatorTest, simulator_default_result_test) {
   std::shared_ptr<entity::DFG> dfg_ptr = std::make_shared<entity::DFG>();
@@ -36,7 +36,7 @@ TEST(SimulatorTest, simulator_default_result_test) {
   }
 
   mapper::IMapper* mapper;
-  mapper = mapper::PlacementOnlyILPMapper().CreateMapper(dfg_ptr, mrrg_ptr);
+  mapper = mapper::Placement2DILPMapper().CreateMapper(dfg_ptr, mrrg_ptr);
   std::shared_ptr<entity::Mapping> mapping_ptr =
       std::make_shared<entity::Mapping>();
   const auto result = mapper->Execution();

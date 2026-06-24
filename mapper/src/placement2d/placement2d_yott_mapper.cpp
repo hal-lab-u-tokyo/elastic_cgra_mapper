@@ -14,12 +14,12 @@ const bool kPlacement2DYOTTMapperRegistered =
         "Placement2DYOTTMapper");
 const bool kPlacement2DYOTTShortNameRegistered =
     mapper::RegisterMapperType<mapper::Placement2DYOTTMapper>("Placement2DYOTT");
-const bool kPlacement2DArrayYOTTMapperRegistered =
-    mapper::RegisterMapperType<mapper::Placement2DArrayYOTTMapper>(
-        "Placement2DArrayYOTTMapper");
-const bool kPlacement2DArrayYOTTShortNameRegistered =
-    mapper::RegisterMapperType<mapper::Placement2DArrayYOTTMapper>(
-        "Placement2DArrayYOTT");
+const bool kPlacement2DFaithfulArrayYOTTMapperRegistered =
+    mapper::RegisterMapperType<mapper::Placement2DFaithfulArrayYOTTMapper>(
+        "Placement2DFaithfulArrayYOTTMapper");
+const bool kPlacement2DFaithfulArrayYOTTShortNameRegistered =
+    mapper::RegisterMapperType<mapper::Placement2DFaithfulArrayYOTTMapper>(
+        "Placement2DFaithfulArrayYOTT");
 const bool kPlacement2DCPUMappingYOTTMapperRegistered =
     mapper::RegisterMapperType<mapper::Placement2DCPUMappingYOTTMapper>(
         "Placement2DCPUMappingYOTTMapper");

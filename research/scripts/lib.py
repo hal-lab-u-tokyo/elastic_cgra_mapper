@@ -17,6 +17,7 @@ NODE_LATENCY_KEYS = ("latency", "delay")
 DEFAULT_OPERATION_LATENCY = 1
 ROUTE_OP = "route"
 NOP_OP = "nop"
+CONTAINER_REPO_ROOT = Path("/home/ubuntu/elastic_cgra_mapper")
 
 
 def load_json(path: Path) -> dict:
@@ -29,6 +30,16 @@ def write_json(path: Path, data: dict) -> None:
     with path.open("w") as f:
         json.dump(data, f, indent=2)
         f.write("\n")
+
+
+def resolve_repo_path(path, repo_root: Path) -> Path:
+    raw_path = Path(path)
+    if raw_path.is_absolute():
+        try:
+            return repo_root / raw_path.relative_to(CONTAINER_REPO_ROOT)
+        except ValueError:
+            return raw_path
+    return repo_root / raw_path
 
 
 def clean_dot_value(value) -> str:
@@ -82,6 +93,87 @@ def population_stddev(values: list):
     mean = sum(values) / len(values)
     variance = sum((value - mean) ** 2 for value in values) / len(values)
     return math.sqrt(variance)
+
+
+def percentile(values: list, percent: float):
+    if not values:
+        return ""
+    sorted_values = sorted(values)
+    index = math.ceil((percent / 100.0) * len(sorted_values)) - 1
+    index = min(max(index, 0), len(sorted_values) - 1)
+    return sorted_values[index]
+
+
+def dfg_edge_criticality(graph, clean_nodes: set):
+    dag = nx.DiGraph()
+    dag.add_nodes_from(clean_nodes)
+    for src, dst in graph.edges():
+        clean_src = clean_node_name(src)
+        clean_dst = clean_node_name(dst)
+        if clean_src in clean_nodes and clean_dst in clean_nodes:
+            dag.add_edge(clean_src, clean_dst)
+
+    if not nx.is_directed_acyclic_graph(dag):
+        return None
+
+    topo_order = list(nx.topological_sort(dag))
+    forward = {node: 0 for node in topo_order}
+    for node in topo_order:
+        for succ in dag.successors(node):
+            forward[succ] = max(forward[succ], forward[node] + 1)
+
+    backward = {node: 0 for node in topo_order}
+    for node in reversed(topo_order):
+        for succ in dag.successors(node):
+            backward[node] = max(backward[node], backward[succ] + 1)
+
+    critical_length = max(forward.values()) if forward else 0
+    denominator = max(1, critical_length)
+    criticality = {}
+    for src, dst in dag.edges():
+        through_edge = forward[src] + 1 + backward[dst]
+        criticality[(src, dst)] = through_edge / denominator
+    return criticality
+
+
+def update_cut_congestion(
+    row_a: int,
+    col_a: int,
+    row_b: int,
+    col_b: int,
+    horizontal_cuts: dict,
+    vertical_cuts: dict,
+) -> None:
+    min_col, max_col = sorted((col_a, col_b))
+    for cut_col in range(min_col, max_col):
+        vertical_cuts[cut_col] += 1
+    min_row, max_row = sorted((row_a, row_b))
+    for cut_row in range(min_row, max_row):
+        horizontal_cuts[cut_row] += 1
+
+
+def update_xy_link_demand(
+    row_a: int,
+    col_a: int,
+    row_b: int,
+    col_b: int,
+    link_demand: dict,
+) -> None:
+    row = row_a
+    col = col_a
+    col_step = 1 if col_b >= col else -1
+    while col != col_b:
+        next_col = col + col_step
+        link = tuple(sorted(((row, col), (row, next_col))))
+        link_demand[link] += 1
+        col = next_col
+
+    row_step = 1 if row_b >= row else -1
+    while row != row_b:
+        next_row = row + row_step
+        link = tuple(sorted(((row, col), (next_row, col))))
+        link_demand[link] += 1
+        row = next_row
 
 
 def read_dfg_stats(dfg_path: Path) -> dict:
@@ -349,25 +441,76 @@ def placement2d_capacity_check_for_arch(dfg_path: Path, arch: dict) -> dict:
     stats = read_dfg_stats(dfg_path)
     total_pes = int(arch["row"]) * int(arch["column"])
     dfg_nodes = int(stats["node_count"])
+    op_counts = stats.get("op_counts", {})
+    memory_nodes = sum(int(op_counts.get(opcode, 0)) for opcode in MEMORY_OPS)
+    memory_pes = resource_count_for_op("load", arch)
+    ok = dfg_nodes <= total_pes and memory_nodes <= memory_pes
     return {
         "dfg_nodes": dfg_nodes,
         "physical_pes": total_pes,
-        "ok": dfg_nodes <= total_pes,
-        "detail": f"dfg_nodes={dfg_nodes}, physical_pes={total_pes}",
+        "memory_nodes": memory_nodes,
+        "memory_pes": memory_pes,
+        "ok": ok,
+        "detail": (
+            f"dfg_nodes={dfg_nodes}, physical_pes={total_pes}, "
+            f"memory_nodes={memory_nodes}, memory_pes={memory_pes}"
+        ),
     }
 
 
-def auto_square_arch_for_dfg(arch_template_path: Path, dfg_path: Path, policy: str) -> dict:
+def auto_square_arch_for_dfg(
+    arch_template_path: Path,
+    dfg_path: Path,
+    policy: str,
+    arch_overrides: Optional[dict] = None,
+) -> dict:
     arch = load_json(arch_template_path)
+    auto_grid = {}
+    if arch_overrides:
+        if isinstance(arch_overrides.get("auto_grid"), dict):
+            auto_grid = arch_overrides["auto_grid"]
+        for key in ("memory_io", "network_type", "CGRA_type", "local_reg_size", "placement_cost_model"):
+            if key in arch_overrides:
+                arch[key] = arch_overrides[key]
     stats = read_dfg_stats(dfg_path)
     node_count = int(stats["node_count"])
     if policy in {"ceil_sqrt_nodes", "traversal_fully_pipelined"}:
         grid_size = math.ceil(math.sqrt(node_count))
+    elif policy in {"ceil_sqrt_nodes_plus_2", "traversal_fully_pipelined_with_io_ring"}:
+        grid_size = math.ceil(math.sqrt(node_count)) + 2
+    elif policy in {
+        "ceil_sqrt_nodes_plus_2_fit_io",
+        "traversal_fully_pipelined_with_io_ring_fit_io",
+    }:
+        op_counts = stats.get("op_counts", {})
+        memory_nodes = sum(int(op_counts.get(opcode, 0)) for opcode in MEMORY_OPS)
+        grid_size = math.ceil(math.sqrt(node_count)) + 2
+        while True:
+            candidate = dict(arch)
+            candidate["row"] = int(grid_size)
+            candidate["column"] = int(grid_size)
+            if resource_count_for_op("load", candidate) >= memory_nodes:
+                break
+            grid_size += 1
     elif policy in {"cpu_mapping_yoto_yott", "ceil_sqrt_non_io_plus_2"}:
         io_count = int(stats.get("input_count", 0)) + int(stats.get("output_count", 0))
         grid_size = math.ceil(math.sqrt(max(0, node_count - io_count))) + 2
+    elif policy in {
+        "cpu_mapping_yoto_yott_fit_structural_io",
+        "ceil_sqrt_non_io_plus_2_fit_structural_io",
+    }:
+        io_count = int(stats.get("input_count", 0)) + int(stats.get("output_count", 0))
+        grid_size = math.ceil(math.sqrt(max(0, node_count - io_count))) + 2
+        while True:
+            candidate = dict(arch)
+            candidate["row"] = int(grid_size)
+            candidate["column"] = int(grid_size)
+            if resource_count_for_op("load", candidate) >= io_count:
+                break
+            grid_size += 1
     else:
         raise ValueError(f"Unknown auto_grid policy: {policy}")
+    grid_size += int(auto_grid.get("margin", 0))
     arch["row"] = int(grid_size)
     arch["column"] = int(grid_size)
     return arch
@@ -564,6 +707,9 @@ def mapping_utilization(
         "placement_fifo_like_sum": "",
         "placement_avg_fifo_like": "",
         "placement_max_fifo_like": "",
+        "placement_paper_fifo_sum": "",
+        "placement_avg_paper_fifo": "",
+        "placement_max_paper_fifo": "",
         "placement_mesh_hop_sum": "",
         "placement_avg_mesh_hop": "",
         "placement_max_mesh_hop": "",
@@ -571,8 +717,24 @@ def mapping_utilization(
         "placement_mesh_optimal_edge_ratio": "",
         "placement_mesh_fifo_sum": "",
         "placement_avg_mesh_fifo": "",
+        "placement_p90_fifo": "",
+        "placement_p95_fifo": "",
         "placement_max_mesh_fifo": "",
         "placement_mapped_lp_mesh_hop": "",
+        "placement_criticality_weighted_mesh_hop": "",
+        "placement_criticality_weighted_fifo": "",
+        "placement_max_critical_edge_mesh_hop": "",
+        "placement_max_critical_edge_fifo": "",
+        "placement_max_cut_congestion": "",
+        "placement_avg_cut_congestion": "",
+        "placement_p95_cut_congestion": "",
+        "placement_max_horizontal_cut_congestion": "",
+        "placement_max_vertical_cut_congestion": "",
+        "placement_estimated_total_link_demand": "",
+        "placement_estimated_max_link_demand": "",
+        "placement_estimated_avg_link_demand": "",
+        "placement_estimated_p95_link_demand": "",
+        "placement_estimated_used_link_ratio": "",
         "direct_dfg_edge_count": "",
         "routed_dfg_edge_count": "",
         "direct_dfg_edge_ratio": "",
@@ -739,15 +901,45 @@ def mapping_utilization(
     placement_mesh_optimal_edge_ratio = ""
     placement_mesh_fifo_sum = ""
     placement_avg_mesh_fifo = ""
+    placement_p90_fifo = ""
+    placement_p95_fifo = ""
     placement_max_mesh_fifo = ""
     placement_mapped_lp_mesh_hop = ""
+    placement_criticality_weighted_mesh_hop = ""
+    placement_criticality_weighted_fifo = ""
+    placement_max_critical_edge_mesh_hop = ""
+    placement_max_critical_edge_fifo = ""
+    placement_max_cut_congestion = ""
+    placement_avg_cut_congestion = ""
+    placement_p95_cut_congestion = ""
+    placement_max_horizontal_cut_congestion = ""
+    placement_max_vertical_cut_congestion = ""
+    placement_estimated_total_link_demand = ""
+    placement_estimated_max_link_demand = ""
+    placement_estimated_avg_link_demand = ""
+    placement_estimated_p95_link_demand = ""
+    placement_estimated_used_link_ratio = ""
     if dfg_path and dfg_path.exists():
         raw_graph = nx.nx_pydot.read_dot(str(dfg_path))
+        clean_graph_nodes = {
+            clean_node_name(node)
+            for node, attrs in raw_graph.nodes(data=True)
+            if clean_dot_value(attrs.get("opcode", ""))
+        }
+        edge_criticality = dfg_edge_criticality(raw_graph, clean_graph_nodes)
         total_dfg_edges = 0
         direct_edges = 0
         placement_wirelengths = []
         placement_costs = []
         mesh_weighted_edges = []
+        criticality_weights = []
+        criticality_weighted_hop_sum = 0.0
+        criticality_weighted_fifo_sum = 0.0
+        critical_edge_hops = []
+        critical_edge_fifos = []
+        horizontal_cuts = defaultdict(int)
+        vertical_cuts = defaultdict(int)
+        estimated_link_demand = defaultdict(int)
         routed_path_lengths = []
         routed_spatial_hops = []
         routed_fifo_values = []
@@ -763,6 +955,30 @@ def mapping_utilization(
             dst_position = op_position_by_name[clean_dst]
             manhattan = abs(src_position[0] - dst_position[0]) + abs(src_position[1] - dst_position[1])
             placement_wirelengths.append(manhattan)
+            placement_fifo = max(0, manhattan - 1)
+            if edge_criticality is not None:
+                criticality = edge_criticality.get((clean_src, clean_dst), 1.0)
+                criticality_weights.append(criticality)
+                criticality_weighted_hop_sum += criticality * manhattan
+                criticality_weighted_fifo_sum += criticality * placement_fifo
+                if criticality >= 1.0:
+                    critical_edge_hops.append(manhattan)
+                    critical_edge_fifos.append(placement_fifo)
+            update_cut_congestion(
+                src_position[0],
+                src_position[1],
+                dst_position[0],
+                dst_position[1],
+                horizontal_cuts,
+                vertical_cuts,
+            )
+            update_xy_link_demand(
+                src_position[0],
+                src_position[1],
+                dst_position[0],
+                dst_position[1],
+                estimated_link_demand,
+            )
             mesh_weighted_edges.append((clean_src, clean_dst, max(1, manhattan)))
             placement_costs.append(
                 placement_cost(
@@ -801,6 +1017,8 @@ def mapping_utilization(
             placement_fifo_sum = sum(placement_fifo_values)
             placement_avg_fifo = placement_fifo_sum / total_dfg_edges
             placement_max_fifo = max(placement_fifo_values)
+            placement_p90_fifo = percentile(placement_fifo_values, 90)
+            placement_p95_fifo = percentile(placement_fifo_values, 95)
             placement_cost_sum = sum(placement_costs)
             placement_avg_cost = placement_cost_sum / total_dfg_edges
             placement_max_cost = max(placement_costs)
@@ -812,10 +1030,10 @@ def mapping_utilization(
             placement_optimal_distance_ratio = (
                 placement_optimal_distance_count / total_dfg_edges
             )
-            placement_fifo_like_values = [max(0, cost - 1) for cost in placement_costs]
-            placement_fifo_like_sum = sum(placement_fifo_like_values)
+            placement_paper_fifo_values = [max(0, cost - 1) for cost in placement_costs]
+            placement_fifo_like_sum = sum(placement_paper_fifo_values)
             placement_avg_fifo_like = placement_fifo_like_sum / total_dfg_edges
-            placement_max_fifo_like = max(placement_fifo_like_values)
+            placement_max_fifo_like = max(placement_paper_fifo_values)
             placement_mesh_hop_sum = placement_wirelength_sum
             placement_avg_mesh_hop = placement_avg_wirelength
             placement_max_mesh_hop = placement_max_wirelength
@@ -827,6 +1045,51 @@ def mapping_utilization(
             placement_mapped_lp_mesh_hop = longest_path_cost(
                 op_position_by_name.keys(), mesh_weighted_edges
             )
+            criticality_weight_sum = sum(criticality_weights)
+            if criticality_weight_sum:
+                placement_criticality_weighted_mesh_hop = (
+                    criticality_weighted_hop_sum / criticality_weight_sum
+                )
+                placement_criticality_weighted_fifo = (
+                    criticality_weighted_fifo_sum / criticality_weight_sum
+                )
+            placement_max_critical_edge_mesh_hop = (
+                max(critical_edge_hops) if critical_edge_hops else ""
+            )
+            placement_max_critical_edge_fifo = (
+                max(critical_edge_fifos) if critical_edge_fifos else ""
+            )
+            horizontal_cut_values = [
+                horizontal_cuts[cut_row] for cut_row in range(max(0, rows - 1))
+            ]
+            vertical_cut_values = [
+                vertical_cuts[cut_col] for cut_col in range(max(0, cols - 1))
+            ]
+            cut_values = horizontal_cut_values + vertical_cut_values
+            if cut_values:
+                placement_max_cut_congestion = max(cut_values)
+                placement_avg_cut_congestion = sum(cut_values) / len(cut_values)
+                placement_p95_cut_congestion = percentile(cut_values, 95)
+                placement_max_horizontal_cut_congestion = (
+                    max(horizontal_cut_values) if horizontal_cut_values else 0
+                )
+                placement_max_vertical_cut_congestion = (
+                    max(vertical_cut_values) if vertical_cut_values else 0
+                )
+            total_grid_links = rows * max(0, cols - 1) + cols * max(0, rows - 1)
+            if total_grid_links:
+                all_link_values = list(estimated_link_demand.values()) + [
+                    0 for _ in range(total_grid_links - len(estimated_link_demand))
+                ]
+                placement_estimated_total_link_demand = sum(all_link_values)
+                placement_estimated_max_link_demand = max(all_link_values)
+                placement_estimated_avg_link_demand = (
+                    placement_estimated_total_link_demand / total_grid_links
+                )
+                placement_estimated_p95_link_demand = percentile(all_link_values, 95)
+                placement_estimated_used_link_ratio = safe_ratio(
+                    len(estimated_link_demand), total_grid_links
+                )
             routed_path_count = len(routed_path_lengths)
             routed_unreachable_edge_count = unreachable_edges
             if routed_path_lengths:
@@ -927,6 +1190,9 @@ def mapping_utilization(
             "placement_fifo_like_sum": placement_fifo_like_sum,
             "placement_avg_fifo_like": placement_avg_fifo_like,
             "placement_max_fifo_like": placement_max_fifo_like,
+            "placement_paper_fifo_sum": placement_fifo_like_sum,
+            "placement_avg_paper_fifo": placement_avg_fifo_like,
+            "placement_max_paper_fifo": placement_max_fifo_like,
             "placement_mesh_hop_sum": placement_mesh_hop_sum,
             "placement_avg_mesh_hop": placement_avg_mesh_hop,
             "placement_max_mesh_hop": placement_max_mesh_hop,
@@ -934,8 +1200,24 @@ def mapping_utilization(
             "placement_mesh_optimal_edge_ratio": placement_mesh_optimal_edge_ratio,
             "placement_mesh_fifo_sum": placement_mesh_fifo_sum,
             "placement_avg_mesh_fifo": placement_avg_mesh_fifo,
+            "placement_p90_fifo": placement_p90_fifo,
+            "placement_p95_fifo": placement_p95_fifo,
             "placement_max_mesh_fifo": placement_max_mesh_fifo,
             "placement_mapped_lp_mesh_hop": placement_mapped_lp_mesh_hop,
+            "placement_criticality_weighted_mesh_hop": placement_criticality_weighted_mesh_hop,
+            "placement_criticality_weighted_fifo": placement_criticality_weighted_fifo,
+            "placement_max_critical_edge_mesh_hop": placement_max_critical_edge_mesh_hop,
+            "placement_max_critical_edge_fifo": placement_max_critical_edge_fifo,
+            "placement_max_cut_congestion": placement_max_cut_congestion,
+            "placement_avg_cut_congestion": placement_avg_cut_congestion,
+            "placement_p95_cut_congestion": placement_p95_cut_congestion,
+            "placement_max_horizontal_cut_congestion": placement_max_horizontal_cut_congestion,
+            "placement_max_vertical_cut_congestion": placement_max_vertical_cut_congestion,
+            "placement_estimated_total_link_demand": placement_estimated_total_link_demand,
+            "placement_estimated_max_link_demand": placement_estimated_max_link_demand,
+            "placement_estimated_avg_link_demand": placement_estimated_avg_link_demand,
+            "placement_estimated_p95_link_demand": placement_estimated_p95_link_demand,
+            "placement_estimated_used_link_ratio": placement_estimated_used_link_ratio,
             "direct_dfg_edge_count": direct_dfg_edge_count,
             "routed_dfg_edge_count": routed_dfg_edge_count,
             "direct_dfg_edge_ratio": direct_dfg_edge_ratio,
@@ -1086,6 +1368,9 @@ def normalize_run(
         "placement_fifo_like_sum": cgra_metrics["placement_fifo_like_sum"],
         "placement_avg_fifo_like": cgra_metrics["placement_avg_fifo_like"],
         "placement_max_fifo_like": cgra_metrics["placement_max_fifo_like"],
+        "placement_paper_fifo_sum": cgra_metrics["placement_paper_fifo_sum"],
+        "placement_avg_paper_fifo": cgra_metrics["placement_avg_paper_fifo"],
+        "placement_max_paper_fifo": cgra_metrics["placement_max_paper_fifo"],
         "placement_mesh_hop_sum": cgra_metrics["placement_mesh_hop_sum"],
         "placement_avg_mesh_hop": cgra_metrics["placement_avg_mesh_hop"],
         "placement_max_mesh_hop": cgra_metrics["placement_max_mesh_hop"],
@@ -1097,9 +1382,53 @@ def normalize_run(
         ],
         "placement_mesh_fifo_sum": cgra_metrics["placement_mesh_fifo_sum"],
         "placement_avg_mesh_fifo": cgra_metrics["placement_avg_mesh_fifo"],
+        "placement_p90_fifo": cgra_metrics["placement_p90_fifo"],
+        "placement_p95_fifo": cgra_metrics["placement_p95_fifo"],
         "placement_max_mesh_fifo": cgra_metrics["placement_max_mesh_fifo"],
         "placement_mapped_lp_mesh_hop": cgra_metrics[
             "placement_mapped_lp_mesh_hop"
+        ],
+        "placement_criticality_weighted_mesh_hop": cgra_metrics[
+            "placement_criticality_weighted_mesh_hop"
+        ],
+        "placement_criticality_weighted_fifo": cgra_metrics[
+            "placement_criticality_weighted_fifo"
+        ],
+        "placement_max_critical_edge_mesh_hop": cgra_metrics[
+            "placement_max_critical_edge_mesh_hop"
+        ],
+        "placement_max_critical_edge_fifo": cgra_metrics[
+            "placement_max_critical_edge_fifo"
+        ],
+        "placement_max_cut_congestion": cgra_metrics[
+            "placement_max_cut_congestion"
+        ],
+        "placement_avg_cut_congestion": cgra_metrics[
+            "placement_avg_cut_congestion"
+        ],
+        "placement_p95_cut_congestion": cgra_metrics[
+            "placement_p95_cut_congestion"
+        ],
+        "placement_max_horizontal_cut_congestion": cgra_metrics[
+            "placement_max_horizontal_cut_congestion"
+        ],
+        "placement_max_vertical_cut_congestion": cgra_metrics[
+            "placement_max_vertical_cut_congestion"
+        ],
+        "placement_estimated_total_link_demand": cgra_metrics[
+            "placement_estimated_total_link_demand"
+        ],
+        "placement_estimated_max_link_demand": cgra_metrics[
+            "placement_estimated_max_link_demand"
+        ],
+        "placement_estimated_avg_link_demand": cgra_metrics[
+            "placement_estimated_avg_link_demand"
+        ],
+        "placement_estimated_p95_link_demand": cgra_metrics[
+            "placement_estimated_p95_link_demand"
+        ],
+        "placement_estimated_used_link_ratio": cgra_metrics[
+            "placement_estimated_used_link_ratio"
         ],
         "direct_dfg_edge_count": cgra_metrics["direct_dfg_edge_count"],
         "routed_dfg_edge_count": cgra_metrics["routed_dfg_edge_count"],
@@ -1215,6 +1544,9 @@ CSV_FIELDS = [
     "placement_fifo_like_sum",
     "placement_avg_fifo_like",
     "placement_max_fifo_like",
+    "placement_paper_fifo_sum",
+    "placement_avg_paper_fifo",
+    "placement_max_paper_fifo",
     "placement_mesh_hop_sum",
     "placement_avg_mesh_hop",
     "placement_max_mesh_hop",
@@ -1222,8 +1554,24 @@ CSV_FIELDS = [
     "placement_mesh_optimal_edge_ratio",
     "placement_mesh_fifo_sum",
     "placement_avg_mesh_fifo",
+    "placement_p90_fifo",
+    "placement_p95_fifo",
     "placement_max_mesh_fifo",
     "placement_mapped_lp_mesh_hop",
+    "placement_criticality_weighted_mesh_hop",
+    "placement_criticality_weighted_fifo",
+    "placement_max_critical_edge_mesh_hop",
+    "placement_max_critical_edge_fifo",
+    "placement_max_cut_congestion",
+    "placement_avg_cut_congestion",
+    "placement_p95_cut_congestion",
+    "placement_max_horizontal_cut_congestion",
+    "placement_max_vertical_cut_congestion",
+    "placement_estimated_total_link_demand",
+    "placement_estimated_max_link_demand",
+    "placement_estimated_avg_link_demand",
+    "placement_estimated_p95_link_demand",
+    "placement_estimated_used_link_ratio",
     "direct_dfg_edge_count",
     "routed_dfg_edge_count",
     "direct_dfg_edge_ratio",

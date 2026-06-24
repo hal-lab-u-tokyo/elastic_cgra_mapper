@@ -12,6 +12,7 @@ from lib import (
     placement2d_capacity_check,
     placement2d_capacity_check_for_arch,
     read_dfg_stats,
+    resolve_repo_path,
     write_json,
 )
 from run_mapper_case import EXTERNAL_RUNNERS, mapper_runner
@@ -26,20 +27,6 @@ from run_suite import (
     placement2d_arch_ii,
     selected,
 )
-
-
-CONTAINER_REPO_ROOT = Path("/home/ubuntu/elastic_cgra_mapper")
-
-
-def resolve_repo_path(path: str, repo_root: Path) -> Path:
-    raw_path = Path(path)
-    if raw_path.is_absolute():
-        try:
-            relative = raw_path.relative_to(CONTAINER_REPO_ROOT)
-            return repo_root / relative
-        except ValueError:
-            return raw_path
-    return repo_root / raw_path
 
 
 def status_for_row(row: dict) -> str:
@@ -244,6 +231,7 @@ def main() -> None:
                                 arch_path,
                                 dfg_path,
                                 auto_grid_policy(arch),
+                                arch,
                             )
                         else:
                             effective_arch = load_json(arch_path)

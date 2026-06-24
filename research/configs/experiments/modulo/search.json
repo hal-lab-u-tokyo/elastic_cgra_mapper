@@ -6,7 +6,7 @@
   "mapping_bin": "/home/ubuntu/elastic_cgra_mapper/build/mapping",
   "benchmark_sets": [
     {
-      "name": "quick_smoke",
+      "name": "compute",
       "benchmark_root": "/home/ubuntu/elastic_cgra_mapper/benchmark/kernel",
       "benchmarks": [
         "fixed_stencil"

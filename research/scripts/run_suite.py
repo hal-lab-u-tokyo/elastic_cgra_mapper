@@ -19,6 +19,7 @@ from lib import (
     load_json,
     placement2d_capacity_check,
     placement2d_capacity_check_for_arch,
+    resolve_repo_path,
     write_json,
     write_metrics_csv,
 )
@@ -107,6 +108,7 @@ def effective_arch_dict_for_plan_item(item: dict) -> dict:
             Path(arch["template"]),
             item["dfg"],
             auto_grid_policy(arch),
+            arch,
         )
     else:
         arch_config = load_json(Path(arch["template"]))
@@ -236,7 +238,7 @@ def manifest_mappers(manifest: dict) -> list:
     return result
 
 
-def build_run_plan(manifest: dict, filters: dict) -> list:
+def build_run_plan(manifest: dict, filters: dict, repo_root: Path) -> list:
     benchmark_set_filter = set(filters["benchmark_set"])
     benchmark_filter = set(filters["benchmark"])
     arch_filter = set(filters["arch"])
@@ -244,7 +246,7 @@ def build_run_plan(manifest: dict, filters: dict) -> list:
     run_plan = []
 
     for benchmark_set in expand_benchmark_sets(manifest):
-        benchmark_root = Path(benchmark_set["benchmark_root"])
+        benchmark_root = resolve_repo_path(benchmark_set["benchmark_root"], repo_root)
         benchmark_set_name = benchmark_set["name"]
         if not selected(benchmark_set_name, benchmark_set_filter):
             continue
@@ -253,10 +255,17 @@ def build_run_plan(manifest: dict, filters: dict) -> list:
                 continue
             dfg = benchmark_root / f"{benchmark}.dot"
             for arch in manifest["architectures"]:
+                arch_for_run = dict(arch)
+                arch_for_run["template"] = str(resolve_repo_path(arch_for_run["template"], repo_root))
                 arch_name = arch["name"]
                 if not selected(arch_name, arch_filter):
                     continue
                 for mapper in manifest_mappers(manifest):
+                    mapper_for_run = dict(mapper)
+                    if mapper_for_run.get("mapper_config"):
+                        mapper_for_run["mapper_config"] = str(
+                            resolve_repo_path(mapper_for_run["mapper_config"], repo_root)
+                        )
                     mapper_name = mapper["name"]
                     if not selected(mapper_name, mapper_filter):
                         continue
@@ -265,8 +274,8 @@ def build_run_plan(manifest: dict, filters: dict) -> list:
                             "benchmark_set": benchmark_set_name,
                             "benchmark": benchmark,
                             "dfg": dfg,
-                            "arch": arch,
-                            "mapper": mapper,
+                            "arch": arch_for_run,
+                            "mapper": mapper_for_run,
                         }
                     )
     return run_plan
@@ -518,6 +527,7 @@ def main() -> None:
     parser.add_argument("--manifest", required=True, type=Path)
     parser.add_argument("--out", type=Path)
     parser.add_argument("--out-root", default=Path("research/results"), type=Path)
+    parser.add_argument("--repo-root", default=Path.cwd(), type=Path)
     parser.add_argument("--tag", default="")
     parser.add_argument("--skip-reports", action="store_true")
     parser.add_argument("--quiet", action="store_true", help="Suppress progress output.")
@@ -537,6 +547,8 @@ def main() -> None:
 
     started_at = now_local()
     started_monotonic = time.monotonic()
+    repo_root = args.repo_root.resolve()
+    args.manifest = resolve_repo_path(args.manifest, repo_root)
     manifest = load_json(args.manifest)
     problem_type = manifest_problem_type(manifest)
     result_dir = resolve_result_dir(args, manifest, started_at)
@@ -574,9 +586,9 @@ def main() -> None:
     summaries = []
     timeout_sec = float(manifest["timeout_sec"])
     parallel_num = int(manifest.get("parallel_num", 1))
-    mapping_bin = Path(manifest["mapping_bin"])
+    mapping_bin = resolve_repo_path(manifest["mapping_bin"], repo_root)
     missing_distance_policy = manifest.get("mii_missing_distance_policy", "self_loop")
-    run_plan = build_run_plan(manifest, filters)
+    run_plan = build_run_plan(manifest, filters, repo_root)
     validate_run_plan_for_problem_type(run_plan, problem_type)
     evaluation_mode = str(manifest.get("evaluation_mode", "routing"))
 

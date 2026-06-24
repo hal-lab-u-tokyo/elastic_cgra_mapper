@@ -32,7 +32,7 @@ Experiment manifests separate three roles:
 - integrated routing-aware methods go in `routing_aware_mappers`.
 - external baselines such as VPR go in `external_mappers`.
 
-The current in-repository placement-first routers are in `mapper/src/common/placement_search_engine.cpp`:
+Placement-first routers live in `mapper/src/common/search/placement_search_engine_routing.cpp`:
 
 - CGRA BFS/maze-style routing, tuned through `Algorithm` overrides such as `routing_retry_count`.
 - Manhattan-prioritized legal routing, currently used by the PRISA modulo adaptation.

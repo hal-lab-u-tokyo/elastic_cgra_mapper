@@ -31,5 +31,8 @@ class IMapper {
   virtual void SetRandomSeed(int random_seed) {}
   virtual void SetMaxIterations(int max_iterations) {}
   virtual void SetPlacementOnly(bool placement_only) {}
+  virtual void SetCPUMappingBugCompatibleDegree(
+      bool cpu_mapping_bug_compatible_degree) {}
+  virtual void SetIONodePolicy(const std::string& io_node_policy) {}
 };
 }  // namespace mapper

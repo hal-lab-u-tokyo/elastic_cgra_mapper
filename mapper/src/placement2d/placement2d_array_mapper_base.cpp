@@ -10,7 +10,8 @@ Placement2DArrayMapperBase::Placement2DArrayMapperBase(
 MappingResult Placement2DArrayMapperBase::Execution() {
   return detail::RunPlacement2DArrayEngine(
       *dfg_ptr_, *mrrg_ptr_, kind_, timeout_s_.value_or(1.0), log_file_path_,
-      max_trials_, seed_count_, random_seed_, max_iterations_);
+      max_trials_, seed_count_, random_seed_, max_iterations_,
+      cpu_mapping_bug_compatible_degree_, io_node_policy_);
 }
 
 void Placement2DArrayMapperBase::SetLogFilePath(
@@ -50,6 +51,16 @@ void Placement2DArrayMapperBase::SetMaxIterations(int max_iterations) {
 
 void Placement2DArrayMapperBase::SetPlacementOnly(bool placement_only) {
   placement_only_ = placement_only;
+}
+
+void Placement2DArrayMapperBase::SetCPUMappingBugCompatibleDegree(
+    bool cpu_mapping_bug_compatible_degree) {
+  cpu_mapping_bug_compatible_degree_ = cpu_mapping_bug_compatible_degree;
+}
+
+void Placement2DArrayMapperBase::SetIONodePolicy(
+    const std::string& io_node_policy) {
+  io_node_policy_ = io_node_policy;
 }
 
 }  // namespace mapper

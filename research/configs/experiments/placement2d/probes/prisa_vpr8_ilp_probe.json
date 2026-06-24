@@ -31,8 +31,8 @@
   ],
   "mappers": [
     {
-      "name": "placement_only_ilp",
-      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/placement2d/placement_only_ilp_mapper.json"
+      "name": "placement2d_ilp",
+      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/placement2d/placement2d_ilp_mapper.json"
     }
   ],
   "timeout_sec": 120,

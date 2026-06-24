@@ -8,7 +8,7 @@
 #include <io/mapping_io.hpp>
 #include <io/output_to_log_file.hpp>
 #include <iostream>
-#include <mapper/placement2d/placement_only_ilp_mapper.hpp>
+#include <mapper/placement2d/placement2d_ilp_mapper.hpp>
 
 std::vector<entity::MRRGConfig> GetMRRGToTest(int dfg_node_num) {
   std::vector<entity::MRRGConfig> mrrg_config_vec;
@@ -73,8 +73,8 @@ int main(int argc, char* argv[]) {
       std::shared_ptr<entity::MRRG> mrrg_ptr =
           std::make_shared<entity::MRRG>(mrrg_config);
 
-      mapper::PlacementOnlyILPMapper* mapper;
-      mapper = mapper::PlacementOnlyILPMapper().CreateMapper(dfg_ptr, mrrg_ptr);
+      mapper::Placement2DILPMapper* mapper;
+      mapper = mapper::Placement2DILPMapper().CreateMapper(dfg_ptr, mrrg_ptr);
       mapper->SetLogFilePath(mapping_logger.GetGurobiLogFilePath());
       mapper->SetTimeOut(timeout_s);
       mapper->SetAcceptFeasibleSolution(

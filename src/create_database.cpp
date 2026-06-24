@@ -8,7 +8,7 @@
 #include <io/mapping_io.hpp>
 #include <io/output_to_log_file.hpp>
 #include <iostream>
-#include <mapper/placement2d/placement_only_ilp_mapper.hpp>
+#include <mapper/placement2d/placement2d_ilp_mapper.hpp>
 #include <remapper/algorithm/dp_remapper.hpp>
 
 std::vector<entity::MRRGConfig> GetMRRGOfSubCGRA(
@@ -210,9 +210,9 @@ int main(int argc, char* argv[]) {
           std::make_shared<entity::MRRG>(tmp_mrrg_config);
 
       double mapping_time_out_s = (db_timeout_s - creating_db_time_s) / 2;
-      mapper::PlacementOnlyILPMapper* mapper;
+      mapper::Placement2DILPMapper* mapper;
       mapper =
-          mapper::PlacementOnlyILPMapper().CreateMapper(dfg_ptr, mrrg_ptr);
+          mapper::Placement2DILPMapper().CreateMapper(dfg_ptr, mrrg_ptr);
       mapper->SetLogFilePath(logger.GetNextMappingPath(
           mapping_time_out_s, mrrg_ptr->GetMRRGConfig()));
       mapper->SetTimeOut(mapping_time_out_s);

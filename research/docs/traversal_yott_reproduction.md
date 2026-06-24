@@ -11,9 +11,9 @@ This manifest matches the public `cpu_mapping` setup used for the TRAVERSAL/YOTT
 - `mesh_perimeter_io` uses the mesh cost model.
 - `one_hop_perimeter_io` uses `one_hop_axis2`, matching the public 1-hop cost `ceil(dx / 2) + ceil(dy / 2)`.
 - YOTO/YOTT trial counts are exposed as 1, 10, 100, and 1000.
-- `array_yoto_*` and `array_yott_*` use direct 2D grid arrays instead of the shared placement engine. They use the same grid, I/O legality checks, output mapping format, random seed controls, and placement metrics, so they can be compared with the shared-engine mappers.
-- The array YOTO/YOTT variants reserve perimeter I/O-capable slots for `load`, `store`, and `output` nodes by penalizing ordinary operations on those slots. This avoids greedy placement failures where compute nodes consume scarce I/O slots before memory/output nodes are placed.
-- `placement_only_ilp` solves the same placement-only objective with Gurobi when it finishes within the manifest timeout.
+- `faithful_array_yoto_*` and `faithful_array_yott_*` use direct 2D grid storage while preserving the shared-engine YOTO/YOTT traversal order and, for YOTT, the I/O/reconvergence annotations, degree matching, and look-ahead rank.
+- `cpu_mapping_yoto_1000` and `cpu_mapping_yott_1000` port the public `cpu_mapping` placement kernels. They use the public type matrix directly: corners are unavailable, perimeter non-corner slots are for inputs/outputs, and interior slots are for compute nodes.
+- `placement2d_ilp` solves the same placement-only objective with Gurobi when it finishes within the manifest timeout.
 - `vpr_sa` and `vpr_sa_fast` use VPR simulated annealing as external placement baselines with `pack_capacity = 1`, so each DFG node is kept as one placeable VPR block for fair placement-quality comparison.
 
 Fidelity notes:
@@ -23,16 +23,17 @@ Fidelity notes:
 - YOTT is a two-traversal placement approach. The paper's key additions over YOTO are I/O annotation, reconvergent annotation, degree matching, and look-ahead placement. The paper then treats routing as a small downstream step because most edges are expected to be adjacent; it describes maze routing for the remaining non-adjacent edges.
 - The public YOTT source computes the annotated placement sequence, but its direct call to the YOTO/YOTT routing routine is commented out in the checked version. For paper-style comparison, use `evaluation_mode: "placement_only"` and the placement metrics below.
 - `Placement2DYOTOMapper` and `Placement2DYOTTMapper` are the closest in-repository reproductions of the paper algorithms: they use the YOTO/YOTT traversal sequence, perimeter I/O legality when the architecture distinguishes I/O cells, Brandes betweenness centrality for YOTT's centrality traversal mode, reconvergent/I/O annotations, degree matching, and look-ahead scoring.
-- `Placement2DArrayYOTOMapper` and `Placement2DArrayYOTTMapper` are fast 2D-array baselines. They keep the same grid policy, I/O legality, cost model, trial count, and output format, but they are not line-by-line reproductions of the public code. In particular, the array YOTT fast path uses a compact incremental-cost scoring rule instead of the full annotation/backpropagation machinery. Treat array results as high-speed traversal-style baselines, not exact paper/runtime baselines.
-- `Placement2DCPUMappingYOTOMapper` and `Placement2DCPUMappingYOTTMapper` are direct-grid local-neighborhood variants for PRISA runtime comparisons. They preserve the same output format and placement metrics, but follow the public `cpu_mapping` placement kernel more closely than the shared engine or compact array fast path.
+- `Placement2DFaithfulArrayYOTOMapper` and `Placement2DFaithfulArrayYOTTMapper` are array ports of the paper-faithful shared-engine mappers. Use them when checking whether the YOTO/YOTT quality trends can be preserved while reducing placement-kernel overhead.
+- `Placement2DCPUMappingYOTOMapper` and `Placement2DCPUMappingYOTTMapper` are direct-grid ports of the public `cpu_mapping` placement kernels. They preserve the repository's output format and placement metrics while matching the public local-neighborhood placement behavior: type matrix, fixed adjacency offsets, grid-freedom update, YOTO's one-traversal local placement, and YOTT's tips/intersection/annotated-node candidate selection. They include safety checks for malformed inputs and use this repository's RNG, so they are not intended to be bit-identical to the original executable.
 
-The paper-facing placement metrics are:
+Paper-style placement metrics:
 
 - `placement_optimal_distance_ratio`: fraction of DFG edges whose mapped endpoints are exactly one physical mesh hop apart.
 - `placement_optimal_edge_ratio`: legacy cost-model counterpart, retained for older runs.
 - `placement_avg_cost`: mean edge placement cost under the selected cost model.
-- `placement_avg_fifo`: mean placement FIFO count, computed as `max(0, mesh_hop - 1)`.
-- `placement_max_fifo`: maximum placement FIFO count, computed as `max(0, mesh_hop - 1)`.
+- `placement_avg_paper_fifo`: mean FIFO proxy for the selected paper cost model, computed as `max(0, placement_cost - 1)`. For the TRAVERSAL/YOTT one-hop setup this is the Table-1-style FIFO quantity.
+- `placement_avg_fifo`: mean physical mesh FIFO proxy, computed as `max(0, mesh_hop - 1)`. Use this for mesh route-pressure analysis, not for one-hop Table 1 normalization.
+- `placement_max_fifo` / `placement_max_mesh_fifo`: maximum physical mesh FIFO proxy.
 
 For paper-style runtime comparison, use `mapping_time_sec`. This is the mapper-reported algorithm time. `wall_time_sec` is also shown in reports, but it includes the Python suite runner, process startup, generated input/output files, and log collection. That overhead is useful for workflow cost, but it should not be compared directly with the TRAVERSAL/YOTT placement kernel runtime.
 
@@ -45,7 +46,9 @@ git submodule update --init --recursive third_party/vtr
 sh scripts/build_vpr.sh
 ```
 
-By default the manifest uses `third_party/vtr/build/vpr/vpr` and `third_party/vtr/vtr_flow/arch/timing/k6_N10_40nm.xml`. Set `VPR_BIN` or `VPR_ARCH_XML` to override them. When a VPR mapper config sets `pack_capacity = 1`, the runner derives a temporary N=1 architecture from the bundled VPR XML and disables buffer absorption, which avoids FPGA-style packing of multiple DFG nodes into one CLB. If `pack_capacity` is omitted, the runner uses the given architecture as-is and parses packed `.net` placements when possible; this mode is useful for VPR smoke checks but is not a strict one-op-per-site placement comparison.
+By default the manifest uses `third_party/vtr/build/vpr/vpr` and `third_party/vtr/vtr_flow/arch/timing/k6_N10_40nm.xml`. Set `VPR_BIN` or `VPR_ARCH_XML` to override them. When a VPR mapper config sets `pack_capacity = 1`, the runner derives a temporary N=1 architecture from the bundled VPR XML. For the YOTT case-study VPR-BB baseline, `fixed_layout_to_arch = true` replaces VPR's auto layout with the same fixed CGRA grid used by the manifest. `protect_internal_buffer_luts = true` keeps internal one-input DFG nodes as placeable LUTs, while `output_nodes_as_io_pads = true` lets structural output nodes consume output I/O cells instead of CLB cells. If `pack_capacity` is omitted, the runner uses the given architecture as-is and parses packed `.net` placements when possible; this mode is useful for VPR smoke checks but is not a strict one-op-per-site placement comparison.
+
+The BLIF representation cannot encode a multi-input DFG output operation as a single VPR output pad with all incoming DFG edges in the placement objective. In `output_nodes_as_io_pads` mode, VPR sees one representative input edge for such an output pad so that the resource model matches the paper-style structural I/O grid. The reported metrics are still computed from the original DFG edges and the final pad location.
 
 The runner creates a simple BLIF from each DFG, runs VPR placement, parses the generated `.place` and `.net` files, and reports the same placement-quality metrics as the in-repository mappers. VPR option details differ by VPR/VTR version, so the manifest entry can override the default command with `vpr_args`.
 

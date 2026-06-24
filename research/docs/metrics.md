@@ -48,16 +48,24 @@ Placement-only quality metrics:
 
 - `placement_avg_wirelength` and `placement_max_wirelength`: Manhattan distance between the placed endpoints of each DFG edge.
 - `placement_direct_edge_ratio`: fraction of DFG edges whose endpoints are on the same PE or adjacent PEs.
-- `placement_avg_fifo` and `placement_max_fifo`: placement FIFO count under the paper-style Manhattan routing assumption, computed as `max(0, wirelength - 1)` per DFG edge. Lower is better. This is the FIFO metric to use for placement-only PRISA/TRAVERSAL/YOTT comparisons.
+- `placement_avg_fifo` and `placement_max_fifo`: placement FIFO count under physical mesh-Manhattan distance, computed as `max(0, mesh_hop - 1)` per DFG edge. Lower is better. Use this for mesh-style route-pressure analysis.
+- `placement_p90_fifo` and `placement_p95_fifo`: 90th and 95th percentile placement FIFO values. These expose long-tail communication edges that can be hidden by the average.
 - `placement_cost_model`: placement cost model used for paper-style edge quality. `mesh` uses Manhattan distance. `one_hop_axis2` uses `ceil(row_distance / 2) + ceil(column_distance / 2)`, matching the public TRAVERSAL/YOTT `cpu_mapping` 1-hop model.
 - `placement_avg_cost` and `placement_max_cost`: edge placement cost under `placement_cost_model`.
 - `placement_optimal_distance_ratio`: fraction of DFG edges whose mapped endpoints are exactly one physical mesh hop apart. This follows the PRISA paper definition: communication distance equal to 1 HC is optimal, otherwise non-optimal.
 - `placement_optimal_edge_ratio`: legacy placement-cost-model counterpart, counting edges whose `placement_cost <= 1`.
-- `placement_avg_fifo_like` and `placement_max_fifo_like`: legacy compatibility fields for `max(0, placement_cost - 1)` under `placement_cost_model`. Prefer `placement_avg_fifo` and `placement_max_fifo` in new reports.
+- `placement_avg_paper_fifo` and `placement_max_paper_fifo`: FIFO proxy computed as `max(0, placement_cost - 1)` under `placement_cost_model`. For the TRAVERSAL/YOTT one-hop fully pipelined CGRA reproduction, this is the Table-1-style FIFO metric because `placement_cost_model = one_hop_axis2`.
+- `placement_avg_fifo_like` and `placement_max_fifo_like`: legacy aliases for `placement_avg_paper_fifo` and `placement_max_paper_fifo`.
 - `placement_avg_mesh_hop` and `placement_max_mesh_hop`: Manhattan hop count on the physical 2D mesh, independent of `placement_cost_model`.
 - `placement_mesh_optimal_edge_ratio`: fraction of DFG edges whose endpoints are on the same PE or adjacent mesh PEs under the physical mesh model.
 - `placement_avg_mesh_fifo` and `placement_max_mesh_fifo`: aliases of the physical mesh placement FIFO, computed as `max(0, mesh_hop - 1)` per DFG edge.
 - `placement_mapped_lp_mesh_hop`: longest DFG path after placement when each DFG edge is weighted by `max(1, mesh_hop)`. This is the paper-style mapped critical path proxy for placement-only runs.
+- `placement_criticality_weighted_mesh_hop` and `placement_criticality_weighted_fifo`: placement hop/FIFO averaged with higher weight on DFG edges that lie closer to an unweighted critical path. These are empty for cyclic DFGs where this criticality proxy is not well-defined.
+- `placement_max_critical_edge_mesh_hop` and `placement_max_critical_edge_fifo`: worst hop/FIFO among edges whose criticality reaches the critical-path maximum.
+- `placement_max_cut_congestion`, `placement_avg_cut_congestion`, and `placement_p95_cut_congestion`: lower-bound routing pressure from counting how many DFG edges cross each horizontal or vertical mesh cut. High values indicate that many communications must pass through the same grid boundary regardless of the exact route.
+- `placement_max_horizontal_cut_congestion` and `placement_max_vertical_cut_congestion`: directional cut-congestion maxima.
+- `placement_estimated_total_link_demand`, `placement_estimated_max_link_demand`, `placement_estimated_avg_link_demand`, and `placement_estimated_p95_link_demand`: fast routeability proxy from routing each placement edge along one deterministic Manhattan XY path and counting per-link demand. This is not an actual routed result; use it to identify placements likely to stress BFS/Manhattan routing.
+- `placement_estimated_used_link_ratio`: fraction of physical mesh links touched by the deterministic Manhattan demand proxy.
 - `direct_dfg_edge_ratio`: fraction of DFG edges directly represented in the emitted mapping connections. In `placement_only` mode, prefer `placement_direct_edge_ratio` because routed paths are intentionally omitted.
 
 Memory-related metrics:

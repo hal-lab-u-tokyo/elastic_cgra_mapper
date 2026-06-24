@@ -7,7 +7,7 @@
 #include <io/mapper_config_io.hpp>
 #include <io/mapping_io.hpp>
 #include <iostream>
-#include <mapper/placement2d/placement_only_ilp_mapper.hpp>
+#include <mapper/placement2d/placement2d_ilp_mapper.hpp>
 
 int main(int argc, char** argv) {
   if (argc != 5) {
@@ -51,7 +51,7 @@ int main(int argc, char** argv) {
   }
 
   mapper::IMapper* mapper;
-  mapper = mapper::PlacementOnlyILPMapper().CreateMapper(dfg_ptr, mrrg_ptr);
+  mapper = mapper::Placement2DILPMapper().CreateMapper(dfg_ptr, mrrg_ptr);
 
   const auto mapping_result = mapper->Execution();
   io::WriteMappingFile(mapping_file_path, mapping_result.mapping_ptr,

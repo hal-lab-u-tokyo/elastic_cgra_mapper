@@ -1,0 +1,136 @@
+{
+  "name": "placement2d_traversal_yott_grid_io_probe",
+  "problem_type": "placement2d",
+  "evaluation_mode": "placement_only",
+  "mode": "placement2d_fixed_ii",
+  "result_group": "placement2d/probes/traversal_yott_grid_io",
+  "mapping_bin": "/home/ubuntu/elastic_cgra_mapper/build/mapping",
+  "benchmark_sets": [
+    {
+      "name": "lisa",
+      "benchmark_root": "/home/ubuntu/elastic_cgra_mapper/benchmark/literature/traversal_yott_normalized/lisa/dac",
+      "benchmarks": [
+        "atax",
+        "bicg",
+        "cholesky",
+        "doitgen",
+        "gemm",
+        "gemver",
+        "gesummv",
+        "mvt",
+        "symm",
+        "syrk",
+        "trmm"
+      ]
+    },
+    {
+      "name": "m_bench",
+      "benchmark_root": "/home/ubuntu/elastic_cgra_mapper/benchmark/literature/traversal_yott_normalized/m_bench/dac",
+      "benchmarks": [
+        "arf",
+        "collapse_pyr",
+        "conv3",
+        "ewf",
+        "h2v2_smooth",
+        "mac",
+        "mults1",
+        "simple"
+      ]
+    }
+  ],
+  "architectures": [
+    {
+      "name": "mesh_non_io_plus_2_perimeter_no_corners",
+      "template": "/home/ubuntu/elastic_cgra_mapper/research/configs/arch_templates/mesh_10x10_default.json",
+      "auto_grid": {
+        "policy": "ceil_sqrt_non_io_plus_2"
+      },
+      "memory_io": "perimeter_no_corners",
+      "network_type": "orthogonal",
+      "ii": 1
+    },
+    {
+      "name": "mesh_non_io_plus_2_perimeter",
+      "template": "/home/ubuntu/elastic_cgra_mapper/research/configs/arch_templates/mesh_10x10_default.json",
+      "auto_grid": {
+        "policy": "ceil_sqrt_non_io_plus_2"
+      },
+      "memory_io": "perimeter",
+      "network_type": "orthogonal",
+      "ii": 1
+    },
+    {
+      "name": "mesh_ceil_sqrt_nodes_perimeter_no_corners",
+      "template": "/home/ubuntu/elastic_cgra_mapper/research/configs/arch_templates/mesh_10x10_default.json",
+      "auto_grid": {
+        "policy": "ceil_sqrt_nodes"
+      },
+      "memory_io": "perimeter_no_corners",
+      "network_type": "orthogonal",
+      "ii": 1
+    },
+    {
+      "name": "mesh_ceil_sqrt_nodes_perimeter",
+      "template": "/home/ubuntu/elastic_cgra_mapper/research/configs/arch_templates/mesh_10x10_default.json",
+      "auto_grid": {
+        "policy": "ceil_sqrt_nodes"
+      },
+      "memory_io": "perimeter",
+      "network_type": "orthogonal",
+      "ii": 1
+    },
+    {
+      "name": "one_hop_non_io_plus_2_perimeter_no_corners",
+      "template": "/home/ubuntu/elastic_cgra_mapper/research/configs/arch_templates/mesh_10x10_default.json",
+      "auto_grid": {
+        "policy": "ceil_sqrt_non_io_plus_2"
+      },
+      "memory_io": "perimeter_no_corners",
+      "network_type": "one_hop_axis2",
+      "ii": 1
+    },
+    {
+      "name": "one_hop_non_io_plus_2_perimeter",
+      "template": "/home/ubuntu/elastic_cgra_mapper/research/configs/arch_templates/mesh_10x10_default.json",
+      "auto_grid": {
+        "policy": "ceil_sqrt_non_io_plus_2"
+      },
+      "memory_io": "perimeter",
+      "network_type": "one_hop_axis2",
+      "ii": 1
+    },
+    {
+      "name": "one_hop_ceil_sqrt_nodes_perimeter_no_corners",
+      "template": "/home/ubuntu/elastic_cgra_mapper/research/configs/arch_templates/mesh_10x10_default.json",
+      "auto_grid": {
+        "policy": "ceil_sqrt_nodes"
+      },
+      "memory_io": "perimeter_no_corners",
+      "network_type": "one_hop_axis2",
+      "ii": 1
+    },
+    {
+      "name": "one_hop_ceil_sqrt_nodes_perimeter",
+      "template": "/home/ubuntu/elastic_cgra_mapper/research/configs/arch_templates/mesh_10x10_default.json",
+      "auto_grid": {
+        "policy": "ceil_sqrt_nodes"
+      },
+      "memory_io": "perimeter",
+      "network_type": "one_hop_axis2",
+      "ii": 1
+    }
+  ],
+  "mappers": [
+    {
+      "name": "faithful_array_yoto_1000",
+      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/placement2d/reproduction/placement2d_faithful_array_yoto_1000_trials_mapper.json"
+    },
+    {
+      "name": "faithful_array_yott_1000",
+      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/placement2d/reproduction/placement2d_faithful_array_yott_1000_trials_mapper.json"
+    }
+  ],
+  "timeout_sec": 180,
+  "parallel_num": 1,
+  "mii_missing_distance_policy": "self_loop"
+}

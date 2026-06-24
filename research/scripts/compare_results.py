@@ -104,9 +104,9 @@ def main() -> None:
 
     lines = [f"# Comparison by `{args.group_by}`", ""]
     lines.append(
-        "| group | cases | solved | attempts | achieved II mean | mapping time mean | wall time mean | optimal distance mean | mesh optimal mean | placement cost mean | mesh hop mean | FIFO mean | max FIFO | mapped LP | routed FIFO | routed max FIFO | routed LP | compute PE util mean | context util mean | route/compute mean | avg hop mean | bbox util mean |"
+        "| group | cases | solved | attempts | achieved II mean | mapping_time_sec mean | wall_time_sec mean | optimal distance mean | mesh optimal mean | placement cost mean | mesh hop mean | crit hop | paper FIFO mean | paper max FIFO | mesh FIFO mean | mesh p95 FIFO | mesh max FIFO | mapped LP | cut max | route demand max | routed FIFO | routed max FIFO | routed LP | compute PE util mean | context util mean | route/compute mean | avg hop mean | bbox util mean |"
     )
-    lines.append("| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |")
+    lines.append("| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |")
     for group, rows in sorted(groups.items()):
         cases, best_rows, case_mapping_times, case_wall_times = summarize_cases(rows)
         lines.append(
@@ -118,9 +118,15 @@ def main() -> None:
             f"{mean(best_rows, 'placement_mesh_optimal_edge_ratio'):.3f} | "
             f"{mean_prefer(best_rows, 'placement_avg_cost', 'placement_avg_wirelength'):.3f} | "
             f"{mean(best_rows, 'placement_avg_mesh_hop'):.3f} | "
-            f"{mean_prefer(best_rows, 'placement_avg_fifo', 'placement_avg_fifo_like'):.3f} | "
-            f"{mean_prefer(best_rows, 'placement_max_fifo', 'placement_max_mesh_fifo'):.3f} | "
+            f"{mean(best_rows, 'placement_criticality_weighted_mesh_hop'):.3f} | "
+            f"{mean_prefer(best_rows, 'placement_avg_paper_fifo', 'placement_avg_fifo_like'):.3f} | "
+            f"{mean_prefer(best_rows, 'placement_max_paper_fifo', 'placement_max_fifo_like'):.3f} | "
+            f"{mean_prefer(best_rows, 'placement_avg_mesh_fifo', 'placement_avg_fifo'):.3f} | "
+            f"{mean(best_rows, 'placement_p95_fifo'):.3f} | "
+            f"{mean_prefer(best_rows, 'placement_max_mesh_fifo', 'placement_max_fifo'):.3f} | "
             f"{mean(best_rows, 'placement_mapped_lp_mesh_hop'):.3f} | "
+            f"{mean(best_rows, 'placement_max_cut_congestion'):.3f} | "
+            f"{mean(best_rows, 'placement_estimated_max_link_demand'):.3f} | "
             f"{mean(best_rows, 'routed_avg_fifo'):.3f} | "
             f"{mean(best_rows, 'routed_max_fifo'):.3f} | "
             f"{mean(best_rows, 'routed_mapped_lp'):.3f} | "
