@@ -1,9 +1,9 @@
 {
-  "name": "placement2d_traversal_yott_reproduction",
+  "name": "placement2d_traversal_yott_paper_comparison",
   "problem_type": "placement2d",
   "evaluation_mode": "placement_only",
   "mode": "placement2d_fixed_ii",
-  "result_group": "placement2d/reproduction/traversal_yott",
+  "result_group": "placement2d/paper_comparison/traversal_yott",
   "mapping_bin": "/home/ubuntu/elastic_cgra_mapper/build/mapping",
   "benchmark_sets": [
     {
@@ -83,11 +83,11 @@
   "mappers": [
     {
       "name": "faithful_array_yoto_100",
-      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/placement2d/reproduction/placement2d_faithful_array_yoto_100_trials_mapper.json"
+      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/placement2d/paper_comparison/placement2d_faithful_array_yoto_100_trials_mapper.json"
     },
     {
       "name": "faithful_array_yoto_1000",
-      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/placement2d/reproduction/placement2d_faithful_array_yoto_1000_trials_mapper.json"
+      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/placement2d/paper_comparison/placement2d_faithful_array_yoto_1000_trials_mapper.json"
     },
     {
       "name": "cpu_mapping_yoto_1000",
@@ -117,15 +117,15 @@
     },
     {
       "name": "faithful_array_yott_100",
-      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/placement2d/reproduction/placement2d_faithful_array_yott_100_trials_mapper.json"
+      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/placement2d/paper_comparison/placement2d_faithful_array_yott_100_trials_mapper.json"
     },
     {
       "name": "faithful_array_yott_10",
-      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/placement2d/reproduction/placement2d_faithful_array_yott_10_trials_mapper.json"
+      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/placement2d/paper_comparison/placement2d_faithful_array_yott_10_trials_mapper.json"
     },
     {
       "name": "faithful_array_yott_1000",
-      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/placement2d/reproduction/placement2d_faithful_array_yott_1000_trials_mapper.json"
+      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/placement2d/paper_comparison/placement2d_faithful_array_yott_1000_trials_mapper.json"
     },
     {
       "name": "cpu_mapping_yott_1000",

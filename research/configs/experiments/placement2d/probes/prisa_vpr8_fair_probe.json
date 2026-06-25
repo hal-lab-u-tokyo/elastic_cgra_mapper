@@ -38,19 +38,19 @@
   "mappers": [
     {
       "name": "yoto_1",
-      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/placement2d/reproduction/placement2d_yoto_1_trial_mapper.json"
+      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/placement2d/paper_comparison/placement2d_yoto_1_trial_mapper.json"
     },
     {
       "name": "yott_1",
-      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/placement2d/reproduction/placement2d_yott_1_trial_mapper.json"
+      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/placement2d/paper_comparison/placement2d_yott_1_trial_mapper.json"
     },
     {
-      "name": "yoto_1000_reproduction",
-      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/placement2d/reproduction/placement2d_yoto_1000_trials_reproduction_mapper.json"
+      "name": "yoto_1000_paper_comparison",
+      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/placement2d/paper_comparison/placement2d_yoto_1000_trials_paper_comparison_mapper.json"
     },
     {
-      "name": "yott_1000_reproduction",
-      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/placement2d/reproduction/placement2d_yott_1000_trials_reproduction_mapper.json"
+      "name": "yott_1000_paper_comparison",
+      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/placement2d/paper_comparison/placement2d_yott_1000_trials_paper_comparison_mapper.json"
     },
     {
       "name": "prisa",

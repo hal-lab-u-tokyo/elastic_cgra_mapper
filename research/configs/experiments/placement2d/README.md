@@ -6,11 +6,11 @@ Use these manifests for 2D placement experiments:
 - `all_mappers.json`: `search.json` plus placement-only ILP.
 - `ilp_yoto_yott.json`: focused ILP/YOTO/YOTT comparison on an ILP-tractable subset.
 
-Reproduction manifests:
+Paper-comparison manifests:
 
-- `reproduction/traversal_yott.json`
-- `reproduction/yott_cases2021.json`
-- `reproduction/prisa_vpr8.json`
+- `paper_comparison/traversal_yott.json`
+- `paper_comparison/yott_cases2021.json`
+- `paper_comparison/prisa_vpr8.json`
 
 Grid and I/O settings:
 

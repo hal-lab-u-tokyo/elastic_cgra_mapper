@@ -54,7 +54,7 @@ Placement-only quality metrics:
 - `placement_avg_cost` and `placement_max_cost`: edge placement cost under `placement_cost_model`.
 - `placement_optimal_distance_ratio`: fraction of DFG edges whose mapped endpoints are exactly one physical mesh hop apart. This follows the PRISA paper definition: communication distance equal to 1 HC is optimal, otherwise non-optimal.
 - `placement_optimal_edge_ratio`: legacy placement-cost-model counterpart, counting edges whose `placement_cost <= 1`.
-- `placement_avg_paper_fifo` and `placement_max_paper_fifo`: FIFO proxy computed as `max(0, placement_cost - 1)` under `placement_cost_model`. For the TRAVERSAL/YOTT one-hop fully pipelined CGRA reproduction, this is the Table-1-style FIFO metric because `placement_cost_model = one_hop_axis2`.
+- `placement_avg_paper_fifo` and `placement_max_paper_fifo`: FIFO proxy computed as `max(0, placement_cost - 1)` under `placement_cost_model`. For the TRAVERSAL/YOTT one-hop fully pipelined CGRA paper comparison, this is the Table-1-style FIFO metric because `placement_cost_model = one_hop_axis2`.
 - `placement_avg_fifo_like` and `placement_max_fifo_like`: legacy aliases for `placement_avg_paper_fifo` and `placement_max_paper_fifo`.
 - `placement_avg_mesh_hop` and `placement_max_mesh_hop`: Manhattan hop count on the physical 2D mesh, independent of `placement_cost_model`.
 - `placement_mesh_optimal_edge_ratio`: fraction of DFG edges whose endpoints are on the same PE or adjacent mesh PEs under the physical mesh model.
@@ -98,7 +98,7 @@ Routing correctness report:
 - This is different from routing pressure metrics: `route_ops`, `route_to_compute_ratio`, and distance metrics describe routing cost, while `routing_validation.md` checks whether the emitted routes are structurally valid.
 - For ILP-backed comparisons, prefer route-correct successful rows. `FullRoutingILPMapper` enforces DFG-edge-level routing flow internally, while placement-focused or heuristic mappers should still be checked with `routing_validation.md` because a fast placement can otherwise look successful without a valid route for every DFG edge.
 
-Suite-level reproducibility files:
+Suite-level run-tracking files:
 
 - `manifest.json`: manifest snapshot and active filters.
 - `summary.json`: per benchmark/architecture/mapper summaries and tried II list.

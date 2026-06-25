@@ -67,7 +67,6 @@ python3 research/scripts/run_suite.py \
 - Preflight: `research/scripts/preflight_manifest.py`
 - Reports: `research/scripts/generate_reports.py`
 
-
 ## Add a Mapper
 
 Add C++ code under the matching problem directory:
@@ -100,7 +99,7 @@ Normalize CGRA-Bench, GenMap, Revamp, or nonstandard DOT files with `research/sc
 | `entity/`, `io/`, `util/` | core data structures, JSON/DOT I/O, helper code |
 | `research/configs/` | experiment manifests, mapper presets, architecture templates |
 | `research/scripts/` | runners, preflight checks, normalization, reports, validation |
-| `research/docs/` | metric definitions, reproduction notes, extension guides |
+| `research/docs/` | metric definitions, paper comparison notes, extension guides |
 | `benchmark/` | native and imported benchmark sets |
 | `python_tools/visualizer/` | DFG and mapping visualizers |
 | `environment/` | Docker image and Compose service |
@@ -111,7 +110,7 @@ Normalize CGRA-Bench, GenMap, Revamp, or nonstandard DOT files with `research/sc
 - `research/README.md`: research runner and outputs.
 - `research/docs/metrics.md`: metric definitions.
 - `research/docs/mii_definition.md`: MII, ResMII, and RecMII.
-- `research/docs/traversal_yott_reproduction.md`: TRAVERSAL/YOTT reproduction notes.
-- `research/docs/prisa_reproduction.md`: PRISA reproduction notes.
+- `research/docs/traversal_yott_paper_comparison.md`: TRAVERSAL/YOTT paper comparison notes.
+- `research/docs/prisa_paper_comparison.md`: PRISA paper comparison notes.
 - `research/docs/vpr_modulo_routing.md`: VPR placement/routing integration.
 - `research/docs/placement_research_plan.md`: placement-to-routing research direction.

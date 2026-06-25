@@ -3,7 +3,7 @@
   "problem_type": "placement2d",
   "evaluation_mode": "placement_only",
   "mode": "placement2d_fixed_ii",
-  "result_group": "placement2d/reproduction/yott_cases2021",
+  "result_group": "placement2d/paper_comparison/yott_cases2021",
   "mapping_bin": "/home/ubuntu/elastic_cgra_mapper/build/mapping",
   "benchmark_sets": [
     {
@@ -52,19 +52,19 @@
   "mappers": [
     {
       "name": "faithful_array_yoto_100",
-      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/placement2d/reproduction/placement2d_faithful_array_yoto_100_trials_mapper.json"
+      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/placement2d/paper_comparison/placement2d_faithful_array_yoto_100_trials_mapper.json"
     },
     {
       "name": "faithful_array_yoto_1000",
-      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/placement2d/reproduction/placement2d_faithful_array_yoto_1000_trials_mapper.json"
+      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/placement2d/paper_comparison/placement2d_faithful_array_yoto_1000_trials_mapper.json"
     },
     {
       "name": "faithful_array_yott_100",
-      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/placement2d/reproduction/placement2d_faithful_array_yott_100_trials_mapper.json"
+      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/placement2d/paper_comparison/placement2d_faithful_array_yott_100_trials_mapper.json"
     },
     {
       "name": "faithful_array_yott_1000",
-      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/placement2d/reproduction/placement2d_faithful_array_yott_1000_trials_mapper.json"
+      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/placement2d/paper_comparison/placement2d_faithful_array_yott_1000_trials_mapper.json"
     },
     {
       "name": "cpu_mapping_yoto_100",

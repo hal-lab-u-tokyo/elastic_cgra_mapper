@@ -40,7 +40,7 @@ TRAVERSAL uses two target-CGRA settings.
 | Modulo-scheduled ADRES | 4x4 ADRES, II = 2 | 1-hop interconnection, one memory operation per row, border-located I/O nodes | Compare with CGRA-ME ILP/SA and prior ILP work on small CGRA-ME benchmarks. | Sec. V-A, Table I, Sec. V-E. |
 | Fully pipelined CGRA | Minimum square grid, `ceil(sqrt(N)) x ceil(sqrt(N))`, one DFG node per PE | Mesh or 1-hop interconnect, homogeneous PEs, elastic input FIFO size | Compare traversal strategies, branch-and-bound, GPU traversal, VPR SA, and depth-first heuristic. | Sec. V-A, Table II, Table III, Sec. V-F. |
 
-The paper's fully pipelined setting differs from this repository's `cpu_mapping_yoto_yott` grid policy. The paper states `ceil(sqrt(N)) x ceil(sqrt(N))`. The public `cpu_mapping` style used by this repository for TRAVERSAL/YOTT reproduction uses `ceil(sqrt(nodes - inputs - outputs)) + 2` with perimeter I/O slots. That is closer to the public code convention and the YOTT border-I/O model, but it is not identical to the simple minimum-square sentence in TRAVERSAL Sec. V-A.
+The paper's fully pipelined setting differs from this repository's `cpu_mapping_yoto_yott` grid policy. The paper states `ceil(sqrt(N)) x ceil(sqrt(N))`. The public `cpu_mapping` style used by this repository for TRAVERSAL/YOTT paper comparison uses `ceil(sqrt(nodes - inputs - outputs)) + 2` with perimeter I/O slots. That is closer to the public code convention and the YOTT border-I/O model, but it is not identical to the simple minimum-square sentence in TRAVERSAL Sec. V-A.
 
 ### Benchmarks
 
@@ -308,10 +308,10 @@ Key reported trend:
 
 | paper-style experiment | manifest | main mapper configs | notes |
 | --- | --- | --- | --- |
-| TRAVERSAL/YOTT placement-quality reproduction | `research/configs/experiments/placement2d/reproduction/traversal_yott.json` | YOTO/YOTT 1, 10, 100, 1000; array YOTO/YOTT; VPR SA; placement-only ILP | Uses `placement_only`, II = 1, perimeter I/O, mesh and one-hop cost models. This is for placement quality and runtime trends, not routed correctness. |
-| PRISA VPR-8 reproduction | `research/configs/experiments/placement2d/reproduction/prisa_vpr8.json` | VPR SA/fast, `cpu_mapping_yoto_1000`, `cpu_mapping_yott_1000`, PRISA no-SIS, PRISA SIS | Uses `placement_only`, II = 1, minimum square grid, all-PE I/O. The benchmark set has known granularity caveats. |
+| TRAVERSAL/YOTT placement-quality comparison | `research/configs/experiments/placement2d/paper_comparison/traversal_yott.json` | YOTO/YOTT 1, 10, 100, 1000; array YOTO/YOTT; VPR SA; placement-only ILP | Uses `placement_only`, II = 1, perimeter I/O, mesh and one-hop cost models. This is for placement quality and runtime trends, not routed correctness. |
+| PRISA VPR-8 paper comparison | `research/configs/experiments/placement2d/paper_comparison/prisa_vpr8.json` | VPR SA/fast, `cpu_mapping_yoto_1000`, `cpu_mapping_yott_1000`, PRISA no-SIS, PRISA SIS | Uses `placement_only`, II = 1, minimum square grid, all-PE I/O. The benchmark set has known granularity caveats. |
 | 2D placement search | `research/configs/experiments/placement2d/search.json` | CPU-mapping YOTO/YOTT 1000, PRISA, VPR SA/fast | Practical design-search subset. It mixes TRAVERSAL/YOTT-style and PRISA-style baselines under one placement-only setting. |
-| Modulo mapping search | `research/configs/experiments/modulo/search.json` | modulo YOTO/YOTT/SA adaptations, PRISA physical-placement adaptation, placement-first heuristic, VPR-routed baseline | These are not literal paper reproductions of YOTT or PRISA. They are modulo adaptations: place operations, assign contexts when needed, then route through this repository's CGRA BFS/maze-style router or VPR-based routing baseline. |
+| Modulo mapping search | `research/configs/experiments/modulo/search.json` | modulo YOTO/YOTT/SA adaptations, PRISA physical-placement adaptation, placement-first heuristic, VPR-routed baseline | These are not literal paper paper comparisons of YOTT or PRISA. They are modulo adaptations: place operations, assign contexts when needed, then route through this repository's CGRA BFS/maze-style router or VPR-based routing baseline. |
 
 Important interpretation rule:
 

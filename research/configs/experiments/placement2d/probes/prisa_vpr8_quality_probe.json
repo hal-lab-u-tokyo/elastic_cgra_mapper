@@ -46,7 +46,7 @@
     },
     {
       "name": "prisa",
-      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/placement2d/reproduction/placement2d_array_prisa_mapper.json"
+      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/placement2d/paper_comparison/placement2d_array_prisa_mapper.json"
     },
     {
       "name": "array_cost_aware_prisa",

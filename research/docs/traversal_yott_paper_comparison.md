@@ -1,6 +1,6 @@
-# TRAVERSAL/YOTT Reproduction
+# TRAVERSAL/YOTT Paper Comparison
 
-The placement-only reproduction entry point is `research/configs/experiments/placement2d/reproduction/traversal_yott.json`.
+The placement-only paper comparison entry point is `research/configs/experiments/placement2d/paper_comparison/traversal_yott.json`.
 
 This manifest matches the public `cpu_mapping` setup used for the TRAVERSAL/YOTT-style benchmarks as closely as this mapper framework allows:
 
@@ -22,7 +22,7 @@ Fidelity notes:
 - TRAVERSAL/YOTO is a one-traversal placement-and-routing approach. The public YOTO path builds a traversal edge sequence, places nodes greedily near already placed neighbors, runs the local routing routine, and then selects the best successful trial.
 - YOTT is a two-traversal placement approach. The paper's key additions over YOTO are I/O annotation, reconvergent annotation, degree matching, and look-ahead placement. The paper then treats routing as a small downstream step because most edges are expected to be adjacent; it describes maze routing for the remaining non-adjacent edges.
 - The public YOTT source computes the annotated placement sequence, but its direct call to the YOTO/YOTT routing routine is commented out in the checked version. For paper-style comparison, use `evaluation_mode: "placement_only"` and the placement metrics below.
-- `Placement2DYOTOMapper` and `Placement2DYOTTMapper` are the closest in-repository reproductions of the paper algorithms: they use the YOTO/YOTT traversal sequence, perimeter I/O legality when the architecture distinguishes I/O cells, Brandes betweenness centrality for YOTT's centrality traversal mode, reconvergent/I/O annotations, degree matching, and look-ahead scoring.
+- `Placement2DYOTOMapper` and `Placement2DYOTTMapper` are the closest in-repository implementations of the paper algorithms: they use the YOTO/YOTT traversal sequence, perimeter I/O legality when the architecture distinguishes I/O cells, Brandes betweenness centrality for YOTT's centrality traversal mode, reconvergent/I/O annotations, degree matching, and look-ahead scoring.
 - `Placement2DFaithfulArrayYOTOMapper` and `Placement2DFaithfulArrayYOTTMapper` are array ports of the paper-faithful shared-engine mappers. Use them when checking whether the YOTO/YOTT quality trends can be preserved while reducing placement-kernel overhead.
 - `Placement2DCPUMappingYOTOMapper` and `Placement2DCPUMappingYOTTMapper` are direct-grid ports of the public `cpu_mapping` placement kernels. They preserve the repository's output format and placement metrics while matching the public local-neighborhood placement behavior: type matrix, fixed adjacency offsets, grid-freedom update, YOTO's one-traversal local placement, and YOTT's tips/intersection/annotated-node candidate selection. They include safety checks for malformed inputs and use this repository's RNG, so they are not intended to be bit-identical to the original executable.
 
@@ -60,7 +60,7 @@ Typical command:
 docker compose -f environment/docker-compose.yaml exec gurobi bash -lc '
 cd /home/ubuntu/elastic_cgra_mapper &&
 python3 research/scripts/run_suite.py \
-  --manifest research/configs/experiments/placement2d/reproduction/traversal_yott.json
+  --manifest research/configs/experiments/placement2d/paper_comparison/traversal_yott.json
 '
 ```
 
@@ -70,9 +70,9 @@ For a short check:
 docker compose -f environment/docker-compose.yaml exec gurobi bash -lc '
 cd /home/ubuntu/elastic_cgra_mapper &&
 python3 research/scripts/run_suite.py \
-  --manifest research/configs/experiments/placement2d/reproduction/traversal_yott.json \
+  --manifest research/configs/experiments/placement2d/paper_comparison/traversal_yott.json \
   --only-benchmark atax \
   --only-mapper yoto_1,yott_1,vpr_sa \
-  --tag repro_smoke
+  --tag paper_smoke
 '
 ```

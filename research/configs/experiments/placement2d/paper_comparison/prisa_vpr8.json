@@ -3,7 +3,7 @@
   "problem_type": "placement2d",
   "evaluation_mode": "placement_only",
   "mode": "placement2d_fixed_ii",
-  "result_group": "placement2d/reproduction/prisa_vpr8",
+  "result_group": "placement2d/paper_comparison/prisa_vpr8",
   "mapping_bin": "/home/ubuntu/elastic_cgra_mapper/build/mapping",
   "benchmark_sets": [
     {
@@ -94,11 +94,11 @@
     },
     {
       "name": "prisa_no_sis",
-      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/placement2d/reproduction/placement2d_array_prisa_no_sis_mapper.json"
+      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/placement2d/paper_comparison/placement2d_array_prisa_no_sis_mapper.json"
     },
     {
       "name": "prisa",
-      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/placement2d/reproduction/placement2d_array_prisa_mapper.json"
+      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/placement2d/paper_comparison/placement2d_array_prisa_mapper.json"
     }
   ],
   "timeout_sec": 300,

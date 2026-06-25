@@ -16,7 +16,7 @@ from pathlib import Path
 
 
 DEFAULT_RUN_DIR = (
-    "research/results/placement2d/reproduction/traversal_yott/"
+    "research/results/placement2d/paper_comparison/traversal_yott/"
     "20260622-034821_cpu_mapping_order_degree_compare"
 )
 DEFAULT_ARCH = "one_hop_perimeter_no_corners_io"
@@ -370,14 +370,14 @@ def make_missing_section() -> list[str]:
     return [
         "## Remaining Gaps",
         "",
-        "| paper artifact | current status | required for exact reproduction |",
+        "| paper artifact | current status | required for exact paper match |",
         "| --- | --- | --- |",
         "| YOTT Table 2 | paper values stored; local category metrics not exported | edge category export for `first`, `reconvergent`, and `io` |",
         "| YOTT Table 3 | original 23 DOTs are normalized and node/edge counts match; paper IN/OUT ports are not equivalent to mapper `load/output` counts | edge-category export and an explicit paper-port model if IN/OUT must be compared |",
         "| YOTT Fig. 20(b) | local runtime exists; node/cell visits not exported | export node/cell visit or swaps-per-node counters |",
         "| YOTT Fig. 23 | no clean RA-off paired config in current run | mapper/config switch that disables reconvergent annotation only |",
         "| YOTT Table 4 | paper values stored; local multi-kernel DOTs not present | generator for cplx8/fir16 combined kernels |",
-        "| TRAVERSAL Table I | not covered by placement2d run | modulo ADRES 4x4 II=2 reproduction manifest |",
+        "| TRAVERSAL Table I | not covered by placement2d run | modulo ADRES 4x4 II=2 paper-comparison manifest |",
         "| TRAVERSAL Fig. 14/15/16 | plot-only; no digitization | local counterpart plots with closest strategy set |",
         "",
     ]

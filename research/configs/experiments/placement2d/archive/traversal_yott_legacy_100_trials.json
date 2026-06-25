@@ -47,11 +47,11 @@
   "mappers": [
     {
       "name": "placement2d_yoto_mapper",
-      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/placement2d/reproduction/placement2d_yoto_mapper.json"
+      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/placement2d/paper_comparison/placement2d_yoto_mapper.json"
     },
     {
       "name": "placement2d_yott_mapper",
-      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/placement2d/reproduction/placement2d_yott_mapper.json"
+      "mapper_config": "/home/ubuntu/elastic_cgra_mapper/research/configs/mapper/placement2d/paper_comparison/placement2d_yott_mapper.json"
     }
   ],
   "timeout_sec": 20,

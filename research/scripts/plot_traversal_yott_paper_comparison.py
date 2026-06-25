@@ -51,7 +51,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--metrics-csv",
         default=(
-            "research/results/placement2d/reproduction/traversal_yott/"
+            "research/results/placement2d/paper_comparison/traversal_yott/"
             "20260622-034821_cpu_mapping_order_degree_compare/metrics.csv"
         ),
         help="metrics.csv produced by run_suite.py",
@@ -59,7 +59,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--output-dir",
         default=(
-            "research/results/placement2d/reproduction/traversal_yott/"
+            "research/results/placement2d/paper_comparison/traversal_yott/"
             "20260622-034821_cpu_mapping_order_degree_compare/figures"
         ),
         help="directory for the generated figure and plotted-value CSVs",

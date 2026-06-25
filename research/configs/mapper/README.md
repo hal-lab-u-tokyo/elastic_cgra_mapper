@@ -33,16 +33,16 @@ Use this with `placement2d/all_mappers.json` or small focused runs:
 
 - `placement2d/placement2d_ilp_mapper.json`
 
-## Reproduction
+## Paper Comparison
 
-Use these with `placement2d/reproduction/*` manifests:
+Use these with `placement2d/paper_comparison/*` manifests:
 
-- `placement2d/reproduction/placement2d_yoto_*`
-- `placement2d/reproduction/placement2d_yott_*`
-- `placement2d/reproduction/placement2d_faithful_array_yoto_*`
-- `placement2d/reproduction/placement2d_faithful_array_yott_*`
-- `placement2d/reproduction/placement2d_array_prisa_mapper.json`
-- `placement2d/reproduction/placement2d_array_prisa_no_sis_mapper.json`
+- `placement2d/paper_comparison/placement2d_yoto_*`
+- `placement2d/paper_comparison/placement2d_yott_*`
+- `placement2d/paper_comparison/placement2d_faithful_array_yoto_*`
+- `placement2d/paper_comparison/placement2d_faithful_array_yott_*`
+- `placement2d/paper_comparison/placement2d_array_prisa_mapper.json`
+- `placement2d/paper_comparison/placement2d_array_prisa_no_sis_mapper.json`
 
 The `placement2d_cpu_mapping_*` configs port the released `cpu_mapping` YOTO/YOTT placement kernels. The YOTT configs default to compatibility mode for the released `__NEIGHBOURHOOD >= 4` degree-selection behavior. Set `Algorithm.cpu_mapping_bug_compatible_degree` to `false` for the corrected degree comparison.
 

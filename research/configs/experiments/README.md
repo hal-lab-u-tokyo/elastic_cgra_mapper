@@ -11,13 +11,13 @@ Experiment manifests define benchmark sets, architecture settings, mapper entrie
 | 2D placement search | `placement2d/search.json` |
 | 2D placement comparison with ILP | `placement2d/all_mappers.json` |
 
-Use `placement2d/reproduction/` for prior-work reproduction:
+Use `placement2d/paper_comparison/` for prior-work paper comparison:
 
 | setting | manifest |
 | --- | --- |
-| TRAVERSAL/YOTT reproduction | `placement2d/reproduction/traversal_yott.json` |
-| YOTT 2021 benchmark reproduction | `placement2d/reproduction/yott_cases2021.json` |
-| PRISA reproduction | `placement2d/reproduction/prisa_vpr8.json` |
+| TRAVERSAL/YOTT paper comparison | `placement2d/paper_comparison/traversal_yott.json` |
+| YOTT 2021 paper benchmark comparison | `placement2d/paper_comparison/yott_cases2021.json` |
+| PRISA paper comparison | `placement2d/paper_comparison/prisa_vpr8.json` |
 
 Use `placement2d/probes/` for diagnostics and ablations. Use `placement2d/archive/` only to inspect older manifests.
 

@@ -20,11 +20,11 @@ import matplotlib.pyplot as plt
 
 
 DEFAULT_METRICS = (
-    "research/results/placement2d/reproduction/traversal_yott/"
+    "research/results/placement2d/paper_comparison/traversal_yott/"
     "20260622-034821_cpu_mapping_order_degree_compare/metrics.csv"
 )
 DEFAULT_OUTPUT_DIR = (
-    "research/results/placement2d/reproduction/traversal_yott/"
+    "research/results/placement2d/paper_comparison/traversal_yott/"
     "20260622-034821_cpu_mapping_order_degree_compare/figures"
 )
 

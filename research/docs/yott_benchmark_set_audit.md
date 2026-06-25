@@ -1,21 +1,21 @@
 # YOTT Benchmark-Set Audit
 
-The local YOTO/YOTT reproduction benchmark sets and the 23-benchmark YOTT Table 3 set use different DFG sources.
+The local YOTO/YOTT paper comparison benchmark sets and the 23-benchmark YOTT Table 3 set use different DFG sources.
 
 ## Short Answer
 
-The current `placement2d/reproduction/traversal_yott.json` run does **not** use the exact 23 benchmarks from YOTT Table 3. It uses 19 DOTs imported from the local `cpu_mapping` checkout:
+The current `placement2d/paper_comparison/traversal_yott.json` run does **not** use the exact 23 benchmarks from YOTT Table 3. It uses 19 DOTs imported from the local `cpu_mapping` checkout:
 
 - 11 `lisa/dac` kernels: `atax`, `bicg`, `cholesky`, `doitgen`, `gemm`, `gemver`, `gesummv`, `mvt`, `symm`, `syrk`, `trmm`
 - 8 `m_bench/dac` kernels: `arf`, `collapse_pyr`, `conv3`, `ewf`, `h2v2_smooth`, `mac`, `mults1`, `simple`
 
-YOTT Table 3 uses a different 23-benchmark set. Only `mac` and `simple` match the paper's node/edge counts in the current reproduction run. Several same-name `m_bench/dac` files are different variants from the YOTT Table 3 versions.
+YOTT Table 3 uses a different 23-benchmark set. Only `mac` and `simple` match the paper's node/edge counts in the current paper-comparison run. Several same-name `m_bench/dac` files are different variants from the YOTT Table 3 versions.
 
 The cleanest way to align the benchmarks is to import the exact DOTs from the YOTT paper's benchmark repository:
 
 - `https://github.com/lesc-ufv/benchmarks-cases-2021`
 
-The YOTT paper cites this as reference `[25]`, "Dataflow graph benchmarks". The paper also says the benchmark sources are representative dataflow benchmarks from UCSB and CGRA-ME, but the GitHub repository is the paper-specific bundle and should be treated as the primary reproduction source.
+The YOTT paper cites this as reference `[25]`, "Dataflow graph benchmarks". The paper also says the benchmark sources are representative dataflow benchmarks from UCSB and CGRA-ME, but the GitHub repository is the paper-specific bundle and should be treated as the primary paper-alignment source.
 
 ## What The Paper Reports
 
@@ -43,13 +43,13 @@ The numeric Table 3 values are stored locally in:
 | category | count | details |
 | --- | ---: | --- |
 | Paper YOTT Table 3 benchmarks | 23 | `mac` through `invert_matrix` |
-| Current reproduction benchmarks | 19 | 11 `lisa` + 8 `m_bench/dac` |
-| Current reproduction benchmarks with same name and matching paper node/edge counts | 2 | `mac`, `simple` |
-| Current reproduction benchmarks with same/similar name but different node/edge counts | 6 | `mults1`, `arf`, `conv3`, `h2v2_smooth`, `ewf`, `collapse_pyr` |
-| Current reproduction benchmarks not in YOTT Table 3 | 11 | all current `lisa/dac` benchmarks |
-| YOTT Table 3 benchmarks missing from current reproduction run | 15 | listed below |
+| Current paper comparison benchmarks | 19 | 11 `lisa` + 8 `m_bench/dac` |
+| Current paper comparison benchmarks with same name and matching paper node/edge counts | 2 | `mac`, `simple` |
+| Current paper comparison benchmarks with same/similar name but different node/edge counts | 6 | `mults1`, `arf`, `conv3`, `h2v2_smooth`, `ewf`, `collapse_pyr` |
+| Current paper comparison benchmarks not in YOTT Table 3 | 11 | all current `lisa/dac` benchmarks |
+| YOTT Table 3 benchmarks missing from current paper-comparison run | 15 | listed below |
 
-Missing from the current reproduction run:
+Missing from the current paper-comparison run:
 
 - `horner_bs`
 - `motion_vec`
@@ -97,7 +97,7 @@ Missing from the current reproduction run:
 
 ## Why Some Same-Name Benchmarks Differ
 
-The current reproduction imported the `dac` subset from the adjacent `cpu_mapping` checkout. That subset is internally consistent with the author-code clone and passes the local compatibility check:
+The current paper-comparison imported the `dac` subset from the adjacent `cpu_mapping` checkout. That subset is internally consistent with the author-code clone and passes the local compatibility check:
 
 - `benchmark/literature/traversal_yott/dot_compatibility_report.md`
 
@@ -141,19 +141,19 @@ After normalization, verify against `research/data/papers/yott_table3_benchmarks
 - output count
 - benchmark order
 
-After this check passes, use the dedicated reproduction manifest.
+After this check passes, use the dedicated paper-comparison manifest.
 
-## Reproduction Manifest
+## Paper-Comparison Manifest
 
 The aligned manifest is:
 
-- `research/configs/experiments/placement2d/reproduction/yott_cases2021.json`
+- `research/configs/experiments/placement2d/paper_comparison/yott_cases2021.json`
 
 It uses:
 
 - `benchmark_root`: `benchmark/literature/yott_cases2021_normalized`
 - benchmark order exactly as Table 3
-- YOTT reproduction architecture settings:
+- YOTT paper-comparison architecture settings:
   - one-hop, fully pipelined placement-quality setting
   - perimeter I/O policy selected explicitly
   - `ii = 1`

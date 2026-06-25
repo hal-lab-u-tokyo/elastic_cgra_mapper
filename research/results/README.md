@@ -14,9 +14,9 @@ Common groups:
 - `modulo/all_mappers/`
 - `placement2d/search/`
 - `placement2d/all_mappers/`
-- `placement2d/reproduction/traversal_yott/`
-- `placement2d/reproduction/yott_cases2021/`
-- `placement2d/reproduction/prisa_vpr8/`
+- `placement2d/paper_comparison/traversal_yott/`
+- `placement2d/paper_comparison/yott_cases2021/`
+- `placement2d/paper_comparison/prisa_vpr8/`
 - `preflight/`
 - `benchmark_compatibility/`
 
