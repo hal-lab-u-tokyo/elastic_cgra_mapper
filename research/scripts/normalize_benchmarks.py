@@ -481,13 +481,21 @@ def assign_operands(edges: List[Edge]) -> List[Edge]:
     return result
 
 
-def write_dot(graph: GraphData, path: Path) -> dict:
+def graph_items(graph: GraphData, preserve_source_order: bool) -> List[Tuple[str, Node]]:
+    items = list(graph.nodes.items())
+    if preserve_source_order:
+        return sorted(items, key=lambda item: item[1].order)
+    return sorted(items)
+
+
+def write_dot(graph: GraphData, path: Path, preserve_source_order: bool = False) -> dict:
     path.parent.mkdir(parents=True, exist_ok=True)
     source_to_output = {}
     used_names = set()
     op_counts = defaultdict(int)
 
-    for idx, (source_id, node) in enumerate(sorted(graph.nodes.items())):
+    items = graph_items(graph, preserve_source_order)
+    for idx, (source_id, node) in enumerate(items):
         base = sanitize_id(f"{node.op}_{source_id}", f"n{idx}")
         name = base
         suffix = 1
@@ -499,7 +507,7 @@ def write_dot(graph: GraphData, path: Path) -> dict:
         op_counts[node.op] += 1
 
     lines = ["digraph G {"]
-    for source_id, node in sorted(graph.nodes.items(), key=lambda item: source_to_output[item[0]]):
+    for source_id, node in items:
         out_name = source_to_output[source_id]
         attrs = [f'opcode="{node.op}"']
         if node.const_value is not None:
@@ -528,7 +536,7 @@ def normalized_relative_path(source: Path, benchmark_root: Path) -> Path:
     return rel.with_suffix(".dot")
 
 
-def normalize_file(source: Path, benchmark_root: Path, out_dir: Path) -> dict:
+def normalize_file(source: Path, benchmark_root: Path, out_dir: Path, preserve_source_order: bool = False) -> dict:
     if source.suffix == ".xml":
         graph = parse_revamp_xml(source)
     elif source.suffix == ".dot":
@@ -538,7 +546,11 @@ def normalize_file(source: Path, benchmark_root: Path, out_dir: Path) -> dict:
 
     rel = normalized_relative_path(source, benchmark_root)
     output = out_dir / rel
-    stats = write_dot(graph, output) if not graph.unsupported_ops and graph.nodes else {}
+    stats = (
+        write_dot(graph, output, preserve_source_order=preserve_source_order)
+        if not graph.unsupported_ops and graph.nodes
+        else {}
+    )
     return {
         "source": str(source.relative_to(benchmark_root)),
         "output": str(output.relative_to(out_dir)) if output.exists() else "",
@@ -642,13 +654,26 @@ def main() -> None:
     parser.add_argument("--manifest-out", type=Path)
     parser.add_argument("--report-out", type=Path)
     parser.add_argument("--repo-root-for-manifest", type=Path, default=CONTAINER_REPO_ROOT)
+    parser.add_argument(
+        "--preserve-source-order",
+        action="store_true",
+        help="emit nodes in parsed source order instead of deterministic name order",
+    )
     args = parser.parse_args()
 
     benchmark_root = args.benchmark_root.resolve()
     local_repo_root = benchmark_root.parent if benchmark_root.name == "benchmark" else Path.cwd().resolve()
     out_dir = args.out_dir.resolve()
     sources = sorted(list(benchmark_root.rglob("*.dot")) + list(benchmark_root.rglob("*.xml")))
-    rows = [normalize_file(source, benchmark_root, out_dir) for source in sources]
+    rows = [
+        normalize_file(
+            source,
+            benchmark_root,
+            out_dir,
+            preserve_source_order=args.preserve_source_order,
+        )
+        for source in sources
+    ]
 
     write_csv(out_dir / "normalization.csv", rows)
     if args.report_out:

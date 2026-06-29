@@ -281,7 +281,12 @@ def build_run_plan(manifest: dict, filters: dict, repo_root: Path) -> list:
     return run_plan
 
 
-def validate_run_plan_for_problem_type(run_plan: list, problem_type: str) -> None:
+def validate_run_plan_for_problem_type(
+    run_plan: list,
+    problem_type: str,
+    *,
+    allow_placement2d_capacity_mismatch: bool = False,
+) -> None:
     if problem_type != "placement2d":
         return
     issues = []
@@ -310,7 +315,7 @@ def validate_run_plan_for_problem_type(run_plan: list, problem_type: str) -> Non
             )
         else:
             capacity = placement2d_capacity_check(item["dfg"], Path(arch["template"]))
-        if not capacity["ok"]:
+        if not capacity["ok"] and not allow_placement2d_capacity_mismatch:
             issues.append(
                 f"{item['benchmark_set']}/{item['benchmark']} | {arch['name']}: "
                 f"{capacity['detail']}"
@@ -589,7 +594,14 @@ def main() -> None:
     mapping_bin = resolve_repo_path(manifest["mapping_bin"], repo_root)
     missing_distance_policy = manifest.get("mii_missing_distance_policy", "self_loop")
     run_plan = build_run_plan(manifest, filters, repo_root)
-    validate_run_plan_for_problem_type(run_plan, problem_type)
+    allow_placement2d_capacity_mismatch = bool(
+        manifest.get("allow_placement2d_capacity_mismatch", False)
+    )
+    validate_run_plan_for_problem_type(
+        run_plan,
+        problem_type,
+        allow_placement2d_capacity_mismatch=allow_placement2d_capacity_mismatch,
+    )
     evaluation_mode = str(manifest.get("evaluation_mode", "routing"))
 
     if not args.quiet:

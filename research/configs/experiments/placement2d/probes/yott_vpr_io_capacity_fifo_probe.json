@@ -1,0 +1,129 @@
+{
+  "name": "yott_vpr_io_capacity_fifo_probe",
+  "problem_type": "placement2d",
+  "evaluation_mode": "placement_only",
+  "mode": "placement2d_fixed_ii",
+  "result_group": "placement2d/probes/yott_vpr_io_capacity_fifo_probe",
+  "mapping_bin": "/home/ubuntu/elastic_cgra_mapper/build/mapping",
+  "benchmark_sets": [
+    {
+      "name": "yott_cases2021",
+      "benchmark_root": "/home/ubuntu/elastic_cgra_mapper/benchmark/literature/yott_cases2021_normalized",
+      "benchmarks": [
+        "mac",
+        "simple",
+        "horner_bs",
+        "mults1",
+        "arf",
+        "conv3",
+        "motion_vec",
+        "fir2",
+        "fir1",
+        "fdback_pts",
+        "k4n4op",
+        "h2v2_smo",
+        "cosine1",
+        "ewf",
+        "Cplx8",
+        "Fir16",
+        "cosine2",
+        "FilterRGB",
+        "collapse_pyr",
+        "interpolate",
+        "w_bmp_head",
+        "matmul",
+        "invert_matrix"
+      ]
+    }
+  ],
+  "architectures": [
+    {
+      "name": "fit_io_no_corners",
+      "template": "/home/ubuntu/elastic_cgra_mapper/research/configs/arch_templates/mesh_10x10_default.json",
+      "auto_grid": {
+        "policy": "cpu_mapping_yoto_yott_fit_structural_io",
+        "margin": 0
+      },
+      "memory_io": "perimeter_no_corners",
+      "network_type": "one_hop_axis2",
+      "ii": 1
+    }
+  ],
+  "mappers": [
+    {
+      "name": "vpr_bb_io1_inner3",
+      "runner": "vpr",
+      "vpr_bin": "${VPR_BIN:-third_party/vtr/build/vpr/vpr}",
+      "arch_xml": "${VPR_ARCH_XML:-third_party/vtr/vtr_flow/arch/timing/k6_N10_40nm.xml}",
+      "pack_capacity": 1,
+      "fixed_layout_to_arch": true,
+      "absorb_buffer_luts": false,
+      "protect_internal_buffer_luts": false,
+      "output_lut_io_pads": true,
+      "vpr_io_capacity": 1,
+      "const_gen_inference": "comb",
+      "place_algorithm": "bounding_box",
+      "vpr_extra_args": ["--inner_num", "3"],
+      "seed": 1,
+      "place_all_ops": true,
+      "allow_missing": false
+    },
+    {
+      "name": "vpr_bb_io1_inner5",
+      "runner": "vpr",
+      "vpr_bin": "${VPR_BIN:-third_party/vtr/build/vpr/vpr}",
+      "arch_xml": "${VPR_ARCH_XML:-third_party/vtr/vtr_flow/arch/timing/k6_N10_40nm.xml}",
+      "pack_capacity": 1,
+      "fixed_layout_to_arch": true,
+      "absorb_buffer_luts": false,
+      "protect_internal_buffer_luts": false,
+      "output_lut_io_pads": true,
+      "vpr_io_capacity": 1,
+      "const_gen_inference": "comb",
+      "place_algorithm": "bounding_box",
+      "vpr_extra_args": ["--inner_num", "5"],
+      "seed": 1,
+      "place_all_ops": true,
+      "allow_missing": false
+    },
+    {
+      "name": "vpr_bb_io1_inner7",
+      "runner": "vpr",
+      "vpr_bin": "${VPR_BIN:-third_party/vtr/build/vpr/vpr}",
+      "arch_xml": "${VPR_ARCH_XML:-third_party/vtr/vtr_flow/arch/timing/k6_N10_40nm.xml}",
+      "pack_capacity": 1,
+      "fixed_layout_to_arch": true,
+      "absorb_buffer_luts": false,
+      "protect_internal_buffer_luts": false,
+      "output_lut_io_pads": true,
+      "vpr_io_capacity": 1,
+      "const_gen_inference": "comb",
+      "place_algorithm": "bounding_box",
+      "vpr_extra_args": ["--inner_num", "7"],
+      "seed": 1,
+      "place_all_ops": true,
+      "allow_missing": false
+    },
+    {
+      "name": "vpr_bb_io1_inner10",
+      "runner": "vpr",
+      "vpr_bin": "${VPR_BIN:-third_party/vtr/build/vpr/vpr}",
+      "arch_xml": "${VPR_ARCH_XML:-third_party/vtr/vtr_flow/arch/timing/k6_N10_40nm.xml}",
+      "pack_capacity": 1,
+      "fixed_layout_to_arch": true,
+      "absorb_buffer_luts": false,
+      "protect_internal_buffer_luts": false,
+      "output_lut_io_pads": true,
+      "vpr_io_capacity": 1,
+      "const_gen_inference": "comb",
+      "place_algorithm": "bounding_box",
+      "vpr_extra_args": ["--inner_num", "10"],
+      "seed": 1,
+      "place_all_ops": true,
+      "allow_missing": false
+    }
+  ],
+  "timeout_sec": 180,
+  "parallel_num": 1,
+  "mii_missing_distance_policy": "self_loop"
+}

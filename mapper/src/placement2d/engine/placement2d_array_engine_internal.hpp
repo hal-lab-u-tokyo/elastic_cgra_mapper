@@ -33,6 +33,12 @@ struct PlacementState {
   std::vector<int> cell_to_dfg;
 };
 
+struct CPUMappingPlacementContext {
+  PlacementState state;
+  std::vector<int> freedom;
+  std::vector<int> mutable_degree;
+};
+
 struct PRISAStats {
   std::vector<int> row_weak;
   std::vector<int> column_weak;
@@ -65,6 +71,9 @@ struct StepAnnotation {
 };
 
 struct Step {
+  // A traversal plan is a list of directed edge-local placement decisions.
+  // `anchor` should be placed first; `target` is placed near it. Annotations
+  // are soft YOTT hints used by candidate ranking, not hard feasibility rules.
   int anchor = -1;
   int target = -1;
   int edge_id = -1;
@@ -130,6 +139,7 @@ class Placement2DArrayEngine {
   int prisa_weak_distance_threshold_ = std::numeric_limits<int>::max();
   bool separate_io_cells_ = false;
   long long cell_visits_ = 0;
+  mutable long long placement_swap_attempts_ = 0;
 
   // options
   std::string MapperName() const;
@@ -151,6 +161,7 @@ class Placement2DArrayEngine {
   bool HasTimedOut(std::chrono::steady_clock::time_point start,
                    double reserve_s = 0.01) const;
   void Log(const std::string& message) const;
+  void RecordPlacementSwapAttempts(long long count = 1) const;
   std::string NodeLabel(int node) const;
   int PlacedCount(const PlacementState& state) const;
   int FreeCPUMappingCompatibleCellCount(int dfg_node,
@@ -261,40 +272,36 @@ class Placement2DArrayEngine {
       int dfg_node, const PlacementState& state) const;
   int ChooseCPUMappingInitialCell(int dfg_node, const PlacementState& state);
   std::vector<std::pair<int, int>> CPUMappingTipCells(
-      int anchor_cell, int dfg_node, const PlacementState& state,
-      const std::vector<int>& freedom) const;
+      int anchor_cell, int dfg_node,
+      const CPUMappingPlacementContext& context) const;
   std::vector<std::pair<int, int>> CPUMappingCellsWithinAnnotatedDistance(
-      int anchor_cell, int distance, const std::vector<int>& freedom) const;
+      int anchor_cell, int distance,
+      const CPUMappingPlacementContext& context) const;
   static void SortCPUMappingCellPairs(std::vector<std::pair<int, int>>& cells);
   static std::vector<std::pair<int, int>> IntersectCPUMappingCellPairs(
       std::vector<std::pair<int, int>> lhs,
       std::vector<std::pair<int, int>> rhs);
   int BestCPUMappingDegreeCell(const std::vector<std::pair<int, int>>& cells,
                                int dfg_node,
-                               const PlacementState& state,
-                               const std::vector<int>& mutable_degree) const;
-  void PlaceCPUMappingNode(int dfg_node, int cell, PlacementState& state,
-                           std::vector<int>& freedom,
-                           std::vector<int>& mutable_degree) const;
-  bool PlaceCPUMappingInitialNode(int dfg_node, PlacementState& state,
-                                  std::vector<int>& freedom,
-                                  std::vector<int>& mutable_degree);
+                               const CPUMappingPlacementContext& context) const;
+  void PlaceCPUMappingNode(int dfg_node, int cell,
+                           CPUMappingPlacementContext& context) const;
+  bool PlaceCPUMappingInitialNode(int dfg_node,
+                                  CPUMappingPlacementContext& context);
   static std::vector<std::pair<int, int>> CPUMappingAdjacencyOffsets();
   bool TryCPUMappingAdjacency(int dfg_node, int anchor_cell,
-                              PlacementState& state,
-                              std::vector<int>& freedom,
-                              std::vector<int>& mutable_degree,
+                              CPUMappingPlacementContext& context,
                               bool randomize_first);
   bool PlaceCPUMappingNearNodeYOTO(int dfg_node, int anchor_node,
-                                   PlacementState& state,
-                                   std::vector<int>& freedom,
-                                   std::vector<int>& mutable_degree);
+                                   CPUMappingPlacementContext& context);
   bool DeferCPUMappingIfNearPlacementFails(bool placed);
-  bool PlaceCPUMappingNearNodeYOTT(const Step& step, PlacementState& state,
-                                   std::vector<int>& freedom,
-                                   std::vector<int>& mutable_degree);
+  bool PlaceCPUMappingNearNodeYOTT(const Step& step,
+                                   CPUMappingPlacementContext& context);
+  bool PlaceCPUMappingOrientedStep(const Step& step,
+                                   CPUMappingPlacementContext& context);
   void UpdateCPUMappingFreedomGrid(int placed_cell,
                                    std::vector<int>& freedom) const;
+  CPUMappingPlacementContext MakeCPUMappingContext() const;
   std::optional<PlacementState> ConstructCPUMappingPlacement(
       const std::vector<Step>& plan);
   std::optional<PlacementState> ConstructCPUMappingPlacement();

@@ -207,6 +207,14 @@ int Placement2DArrayEngine::CPUMappingCellType(int cell) const {
   const int col = Col(cell);
   const bool is_corner =
       (row == 0 || row == rows_ - 1) && (col == 0 || col == cols_ - 1);
+  if (separate_io_cells_) {
+    // Structural-I/O YOTO/YOTT uses a logical type matrix: perimeter cells
+    // host source/sink-like nodes and interior cells host compute nodes.
+    // `perimeter_no_corners` still creates corner MRRG nodes, but the
+    // paper-style grid treats those corner sites as unavailable.
+    if (is_corner && !cell_memory_accessible_[cell]) return -1;
+    return cell_memory_accessible_[cell] ? 1 : 0;
+  }
   if (is_corner) return -1;
   const bool is_perimeter =
       row == 0 || col == 0 || row == rows_ - 1 || col == cols_ - 1;

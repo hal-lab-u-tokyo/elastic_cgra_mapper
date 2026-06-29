@@ -3,9 +3,20 @@
 #include <mapper/mapper_factory.hpp>
 #include <mapper/placement2d/placement2d_search_engine.hpp>
 
-// This file is the PRISA-facing mapper entry point. It keeps the paper-faithful
-// PRISA, no-SIS, cost-aware, and array variants in one place while forwarding
-// the algorithm body to the shared engines.
+// PRISA mapper entry point.
+//
+// Read this file for Algorithm.type registration and top-level dispatch only.
+// The algorithm body lives in one of these engines:
+//
+//   Placement2DPRISA / Placement2DPRISANoSIS / Placement2DCostAwarePRISA
+//     -> Placement2DSearchKind::{kPRISA,kPRISANoSIS,kCostAwarePRISA}
+//     -> placement2d_search_engine.cpp
+//     -> mapper/src/common/search/
+//
+//   Placement2DArrayPRISA / Placement2DArrayPRISANoSIS
+//   Placement2DArrayCostAwarePRISA
+//     -> Placement2DArrayKind::{kPRISA,kPRISANoSIS,kCostAwarePRISA}
+//     -> engine/placement2d_array_engine_prisa.cpp
 
 namespace {
 

@@ -567,6 +567,48 @@ def parse_gurobi_log(log_path: Optional[Path]) -> dict:
     return result
 
 
+def parse_placement_log(log_path: Optional[Path]) -> dict:
+    result = {
+        "placement_swap_attempts": "",
+        "placement_cell_visits": "",
+        "vpr_initial_placement_cost": "",
+        "vpr_initial_bb_cost": "",
+        "vpr_final_placement_cost": "",
+        "vpr_final_bb_cost": "",
+    }
+    if not log_path or not log_path.exists():
+        return result
+
+    text = log_path.read_text(errors="replace")
+    swap_attempts = re.search(r"placement_swap_attempts=([0-9]+)", text)
+    if not swap_attempts:
+        swap_attempts = re.search(
+            r"Placement total # of swap attempts:\s*([0-9]+)", text
+        )
+    if swap_attempts:
+        result["placement_swap_attempts"] = swap_attempts.group(1)
+
+    cell_visits = re.search(r"cell_visits=([0-9]+)", text)
+    if cell_visits:
+        result["placement_cell_visits"] = cell_visits.group(1)
+
+    initial = re.search(
+        r"Initial placement cost:\s*([0-9.eE+-]+),?\s+bb_cost:\s*([0-9.eE+-]+)",
+        text,
+    )
+    if initial:
+        result["vpr_initial_placement_cost"] = initial.group(1)
+        result["vpr_initial_bb_cost"] = initial.group(2)
+    placements = re.findall(
+        r"Placement cost:\s*([0-9.eE+-]+),\s+bb_cost:\s*([0-9.eE+-]+)",
+        text,
+    )
+    if placements:
+        result["vpr_final_placement_cost"] = placements[-1][0]
+        result["vpr_final_bb_cost"] = placements[-1][1]
+    return result
+
+
 def placement_cost(dx: int, dy: int, model: str) -> int:
     if dx == 0 and dy == 0:
         return 1
@@ -1261,6 +1303,7 @@ def normalize_run(
         dfg_path = Path(input_log["dfg_file"])
     cgra_metrics = mapping_utilization(mapping_path, dfg_path, arch_path)
     gurobi_metrics = parse_gurobi_log(gurobi_log_path)
+    placement_log_metrics = parse_placement_log(gurobi_log_path)
 
     dfg_stats = read_dfg_stats(dfg_path) if dfg_path and dfg_path.exists() else {
         "node_count": "",
@@ -1298,6 +1341,10 @@ def normalize_run(
         "II_ratio": ii_ratio,
         "status": status,
         "mapping_time_sec": output_log.get("mapping_time_s", ""),
+        "placement_swap_attempts": placement_log_metrics[
+            "placement_swap_attempts"
+        ],
+        "placement_cell_visits": placement_log_metrics["placement_cell_visits"],
         "timeout_sec": input_log.get("timeout_s", ""),
         "parallel_num": input_log.get("parallel_num", ""),
         "dfg_nodes": dfg_stats["node_count"],
@@ -1478,6 +1525,8 @@ CSV_FIELDS = [
     "II_ratio",
     "status",
     "mapping_time_sec",
+    "placement_swap_attempts",
+    "placement_cell_visits",
     "wall_time_sec",
     "process_returncode",
     "timeout_sec",
@@ -1572,6 +1621,15 @@ CSV_FIELDS = [
     "placement_estimated_avg_link_demand",
     "placement_estimated_p95_link_demand",
     "placement_estimated_used_link_ratio",
+    "blif_net_count",
+    "blif_cost_sum",
+    "blif_avg_cost",
+    "blif_max_cost",
+    "blif_optimal_net_count",
+    "blif_optimal_net_ratio",
+    "blif_paper_fifo_sum",
+    "blif_avg_paper_fifo",
+    "blif_max_paper_fifo",
     "direct_dfg_edge_count",
     "routed_dfg_edge_count",
     "direct_dfg_edge_ratio",
@@ -1587,6 +1645,9 @@ CSV_FIELDS = [
     "routed_avg_fifo",
     "routed_max_fifo",
     "routed_mapped_lp",
+    "vpr_inner_num",
+    "vpr_extra_args",
+    "vpr_io_capacity",
     "gurobi_status",
     "objective_value",
     "best_bound",

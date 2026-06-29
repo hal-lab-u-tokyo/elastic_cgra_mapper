@@ -176,7 +176,7 @@ def make_table1_section(
             continue
         paper_wire = as_float(row["average_wire_length_segments"])
         for mapper in local_names:
-            local_wire = mapper_mean(aggregates, mapper, "placement_avg_mesh_hop")
+            local_wire = mapper_mean(aggregates, mapper, "placement_avg_cost")
             delta = None if paper_wire is None or local_wire is None else local_wire - paper_wire
             lines.append(
                 "| "
@@ -335,7 +335,7 @@ def make_plot_claim_section(rows: list[dict[str, str]]) -> list[str]:
     lines = [
         "## Plot-Only Figure Claims",
         "",
-        "Paper figure bars are not digitized. The checks below compare local runs against textual claims from the YOTT paper.",
+        "Plot-only paper figures are used for qualitative checks unless an explicit reference table is available. The checks below compare local runs against textual claims from the YOTT paper.",
         "",
         "Paper textual claims tracked:",
     ]
@@ -374,7 +374,7 @@ def make_missing_section() -> list[str]:
         "| --- | --- | --- |",
         "| YOTT Table 2 | paper values stored; local category metrics not exported | edge category export for `first`, `reconvergent`, and `io` |",
         "| YOTT Table 3 | original 23 DOTs are normalized and node/edge counts match; paper IN/OUT ports are not equivalent to mapper `load/output` counts | edge-category export and an explicit paper-port model if IN/OUT must be compared |",
-        "| YOTT Fig. 20(b) | local runtime exists; node/cell visits not exported | export node/cell visit or swaps-per-node counters |",
+        "| YOTT Fig. 20(b) | local runtime and `placement_swap_attempts` exist | compare VPR swap attempts with YOTO/YOTT node-cell move attempts |",
         "| YOTT Fig. 23 | no clean RA-off paired config in current run | mapper/config switch that disables reconvergent annotation only |",
         "| YOTT Table 4 | paper values stored; local multi-kernel DOTs not present | generator for cplx8/fir16 combined kernels |",
         "| TRAVERSAL Table I | not covered by placement2d run | modulo ADRES 4x4 II=2 paper-comparison manifest |",
@@ -402,7 +402,7 @@ def write_report(
         f"- Architecture filter: `{arch}`",
         f"- Paper reference data: `{paper_dir}`",
         "",
-        "This report compares only values that are directly supported by local metrics. Plot-only paper figures are not digitized.",
+        "This report compares values directly supported by local metrics and paper reference tables.",
         "",
     ]
     lines.extend(make_table1_section(paper_table1, aggregates))

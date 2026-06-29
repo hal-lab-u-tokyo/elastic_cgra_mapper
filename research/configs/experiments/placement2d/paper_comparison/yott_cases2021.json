@@ -89,11 +89,16 @@
       "arch_xml": "${VPR_ARCH_XML:-third_party/vtr/vtr_flow/arch/timing/k6_N10_40nm.xml}",
       "pack_capacity": 1,
       "fixed_layout_to_arch": true,
-      "absorb_buffer_luts": true,
-      "protect_internal_buffer_luts": true,
-      "output_nodes_as_io_pads": true,
+      "absorb_buffer_luts": false,
+      "protect_internal_buffer_luts": false,
+      "output_lut_io_pads": true,
       "const_gen_inference": "comb",
       "place_algorithm": "bounding_box",
+      "vpr_extra_args": [
+        "--inner_num",
+        "7"
+      ],
+      "seed": 1,
       "place_all_ops": true,
       "allow_missing": false
     }

@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+from __future__ import annotations
+
 import argparse
 import json
 import os
@@ -17,6 +19,7 @@ from lib import (
     clean_node_name,
     load_json,
     longest_path_cost,
+    parse_placement_log,
     placement_cost,
     read_dfg_stats,
     safe_ratio,
@@ -156,6 +159,9 @@ def write_blif(
     name_map_path: Path,
     protect_internal_buffer_luts: bool = False,
     output_nodes_as_io_pads: bool = False,
+    output_lut_io_pads: bool = False,
+    input_nodes_as_luts: bool = False,
+    dfg_nodes_as_luts_only: bool = False,
 ) -> dict:
     nodes, edges, predecessors, successors = read_dfg(dfg_path)
     name_map, reverse_map = unique_blif_names(nodes)
@@ -166,21 +172,34 @@ def write_blif(
     if not output_nodes and nodes:
         output_nodes = [nodes[-1]]
 
+    input_pad_names = {}
+    if input_nodes_as_luts:
+        for node in input_nodes:
+            input_pad_names[node] = f"__pi_{name_map[node]}"
+
     lines = [".model cgra_dfg"]
-    lines.append(".inputs " + " ".join(name_map[node] for node in input_nodes))
-    lines.append(".outputs " + " ".join(name_map[node] for node in output_nodes))
+    if not dfg_nodes_as_luts_only:
+        lines.append(
+            ".inputs "
+            + " ".join(input_pad_names.get(node, name_map[node]) for node in input_nodes)
+        )
+        lines.append(".outputs " + " ".join(name_map[node] for node in output_nodes))
 
     used_blif_names = set(name_map.values())
+    used_blif_names.update(input_pad_names.values())
     output_io_pad_fanin = {}
     output_io_pad_dropped_fanins = {}
     lut_size = 6
     for node in nodes:
-        if node in input_nodes:
+        if node in input_nodes and not input_nodes_as_luts and not dfg_nodes_as_luts_only:
             continue
         fanin = predecessors[node]
         output = name_map[node]
-        input_names = [name_map[src] for src in fanin]
-        if output_nodes_as_io_pads and node in output_nodes:
+        if node in input_nodes and input_nodes_as_luts and not dfg_nodes_as_luts_only:
+            input_names = [input_pad_names[node]]
+        else:
+            input_names = [name_map[src] for src in fanin]
+        if output_nodes_as_io_pads and not output_lut_io_pads and node in output_nodes:
             if input_names:
                 emit_names_node(lines, [input_names[0]], output)
                 output_io_pad_fanin[node] = fanin[0]
@@ -212,6 +231,10 @@ def write_blif(
             "edge_count": len(edges),
             "protect_internal_buffer_luts": protect_internal_buffer_luts,
             "output_nodes_as_io_pads": output_nodes_as_io_pads,
+            "output_lut_io_pads": output_lut_io_pads,
+            "input_nodes_as_luts": input_nodes_as_luts,
+            "dfg_nodes_as_luts_only": dfg_nodes_as_luts_only,
+            "input_pad_names": input_pad_names,
             "output_io_pad_fanin": output_io_pad_fanin,
             "output_io_pad_dropped_fanins": output_io_pad_dropped_fanins,
         },
@@ -376,21 +399,135 @@ def architecture_summary(arch_path: Path) -> dict:
     }
 
 
-def fixed_layout_xml(rows: int, cols: int) -> str:
+def fixed_layout_xml(rows: int, cols: int, io_corners: bool = False, all_clb: bool = False) -> str:
+    if all_clb:
+        return f"""  <layout>
+    <fixed_layout name="cgra_{cols}x{rows}_all_clb" width="{cols}" height="{rows}">
+        <!-- All cells are placement sites for DFG operations. -->
+        <fill type="clb" priority="10"/>
+    </fixed_layout>
+</layout>"""
+
+    corner_rule = (
+        ""
+        if io_corners
+        else '        <corners type="EMPTY" priority="101"/>\n'
+    )
     return f"""  <layout>
     <fixed_layout name="cgra_{cols}x{rows}" width="{cols}" height="{rows}">
-        <!--Perimeter of 'io' blocks with 'EMPTY' blocks at corners-->
+        <!--Perimeter of 'io' blocks with optional empty corners-->
         <perimeter type="io" priority="100"/>
-        <corners type="EMPTY" priority="101"/>
+{corner_rule.rstrip()}
         <!--Fill with 'clb'-->
         <fill type="clb" priority="10"/>
     </fixed_layout>
 </layout>"""
 
 
-def replace_vpr_layout(text: str, rows: int, cols: int) -> str:
+def io_lut_output_pb_type_xml(capacity: int = 8) -> str:
+    """I/O block that can host a multi-input output DFG node.
+
+    Standard VPR I/O pads can consume only one net.  Several YOTT case-study
+    sink nodes have multiple predecessors, so mapping them to a standard
+    output pad drops DFG edges before placement.  This mode lets VPR pack the
+    sink node's `.names` atom and its `.output` atom into the same perimeter
+    I/O site, preserving all incoming DFG edges while keeping output legality.
+    """
+    return f"""    <!-- Define I/O pads begin -->
+    <pb_type name="io" capacity="{capacity}" area="0">
+      <input name="outpad" num_pins="6"/>
+      <output name="inpad" num_pins="1"/>
+      <clock name="clock" num_pins="1"/>
+
+      <mode name="inpad">
+        <pb_type name="inpad" blif_model=".input" num_pb="1">
+          <output name="inpad" num_pins="1"/>
+        </pb_type>
+        <interconnect>
+          <direct name="inpad" input="inpad.inpad" output="io.inpad">
+            <delay_constant max="4.243e-11" in_port="inpad.inpad" out_port="io.inpad"/>
+          </direct>
+        </interconnect>
+      </mode>
+
+      <mode name="outpad">
+        <pb_type name="outpad" blif_model=".output" num_pb="1">
+          <input name="outpad" num_pins="1"/>
+        </pb_type>
+        <interconnect>
+          <direct name="outpad" input="io.outpad[0:0]" output="outpad.outpad">
+            <delay_constant max="1.394e-11" in_port="io.outpad" out_port="outpad.outpad"/>
+          </direct>
+        </interconnect>
+      </mode>
+
+      <mode name="out_lutpad">
+        <pb_type name="lut6" blif_model=".names" num_pb="1" class="lut">
+          <input name="in" num_pins="6" port_class="lut_in"/>
+          <output name="out" num_pins="1" port_class="lut_out"/>
+          <delay_matrix type="max" in_port="lut6.in" out_port="lut6.out">
+            2.352e-10
+            2.352e-10
+            2.352e-10
+            2.352e-10
+            2.352e-10
+            2.352e-10
+          </delay_matrix>
+        </pb_type>
+        <pb_type name="outpad" blif_model=".output" num_pb="1">
+          <input name="outpad" num_pins="1"/>
+        </pb_type>
+        <interconnect>
+          <direct name="lutpad_in" input="io.outpad" output="lut6.in">
+            <delay_constant max="1.000e-12" in_port="io.outpad" out_port="lut6.in"/>
+          </direct>
+          <direct name="lutpad_out" input="lut6.out" output="outpad.outpad">
+            <pack_pattern name="output_lutpad" in_port="lut6.out" out_port="outpad.outpad"/>
+            <delay_constant max="1.394e-11" in_port="lut6.out" out_port="outpad.outpad"/>
+          </direct>
+        </interconnect>
+      </mode>
+
+      <fc in_type="frac" in_val="0.15" out_type="frac" out_val="0.10"/>
+
+      <pinlocations pattern="custom">
+        <loc side="left">io.outpad io.inpad io.clock</loc>
+        <loc side="top">io.outpad io.inpad io.clock</loc>
+        <loc side="right">io.outpad io.inpad io.clock</loc>
+        <loc side="bottom">io.outpad io.inpad io.clock</loc>
+      </pinlocations>
+
+      <power method="ignore"/>
+    </pb_type>
+    <!-- Define I/O pads ends -->"""
+
+
+def replace_vpr_io_block(text: str, capacity: int = 8) -> str:
+    pattern = re.compile(
+        r"\s*<!-- Define I/O pads begin -->.*?<!-- Define I/O pads ends -->",
+        re.DOTALL,
+    )
+    replaced, count = pattern.subn(
+        "\n" + io_lut_output_pb_type_xml(capacity=capacity), text, count=1
+    )
+    if count != 1:
+        raise ValueError("failed to replace VPR I/O block with output-LUT I/O block")
+    return replaced
+
+
+def replace_vpr_layout(
+    text: str,
+    rows: int,
+    cols: int,
+    io_corners: bool = False,
+    all_clb: bool = False,
+) -> str:
     pattern = re.compile(r"\s*<layout>.*?</layout>", re.DOTALL)
-    replaced, count = pattern.subn("\n" + fixed_layout_xml(rows, cols), text, count=1)
+    replaced, count = pattern.subn(
+        "\n" + fixed_layout_xml(rows, cols, io_corners=io_corners, all_clb=all_clb),
+        text,
+        count=1,
+    )
     if count != 1:
         raise ValueError("failed to replace VPR architecture layout with fixed CGRA layout")
     return replaced
@@ -432,7 +569,20 @@ def prepare_vpr_arch_xml(
     if fix_layout_to_arch:
         if not arch:
             raise ValueError("fixed_layout_to_arch requires an architecture summary")
-        text = replace_vpr_layout(text, int(arch["rows"]), int(arch["cols"]))
+        io_corners = mapper_config.get("fixed_layout_io_corners")
+        if io_corners is None:
+            io_corners = str(arch.get("memory_io", "")) == "perimeter"
+        text = replace_vpr_layout(
+            text,
+            int(arch["rows"]),
+            int(arch["cols"]),
+            io_corners=bool(io_corners),
+            all_clb=bool(mapper_config.get("fixed_layout_all_clb", False)),
+        )
+
+    if bool(mapper_config.get("output_lut_io_pads", False)):
+        vpr_io_capacity = int(mapper_config.get("vpr_io_capacity", 8) or 8)
+        text = replace_vpr_io_block(text, capacity=vpr_io_capacity)
 
     generated_arch = work_dir / "vpr_k6_N1_40nm.xml"
     generated_arch.write_text(text)
@@ -540,6 +690,95 @@ def placement_metrics(dfg_path: Path, positions: dict, cost_model: str) -> dict:
     }
 
 
+def blif_nets(blif_path: Path) -> list[list[str]]:
+    """Return VPR placement-objective nets from the generated BLIF.
+
+    DFG-edge metrics and VPR's bounding-box objective are not identical when
+    a node fans out.  Keeping this parser in the VPR runner makes both views
+    available in the same metrics row.
+    """
+    if not blif_path.exists():
+        return []
+
+    drivers: set[str] = set()
+    loads: dict[str, list[str]] = {}
+    inputs: list[str] = []
+    outputs: list[str] = []
+    for raw_line in blif_path.read_text(errors="replace").splitlines():
+        parts = raw_line.strip().split()
+        if not parts:
+            continue
+        if parts[0] == ".inputs":
+            inputs.extend(parts[1:])
+        elif parts[0] == ".outputs":
+            outputs.extend(parts[1:])
+        elif parts[0] == ".names" and len(parts) >= 2:
+            fanins = parts[1:-1]
+            output = parts[-1]
+            drivers.add(output)
+            for fanin in fanins:
+                loads.setdefault(fanin, []).append(output)
+    for node in inputs:
+        drivers.add(node)
+    for node in outputs:
+        loads.setdefault(node, []).append(node)
+    return [
+        [driver] + loads.get(driver, [])
+        for driver in sorted(drivers)
+        if len([driver] + loads.get(driver, [])) >= 2
+    ]
+
+
+def blif_net_metrics(
+    blif_path: Path,
+    reverse_map: dict,
+    positions: dict,
+    cost_model: str,
+) -> dict:
+    blif_positions = {
+        blif_name: positions[original_name]
+        for blif_name, original_name in reverse_map.items()
+        if original_name in positions
+    }
+    costs = []
+    for pins in blif_nets(blif_path):
+        points = [blif_positions[pin] for pin in pins if pin in blif_positions]
+        if len(points) < 2:
+            continue
+        rows = [row for row, _ in points]
+        cols = [col for _, col in points]
+        dx = max(cols) - min(cols)
+        dy = max(rows) - min(rows)
+        costs.append(placement_cost(dx, dy, cost_model))
+
+    if not costs:
+        return {
+            "blif_net_count": "",
+            "blif_cost_sum": "",
+            "blif_avg_cost": "",
+            "blif_max_cost": "",
+            "blif_optimal_net_count": "",
+            "blif_optimal_net_ratio": "",
+            "blif_paper_fifo_sum": "",
+            "blif_avg_paper_fifo": "",
+            "blif_max_paper_fifo": "",
+        }
+    fifo_values = [max(0, cost - 1) for cost in costs]
+    return {
+        "blif_net_count": len(costs),
+        "blif_cost_sum": sum(costs),
+        "blif_avg_cost": safe_ratio(sum(costs), len(costs)),
+        "blif_max_cost": max(costs),
+        "blif_optimal_net_count": sum(1 for cost in costs if cost <= 1),
+        "blif_optimal_net_ratio": safe_ratio(
+            sum(1 for cost in costs if cost <= 1), len(costs)
+        ),
+        "blif_paper_fifo_sum": sum(fifo_values),
+        "blif_avg_paper_fifo": safe_ratio(sum(fifo_values), len(fifo_values)),
+        "blif_max_paper_fifo": max(fifo_values),
+    }
+
+
 def compute_bbox_metrics(positions: dict) -> tuple:
     if not positions:
         return "", ""
@@ -551,6 +790,13 @@ def compute_bbox_metrics(positions: dict) -> tuple:
 
 def has_vpr_option(command: list, option: str) -> bool:
     return any(str(arg) == option for arg in command)
+
+
+def vpr_option_value(command: list, option: str) -> str:
+    for index, arg in enumerate(command):
+        if str(arg) == option and index + 1 < len(command):
+            return str(command[index + 1])
+    return ""
 
 
 def with_vpr_output_files(command: list, blif_path: Path, include_route: bool = False, route_file: Path = None) -> list:
@@ -572,6 +818,7 @@ def vpr_command(vpr_bin: str, arch_xml: Path, blif_path: Path, mapper_config: di
     args = mapper_config.get("vpr_args")
     if args:
         command = [vpr_bin, str(arch_xml), str(blif_path)] + [expand_env(arg) for arg in args]
+        command.extend(expand_env(arg) for arg in mapper_config.get("vpr_extra_args", []))
         return with_vpr_output_files(command, blif_path, include_route=has_vpr_option(command, "--route"))
 
     place_algorithm = str(mapper_config.get("place_algorithm", "bounding_box"))
@@ -589,6 +836,8 @@ def vpr_command(vpr_bin: str, arch_xml: Path, blif_path: Path, mapper_config: di
         "--disp",
         "off",
     ]
+    if mapper_config.get("seed") not in (None, ""):
+        command.extend(["--seed", str(int(mapper_config["seed"]))])
     if bool(mapper_config.get("place_all_ops", False)):
         const_gen_inference = str(mapper_config.get("const_gen_inference", "none"))
         constant_net_method = str(mapper_config.get("constant_net_method", "route"))
@@ -610,6 +859,7 @@ def vpr_command(vpr_bin: str, arch_xml: Path, blif_path: Path, mapper_config: di
                 "off",
             ]
         )
+    command.extend(expand_env(arg) for arg in mapper_config.get("vpr_extra_args", []))
     return with_vpr_output_files(command, blif_path)
 
 
@@ -727,6 +977,9 @@ def run_one_vpr(
         output_nodes_as_io_pads=bool(
             mapper_config.get("output_nodes_as_io_pads", False)
         ),
+        output_lut_io_pads=bool(mapper_config.get("output_lut_io_pads", False)),
+        input_nodes_as_luts=bool(mapper_config.get("input_nodes_as_luts", False)),
+        dfg_nodes_as_luts_only=bool(mapper_config.get("dfg_nodes_as_luts_only", False)),
     )
     stdout_path = work_dir / "stdout.txt"
     stderr_path = work_dir / "stderr.txt"
@@ -786,6 +1039,13 @@ def run_one_vpr(
 
     bbox_area, bbox_util = compute_bbox_metrics(positions)
     placement = placement_metrics(dfg, positions, arch["placement_cost_model"])
+    blif_placement = blif_net_metrics(
+        blif_path,
+        dfg_data["reverse_map"],
+        positions,
+        arch["placement_cost_model"],
+    )
+    placement_log_metrics = parse_placement_log(stdout_path)
     compute_ops = len(positions)
     total_pe_contexts = int(rows) * int(cols)
     row = {
@@ -806,7 +1066,24 @@ def run_one_vpr(
         "II_ratio": 1 if status in SUCCESS_STATUSES else "",
         "status": status,
         "mapping_time_sec": elapsed,
+        "placement_swap_attempts": placement_log_metrics[
+            "placement_swap_attempts"
+        ],
+        "placement_cell_visits": placement_log_metrics["placement_cell_visits"],
+        "vpr_initial_placement_cost": placement_log_metrics[
+            "vpr_initial_placement_cost"
+        ],
+        "vpr_initial_bb_cost": placement_log_metrics["vpr_initial_bb_cost"],
+        "vpr_final_placement_cost": placement_log_metrics[
+            "vpr_final_placement_cost"
+        ],
+        "vpr_final_bb_cost": placement_log_metrics["vpr_final_bb_cost"],
         "wall_time_sec": elapsed,
+        "vpr_inner_num": vpr_option_value(cmd, "--inner_num"),
+        "vpr_extra_args": " ".join(str(arg) for arg in mapper_config.get("vpr_extra_args", [])),
+        "vpr_io_capacity": mapper_config.get("vpr_io_capacity", ""),
+        "dfg_nodes_as_luts_only": mapper_config.get("dfg_nodes_as_luts_only", ""),
+        "fixed_layout_all_clb": mapper_config.get("fixed_layout_all_clb", ""),
         "process_returncode": returncode,
         "timeout_sec": timeout_sec,
         "parallel_num": 1,
@@ -845,6 +1122,7 @@ def run_one_vpr(
         "compute_bbox_area": bbox_area,
         "compute_bbox_utilization": bbox_util,
         **placement,
+        **blif_placement,
         "direct_dfg_edge_count": placement.get("placement_direct_edge_count", ""),
         "routed_dfg_edge_count": "",
         "direct_dfg_edge_ratio": placement.get("placement_direct_edge_ratio", ""),

@@ -2,6 +2,32 @@
 
 namespace mapper::detail::placement2d {
 
+// Array PRISA pipeline.
+//
+//   1. ConstructPRISAInitialPlacement()
+//      Build the initial placement. SIS uses LowBandwidthNodeOrder(); no-SIS
+//      starts from RandomPlacement().
+//   2. InitializePRISAStats()
+//      Count weak-region and potential-region edges in the PRISA distance
+//      matrix.
+//   3. ProposePRISAMove()
+//      Pick a swap that repairs weak-region edges. Derived cost-aware variants
+//      can instead score sampled swaps by placement quality.
+//   4. RunPRISATrial()
+//      Apply proposals under a small annealing schedule and keep the best
+//      placement seen in that trial.
+//   5. RunPRISAMultiSeed()
+//      Repeat seeds and keep the best PlacementQuality().
+//
+// Ablation handles:
+//   - SIS order: LowBandwidthNodeOrder()
+//   - PR/WR matrix use: PRISAIsWeak(), PRISAEdgeRegion()
+//   - move choice: BestPRISACandidateFor(), ProposePRISAMove()
+//   - derived cost-aware scoring: ProposeCostAwarePRISASwap()
+//   - final cleanup: PolishPRISAQuality(), PolishCostAwarePRISADirectEdges()
+
+// Initial placement and SIS order.
+
 std::optional<PlacementState> Placement2DArrayEngine::RandomPlacement() {
   PlacementState state;
   state.dfg_to_cell.assign(dfg_.GetNodeNum(), -1);
@@ -189,6 +215,8 @@ std::optional<PlacementState> Placement2DArrayEngine::ConstructPRISAInitialPlace
   if (!UsesPRISASIS()) return RandomPlacement();
   return ConstructPRISAInitialPlacementFromOrder(LowBandwidthNodeOrder());
 }
+
+// PR/WR region accounting and local swap deltas.
 
 bool Placement2DArrayEngine::PRISAIsWeak(int row, int column) const {
   const int resource_count = static_cast<int>(prisa_cell_order_.size());
@@ -509,6 +537,9 @@ std::optional<Placement2DArrayEngine::PRISAProposal> Placement2DArrayEngine::Pro
   if (best.has_value()) return best;
   return ProposeRandomPRISASwap(state);
 }
+
+// PRISA move proposal. The base variant tries to repair weak-region edges;
+// cost-aware variants use additional direct-edge and hop-distance terms.
 
 int Placement2DArrayEngine::PRISALightQualitySampleCount() const {
   const int resource_count = static_cast<int>(prisa_cell_order_.size());
@@ -923,6 +954,8 @@ int Placement2DArrayEngine::PRISAPolishPasses() const {
   return std::max(4, std::min(16, PRISAMaxIterations() / 80));
 }
 
+// Derived cost-aware cleanup passes. Base PRISA and no-SIS PRISA skip these.
+
 PlacementState Placement2DArrayEngine::PolishPRISAQuality(
     PlacementState state, std::chrono::steady_clock::time_point start) {
   PlacementQuality current = ComputePlacementQuality(state);
@@ -1145,6 +1178,8 @@ PlacementState Placement2DArrayEngine::PolishCostAwarePRISAPareto(
   }
   return state;
 }
+
+// Trial loop and multi-seed selection.
 
 std::optional<PlacementState> Placement2DArrayEngine::RunPRISA(
     std::chrono::steady_clock::time_point start) {

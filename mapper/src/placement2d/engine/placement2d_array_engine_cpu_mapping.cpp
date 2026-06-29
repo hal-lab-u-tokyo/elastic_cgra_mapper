@@ -2,6 +2,32 @@
 
 namespace mapper::detail::placement2d {
 
+// cpu_mapping-style YOTO/YOTT pipeline.
+//
+//   1. BuildCPUMappingPlan()
+//      Port the public cpu_mapping edge traversal order. YOTT attaches
+//      reconvergence annotations after the plan is built.
+//   2. MakeCPUMappingContext()
+//      Keep placement, freedom grid, and mutable node degree together.
+//   3. ConstructCPUMappingPlacement(plan)
+//      Walk the plan. Place missing endpoints using the selected YOTO/YOTT
+//      step policy.
+//   4. PlaceCPUMappingOrientedStep()
+//      Dispatch one edge-local step to YOTO adjacency placement or YOTT
+//      annotated-tip placement.
+//   5. RunCPUMappingMultiStart()
+//      Repeat plan generation and placement, then keep the lowest
+//      PlacementCost().
+//
+// Ablation handles:
+//   - traversal order: BuildCPUMappingPlan()
+//   - neighbor choice: ChooseCPUMappingZigZagNeighbor()
+//   - YOTT cycle hints: ApplyCPUMappingCycleAnnotations()
+//   - local cells/tips: CPUMappingTipCells(), TryCPUMappingAdjacency()
+//   - cell choice: BestCPUMappingDegreeCell()
+
+// Traversal plan and YOTT annotation construction.
+
 int Placement2DArrayEngine::FindUnusedEdgeIndex(int source, int target,
                         const std::vector<char>& used_edges) const {
   for (int i = 0; i < static_cast<int>(edges_.size()); i++) {
@@ -228,6 +254,8 @@ std::vector<Step> Placement2DArrayEngine::BuildCPUMappingPlan() {
   return plan;
 }
 
+// Candidate cells and local placement primitives.
+
 std::vector<int> Placement2DArrayEngine::CPUMappingCompatibleCells(
     int dfg_node, const PlacementState& state) const {
   std::vector<int> result;
@@ -257,14 +285,15 @@ int Placement2DArrayEngine::ChooseCPUMappingInitialCell(int dfg_node, const Plac
     candidates = CPUMappingCompatibleCells(dfg_node, state);
   }
   if (candidates.empty()) return -1;
+  RecordPlacementSwapAttempts(static_cast<long long>(candidates.size()));
   std::uniform_int_distribution<int> dist(
       0, static_cast<int>(candidates.size()) - 1);
   return candidates[dist(rng_)];
 }
 
 std::vector<std::pair<int, int>> Placement2DArrayEngine::CPUMappingTipCells(
-    int anchor_cell, int dfg_node, const PlacementState& state,
-    const std::vector<int>& freedom) const {
+    int anchor_cell, int dfg_node,
+    const CPUMappingPlacementContext& context) const {
   static constexpr std::array<std::pair<int, int>, 8> kOneHopTips = {
       std::pair<int, int>{0, 1},   {0, 2},  {1, 0},  {2, 0},
       {0, -1},                    {0, -2}, {-1, 0}, {-2, 0}};
@@ -283,10 +312,10 @@ std::vector<std::pair<int, int>> Placement2DArrayEngine::CPUMappingTipCells(
     // grid bounds; this keeps its top/left-border behavior.
     if (row <= 0 || col <= 0 || row >= rows_ || col >= cols_) return;
     const int cell = Cell(row, col);
-    if (cell < 0 || cell >= static_cast<int>(freedom.size())) return;
-    if (freedom[cell] <= 0) return;
-    if (!CanPlaceCPUMapping(dfg_node, cell, state)) return;
-    result.push_back({freedom[cell], cell});
+    if (cell < 0 || cell >= static_cast<int>(context.freedom.size())) return;
+    if (context.freedom[cell] <= 0) return;
+    if (!CanPlaceCPUMapping(dfg_node, cell, context.state)) return;
+    result.push_back({context.freedom[cell], cell});
   };
   if (one_hop) {
     for (const auto& [dr, dc] : kOneHopTips) push_if_valid(dr, dc);
@@ -297,7 +326,8 @@ std::vector<std::pair<int, int>> Placement2DArrayEngine::CPUMappingTipCells(
 }
 
 std::vector<std::pair<int, int>> Placement2DArrayEngine::CPUMappingCellsWithinAnnotatedDistance(
-    int anchor_cell, int distance, const std::vector<int>& freedom) const {
+    int anchor_cell, int distance,
+    const CPUMappingPlacementContext& context) const {
   std::vector<std::pair<int, int>> result;
   if (anchor_cell < 0 || distance < 0) return result;
   int search_distance = distance;
@@ -313,8 +343,10 @@ std::vector<std::pair<int, int>> Placement2DArrayEngine::CPUMappingCellsWithinAn
       const int col = anchor_col + dc;
       if (row < 0 || col < 0 || row >= rows_ || col >= cols_) continue;
       const int cell = Cell(row, col);
-      if (cell < 0 || cell >= static_cast<int>(freedom.size())) continue;
-      if (freedom[cell] <= 0) continue;
+      if (cell < 0 || cell >= static_cast<int>(context.freedom.size())) {
+        continue;
+      }
+      if (context.freedom[cell] <= 0) continue;
       int diff = 0;
       if (one_hop) {
         diff = (std::abs(dr) + 1) / 2 + (std::abs(dc) + 1) / 2 - 1;
@@ -322,7 +354,7 @@ std::vector<std::pair<int, int>> Placement2DArrayEngine::CPUMappingCellsWithinAn
         diff = std::abs(dr) + std::abs(dc) - 1;
       }
       if (diff >= 0 && diff < search_distance) {
-        result.push_back({freedom[cell], cell});
+        result.push_back({context.freedom[cell], cell});
       }
     }
   }
@@ -347,16 +379,16 @@ std::vector<std::pair<int, int>> Placement2DArrayEngine::IntersectCPUMappingCell
 
 int Placement2DArrayEngine::BestCPUMappingDegreeCell(const std::vector<std::pair<int, int>>& cells,
                              int dfg_node,
-                             const PlacementState& state,
-                             const std::vector<int>& mutable_degree) const {
+                             const CPUMappingPlacementContext& context) const {
   if (cells.empty()) return -1;
+  RecordPlacementSwapAttempts(static_cast<long long>(cells.size()));
   int best_degree = cells.front().first;
   int best_cell = cells.front().second;
-  const int node_degree = mutable_degree[dfg_node];
+  const int node_degree = context.mutable_degree[dfg_node];
   for (int i = 1; i < static_cast<int>(cells.size()); i++) {
     const int available = cells[i].first;
     const int cell = cells[i].second;
-    if (!CanPlaceCPUMapping(dfg_node, cell, state)) continue;
+    if (!CanPlaceCPUMapping(dfg_node, cell, context.state)) continue;
     if (node_degree > 3) {
       const bool better =
           cpu_mapping_bug_compatible_degree_ ? cell > best_degree
@@ -375,33 +407,33 @@ int Placement2DArrayEngine::BestCPUMappingDegreeCell(const std::vector<std::pair
   return best_cell;
 }
 
-void Placement2DArrayEngine::PlaceCPUMappingNode(int dfg_node, int cell, PlacementState& state,
-                         std::vector<int>& freedom,
-                         std::vector<int>& mutable_degree) const {
-  PlaceNode(dfg_node, cell, state);
-  if (dfg_node >= 0 && dfg_node < static_cast<int>(mutable_degree.size())) {
-    mutable_degree[dfg_node]--;
+void Placement2DArrayEngine::PlaceCPUMappingNode(
+    int dfg_node, int cell, CPUMappingPlacementContext& context) const {
+  PlaceNode(dfg_node, cell, context.state);
+  if (dfg_node >= 0 &&
+      dfg_node < static_cast<int>(context.mutable_degree.size())) {
+    context.mutable_degree[dfg_node]--;
   }
-  UpdateCPUMappingFreedomGrid(cell, freedom);
+  UpdateCPUMappingFreedomGrid(cell, context.freedom);
 }
 
-bool Placement2DArrayEngine::PlaceCPUMappingInitialNode(int dfg_node, PlacementState& state,
-                                std::vector<int>& freedom,
-                                std::vector<int>& mutable_degree) {
-  if (state.dfg_to_cell[dfg_node] >= 0) return true;
-  const int cell = ChooseCPUMappingInitialCell(dfg_node, state);
+bool Placement2DArrayEngine::PlaceCPUMappingInitialNode(
+    int dfg_node, CPUMappingPlacementContext& context) {
+  if (context.state.dfg_to_cell[dfg_node] >= 0) return true;
+  const int cell = ChooseCPUMappingInitialCell(dfg_node, context.state);
   if (cell < 0) {
     RecordFailure("initial placement has no cell for node=" +
                   NodeLabel(dfg_node) +
                   " io=" + std::to_string(IsIONode(dfg_node) ? 1 : 0) +
                   " free_compatible=" +
                   std::to_string(
-                      FreeCPUMappingCompatibleCellCount(dfg_node, state)) +
-                  " placed=" + std::to_string(PlacedCount(state)) + "/" +
+                      FreeCPUMappingCompatibleCellCount(dfg_node,
+                                                        context.state)) +
+                  " placed=" + std::to_string(PlacedCount(context.state)) + "/" +
                   std::to_string(dfg_.GetNodeNum()));
     return false;
   }
-  PlaceCPUMappingNode(dfg_node, cell, state, freedom, mutable_degree);
+  PlaceCPUMappingNode(dfg_node, cell, context);
   return true;
 }
 
@@ -426,13 +458,10 @@ std::vector<std::pair<int, int>> Placement2DArrayEngine::CPUMappingAdjacencyOffs
 }
 
 bool Placement2DArrayEngine::TryCPUMappingAdjacency(int dfg_node, int anchor_cell,
-                            PlacementState& state,
-                            std::vector<int>& freedom,
-                            std::vector<int>& mutable_degree,
+                            CPUMappingPlacementContext& context,
                             bool randomize_first) {
   if (anchor_cell < 0) {
-    return PlaceCPUMappingInitialNode(dfg_node, state, freedom,
-                                      mutable_degree);
+    return PlaceCPUMappingInitialNode(dfg_node, context);
   }
   static const std::vector<std::pair<int, int>> kOffsets =
       CPUMappingAdjacencyOffsets();
@@ -449,8 +478,9 @@ bool Placement2DArrayEngine::TryCPUMappingAdjacency(int dfg_node, int anchor_cel
     if (row < 0 || col < 0 || row >= rows_ || col >= cols_) continue;
     const int cell = Cell(row, col);
     cell_visits_++;
-    if (!CanPlaceCPUMapping(dfg_node, cell, state)) continue;
-    PlaceCPUMappingNode(dfg_node, cell, state, freedom, mutable_degree);
+    RecordPlacementSwapAttempts();
+    if (!CanPlaceCPUMapping(dfg_node, cell, context.state)) continue;
+    PlaceCPUMappingNode(dfg_node, cell, context);
     return true;
   }
   RecordFailure("adjacency placement has no cell for node=" +
@@ -460,20 +490,18 @@ bool Placement2DArrayEngine::TryCPUMappingAdjacency(int dfg_node, int anchor_cel
                 std::to_string(anchor_col) + ")" +
                 " free_compatible=" +
                 std::to_string(
-                    FreeCPUMappingCompatibleCellCount(dfg_node, state)) +
-                " placed=" + std::to_string(PlacedCount(state)) + "/" +
+                    FreeCPUMappingCompatibleCellCount(dfg_node,
+                                                      context.state)) +
+                " placed=" + std::to_string(PlacedCount(context.state)) + "/" +
                 std::to_string(dfg_.GetNodeNum()));
   return false;
 }
 
 bool Placement2DArrayEngine::PlaceCPUMappingNearNodeYOTO(int dfg_node, int anchor_node,
-                                 PlacementState& state,
-                                 std::vector<int>& freedom,
-                                 std::vector<int>& mutable_degree) {
-  if (state.dfg_to_cell[dfg_node] >= 0) return true;
-  const int anchor_cell = state.dfg_to_cell[anchor_node];
-  return TryCPUMappingAdjacency(dfg_node, anchor_cell, state, freedom,
-                                mutable_degree, false);
+                                 CPUMappingPlacementContext& context) {
+  if (context.state.dfg_to_cell[dfg_node] >= 0) return true;
+  const int anchor_cell = context.state.dfg_to_cell[anchor_node];
+  return TryCPUMappingAdjacency(dfg_node, anchor_cell, context, false);
 }
 
 bool Placement2DArrayEngine::DeferCPUMappingIfNearPlacementFails(bool placed) {
@@ -485,37 +513,36 @@ bool Placement2DArrayEngine::DeferCPUMappingIfNearPlacementFails(bool placed) {
   return true;
 }
 
-bool Placement2DArrayEngine::PlaceCPUMappingNearNodeYOTT(const Step& step, PlacementState& state,
-                                 std::vector<int>& freedom,
-                                 std::vector<int>& mutable_degree) {
+bool Placement2DArrayEngine::PlaceCPUMappingNearNodeYOTT(
+    const Step& step, CPUMappingPlacementContext& context) {
   const int dfg_node = step.target;
-  if (state.dfg_to_cell[dfg_node] >= 0) return true;
-  const int anchor_cell = state.dfg_to_cell[step.anchor];
+  if (context.state.dfg_to_cell[dfg_node] >= 0) return true;
+  const int anchor_cell = context.state.dfg_to_cell[step.anchor];
   if (anchor_cell < 0) {
-    return PlaceCPUMappingInitialNode(dfg_node, state, freedom,
-                                      mutable_degree);
+    return PlaceCPUMappingInitialNode(dfg_node, context);
   }
 
   std::vector<std::pair<int, int>> tips =
-      CPUMappingTipCells(anchor_cell, dfg_node, state, freedom);
+      CPUMappingTipCells(anchor_cell, dfg_node, context);
   std::vector<std::pair<int, int>> intersection = tips;
   std::vector<int> annotated_nodes;
   for (const auto& annotation : step.annotations) {
     if (annotation.kind != StepAnnotationKind::kReconvergence) continue;
     if (annotation.distance > 2) continue;
-    const int annotated_cell = state.dfg_to_cell[annotation.anchor_node];
+    const int annotated_cell =
+        context.state.dfg_to_cell[annotation.anchor_node];
     if (annotated_cell < 0) continue;
     annotated_nodes.push_back(annotation.anchor_node);
     auto cells = CPUMappingCellsWithinAnnotatedDistance(
-        annotated_cell, annotation.distance, freedom);
+        annotated_cell, annotation.distance, context);
     intersection = IntersectCPUMappingCellPairs(intersection, cells);
     if (intersection.empty()) break;
   }
 
   int cell =
-      BestCPUMappingDegreeCell(intersection, dfg_node, state, mutable_degree);
+      BestCPUMappingDegreeCell(intersection, dfg_node, context);
   if (cell >= 0) {
-    PlaceCPUMappingNode(dfg_node, cell, state, freedom, mutable_degree);
+    PlaceCPUMappingNode(dfg_node, cell, context);
     return true;
   }
 
@@ -527,7 +554,7 @@ bool Placement2DArrayEngine::PlaceCPUMappingNearNodeYOTT(const Step& step, Place
       for (const auto& [available, candidate] : tips) {
         int cost = 0;
         for (int annotated_node : annotated_nodes) {
-          const int annotated_cell = state.dfg_to_cell[annotated_node];
+          const int annotated_cell = context.state.dfg_to_cell[annotated_node];
           if (annotated_cell >= 0) cost += DistanceCost(annotated_cell, candidate);
         }
         if (cost < best_cost) {
@@ -541,15 +568,26 @@ bool Placement2DArrayEngine::PlaceCPUMappingNearNodeYOTT(const Step& step, Place
       if (!best_candidates.empty()) candidates = best_candidates;
     }
     cell =
-        BestCPUMappingDegreeCell(candidates, dfg_node, state, mutable_degree);
+        BestCPUMappingDegreeCell(candidates, dfg_node, context);
     if (cell >= 0) {
-      PlaceCPUMappingNode(dfg_node, cell, state, freedom, mutable_degree);
+      PlaceCPUMappingNode(dfg_node, cell, context);
       return true;
     }
   }
 
-  return TryCPUMappingAdjacency(dfg_node, anchor_cell, state, freedom,
-                                mutable_degree, true);
+  return TryCPUMappingAdjacency(dfg_node, anchor_cell, context, true);
+}
+
+// One plan step, shared context, and multi-start trial loop.
+
+bool Placement2DArrayEngine::PlaceCPUMappingOrientedStep(
+    const Step& step, CPUMappingPlacementContext& context) {
+  if (IsCPUMappingYOTO()) {
+    return DeferCPUMappingIfNearPlacementFails(PlaceCPUMappingNearNodeYOTO(
+        step.target, step.anchor, context));
+  }
+  return DeferCPUMappingIfNearPlacementFails(
+      PlaceCPUMappingNearNodeYOTT(step, context));
 }
 
 void Placement2DArrayEngine::UpdateCPUMappingFreedomGrid(int placed_cell,
@@ -579,61 +617,44 @@ void Placement2DArrayEngine::UpdateCPUMappingFreedomGrid(int placed_cell,
   }
 }
 
+CPUMappingPlacementContext Placement2DArrayEngine::MakeCPUMappingContext()
+    const {
+  CPUMappingPlacementContext context;
+  context.state.dfg_to_cell.assign(dfg_.GetNodeNum(), -1);
+  context.state.cell_to_dfg.assign(rows_ * cols_, -1);
+  context.freedom = InitialFreedomGrid();
+  context.mutable_degree = degree_;
+  return context;
+}
+
 std::optional<PlacementState> Placement2DArrayEngine::ConstructCPUMappingPlacement(
     const std::vector<Step>& plan) {
-  PlacementState state;
-  state.dfg_to_cell.assign(dfg_.GetNodeNum(), -1);
-  state.cell_to_dfg.assign(rows_ * cols_, -1);
-  std::vector<int> freedom = InitialFreedomGrid();
-  std::vector<int> mutable_degree = degree_;
+  CPUMappingPlacementContext context = MakeCPUMappingContext();
 
   for (const auto& step : plan) {
-    const bool anchor_placed = state.dfg_to_cell[step.anchor] >= 0;
-    const bool target_placed = state.dfg_to_cell[step.target] >= 0;
+    const bool anchor_placed = context.state.dfg_to_cell[step.anchor] >= 0;
+    const bool target_placed = context.state.dfg_to_cell[step.target] >= 0;
     if (!anchor_placed && !target_placed) {
-      if (!PlaceCPUMappingInitialNode(step.anchor, state, freedom,
-                                      mutable_degree)) {
+      if (!PlaceCPUMappingInitialNode(step.anchor, context)) {
         return std::nullopt;
       }
-      if (IsCPUMappingYOTO()) {
-        DeferCPUMappingIfNearPlacementFails(PlaceCPUMappingNearNodeYOTO(
-            step.target, step.anchor, state, freedom, mutable_degree));
-      } else {
-        DeferCPUMappingIfNearPlacementFails(
-            PlaceCPUMappingNearNodeYOTT(step, state, freedom,
-                                        mutable_degree));
-      }
+      PlaceCPUMappingOrientedStep(step, context);
     } else if (anchor_placed && !target_placed) {
-      if (IsCPUMappingYOTO()) {
-        DeferCPUMappingIfNearPlacementFails(PlaceCPUMappingNearNodeYOTO(
-            step.target, step.anchor, state, freedom, mutable_degree));
-      } else {
-        DeferCPUMappingIfNearPlacementFails(
-            PlaceCPUMappingNearNodeYOTT(step, state, freedom,
-                                        mutable_degree));
-      }
+      PlaceCPUMappingOrientedStep(step, context);
     } else if (!anchor_placed && target_placed) {
       Step reversed = step;
       reversed.anchor = step.target;
       reversed.target = step.anchor;
-      if (IsCPUMappingYOTO()) {
-        DeferCPUMappingIfNearPlacementFails(
-            PlaceCPUMappingNearNodeYOTO(reversed.target, reversed.anchor,
-                                        state, freedom, mutable_degree));
-      } else {
-        DeferCPUMappingIfNearPlacementFails(
-            PlaceCPUMappingNearNodeYOTT(reversed, state, freedom,
-                                        mutable_degree));
-      }
+      PlaceCPUMappingOrientedStep(reversed, context);
     }
   }
 
   for (int node = 0; node < dfg_.GetNodeNum(); node++) {
-    if (!PlaceCPUMappingInitialNode(node, state, freedom, mutable_degree)) {
+    if (!PlaceCPUMappingInitialNode(node, context)) {
       return std::nullopt;
     }
   }
-  return state;
+  return context.state;
 }
 
 std::optional<PlacementState> Placement2DArrayEngine::ConstructCPUMappingPlacement() {

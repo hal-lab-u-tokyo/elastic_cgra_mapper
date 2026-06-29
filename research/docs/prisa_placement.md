@@ -1,4 +1,4 @@
-# PRISA Paper Comparison
+# PRISA Placement
 
 PRISA is implemented as a 2D placement mapper for spatial CGRAs, following "PRISA: A Potential Region-based Intelligent Search Algorithm for Dataflow Graph Mapping in Spatial CGRAs" (ACM TRETS 2025, DOI: 10.1145/3723045).
 

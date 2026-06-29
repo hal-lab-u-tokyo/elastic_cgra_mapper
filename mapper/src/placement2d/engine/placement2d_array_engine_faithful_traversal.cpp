@@ -2,6 +2,26 @@
 
 namespace mapper::detail::placement2d {
 
+// Faithful array YOTO/YOTT pipeline.
+//
+//   1. BuildFaithfulTraversalPlan()
+//      Build an edge-local traversal plan. YOTT additionally records soft
+//      annotations for I/O and reconvergent edges.
+//   2. ConstructFaithfulTraversalPlacement()
+//      Walk the plan. Place each target near its anchor.
+//   3. PlaceFaithfulStep()
+//      Generate closest legal cells, rank them, and place one node.
+//   4. RunFaithfulTraversalMultiStart()
+//      Repeat trials/seeds and keep the lowest PlacementCost().
+//
+// Ablation handles:
+//   - traversal roots/order: RawTraversalRoots(), BuildFaithfulTraversalPlan()
+//   - neighbor choice: ChooseFaithfulNeighbor()
+//   - YOTT annotations: BackpropagateFaithfulAnnotation()
+//   - candidate ranking: FaithfulTraversalRank()
+
+// Traversal roots, edge order, and YOTT annotations.
+
 bool Placement2DArrayEngine::IsOutputNode(int dfg_node) const {
   return dfg_.GetNodeProperty(dfg_node).op == entity::OpType::OUTPUT;
 }
@@ -302,6 +322,8 @@ std::vector<Step> Placement2DArrayEngine::BuildFaithfulTraversalPlan(bool annota
   return plan;
 }
 
+// Candidate generation and ranking for one edge-local placement step.
+
 int Placement2DArrayEngine::FaithfulCellFreedom(int cell, const PlacementState& state) const {
   int result = 0;
   for (int other = 0; other < rows_ * cols_; other++) {
@@ -459,6 +481,7 @@ std::vector<int> Placement2DArrayEngine::ClosestCompatibleCells(int dfg_node, in
 int Placement2DArrayEngine::ChooseFaithfulInitialCell(int dfg_node, PlacementState& state) {
   std::vector<int> candidates = CompatibleCells(dfg_node, state);
   if (candidates.empty()) return -1;
+  RecordPlacementSwapAttempts(static_cast<long long>(candidates.size()));
   std::shuffle(candidates.begin(), candidates.end(), rng_);
   std::sort(candidates.begin(), candidates.end(), [&](int a, int b) {
     const double sa = FaithfulInitialPlacementScore(dfg_node, a);
@@ -511,6 +534,7 @@ bool Placement2DArrayEngine::PlaceFaithfulStep(const Step& step, PlacementState&
     // and let a later edge or the final fill place this node.
     return true;
   }
+  RecordPlacementSwapAttempts(static_cast<long long>(candidates.size()));
   if (IsFaithfulArrayYOTO()) {
     std::sort(candidates.begin(), candidates.end());
   } else {
@@ -531,6 +555,8 @@ bool Placement2DArrayEngine::PlaceFaithfulStep(const Step& step, PlacementState&
   PlaceNode(step.target, scored.front().second, state);
   return true;
 }
+
+// Trial construction and multi-start search.
 
 std::optional<PlacementState> Placement2DArrayEngine::ConstructFaithfulTraversalPlacement() {
   const bool use_annotations = IsFaithfulArrayYOTT();

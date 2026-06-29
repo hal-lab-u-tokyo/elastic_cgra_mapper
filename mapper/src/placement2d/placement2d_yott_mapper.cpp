@@ -3,9 +3,23 @@
 #include <mapper/placement2d/placement2d_search_engine.hpp>
 #include <mapper/mapper_factory.hpp>
 
-// This file is the YOTT-facing mapper entry point. It registers the public
-// Algorithm.type names and forwards execution to either the shared placement
-// search engine or the direct-grid array engine.
+// YOTT mapper entry point.
+//
+// Read this file for Algorithm.type registration and top-level dispatch only.
+// The algorithm body lives in one of these engines:
+//
+//   Placement2DYOTT
+//     -> Placement2DSearchKind::kYOTT
+//     -> placement2d_search_engine.cpp
+//     -> mapper/src/common/search/
+//
+//   Placement2DFaithfulArrayYOTT
+//     -> Placement2DArrayKind::kFaithfulYOTT
+//     -> engine/placement2d_array_engine_faithful_traversal.cpp
+//
+//   Placement2DCPUMappingYOTT
+//     -> Placement2DArrayKind::kCPUMappingYOTT
+//     -> engine/placement2d_array_engine_cpu_mapping.cpp
 
 namespace {
 

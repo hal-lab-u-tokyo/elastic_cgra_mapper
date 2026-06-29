@@ -107,6 +107,11 @@ void Placement2DArrayEngine::Log(const std::string& message) const {
   if (ofs) ofs << "[" << MapperName() << "] " << message << "\n";
 }
 
+void Placement2DArrayEngine::RecordPlacementSwapAttempts(
+    long long count) const {
+  if (count > 0) placement_swap_attempts_ += count;
+}
+
 std::string Placement2DArrayEngine::NodeLabel(int node) const {
   if (node < 0 || node >= dfg_.GetNodeNum()) return std::to_string(node);
   const auto property = dfg_.GetNodeProperty(node);

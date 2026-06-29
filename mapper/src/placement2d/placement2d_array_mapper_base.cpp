@@ -2,6 +2,17 @@
 
 namespace mapper {
 
+// Thin frontend shared by direct-grid 2D placement mappers.
+//
+// Execution path:
+//   mapper-specific Algorithm.type
+//     -> Placement2DArrayMapperBase(kind)
+//     -> detail::RunPlacement2DArrayEngine(...)
+//     -> engine/placement2d_array_engine.cpp
+//
+// Add algorithm behavior in engine/*.cpp. Keep this file limited to forwarding
+// JSON-configurable mapper options.
+
 Placement2DArrayMapperBase::Placement2DArrayMapperBase(
     Placement2DArrayKind kind, const std::shared_ptr<entity::DFG> dfg_ptr,
     const std::shared_ptr<entity::MRRG> mrrg_ptr)

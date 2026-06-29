@@ -41,6 +41,8 @@ Placement2DArrayEngine::Placement2DArrayEngine(
 
 mapper::MappingResult Placement2DArrayEngine::Run() {
   const auto start = std::chrono::steady_clock::now();
+  placement_swap_attempts_ = 0;
+  cell_visits_ = 0;
   Log("start mapper=" + MapperName() + " nodes=" +
       std::to_string(dfg_.GetNodeNum()) + " cells=" +
       std::to_string(rows_ * cols_) + " max_trials=" +
@@ -81,7 +83,8 @@ mapper::MappingResult Placement2DArrayEngine::Run() {
   const double elapsed = SecondsSince(start);
   Log("success mapper=" + MapperName() + " time_s=" +
       std::to_string(elapsed) + " placement_cost=" +
-      std::to_string(PlacementCost(*placement)) + " cell_visits=" +
+      std::to_string(PlacementCost(*placement)) + " placement_swap_attempts=" +
+      std::to_string(placement_swap_attempts_) + " cell_visits=" +
       std::to_string(cell_visits_));
   return mapper::MappingResult(true, mapping, elapsed);
 }

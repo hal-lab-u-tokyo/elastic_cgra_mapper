@@ -1,6 +1,6 @@
 # Paper Reference Data
 
-Numeric values printed in papers. Plot-only figures are not digitized.
+Numeric values printed in papers are stored separately from values estimated from figures.
 
 ## YOTT
 
@@ -8,9 +8,6 @@ Numeric values printed in papers. Plot-only figures are not digitized.
 - `yott_table2_edge_categories.csv`: Table 2, average wire length by edge category.
 - `yott_table3_benchmarks.csv`: Table 3, benchmark graph sizes and edge-category percentages.
 - `yott_table4_multi_kernel.csv`: Table 4, multi-kernel runtime and FIFO values.
+- `yott_figure_paper_metrics.csv`: per-benchmark values from plot-only figures. The VPR-BB maximal FIFO values are corrected paper reference values.
 
-Use `research/scripts/compare_yoto_yott_paper_results.py` to compare these references with local result metrics.
-
-Benchmark-set alignment is tracked in:
-
-- `research/docs/yott_benchmark_set_audit.md`
+Benchmark details: `research/docs/yott_benchmarks.md`.
