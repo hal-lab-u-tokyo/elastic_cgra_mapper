@@ -1,6 +1,6 @@
 # Direct-Grid Placement Engine
 
-Direct-grid implementation for faithful array YOTO/YOTT, cpu_mapping YOTO/YOTT, array PRISA, and internal SA.
+Direct-grid implementation for paper-guided YOTO/YOTT, cpu_mapping YOTO/YOTT, array PRISA, and internal SA.
 
 ## Files
 
@@ -9,7 +9,7 @@ Direct-grid implementation for faithful array YOTO/YOTT, cpu_mapping YOTO/YOTT, 
 - `placement2d_array_engine_options.cpp`: config normalization, seeds, timeouts, and mapper names.
 - `placement2d_array_engine_cache.cpp`: DFG edges, grid cells, compatibility tables, I/O policy, and distance cache.
 - `placement2d_array_engine_quality.cpp`: placement cost, quality metrics, ranking helpers, and validity checks.
-- `placement2d_array_engine_faithful_traversal.cpp`: faithful array YOTO/YOTT traversal order, annotations, and candidate ranking.
+- `placement2d_array_engine_faithful_traversal.cpp`: paper-guided YOTO/YOTT traversal order, annotations, and candidate ranking.
 - `placement2d_array_engine_cpu_mapping.cpp`: cpu_mapping-style YOTO/YOTT port, type matrix, freedom grid, tips, and intersections.
 - `placement2d_array_engine_prisa.cpp`: PRISA SIS, PR/WR computation, move proposals, and refinement.
 - `placement2d_array_engine_sa.cpp`: internal SA placement baseline.
@@ -26,14 +26,14 @@ table of contents before following individual helper functions.
    - `BuildCompatibilityCache()`: legal cells for each DFG node.
    - `BuildPRISACache()`: PRISA resource order and distance/weak-region matrices.
 3. `Placement2DArrayEngine::Run()` dispatches by `Placement2DArrayKind`:
-   - faithful array YOTO/YOTT: `RunFaithfulTraversalMultiStart()`.
+   - paper-guided YOTO/YOTT: `RunFaithfulTraversalMultiStart()`.
    - cpu_mapping YOTO/YOTT: `RunCPUMappingMultiStart()`.
    - PRISA variants: `RunPRISAMultiSeed()`.
    - array SA: `RunSAMultiSeed()`.
 4. The selected engine runs one or more trials, keeps the best placement, and converts cell IDs back to MRRG node IDs.
 5. The returned mapping has empty edge routes. Routing validity is evaluated only by later analysis or modulo mappers.
 
-## Faithful Array YOTO/YOTT Flow
+## Paper-Guided YOTO/YOTT Flow
 
 1. `BuildFaithfulTraversalPlan(use_annotations)` creates a sequence of edge-local placement steps.
 2. YOTO calls it with `use_annotations=false`; YOTT calls it with `true`.
@@ -69,7 +69,7 @@ table of contents before following individual helper functions.
 
 | key | consumed by | effect |
 | --- | --- | --- |
-| `Algorithm.type` | mapper factory and frontend files | chooses generic search, faithful array, cpu_mapping, PRISA, ILP, or SA implementation |
+| `Algorithm.type` | mapper factory and frontend files | chooses generic search, paper-guided array, cpu_mapping, PRISA, ILP, or SA implementation |
 | `max_trials` | `MaxTrials()` and multi-start loops | number of independent placement attempts per seed |
 | `seed_count` | `SeedCount()` and multi-start loops | number of deterministic seed offsets |
 | `random_seed` | `SeedFor()` | base seed for traversal and candidate tie-breaking |

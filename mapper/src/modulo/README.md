@@ -9,7 +9,7 @@ ILP-backed modulo mappers live here when they model routed or context-aware modu
 
 Traversal-style mappers are split by interpretation:
 
-- `ModuloPhysicalYOTOMapper` / `ModuloPhysicalYOTTMapper`: first place operations on the 2D physical PE grid, then assign ASAP modulo contexts on those physical PEs, then validate routes. Use these to test paper-style placement transferred to modulo routing.
+- `ModuloPhysicalYOTOMapper` / `ModuloPhysicalYOTTMapper`: first place operations on the 2D physical PE grid, then assign ASAP modulo contexts on those physical PEs, then validate routes. Use these to test 2D placement ideas under modulo routing.
 - `ModuloYOTOMapper` / `ModuloYOTTMapper`: direct MRRG/context variants. They choose placement resources with contexts already included, then validate routes.
 - `ModuloYOTOWithFallbackMapper` / `ModuloYOTTWithFallbackMapper`: diagnostic hybrids that add routing-aware fallback placements. Do not include them in ordinary comparisons unless mixed strategies are the object of study.
 

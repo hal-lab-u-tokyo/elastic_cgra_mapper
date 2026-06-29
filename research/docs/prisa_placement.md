@@ -1,95 +1,61 @@
 # PRISA Placement
 
-PRISA is implemented as a 2D placement mapper for spatial CGRAs, following "PRISA: A Potential Region-based Intelligent Search Algorithm for Dataflow Graph Mapping in Spatial CGRAs" (ACM TRETS 2025, DOI: 10.1145/3723045).
+PRISA is available as a 2D placement mapper inspired by "PRISA: A Potential Region-based Intelligent Search Algorithm for Dataflow Graph Mapping in Spatial CGRAs" (ACM TRETS 2025, DOI: 10.1145/3723045).
 
-The paper does not describe a routing-feedback mapper. It explicitly uses placement first, then a simple Manhattan-style routing procedure, and leaves routing feedback as future work. In this repository, PRISA is therefore exposed as a `placement2d` mapper and should be evaluated with `evaluation_mode: "placement_only"` when comparing paper-style placement quality.
+This implementation is useful for comparison and ablation, but exact paper reproduction is not established. The paper leaves several implementation details open, and the available VPR-8 benchmark artifacts do not fully match the paper's packed-block granularity.
 
-Implemented variants:
+## Scope
 
-- `Placement2DArrayPRISAMapper`: primary PRISA with SIS low-bandwidth DFG labeling for paper-style comparisons.
-- `Placement2DArrayPRISANoSISMapper`: primary PRISA without SIS for paper-style comparisons.
-- `Placement2DPRISAMapper`: shared-engine PRISA with SIS, kept as a reference implementation.
-- `Placement2DPRISANoSISMapper`: shared-engine PRISA without SIS, kept as a reference implementation.
-- `Placement2DCostAwarePRISAMapper`: a comparison variant that keeps PRISA-SIS as the first stage, then switches to direct placement-quality refinement once WR is cleared. It is not the paper-faithful paper comparison.
+| item | status |
+| --- | --- |
+| problem | 2D placement |
+| routing | not part of the mapper; placement-only metrics are the primary comparison target |
+| modulo mapping | not a direct PRISA paper setting |
+| benchmark set | closest available VPR-8-like DOTs under `benchmark/literature/prisa_vpr8_normalized/vpr8/` |
 
-The implementation follows the paper's main structure:
+## Implemented Mappers
 
-- The resource distance matrix (`DM`) is split into potential and weak regions using the PRISA weak-region ratio. The implementation builds the actual resource-pair distance matrix and marks the heaviest distances as WR. For a K x K orthogonal mesh this matches Table 1's split, where `d >= K` belongs to WR.
-- The search is SA-like. Each move starts from a row or column with many non-zero adjacency entries in the weak region and swaps it toward a candidate resource from the potential region.
-- 2D resources are labeled with a serpentine low-bandwidth mesh order before constructing PRISA's SIS placement order. Physical distances still come from the actual resource coordinates in `DM`.
-- SIS starts from the farthest node from a highest-degree node, builds BFS-like DFG levels, and assigns labels level by level with low-degree-first ordering inside each level.
-- The default repository PRISA mapper omits `max_iterations`, so the implementation uses the paper-style `10 * |DFG nodes|` iteration budget. Probe configs can override this for convergence studies.
-- Start/end acceptance probabilities are `0.4`/`0.01` without SIS and `0.2`/`0.01` with SIS, matching the paper's stated setup.
-- Empty resources are included in the move search. Row-side versus column-side moves follow Algorithm 1's larger-weak-count rule, with the paper's column-side tie behavior. Candidate swaps are ranked first by how many weak-region edges they move into the potential region, then by potential-region pressure, local placement-cost delta, weak-edge delta, and distance.
-- The paper defines an optimal communication distance as mapped endpoints separated by exactly one physical hop count. Reports therefore use `placement_optimal_distance_ratio` as the primary optimal-distance metric.
+| mapper | role |
+| --- | --- |
+| `Placement2DArrayPRISAMapper` | PRISA-style placement with SIS |
+| `Placement2DArrayPRISANoSISMapper` | PRISA-style placement without SIS |
+| `Placement2DPRISAMapper` | shared-engine reference with SIS |
+| `Placement2DPRISANoSISMapper` | shared-engine reference without SIS |
+| `Placement2DCostAwarePRISAMapper` | derived variant that adds direct placement-quality refinement |
 
-Paper comparison setup:
+The cost-aware mapper is an experimental variant. Do not use it as the paper PRISA implementation.
 
-- The paper reports a CGRA-ME set and a VPR-8 set. The VPR-8 table compares VPR BB, VPR fast, YOTO, YOTT, Depth, PRISA without SIS, and PRISA with SIS.
-- The VPR-8 benchmark names are `Motion-vec`, `Fir1`, `Fir2`, `K4n4op`, `H2v2-smo`, `Fir16`, `Cosine2`, `Interpolate`, `W-bmp-head`, `Diffeq2`, `Boundtop`, `Mksmadapter`, `Invert-matrix`, and `Blob-merge`.
-- The paper's average compilation time order is: PRISA with SIS fastest, then YOTO, Depth, YOTT, VPR fast/PRISA without SIS, and VPR BB slowest. PRISA without SIS is not the fastest; SIS is the key reason PRISA overtakes traversal baselines.
-- The paper states that 1,000 random instances are used for the graph-traversal baselines. The PRISA VPR-8 manifest therefore compares against the 1000-trial configs for both YOTO and YOTT.
-- Generic array fast-path YOTO/YOTT mappers are not used in PRISA comparison manifests. They are kept for TRAVERSAL/YOTT implementation studies. PRISA comparisons instead use `Placement2DCPUMappingYOTO/YOTT`, which are direct 2D-grid local-neighborhood mappers intended to match the public `cpu_mapping` placement kernel more closely for runtime comparison.
-- This repository has a mixed VPR-8 table set in `benchmark/literature/prisa_vpr8_normalized/vpr8`. Use `research/configs/experiments/placement2d/paper_comparison/prisa_vpr8.json` for the closest PRISA VPR-8 comparison currently available. This manifest uses the array PRISA implementation as the primary PRISA. Use `research/configs/experiments/placement2d/probes/prisa_vpr8_derived.json` for shared-engine reference checks and derived cost-aware variants.
-- The operation-DFG entries `motion_vec`, `fir1`, `fir2`, `k4n4op`, `h2v2_smo`, `fir16`, `cosine2`, `interpolate`, `w_bmp_head`, and `invert_matrix` are imported from the local `cpu_mapping` checkout or the UCSB EXPRESS benchmark page. They are compatible or near-compatible with the PRISA table size.
-- `diffeq2`, `boundtop`, `mksmadapter`, and `blob_merge` were regenerated from local VTR Verilog by running ODIN/ABC/VPR and converting the packed `.net` files. `blob_merge` is near the paper count (`839` versus `841` nodes), but `diffeq2`, `boundtop`, and `mksmadapter` remain at a different granularity (`245`, `399`, and `517` nodes versus paper counts `121`, `144`, and `256`).
-- The main cause is the benchmark extraction path, not the PRISA mapper. The PRISA paper says it reports VPR packed blocks, but the specific BLIF/DFG artifacts used by the paper are not available here. Regenerating from current VTR Verilog expands bit-level I/O, FFs, constants, memories, and K-LUT packing differently. For example, local `diffeq2.v` gives 83 `clb` blocks and 162 bit-level `io` blocks. Grouping vector I/O and counting FFs separately gives an estimate close to the paper (`83 + 7 + 32 = 122`), but the same rule does not exactly recover `boundtop` or `mksmadapter`.
+## Main Ideas
 
-Public implementation search:
+- Build a resource distance matrix (`DM`) on the 2D mesh.
+- Split resource pairs into potential and weak regions.
+- Use SIS to create an initial low-bandwidth DFG labeling.
+- Propose swaps that reduce weak-region adjacency.
+- Report placement-only metrics such as optimal distance, FIFO proxy, mapped LP, and runtime.
 
-- Searched by paper title, DOI `10.1145/3723045`, author names, "Potential Region Intelligent Searching Algorithm", and "Low Bandwidth DFG Labeling".
-- No public PRISA source repository was found, so this is an in-repository implementation from the paper text and pseudocode.
+Some tie-breaks and candidate choices are under-specified in the paper. The current implementation documents those choices in `mapper/src/placement2d/engine/placement2d_array_engine_prisa.cpp`.
 
-Current paper comparison check:
+## Run
 
-- `research/results/placement2d/prisa_vpr8/20260614-232232_array_primary_exact_optimal` is the current paper-style VPR-8 comparison. It uses array PRISA as the primary PRISA implementation and reports the paper-definition optimal-distance ratio.
-- In that run, PRISA-SIS averages optimal-distance ratio `0.796`, FIFO average `0.373`, max FIFO `4.4`, mapped LP `19.2`, average mesh hop `1.373`, and mapping time `0.438 s`.
-- The same run gives YOTO-1000 optimal-distance ratio `0.784`, max FIFO `4.8`, mapped LP `20.8`, average mesh hop `1.448`, and mapping time `0.315 s`; YOTT-1000 gives optimal-distance ratio `0.820`, max FIFO `5.0`, mapped LP `19.5`, average mesh hop `1.424`, and mapping time `0.307 s`.
-- Compared with the shared-engine PRISA result, array PRISA is closer to the paper timing model and is better on optimal distance, FIFO average, and average mesh hop. It now beats YOTO-1000 on optimal distance and distance/FIFO/LP quality, but YOTT-1000 still has the highest optimal-distance ratio on this partial normalized VPR-8 subset.
-- `research/results/placement2d/prisa_vpr8/20260615-005912_prisa_vpr8_full14_vpr_fixed_check` extends the comparison to all 14 VPR-8 names by adding the generated VTR entries and runs all six configured mappers successfully. On this mixed set, PRISA-SIS averages optimal-distance ratio `0.712`, average mesh hop `1.786`, FIFO average `0.786`, mapped LP `17.615`, and mapping time `2.445 s`. YOTO-1000 averages `0.677`, `1.978`, `0.978`, `18.308`, and `4.320 s`; YOTT-1000 averages `0.705`, `1.958`, `0.958`, `17.077`, and `4.337 s`. VPR SA averages `0.498`, `3.172`, `2.230`, `22.923`, and `0.298 s`. This mixed-set result matches the paper's main timing and optimal-distance direction between PRISA and traversal baselines, but it must be interpreted with the generated-entry granularity caveat above.
-- `research/results/placement2d/prisa_vpr8/20260614-225807_paper_metric_compare` runs the closest available paper-style VPR-8 comparison: 10 compatible VPR-8 DFGs, minimum square grids, all-PE I/O, placement-only evaluation, VPR fast/SA, cpu_mapping-style YOTO/YOTT with 1000 trials, PRISA without SIS, and PRISA with SIS.
-- In that run, PRISA-SIS averages optimal-edge ratio `0.772`, FIFO average `0.401`, max FIFO `4.1`, mapped LP `18.3`, average mesh hop `1.401`, and mapping time `0.721 s`.
-- The same run gives YOTO-1000 optimal-edge ratio `0.784`, mesh max FIFO `4.8`, mapped LP `20.8`, average mesh hop `1.448`, and mapping time `0.310 s`; YOTT-1000 gives optimal-edge ratio `0.820`, mesh max FIFO `5.0`, mapped LP `19.5`, average mesh hop `1.424`, and mapping time `0.313 s`.
-- This matches the PRISA paper trend on FIFO distance, mapped LP, and average mesh hop, where PRISA-SIS is best among the paper-style in-repository mappers. It does not match the paper's PRISA-is-fastest timing order or the highest one-hop optimal-edge ratio on this partial normalized VPR-8 subset.
-- `research/results/placement2d/prisa_vpr8_derived/20260614-230147_paper_metric_derived_compare` repeats the same VPR-8 subset with array fast-path and cost-aware PRISA variants. `array_prisa` averages mapping time `0.461 s`, optimal-edge ratio `0.796`, FIFO average `0.373`, max FIFO `4.4`, mapped LP `19.2`, and average mesh hop `1.373`. This shows that implementation overhead explains part of the timing gap, while objective mismatch still explains the remaining optimal-edge gap to YOTT-1000.
-- `research/results/placement2d/prisa_vpr8/20260614-000936_cpu_mapping_yoto_yott_check` completes all 10 available VPR-8 cases with the PRISA mapper, VPR baselines, and the new cpu_mapping-style YOTO/YOTT 1000-trial mappers.
-- The cpu_mapping-style YOTO mapper averages `0.310 s`, optimal-edge ratio `0.784`, average mesh hop `1.448`, mesh max FIFO `4.8`, and mapped LP `20.8`.
-- The cpu_mapping-style YOTT mapper averages `0.301 s`, optimal-edge ratio `0.820`, average mesh hop `1.424`, mesh max FIFO `5.0`, and mapped LP `19.5`.
-- In the same paper-style manifest, PRISA-SIS uses the paper default `10 * |DFG nodes|` iteration budget and averages `0.051 s`, optimal-edge ratio `0.374`, average mesh hop `2.388`, mesh max FIFO `6.3`, and mapped LP `30.7`.
-- `research/results/placement2d/prisa_vpr8/20260614-031615_prisa_trend_final_compare` runs the cost-aware PRISA variant with 512 sampled swap candidates, 1000 iterations, and 2 seeds. It averages `0.947 s`, optimal-edge ratio `0.792`, average mesh hop `1.495`, mesh max FIFO `3.8`, and mapped LP `17.7`.
-- `research/results/placement2d/prisa_vpr8/20260614-153334_array_cost_aware_2seed_check` runs the 2D-array cost-aware PRISA variant with the same 2-seed setup. It averages `0.361 s`, optimal-edge ratio `0.784`, average mesh hop `1.479`, mesh max FIFO `3.6`, and mapped LP `18.0`.
-- This confirms the diagnosis that PRISA's WR-only objective is a major quality bottleneck on the available normalized DOTs. Direct mesh-hop/LP/FIFO refinement fixes most of the gap to VPR and the traversal baselines, but this derived mapper is still not a paper-faithful PRISA paper comparison.
-- A convergence probe at `research/results/placement2d/prisa_iter_probe/20260613-234922_prisa_dm_cost_tiebreak_probe` uses `100000` PRISA iterations. There PRISA-SIS averages `0.882 s`, optimal-edge ratio `0.780`, average mesh hop `1.407`, mesh max FIFO `4.5`, and mapped LP `19.5`.
-- The runtime mismatch for YOTO/YOTT is largely resolved by the cpu_mapping-style direct-grid mappers: the old shared-engine 1000-trial YOTO/YOTT baselines took tens of seconds, while the new comparison mappers are sub-second on the available VPR-8 set.
-- The quality trend is still split. With the paper default PRISA iteration budget, PRISA is faster but lower quality. With more PRISA iterations, PRISA reaches comparable LP/FIFO quality, but its optimal-edge ratio remains below the cpu_mapping-style YOTO/YOTT baselines on this partial normalized VPR-8 subset.
-- `research/results/placement2d/prisa_algorithm_diagnosis/20260614-224150_yoto_yott_trial_sweep` sweeps YOTO/YOTT trial counts on the same available VPR-8 set. YOTT improves from `0.728` optimal-edge ratio at 1 trial to `0.820` at 1000 trials, while average mesh hop improves from `1.786` to `1.424`. YOTO similarly improves from `0.702` to `0.784`. This confirms that the 1000-trial traversal baselines are not a single deterministic construction; they are multi-start searches that select the minimum edge-cost placement.
-- In the same sweep, `array_cost_aware_prisa` averages `0.806` optimal-edge ratio, `1.593` average mesh hop, max FIFO `5.0`, and mapped LP `19.9`. It is better than YOTO-1000 on optimal-edge ratio and LP, and it matches YOTT-1000 on max FIFO, but YOTT-1000 is still better on optimal-edge ratio and average mesh hop on the full 10-benchmark subset.
-- On the larger available graphs with at least 60 DFG nodes, `array_cost_aware_prisa` averages `0.778` optimal-edge ratio, max FIFO `5.86`, and mapped LP `24.14`, while YOTT-1000 averages `0.775`, max FIFO `6.71`, and mapped LP `24.00`. The PRISA-like trend is therefore much clearer on larger/routing-stress graphs; small local graphs let YOTO/YOTT reach near-perfect one-hop placements.
-- Metrics validation and routing validation pass. Routing validation skips these rows because the manifest is explicitly placement-only.
+```bash
+python3 research/scripts/run_suite.py \
+  --manifest research/configs/experiments/placement2d/paper_comparison/prisa_vpr8.json
+```
 
-Cause analysis:
+## Metrics
 
-- The first major mismatch was SIS tie-breaking. An earlier implementation randomized nodes inside each BFS level, but the paper text describes level-by-level labeling for low bandwidth rather than random level-local permutations. The current implementation uses deterministic low-degree-first ordering inside each level.
-- The second mismatch was PR/WR definition. An earlier approximation used a linear resource-order gap, which gave stronger local results but did not follow the paper's `DM` definition. The current implementation uses actual resource-pair distances, selecting the heaviest `DM` entries as WR according to the paper's weak-region ratio.
-- The third mismatch was resource label order. Pure row-major resource labels introduce long jumps at row boundaries, which weakens the low-bandwidth SIS assumption. PRISA now uses a serpentine resource order while still evaluating physical distance through `DM`.
-- The fourth mismatch was the move interpretation. A literal implementation of Algorithm 1's under-specified `m2 <- min(Row_AMP in PR)` step produced poor swaps on sparse converted DOTs. The strict probe at `research/results/placement2d/prisa_iter_probe/20260613-234312_prisa_dm_strict_algorithm1_probe` averaged only `0.210` optimal-edge ratio, `3.825` average mesh hop, `9.2` mesh max FIFO, and mapped LP `45.5`. This shows that the missing tie-break/candidate rule is the main reason the earlier strict paper comparison looked unlike the paper.
-- The current move keeps PR/WR improvement as the primary rule and uses local cost, weak-edge delta, and distance only to break ambiguous candidates. This fixes the pathological strict behavior without falling back to an unrelated placement method.
-- The fifth mismatch was implementation overhead. The PRISA move originally rebuilt a dense `resource_count^2` placed-adjacency matrix every iteration. The current sparse weak-edge list keeps the same move semantics while avoiding that rebuild.
-- The paper-style `10 * |DFG nodes|` iteration budget is not enough in this implementation on the normalized VPR-8 DOTs. The previous no-override PRISA-SIS probe averaged optimal-edge ratio `0.337` and mapped LP `35.6`, while the 20000-iteration probe improved the result substantially. Keep the paper-style config for paper comparison and use explicit probe configs when studying convergence.
-- Increasing DM-based PRISA-SIS to `100000` iterations continues to improve quality, which shows the implementation is not fundamentally blocked; it is partly a convergence-speed and missing-candidate-specification issue.
-- The immediate reason for low paper-default quality is that the PRISA weak-region criterion saturates too early on the available normalized DOTs. In many runs the SIS initial placement already has zero or very few weak-region edges, while the mesh-hop cost is still far from the traversal/VPR baselines. After that point Algorithm 1 falls back to random exchanges, so `10 * |DFG nodes|` iterations mostly perform ordinary SA refinement from a mediocre placement.
-- Two probes confirmed this. Replacing the distance-threshold WR with the paper Figure 5 diagonal-band WR reduced average optimal-edge ratio from `0.374` to `0.343`; additionally using Algorithm 2-style random assignment inside SIS levels reduced it to `0.329`. The issue is therefore not only a row-major/serpentine or deterministic/random labeling choice.
-- The practical mismatch is that PRISA's potential region is a coarse proxy for placement quality: it can treat edges with several mesh hops as acceptable potential-region edges, while this repository's quality metrics and the paper's Figure 9 require a high fraction of one-hop optimal distances. The local result needs many more cost-improving swaps before matching that metric.
-- The algorithmic mismatch against YOTO/YOTT is not a random-seed issue. The public `cpu_mapping` YOTO/YOTT code constructs many traversal placements and chooses the trial with the smallest sum of edge costs. That selection objective is directly aligned with average mesh hop and indirectly with one-hop optimal-edge ratio. PRISA's paper objective instead first reduces weak-region entries in the placed adjacency matrix. On this available normalized set, 6 of 10 `array_cost_aware_prisa` runs already start with `initial_weak_edges=0`, so the original PRISA objective is saturated before the placement is actually good under mesh-hop/LP/FIFO metrics.
-- This explains the split trend: PRISA-style SIS and potential-region guidance help reduce large-distance outliers, so max FIFO and mapped LP are often better than traversal baselines. YOTO/YOTT, especially with 1000 trials, more directly minimize local edge distance, so they can beat PRISA on one-hop optimal-edge ratio for small/local DFGs.
-- The cost-aware PRISA variant validates this cause. The first full-pair refinement probe improved the VPR-8 subset from PRISA-SIS `0.374` to `0.740` optimal-edge ratio, `2.388` to `1.472` average mesh hop, `6.3` to `3.4` mesh max FIFO, and `30.7` to `17.0` mapped LP, but averaged `114.5 s`. The current local-delta version applies WR and placement-quality scoring from the start, fully reevaluates only the top sampled swaps, then runs a constrained direct-edge polish that must preserve max FIFO and mapped LP.
-- The first array cost-aware probe only used mesh-hop/LP/FIFO information as a candidate tie-break, while the simulated-annealing acceptance and multi-seed winner selection still used plain placement cost. That made the mapper faster but pulled it away from the paper metrics. The current array version uses the same composite acceptance score as the shared cost-aware mapper and samples swap candidates around the longest current edges, which recovers the FIFO/LP trend at much lower runtime.
-- With 2 seeds and 1000 iterations, cost-aware PRISA gives the clearest reported FIFO/LP trend on the available VPR-8 subset: it has better max FIFO (`3.8`) and mapped LP (`17.7`) than YOTO (`4.8`, `20.8`), YOTT (`5.0`, `19.5`), VPR SA (`5.1`, `20.2`), and PRISA without SIS (`7.3`, `41.7`). It also beats YOTO on optimal-edge ratio (`0.792` vs `0.784`), but YOTT still has better optimal-edge ratio and average mesh hop (`0.820`, `1.424`).
-- The array cost-aware version gives nearly the same trend with lower runtime: max FIFO `3.6` and mapped LP `18.0`, while matching YOTO's optimal-edge ratio and running close to the cpu_mapping-style YOTO/YOTT baselines.
-- A 4-seed probe further improves max FIFO and LP (`3.3`, `17.1`) but costs about `1.90 s` on average. The default cost-aware config therefore uses 2 seeds as the current quality/runtime balance.
-- The closest exact-granularity VPR-8 subset is still partial. Eight entries match the paper node count exactly, `k4n4op` and `h2v2_smo` are close, `blob_merge` is generated but close, and `diffeq2`, `boundtop`, and `mksmadapter` are generated at a different granularity.
-- Several normalized benchmarks do not exactly match the paper table: `k4n4op` has 62 nodes here versus 59 in the paper, `h2v2_smo` has 64 nodes here versus 62, and `cosine2` has a shorter extracted DFG LP than the paper table.
-- Locally available VTR artifacts are FPGA/netlist-level Verilog/BLIF files, not the exact compact operation/packed-block DFG artifacts used by the PRISA paper. Directly importing them changes node count, graph structure, and sometimes VPR baseline behavior.
-- The VPR baseline generator decomposes DOT nodes with more than six fanins into K6 LUT trees before calling VPR. This keeps the baseline runnable on generated VTR-derived DOTs, but it also means VPR's temporary packing graph is not identical to the PRISA paper's original packed-block DFG.
-- The previous local YOTO/YOTT 1000-start shared-engine baselines were not time-comparable to the paper's reported YOTO/YOTT implementation: they ran for tens of seconds on `invert_matrix`, while the paper reports millisecond-scale averages. PRISA comparison manifests now use the cpu_mapping-style direct-grid mappers instead.
-- Exact paper-level comparison still needs the same packed DFGs, operation set, I/O treatment, and baseline implementations used by PRISA. The current repository now matchs the main qualitative PRISA SIS/FIFO/LP trend on the available set, while preserving the paper-faithful PRISA implementation separately from the cost-aware derived mapper.
+| paper item | repository metric |
+| --- | --- |
+| compilation time | `mapping_time_sec` |
+| maximal FIFO | `placement_max_fifo` or `placement_max_cost`, depending on cost model |
+| mapped LP | `placement_mapped_lp_mesh_hop` |
+| optimal distance | `placement_optimal_distance_ratio` |
+
+## Known Gaps
+
+- Several VPR-8 entries have different node counts from the paper.
+- The exact BLIF/DFG extraction path used by the paper is not available in this repository.
+- The exact VPR baseline commands used by the paper are not fully specified.
+- The current PRISA implementation should be treated as a paper-guided implementation, not a verified reproduction.
+
+Benchmark notes: `benchmark/literature/prisa_vpr8_normalized/README.md`.

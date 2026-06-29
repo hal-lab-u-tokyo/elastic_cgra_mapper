@@ -26,14 +26,14 @@ Mapper frontends for 2D placement. One physical PE is one placement slot, so exp
 | --- | --- | --- | --- |
 | `Placement2DYOTOMapper` | `placement2d_yoto_mapper.cpp` | `../common/search/` via `placement2d_search_engine.cpp` | legacy MRRG-facing YOTO experiments |
 | `Placement2DYOTTMapper` | `placement2d_yott_mapper.cpp` | `../common/search/` via `placement2d_search_engine.cpp` | legacy MRRG-facing YOTT experiments |
-| `Placement2DFaithfulArrayYOTOMapper` | `placement2d_yoto_mapper.cpp` | `engine/placement2d_array_engine_faithful_traversal.cpp` | paper-aligned traversal with direct-grid data structures |
-| `Placement2DFaithfulArrayYOTTMapper` | `placement2d_yott_mapper.cpp` | `engine/placement2d_array_engine_faithful_traversal.cpp` | faithful array YOTO plus YOTT annotations/ranking |
+| `Placement2DFaithfulArrayYOTOMapper` | `placement2d_yoto_mapper.cpp` | `engine/placement2d_array_engine_faithful_traversal.cpp` | paper-guided traversal variant with direct-grid data structures |
+| `Placement2DFaithfulArrayYOTTMapper` | `placement2d_yott_mapper.cpp` | `engine/placement2d_array_engine_faithful_traversal.cpp` | paper-guided traversal variant with YOTT annotations/ranking |
 | `Placement2DCPUMappingYOTOMapper` | `placement2d_yoto_mapper.cpp` | `engine/placement2d_array_engine_cpu_mapping.cpp` | public `cpu_mapping`-style YOTO port |
 | `Placement2DCPUMappingYOTTMapper` | `placement2d_yott_mapper.cpp` | `engine/placement2d_array_engine_cpu_mapping.cpp` | public `cpu_mapping`-style YOTT port |
 
 ## Implementation Areas
 
-- `engine/`: direct 2D-grid implementation used by faithful array YOTO/YOTT, cpu_mapping YOTO/YOTT, array PRISA, and internal SA.
+- `engine/`: direct 2D-grid implementation used by paper-guided YOTO/YOTT, cpu_mapping YOTO/YOTT, array PRISA, and internal SA.
 - `../common/search/`: generic placement/search implementation used by MRRG-facing 2D and modulo mappers.
 
 ## Reading Path
@@ -47,7 +47,7 @@ Mapper frontends for 2D placement. One physical PE is one placement slot, so exp
 ## YOTO/YOTT Placement
 
 - YOTT mapper configs: `research/configs/mapper/placement2d/paper_comparison/`.
-- Faithful array traversal: `engine/placement2d_array_engine_faithful_traversal.cpp`.
+- Paper-guided array traversal: `engine/placement2d_array_engine_faithful_traversal.cpp`.
 - cpu_mapping-compatible traversal: `engine/placement2d_array_engine_cpu_mapping.cpp`.
 - Direct-grid objective and metrics: `engine/placement2d_array_engine_quality.cpp`.
 - DFG/grid compatibility, I/O policy, and distance cache: `engine/placement2d_array_engine_cache.cpp`.

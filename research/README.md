@@ -43,9 +43,9 @@ python3 research/scripts/generate_reports.py \
 | Modulo comparison with ILP and VPR | `configs/experiments/modulo/all_mappers.json` |
 | 2D placement search | `configs/experiments/placement2d/search.json` |
 | 2D placement comparison with ILP | `configs/experiments/placement2d/all_mappers.json` |
-| TRAVERSAL/YOTT paper comparison | `configs/experiments/placement2d/paper_comparison/traversal_yott.json` |
+| TRAVERSAL/YOTT metric comparison | `configs/experiments/placement2d/paper_comparison/traversal_yott.json` |
 | YOTT 2021 paper benchmark comparison | `configs/experiments/placement2d/paper_comparison/yott_cases2021.json` |
-| PRISA paper comparison | `configs/experiments/placement2d/paper_comparison/prisa_vpr8.json` |
+| PRISA metric comparison | `configs/experiments/placement2d/paper_comparison/prisa_vpr8.json` |
 
 Manifest schema: `configs/experiments/README.md`.
 
@@ -57,7 +57,7 @@ Manifest schema: `configs/experiments/README.md`.
 | `configs/mapper/` | mapper JSON presets |
 | `configs/experiments/` | experiment manifests grouped by problem setting |
 | `scripts/` | runners, normalization, reporting, and validation |
-| `docs/` | metric definitions, paper comparison notes, and extension guides |
+| `docs/` | metric definitions, literature notes, and extension guides |
 | `results/` | generated outputs ignored by git |
 
 ## Adding a Mapper
