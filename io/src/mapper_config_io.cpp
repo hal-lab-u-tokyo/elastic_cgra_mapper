@@ -44,15 +44,53 @@ entity::MapperConfig io::ReadMapperConfigFromJsonFile(std::string file_name) {
           algorithm_config_ptree.get_optional<int>("max_iterations")) {
     mapper_config.algorithm_config.max_iterations = max_iterations.get();
   }
-  if (auto cpu_mapping_bug_compatible_degree =
-          algorithm_config_ptree.get_optional<bool>(
-              "cpu_mapping_bug_compatible_degree")) {
-    mapper_config.algorithm_config.cpu_mapping_bug_compatible_degree =
-        cpu_mapping_bug_compatible_degree.get();
+  if (auto elite_placement_count =
+          algorithm_config_ptree.get_optional<int>("elite_placement_count")) {
+    mapper_config.algorithm_config.elite_placement_count =
+        elite_placement_count.get();
   }
   if (auto io_node_policy =
           algorithm_config_ptree.get_optional<std::string>("io_node_policy")) {
     mapper_config.algorithm_config.io_node_policy = io_node_policy.get();
+  }
+  if (auto trial_seed_policy =
+          algorithm_config_ptree.get_optional<std::string>(
+              "trial_seed_policy")) {
+    mapper_config.algorithm_config.trial_seed_policy =
+        trial_seed_policy.get();
+  }
+  if (auto traversal_order_policy =
+          algorithm_config_ptree.get_optional<std::string>(
+              "traversal_order_policy")) {
+    mapper_config.algorithm_config.traversal_order_policy =
+        traversal_order_policy.get();
+  }
+  if (auto traversal_neighbor_policy =
+          algorithm_config_ptree.get_optional<std::string>(
+              "traversal_neighbor_policy")) {
+    mapper_config.algorithm_config.traversal_neighbor_policy =
+        traversal_neighbor_policy.get();
+  }
+  if (auto candidate_scope_policy =
+          algorithm_config_ptree.get_optional<std::string>(
+              "candidate_scope_policy")) {
+    mapper_config.algorithm_config.candidate_scope_policy =
+        candidate_scope_policy.get();
+  }
+  if (auto candidate_rank_policy =
+          algorithm_config_ptree.get_optional<std::string>(
+              "candidate_rank_policy")) {
+    mapper_config.algorithm_config.candidate_rank_policy =
+        candidate_rank_policy.get();
+  }
+  if (auto use_yott_annotations =
+          algorithm_config_ptree.get_optional<bool>("use_yott_annotations")) {
+    mapper_config.algorithm_config.use_yott_annotations =
+        use_yott_annotations.get();
+  }
+  if (auto trace_trials =
+          algorithm_config_ptree.get_optional<bool>("trace_trials")) {
+    mapper_config.algorithm_config.trace_trials = trace_trials.get();
   }
 
   return mapper_config;
@@ -93,15 +131,49 @@ void io::WriteMapperConfigToJsonFile(
         "max_iterations",
         mapper_config.algorithm_config.max_iterations.value());
   }
-  if (mapper_config.algorithm_config.cpu_mapping_bug_compatible_degree.has_value()) {
+  if (mapper_config.algorithm_config.elite_placement_count.has_value()) {
     algorithm_config_ptree.put(
-        "cpu_mapping_bug_compatible_degree",
-        mapper_config.algorithm_config.cpu_mapping_bug_compatible_degree.value());
+        "elite_placement_count",
+        mapper_config.algorithm_config.elite_placement_count.value());
   }
   if (mapper_config.algorithm_config.io_node_policy.has_value()) {
     algorithm_config_ptree.put(
         "io_node_policy",
         mapper_config.algorithm_config.io_node_policy.value());
+  }
+  if (mapper_config.algorithm_config.trial_seed_policy.has_value()) {
+    algorithm_config_ptree.put(
+        "trial_seed_policy",
+        mapper_config.algorithm_config.trial_seed_policy.value());
+  }
+  if (mapper_config.algorithm_config.traversal_order_policy.has_value()) {
+    algorithm_config_ptree.put(
+        "traversal_order_policy",
+        mapper_config.algorithm_config.traversal_order_policy.value());
+  }
+  if (mapper_config.algorithm_config.traversal_neighbor_policy.has_value()) {
+    algorithm_config_ptree.put(
+        "traversal_neighbor_policy",
+        mapper_config.algorithm_config.traversal_neighbor_policy.value());
+  }
+  if (mapper_config.algorithm_config.candidate_scope_policy.has_value()) {
+    algorithm_config_ptree.put(
+        "candidate_scope_policy",
+        mapper_config.algorithm_config.candidate_scope_policy.value());
+  }
+  if (mapper_config.algorithm_config.candidate_rank_policy.has_value()) {
+    algorithm_config_ptree.put(
+        "candidate_rank_policy",
+        mapper_config.algorithm_config.candidate_rank_policy.value());
+  }
+  if (mapper_config.algorithm_config.use_yott_annotations.has_value()) {
+    algorithm_config_ptree.put(
+        "use_yott_annotations",
+        mapper_config.algorithm_config.use_yott_annotations.value());
+  }
+  if (mapper_config.algorithm_config.trace_trials.has_value()) {
+    algorithm_config_ptree.put(
+        "trace_trials", mapper_config.algorithm_config.trace_trials.value());
   }
   ptree.add_child("Algorithm", algorithm_config_ptree);
   ptree.add_child("DFG", dfg_config_ptree);

@@ -636,7 +636,7 @@ def write_manifest(
         "mappers": [
             {
                 "name": "full_routing_ilp",
-                "mapper_config": str(repo_root_for_manifest / "research/configs/mapper/modulo/full_routing_ilp_mapper.json"),
+                "mapper_config": str(repo_root_for_manifest / "research/configs/mapper/modulo/full_routing_ilp.json"),
             }
         ],
         "timeout_sec": 3,

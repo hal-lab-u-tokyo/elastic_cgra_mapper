@@ -1,6 +1,6 @@
 # Modulo Experiment Manifests
 
-Use `search.json` while designing modulo mapping algorithms. It compares:
+Use `compare.json` while designing modulo mapping algorithms. It compares:
 
 - placement-first methods crossed with CGRA BFS routing retry policies
 - routing-aware placement methods
@@ -13,7 +13,7 @@ YOTO/YOTT entries are intentionally split:
 
 `modulo_prisa_physical_context` adapts PRISA to modulo mapping as 2D physical placement, ASAP context assignment, and the same CGRA BFS routing used for YOTO/YOTT. `modulo_prisa_physical_context__manhattan`, available in broader reference manifests, mirrors PRISA's placement-then-Manhattan-routing assumption, but it is not a literal PRISA paper setting because the PRISA paper does not solve modulo scheduling.
 
-Use `all_mappers.json` for broader reference runs. It adds ILP and VPR full-route baselines, so it is slower.
+Use `with_ilp.json` for broader runs. It adds ILP and VPR full-route baselines, so it is slower.
 
 ## Mapper Groups
 
@@ -24,7 +24,7 @@ Use `all_mappers.json` for broader reference runs. It adds ILP and VPR full-rout
   "placements": [
     {
       "name": "modulo_yoto_physical_context",
-      "mapper_config": ".../modulo_physical_yoto_mapper.json",
+      "mapper_config": "research/configs/mapper/modulo/physical_yoto.json",
       "placement_method": "yoto_physical_context"
     }
   ],

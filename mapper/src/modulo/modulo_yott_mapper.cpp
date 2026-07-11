@@ -1,26 +1,6 @@
 #include <mapper/modulo/modulo_yott_mapper.hpp>
 
 #include <mapper/modulo/modulo_search_engine.hpp>
-#include <mapper/mapper_factory.hpp>
-
-namespace {
-
-const bool kModuloYOTTMapperRegistered =
-    mapper::RegisterMapperType<mapper::ModuloYOTTMapper>("ModuloYOTTMapper");
-const bool kModuloYOTTShortNameRegistered =
-    mapper::RegisterMapperType<mapper::ModuloYOTTMapper>("ModuloYOTT");
-const bool kModuloPhysicalYOTTMapperRegistered =
-    mapper::RegisterMapperType<mapper::ModuloPhysicalYOTTMapper>(
-        "ModuloPhysicalYOTTMapper");
-const bool kModuloPhysicalYOTTShortNameRegistered =
-    mapper::RegisterMapperType<mapper::ModuloPhysicalYOTTMapper>(
-        "ModuloPhysicalYOTT");
-const bool kLegacyYOTTMapperRegistered =
-    mapper::RegisterMapperType<mapper::ModuloYOTTMapper>("YOTTMapper");
-const bool kLegacyYOTTShortNameRegistered =
-    mapper::RegisterMapperType<mapper::ModuloYOTTMapper>("YOTT");
-
-}  // namespace
 
 namespace mapper {
 

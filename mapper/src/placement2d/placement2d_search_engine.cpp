@@ -27,8 +27,7 @@ PlacementSearchKind ToCommonSearchKind(Placement2DSearchKind search_kind) {
 MappingResult RunPlacement2DSearchMapper(
     const std::shared_ptr<entity::DFG>& dfg_ptr,
     const std::shared_ptr<entity::MRRG>& mrrg_ptr,
-    Placement2DSearchKind search_kind,
-    const std::optional<double>& timeout_s,
+    Placement2DSearchKind search_kind, const std::optional<double>& timeout_s,
     const std::optional<std::string>& log_file_path,
     const PlacementSearchOptions& options) {
   return RunPlacementSearchMapper(dfg_ptr, mrrg_ptr,

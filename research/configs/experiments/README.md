@@ -1,49 +1,144 @@
 # Experiment Manifests
 
-Experiment manifests define benchmark sets, architecture settings, mapper entries, timeouts, and output groups for `research/scripts/run_suite.py`.
+A manifest defines the cases expanded and executed by
+`research/scripts/run_suite.py`.
 
-## Standard Manifests
+```text
+manifest
+  benchmark_sets[]     DOT directory and benchmark names
+  architectures[]      template, grid, I/O, network, and II settings
+  mappers[]            C++ mapper presets or external runners
+  timeout_sec
+  result_group
+```
 
-| setting | manifest |
+Modulo manifests may also use `mapper_matrix`, `routing_aware_mappers`, and
+`external_mappers`.
+
+## Custom 2D Placement Experiment
+
+Create a manifest under `research/configs/experiments/placement2d/` and select
+the benchmark, architecture, and mapper entries needed for the comparison:
+
+```json
+{
+  "name": "placement2d_custom",
+  "problem_type": "placement2d",
+  "evaluation_mode": "placement_only",
+  "mode": "placement2d_fixed_ii",
+  "result_group": "placement2d/custom",
+  "mapping_bin": "build/mapping",
+  "benchmark_sets": [
+    {
+      "name": "lisa",
+      "benchmark_root": "benchmark/literature/traversal_yott_normalized/lisa/dac",
+      "benchmarks": ["atax"]
+    }
+  ],
+  "architectures": [
+    {
+      "name": "one_hop_perimeter_io",
+      "template": "research/configs/arch_templates/mesh_10x10_default.json",
+      "auto_grid": {"policy": "ceil_sqrt_non_io_plus_2"},
+      "memory_io": "perimeter_no_corners",
+      "network_type": "one_hop_axis2",
+      "ii": 1
+    }
+  ],
+  "mappers": [
+    {
+      "name": "yott_100",
+      "mapper_config": "research/configs/mapper/placement2d/yott.json",
+      "algorithm_overrides": {"max_trials": 100}
+    }
+  ],
+  "timeout_sec": 60,
+  "parallel_num": 1
+}
+```
+
+Relative paths are resolved from the repository root. Add entries to any of the
+three arrays to form a Cartesian comparison.
+
+## Build A Command
+
+List valid filter names:
+
+```bash
+python3 research/scripts/list_manifest_options.py --manifest <manifest>
+```
+
+Check a selected case:
+
+```bash
+python3 research/scripts/preflight_manifest.py \
+  --manifest <manifest> \
+  --out-dir /tmp/cgra_mapper_preflight \
+  --only-benchmark-set lisa \
+  --only-benchmark atax \
+  --only-arch one_hop_perimeter_io \
+  --only-mapper yott_100
+```
+
+Run the same case by replacing `preflight_manifest.py` with `run_suite.py` and
+removing `--out-dir`. Filters may be repeated or comma-separated. Without
+filters, all cases run.
+
+| filter | selects |
 | --- | --- |
-| Modulo mapper search | `modulo/search.json` |
-| Modulo comparison with ILP and VPR | `modulo/all_mappers.json` |
-| 2D placement search | `placement2d/search.json` |
-| 2D placement comparison with ILP | `placement2d/all_mappers.json` |
-
-Use `placement2d/paper_comparison/` for prior-work metric comparison:
-
-| setting | manifest |
-| --- | --- |
-| TRAVERSAL/YOTT metric comparison | `placement2d/paper_comparison/traversal_yott.json` |
-| YOTT 2021 paper benchmark comparison | `placement2d/paper_comparison/yott_cases2021.json` |
-| PRISA metric comparison | `placement2d/paper_comparison/prisa_vpr8.json` |
-
-Use `placement2d/probes/` for diagnostics and ablations. Use `placement2d/archive/` only to inspect older manifests.
+| `--only-benchmark-set` | `benchmark_sets[].name` |
+| `--only-benchmark` | names inside a selected benchmark set |
+| `--only-arch` | `architectures[].name` |
+| `--only-mapper` | expanded mapper names |
 
 ## Problem Types
 
-- `problem_type: "placement2d"` fixes II to 1 and evaluates physical PE placement.
-- `problem_type: "modulo"` sweeps II from MII to `ii_max` and validates routed connectivity.
-- Modulo manifests can use `mapper_matrix` to cross placement-first mapper configs with routing policies.
+- `problem_type: "placement2d"` fixes II to 1 and evaluates physical placement.
+- `problem_type: "modulo"` sweeps II from MII to `ii_max` and validates routing.
+- `mapper_matrix` crosses placement-first mapper presets with routing policies.
 
-## Runner Styles
+## Architecture Fields
 
-Mapper entries use one of these styles:
+| field | purpose |
+| --- | --- |
+| `template` | base CGRA JSON from `research/configs/arch_templates/` |
+| `auto_grid` | benchmark-dependent grid sizing |
+| `memory_io` | I/O-capable PE policy |
+| `network_type` | placement distance model |
+| `ii` | fixed context count for 2D placement |
+| `mii`, `ii_max` | modulo II range |
 
-- no `runner`: run an in-repository C++ mapper through `build/mapping`.
-- `runner: "vpr"`: run VPR simulated-annealing placement for 2D placement.
-- `runner: "vpr_modulo"`: run VPR placement, assign contexts, then route with this repository's CGRA router.
-- `runner: "vpr_modulo_full_route"`: run generated CGRA routing resources through VPR route. Keep this in comparison manifests because it is slower.
+Architecture values are listed in
+[`../arch_templates/README.md`](../arch_templates/README.md). Mapper presets are
+listed in [`../mapper/README.md`](../mapper/README.md).
 
-`run_suite.py` expands the manifest and delegates every case to `research/scripts/run_mapper_case.py`, so C++ mappers and VPR entries share the same output layout and reports.
+## Runner Types
 
-## Adding a Mapper Entry
+| entry | execution path |
+| --- | --- |
+| no `runner` | in-repository C++ mapper through `build/mapping` |
+| `runner: "vpr"` | VPR simulated-annealing placement |
+| `runner: "vpr_modulo"` | VPR placement, context assignment, then CGRA routing |
+| `runner: "vpr_modulo_full_route"` | VPR placement and generated CGRA routing resources |
 
-1. Add a mapper preset under `research/configs/mapper/`.
-2. Add it to one manifest.
-3. Keep benchmark, architecture, timeout, and metric settings fixed while comparing mappers.
-4. Run `research/scripts/preflight_manifest.py`.
-5. Run `research/scripts/run_suite.py --manifest <manifest>`.
+All runner types use the same result directory and normalized metrics.
 
-Fallback configs are named `*_with_fallback_mapper.json`. Use them when studying mixed strategies, not for clean comparisons.
+## Included Manifests
+
+| comparison | manifest |
+| --- | --- |
+| Modulo comparison | `modulo/compare.json` |
+| Modulo comparison with ILP and VPR | `modulo/with_ilp.json` |
+| 2D placement comparison | `placement2d/compare.json` |
+| 2D placement with ILP | `placement2d/with_ilp.json` |
+| YOTT 2021 cases | `placement2d/literature/yott_2021.json` |
+
+## Add A Mapper
+
+1. Add a preset under `research/configs/mapper/`.
+2. Add one entry to a manifest.
+3. Run `preflight_manifest.py` on one benchmark.
+4. Keep benchmark, architecture, timeout, and metrics fixed while comparing methods.
+
+Implementation steps are in
+[`../../docs/development/adding_mappers.md`](../../docs/development/adding_mappers.md).

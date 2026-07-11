@@ -1,18 +1,6 @@
 #include <mapper/modulo/modulo_yoto_with_fallback_mapper.hpp>
 
-#include <mapper/mapper_factory.hpp>
 #include <mapper/modulo/modulo_search_engine.hpp>
-
-namespace {
-
-const bool kModuloYOTOWithFallbackMapperRegistered =
-    mapper::RegisterMapperType<mapper::ModuloYOTOWithFallbackMapper>(
-        "ModuloYOTOWithFallbackMapper");
-const bool kModuloYOTOWithFallbackShortNameRegistered =
-    mapper::RegisterMapperType<mapper::ModuloYOTOWithFallbackMapper>(
-        "ModuloYOTOWithFallback");
-
-}  // namespace
 
 namespace mapper {
 

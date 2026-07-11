@@ -1,0 +1,18 @@
+{
+  "Algorithm": {
+    "type": "Placement2DCPUMappingYOTTCoreRepairMapper",
+    "accept_feasible_solution": true,
+    "max_trials": 20,
+    "seed_count": 5,
+    "routing_retry_count": 1,
+    "random_seed": 1706961029,
+    "io_node_policy": "structural",
+    "trial_seed_policy": "per_trial",
+    "candidate_rank_policy": "core_balanced_repair",
+    "elite_placement_count": 4,
+    "max_iterations": 16
+  },
+  "DFG": {
+    "operation_name_label": "node_id"
+  }
+}

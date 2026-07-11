@@ -120,44 +120,36 @@ int main(int argc, char* argv[]) {
     dfg_ptr = AddDFG(dfg_ptr, dfg_ptr_to_add, dfg_ptr_to_add->GetNodeNum() * i);
   }
 
-  std::unique_ptr<mapper::IMapper> mapper_impl =
-      mapper::CreateMapper(mapper_config.algorithm_config.type, dfg_ptr,
-                           mrrg_ptr);
-  mapper_impl->SetLogFilePath(logger.GetGurobiLogFilePath());
-  mapper_impl->SetTimeOut(timeout_s);
-  mapper_impl->SetAcceptFeasibleSolution(
-      mapper_config.algorithm_config.accept_feasible_solution);
-  mapper_impl->SetPlacementOnly(mapper_config.algorithm_config.placement_only);
-  if (mapper_config.algorithm_config.max_trials.has_value()) {
-    mapper_impl->SetMaxTrials(
-        mapper_config.algorithm_config.max_trials.value());
-  }
-  if (mapper_config.algorithm_config.seed_count.has_value()) {
-    mapper_impl->SetSeedCount(
-        mapper_config.algorithm_config.seed_count.value());
-  }
-  if (mapper_config.algorithm_config.routing_retry_count.has_value()) {
-    mapper_impl->SetRoutingRetryCount(
-        mapper_config.algorithm_config.routing_retry_count.value());
-  }
-  if (mapper_config.algorithm_config.random_seed.has_value()) {
-    mapper_impl->SetRandomSeed(
-        mapper_config.algorithm_config.random_seed.value());
-  }
-  if (mapper_config.algorithm_config.max_iterations.has_value()) {
-    mapper_impl->SetMaxIterations(
-        mapper_config.algorithm_config.max_iterations.value());
-  }
-  if (mapper_config.algorithm_config.cpu_mapping_bug_compatible_degree
-          .has_value()) {
-    mapper_impl->SetCPUMappingBugCompatibleDegree(
-        mapper_config.algorithm_config.cpu_mapping_bug_compatible_degree
-            .value());
-  }
-  if (mapper_config.algorithm_config.io_node_policy.has_value()) {
-    mapper_impl->SetIONodePolicy(
-        mapper_config.algorithm_config.io_node_policy.value());
-  }
+  std::unique_ptr<mapper::IMapper> mapper_impl = mapper::CreateMapper(
+      mapper_config.algorithm_config.type, dfg_ptr, mrrg_ptr);
+  mapper::MapperOptions options;
+  options.log_file_path = logger.GetGurobiLogFilePath();
+  options.timeout_s = timeout_s;
+  options.accept_feasible_solution =
+      mapper_config.algorithm_config.accept_feasible_solution;
+  options.placement_only = mapper_config.algorithm_config.placement_only;
+  options.max_trials = mapper_config.algorithm_config.max_trials;
+  options.seed_count = mapper_config.algorithm_config.seed_count;
+  options.routing_retry_count =
+      mapper_config.algorithm_config.routing_retry_count;
+  options.random_seed = mapper_config.algorithm_config.random_seed;
+  options.max_iterations = mapper_config.algorithm_config.max_iterations;
+  options.elite_placement_count =
+      mapper_config.algorithm_config.elite_placement_count;
+  options.io_node_policy = mapper_config.algorithm_config.io_node_policy;
+  options.trial_seed_policy = mapper_config.algorithm_config.trial_seed_policy;
+  options.traversal_order_policy =
+      mapper_config.algorithm_config.traversal_order_policy;
+  options.traversal_neighbor_policy =
+      mapper_config.algorithm_config.traversal_neighbor_policy;
+  options.candidate_scope_policy =
+      mapper_config.algorithm_config.candidate_scope_policy;
+  options.candidate_rank_policy =
+      mapper_config.algorithm_config.candidate_rank_policy;
+  options.use_yott_annotations =
+      mapper_config.algorithm_config.use_yott_annotations;
+  options.trace_trials = mapper_config.algorithm_config.trace_trials;
+  mapper_impl->Configure(options);
 
   const auto result = mapper_impl->Execution();
 

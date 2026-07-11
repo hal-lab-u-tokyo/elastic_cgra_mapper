@@ -1,4 +1,6 @@
 build/*
+/build_*/
+/tmp/
 output/*
 output_*/*
 .vscode/
@@ -26,3 +28,4 @@ research/results/**
 !research/results/README.md
 !research/results/**/
 !research/results/**/.gitkeep
+research/private/

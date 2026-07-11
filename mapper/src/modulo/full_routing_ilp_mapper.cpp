@@ -6,19 +6,9 @@
 #include <fstream>
 #include <memory>
 #include <vector>
-#include <mapper/mapper_factory.hpp>
 #include <mapper/modulo/full_routing_ilp_mapper.hpp>
 
 namespace {
-const bool kFullRoutingILPMapperRegistered =
-    mapper::RegisterMapperType<mapper::FullRoutingILPMapper>(
-        "FullRoutingILPMapper");
-const bool kLegacyILPMapperRegistered =
-    mapper::RegisterMapperType<mapper::FullRoutingILPMapper>("ILPMapper");
-const bool kLegacyGurobiILPMapperRegistered =
-    mapper::RegisterMapperType<mapper::FullRoutingILPMapper>(
-        "GurobiILPMapper");
-
 struct DFGEdge {
   int source;
   int target;

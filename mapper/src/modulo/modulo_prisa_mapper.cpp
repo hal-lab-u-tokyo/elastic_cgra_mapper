@@ -1,24 +1,6 @@
 #include <mapper/modulo/modulo_prisa_mapper.hpp>
 
-#include <mapper/mapper_factory.hpp>
 #include <mapper/modulo/modulo_search_engine.hpp>
-
-namespace {
-
-const bool kModuloPhysicalPRISAMapperRegistered =
-    mapper::RegisterMapperType<mapper::ModuloPhysicalPRISAMapper>(
-        "ModuloPhysicalPRISAMapper");
-const bool kModuloPhysicalPRISAShortNameRegistered =
-    mapper::RegisterMapperType<mapper::ModuloPhysicalPRISAMapper>(
-        "ModuloPhysicalPRISA");
-const bool kModuloPhysicalPRISAManhattanMapperRegistered =
-    mapper::RegisterMapperType<mapper::ModuloPhysicalPRISAManhattanMapper>(
-        "ModuloPhysicalPRISAManhattanMapper");
-const bool kModuloPhysicalPRISAManhattanShortNameRegistered =
-    mapper::RegisterMapperType<mapper::ModuloPhysicalPRISAManhattanMapper>(
-        "ModuloPhysicalPRISAManhattan");
-
-}  // namespace
 
 namespace mapper {
 

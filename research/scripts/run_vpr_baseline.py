@@ -10,6 +10,7 @@ import shutil
 import subprocess
 import time
 import xml.etree.ElementTree as ET
+from collections import defaultdict
 from pathlib import Path
 
 import networkx as nx
@@ -21,8 +22,11 @@ from lib import (
     longest_path_cost,
     parse_placement_log,
     placement_cost,
+    percentile,
     read_dfg_stats,
     safe_ratio,
+    update_cut_congestion,
+    update_xy_link_demand,
     write_json,
     write_metrics_csv,
 )
@@ -589,7 +593,13 @@ def prepare_vpr_arch_xml(
     return generated_arch.resolve()
 
 
-def placement_metrics(dfg_path: Path, positions: dict, cost_model: str) -> dict:
+def placement_metrics(
+    dfg_path: Path,
+    positions: dict,
+    cost_model: str,
+    rows: int,
+    cols: int,
+) -> dict:
     nodes, edges, _, _ = read_dfg(dfg_path)
     placed_edges = []
     for src, dst in edges:
@@ -599,6 +609,9 @@ def placement_metrics(dfg_path: Path, positions: dict, cost_model: str) -> dict:
     wirelengths = []
     costs = []
     mesh_weighted_edges = []
+    horizontal_cuts = defaultdict(int)
+    vertical_cuts = defaultdict(int)
+    estimated_link_demand = defaultdict(int)
     for src, dst in placed_edges:
         src_row, src_col = positions[src]
         dst_row, dst_col = positions[dst]
@@ -608,6 +621,21 @@ def placement_metrics(dfg_path: Path, positions: dict, cost_model: str) -> dict:
         wirelengths.append(mesh_hop)
         mesh_weighted_edges.append((src, dst, max(1, mesh_hop)))
         costs.append(placement_cost(dx, dy, cost_model))
+        update_cut_congestion(
+            src_row,
+            src_col,
+            dst_row,
+            dst_col,
+            horizontal_cuts,
+            vertical_cuts,
+        )
+        update_xy_link_demand(
+            src_row,
+            src_col,
+            dst_row,
+            dst_col,
+            estimated_link_demand,
+        )
 
     if not placed_edges:
         return {
@@ -640,13 +668,36 @@ def placement_metrics(dfg_path: Path, positions: dict, cost_model: str) -> dict:
             "placement_mesh_optimal_edge_ratio": "",
             "placement_mesh_fifo_sum": "",
             "placement_avg_mesh_fifo": "",
+            "placement_p90_fifo": "",
+            "placement_p95_fifo": "",
             "placement_max_mesh_fifo": "",
             "placement_mapped_lp_mesh_hop": "",
+            "placement_max_cut_congestion": "",
+            "placement_avg_cut_congestion": "",
+            "placement_p95_cut_congestion": "",
+            "placement_max_horizontal_cut_congestion": "",
+            "placement_max_vertical_cut_congestion": "",
+            "placement_estimated_total_link_demand": "",
+            "placement_estimated_max_link_demand": "",
+            "placement_estimated_avg_link_demand": "",
+            "placement_estimated_p95_link_demand": "",
+            "placement_estimated_used_link_ratio": "",
         }
 
     fifo_values = [max(0, wirelength - 1) for wirelength in wirelengths]
     paper_fifo_values = [max(0, cost - 1) for cost in costs]
     placed_nodes = [node for node in nodes if node in positions]
+    horizontal_cut_values = [
+        horizontal_cuts[cut_row] for cut_row in range(max(0, rows - 1))
+    ]
+    vertical_cut_values = [
+        vertical_cuts[cut_col] for cut_col in range(max(0, cols - 1))
+    ]
+    cut_values = horizontal_cut_values + vertical_cut_values
+    total_grid_links = rows * max(0, cols - 1) + cols * max(0, rows - 1)
+    link_values = list(estimated_link_demand.values()) + [
+        0 for _ in range(max(0, total_grid_links - len(estimated_link_demand)))
+    ]
     return {
         "placement_edge_count": len(placed_edges),
         "placement_wirelength_sum": sum(wirelengths),
@@ -683,9 +734,41 @@ def placement_metrics(dfg_path: Path, positions: dict, cost_model: str) -> dict:
         ),
         "placement_mesh_fifo_sum": sum(fifo_values),
         "placement_avg_mesh_fifo": safe_ratio(sum(fifo_values), len(placed_edges)),
+        "placement_p90_fifo": percentile(fifo_values, 90),
+        "placement_p95_fifo": percentile(fifo_values, 95),
         "placement_max_mesh_fifo": max(fifo_values),
         "placement_mapped_lp_mesh_hop": longest_path_cost(
             placed_nodes, mesh_weighted_edges
+        ),
+        "placement_max_cut_congestion": max(cut_values) if cut_values else "",
+        "placement_avg_cut_congestion": (
+            safe_ratio(sum(cut_values), len(cut_values)) if cut_values else ""
+        ),
+        "placement_p95_cut_congestion": (
+            percentile(cut_values, 95) if cut_values else ""
+        ),
+        "placement_max_horizontal_cut_congestion": (
+            max(horizontal_cut_values) if horizontal_cut_values else 0
+        ),
+        "placement_max_vertical_cut_congestion": (
+            max(vertical_cut_values) if vertical_cut_values else 0
+        ),
+        "placement_estimated_total_link_demand": (
+            sum(link_values) if total_grid_links else ""
+        ),
+        "placement_estimated_max_link_demand": (
+            max(link_values) if total_grid_links else ""
+        ),
+        "placement_estimated_avg_link_demand": (
+            safe_ratio(sum(link_values), total_grid_links) if total_grid_links else ""
+        ),
+        "placement_estimated_p95_link_demand": (
+            percentile(link_values, 95) if total_grid_links else ""
+        ),
+        "placement_estimated_used_link_ratio": (
+            safe_ratio(len(estimated_link_demand), total_grid_links)
+            if total_grid_links
+            else ""
         ),
     }
 
@@ -1038,7 +1121,13 @@ def run_one_vpr(
         external_reason = f"VPR placement missing {len(missing_nodes)} DFG nodes"
 
     bbox_area, bbox_util = compute_bbox_metrics(positions)
-    placement = placement_metrics(dfg, positions, arch["placement_cost_model"])
+    placement = placement_metrics(
+        dfg,
+        positions,
+        arch["placement_cost_model"],
+        int(rows),
+        int(cols),
+    )
     blif_placement = blif_net_metrics(
         blif_path,
         dfg_data["reverse_map"],

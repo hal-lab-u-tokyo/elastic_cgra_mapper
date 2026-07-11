@@ -3,27 +3,18 @@
 #include <cassert>
 #include <filesystem>
 #include <fstream>
-#include <memory>
-#include <mapper/mapper_factory.hpp>
 #include <mapper/placement2d/placement2d_ilp_mapper.hpp>
-
-namespace {
-const bool kPlacement2DILPMapperRegistered =
-    mapper::RegisterMapperType<mapper::Placement2DILPMapper>(
-        "Placement2DILPMapper");
-}
+#include <memory>
 
 mapper::Placement2DILPMapper::Placement2DILPMapper(
     const std::shared_ptr<entity::DFG> dfg_ptr,
     const std::shared_ptr<entity::MRRG> mrrg_ptr)
     : dfg_ptr_(dfg_ptr), mrrg_ptr_(mrrg_ptr) {}
 
-mapper::Placement2DILPMapper*
-mapper::Placement2DILPMapper::CreateMapper(
+mapper::Placement2DILPMapper* mapper::Placement2DILPMapper::CreateMapper(
     const std::shared_ptr<entity::DFG> dfg_ptr,
     const std::shared_ptr<entity::MRRG> mrrg_ptr) {
-  mapper::Placement2DILPMapper* result =
-      new mapper::Placement2DILPMapper;
+  mapper::Placement2DILPMapper* result = new mapper::Placement2DILPMapper;
   *result = mapper::Placement2DILPMapper(dfg_ptr, mrrg_ptr);
 
   return result;

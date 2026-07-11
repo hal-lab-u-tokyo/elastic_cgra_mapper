@@ -1,7 +1,22 @@
 #include <gtest/gtest.h>
 
+#include <algorithm>
+#include <mapper/mapper_factory.hpp>
 #include <mapper/modulo/full_routing_ilp_mapper.hpp>
 #include <mapper/placement2d/placement2d_ilp_mapper.hpp>
+
+TEST(MapperTest, built_in_mapper_registry_test) {
+  const auto types = mapper::GetRegisteredMapperTypes();
+  const auto is_registered = [&](const std::string& type) {
+    return std::find(types.begin(), types.end(), type) != types.end();
+  };
+
+  EXPECT_TRUE(is_registered("Placement2DCPUMappingYOTT"));
+  EXPECT_TRUE(is_registered("Placement2DCPUMappingYOTTCoreRepair"));
+  EXPECT_TRUE(is_registered("Placement2DFaithfulArrayYOTT"));
+  EXPECT_TRUE(is_registered("ModuloYOTT"));
+  EXPECT_TRUE(is_registered("FullRoutingILPMapper"));
+}
 
 TEST(MapperTest, placement2d_ilp_mapper_test) {
   // create dfg
@@ -80,7 +95,8 @@ TEST(MapperTest, full_routing_ilp_mapper_test) {
   std::shared_ptr<entity::MRRG> mrrg_ptr = std::make_shared<entity::MRRG>();
   *mrrg_ptr = entity::MRRG(mrrg_config);
 
-  auto mapper_ptr = mapper::FullRoutingILPMapper().CreateMapper(dfg_ptr, mrrg_ptr);
+  auto mapper_ptr =
+      mapper::FullRoutingILPMapper().CreateMapper(dfg_ptr, mrrg_ptr);
   const auto result = mapper_ptr->Execution();
 
   EXPECT_EQ(result.is_success, true);

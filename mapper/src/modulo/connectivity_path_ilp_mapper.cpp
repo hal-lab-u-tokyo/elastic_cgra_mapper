@@ -7,7 +7,6 @@
 #include <map>
 #include <memory>
 #include <mapper/modulo/connectivity_path_ilp_mapper.hpp>
-#include <mapper/mapper_factory.hpp>
 #include <optional>
 #include <queue>
 #include <set>
@@ -16,13 +15,6 @@
 #include <vector>
 
 namespace {
-
-const bool kConnectivityPathILPMapperRegistered =
-    mapper::RegisterMapperType<mapper::ConnectivityPathILPMapper>(
-        "ConnectivityPathILPMapper");
-const bool kLegacyConnectivityBasedILPMapperRegistered =
-    mapper::RegisterMapperType<mapper::ConnectivityPathILPMapper>(
-        "ConnectivityBasedILPMapper");
 
 constexpr int kRelaxedPathsPerConnection = 3;
 constexpr int kRoutingPathsPerConnection = 20;

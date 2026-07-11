@@ -17,8 +17,15 @@ struct AlgorithmConfig {
   std::optional<int> routing_retry_count;
   std::optional<int> random_seed;
   std::optional<int> max_iterations;
-  std::optional<bool> cpu_mapping_bug_compatible_degree;
+  std::optional<int> elite_placement_count;
   std::optional<std::string> io_node_policy;
+  std::optional<std::string> trial_seed_policy;
+  std::optional<std::string> traversal_order_policy;
+  std::optional<std::string> traversal_neighbor_policy;
+  std::optional<std::string> candidate_scope_policy;
+  std::optional<std::string> candidate_rank_policy;
+  std::optional<bool> use_yott_annotations;
+  std::optional<bool> trace_trials;
 };
 
 struct MapperConfig {

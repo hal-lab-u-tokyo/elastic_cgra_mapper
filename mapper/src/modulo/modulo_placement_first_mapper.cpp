@@ -5,22 +5,11 @@
 #include <cmath>
 #include <fstream>
 #include <limits>
-#include <mapper/mapper_factory.hpp>
 #include <queue>
 #include <set>
 #include <unordered_map>
 
 namespace {
-
-const bool kModuloPlacementFirstMapperRegistered =
-    mapper::RegisterMapperType<mapper::ModuloPlacementFirstMapper>(
-        "ModuloPlacementFirstMapper");
-const bool kModuloPlacementFirstShortNameRegistered =
-    mapper::RegisterMapperType<mapper::ModuloPlacementFirstMapper>(
-        "ModuloPlacementFirst");
-const bool kLegacyPlacementFirstHeuristicMapperRegistered =
-    mapper::RegisterMapperType<mapper::ModuloPlacementFirstMapper>(
-        "PlacementFirstHeuristicMapper");
 
 bool SupportsOperation(const entity::MRRGNodeProperty& mrrg_node,
                        entity::OpType op) {

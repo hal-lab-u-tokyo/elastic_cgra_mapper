@@ -290,6 +290,7 @@ def validate_run_plan_for_problem_type(
     if problem_type != "placement2d":
         return
     issues = []
+    capacity_cache = {}
     for item in run_plan:
         arch = item["arch"]
         arch_ii = placement2d_arch_ii(arch)
@@ -308,13 +309,18 @@ def validate_run_plan_for_problem_type(
                 "placement_cost_model",
             )
         )
-        if arch_has_auto_grid(arch) or has_overrides:
+        capacity_key = (str(item["dfg"]), repr(arch))
+        if capacity_key in capacity_cache:
+            capacity = capacity_cache[capacity_key]
+        elif arch_has_auto_grid(arch) or has_overrides:
             capacity = placement2d_capacity_check_for_arch(
                 item["dfg"],
                 effective_arch_dict_for_plan_item(item),
             )
+            capacity_cache[capacity_key] = capacity
         else:
             capacity = placement2d_capacity_check(item["dfg"], Path(arch["template"]))
+            capacity_cache[capacity_key] = capacity
         if not capacity["ok"] and not allow_placement2d_capacity_mismatch:
             issues.append(
                 f"{item['benchmark_set']}/{item['benchmark']} | {arch['name']}: "

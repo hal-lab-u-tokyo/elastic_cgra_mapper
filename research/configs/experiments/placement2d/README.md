@@ -1,24 +1,23 @@
-# 2D Placement Manifests
+# 2D Placement
 
-Use these manifests for 2D placement experiments:
+| manifest | use |
+| --- | --- |
+| `compare.json` | YOTO, YOTT, YOTT Core, YOTT Core Repair, and VPR BB |
+| `with_ilp.json` | small cases with the placement ILP baseline |
+| `literature/yott_2021.json` | the 23 YOTT 2021 case-study DFGs |
 
-- `search.json`: YOTO/YOTT, PRISA, and VPR SA on a representative benchmark mix.
-- `all_mappers.json`: `search.json` plus placement-only ILP.
-- `ilp_yoto_yott.json`: focused ILP/YOTO/YOTT comparison on an ILP-tractable subset.
+The literature manifest is a documented comparison condition, not a claim of
+exact paper reproduction.
 
-Paper-comparison manifests:
+Trial counts belong in a mapper entry rather than a separate preset:
 
-- `paper_comparison/traversal_yott.json`
-- `paper_comparison/yott_cases2021.json`
-- `paper_comparison/prisa_vpr8.json`
+```json
+{
+  "name": "yott_100",
+  "mapper_config": "research/configs/mapper/placement2d/yott.json",
+  "algorithm_overrides": {"max_trials": 100}
+}
+```
 
-Grid and I/O settings:
-
-- `ceil_sqrt_non_io_plus_2`: choose a square grid from non-I/O operation count, then add one border PE ring for I/O.
-- `ceil_sqrt_nodes_plus_2`: choose a square grid from all DFG nodes, then add one border PE ring for I/O.
-- `perimeter_no_corners`: allow I/O only on non-corner border PEs.
-- `memory_io: "all"`: allow every PE to host memory/I/O operations.
-- `network_type: "one_hop_axis2"`: use the one-hop fully pipelined placement-cost model.
-- `network_type: "mesh"`: use Manhattan mesh distance.
-
-Use `probes/` for diagnostics and ablations. Use `archive/` only for older manifests.
+Grid, I/O, and network values are listed in
+[`../../arch_templates/README.md`](../../arch_templates/README.md).

@@ -1,20 +1,6 @@
 #include <mapper/modulo/modulo_sa_mapper.hpp>
 
 #include <mapper/modulo/modulo_search_engine.hpp>
-#include <mapper/mapper_factory.hpp>
-
-namespace {
-
-const bool kModuloSAMapperRegistered =
-    mapper::RegisterMapperType<mapper::ModuloSAMapper>("ModuloSAMapper");
-const bool kModuloSAShortNameRegistered =
-    mapper::RegisterMapperType<mapper::ModuloSAMapper>("ModuloSA");
-const bool kLegacySAMapperRegistered =
-    mapper::RegisterMapperType<mapper::ModuloSAMapper>("SAMapper");
-const bool kLegacySAShortNameRegistered =
-    mapper::RegisterMapperType<mapper::ModuloSAMapper>("SA");
-
-}  // namespace
 
 namespace mapper {
 

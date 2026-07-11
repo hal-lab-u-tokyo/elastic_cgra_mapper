@@ -10,4 +10,4 @@ Numeric values printed in papers are stored separately from values estimated fro
 - `yott_table4_multi_kernel.csv`: Table 4, multi-kernel runtime and FIFO values.
 - `yott_figure_paper_metrics.csv`: per-benchmark values from plot-only figures. The VPR-BB maximal FIFO values are corrected paper reference values.
 
-Benchmark details: `research/docs/yott_benchmarks.md`.
+Benchmark details: `research/docs/placement/yott_benchmarks.md`.

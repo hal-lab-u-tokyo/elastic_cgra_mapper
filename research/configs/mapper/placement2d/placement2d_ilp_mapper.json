@@ -1,9 +1,0 @@
-{
-  "Algorithm": {
-    "type": "Placement2DILPMapper",
-    "accept_feasible_solution": true
-  },
-  "DFG": {
-    "operation_name_label": "node_id"
-  }
-}
