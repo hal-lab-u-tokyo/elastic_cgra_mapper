@@ -15,6 +15,12 @@ Experiment manifests may change runtime parameters with `algorithm_overrides`.
 | `placement2d/prisa.json` | PRISA-style array mapper |
 | `placement2d/prisa_no_sis.json` | PRISA-style array mapper without SIS |
 
+The 2D YOTO/YOTT implementations were developed with reference to the
+[YOTT paper](https://doi.org/10.1145/3477038) and the authors'
+[`cpu_mapping` repository](https://github.com/canesche/cpu_mapping). The
+correspondence and remaining differences are documented in
+[`../../docs/placement/yott.md`](../../docs/placement/yott.md).
+
 The PRISA-style presets remain experimental; matching the reported paper
 results has not been established.
 
@@ -35,3 +41,5 @@ results has not been established.
 
 Their routing combinations are defined in
 [`../experiments/modulo/README.md`](../experiments/modulo/README.md).
+The modulo YOTO/YOTT presets are extensions in this repository, not algorithms
+published directly in the cited YOTT sources.

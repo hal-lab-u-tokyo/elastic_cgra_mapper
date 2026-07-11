@@ -2,6 +2,17 @@
 
 YOTO/YOTT placement-only comparison on the YOTT paper's 23 case-study benchmarks. This is a best-effort comparison setup; exact paper reproduction is not established.
 
+## Sources
+
+The YOTO/YOTT implementations were developed with reference to the
+[YOTT paper](https://doi.org/10.1145/3477038) and the authors'
+[`cpu_mapping` repository](https://github.com/canesche/cpu_mapping). Source-code
+correspondence was checked against
+[commit `8062550`](https://github.com/canesche/cpu_mapping/tree/8062550694de3ff5615eba35b363979d1529d39e).
+The sources do not fully specify identical behavior, so the implementation and
+results are treated as a best-effort comparison rather than an exact
+reproduction.
+
 ## Setup
 
 | item | value |
@@ -92,11 +103,6 @@ python3 research/scripts/run_suite.py \
 - VPR BB maximal FIFO is close under `placement_max_cost`, but not exact for every benchmark.
 - YOTO/YOTT implementation variants should be compared as hypotheses, not treated as confirmed reproductions.
 - Placement-only figures do not prove routed CGRA correctness.
-
-References:
-
-- YOTT paper: <https://doi.org/10.1145/3477038>
-- released `cpu_mapping` code: <https://github.com/canesche/cpu_mapping/tree/8062550694de3ff5615eba35b363979d1529d39e>
 
 See also:
 
