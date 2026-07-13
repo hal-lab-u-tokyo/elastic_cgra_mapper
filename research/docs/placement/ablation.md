@@ -89,41 +89,6 @@ which DFG structures benefit.
 Keep mesh-hop and congestion figures in supplementary results unless they change
 the conclusion from the three headline metrics.
 
-## Current Findings
-
-The following results use the 23 YOTT case-study graphs, structural perimeter
-I/O without corners, and the one-hop placement model. They describe this setup,
-not routed modulo mapping.
-
-- Random candidate selection is the main reason YOTT Core outperforms regular
-  YOTT. Across 1000 trials, the mean distinct-placement ratio rises from 42.0%
-  to 99.8%. Core covers more placements on 20 of 23 graphs and is never worse.
-- With the traversal plan held fixed, random candidate selection improves
-  optimal mapped edges by 2.63 percentage points and reduces maximal FIFO by
-  0.49 on average.
-- Reconvergence annotations remain useful: adding them improves optimal mapped
-  edges by 1.80 percentage points and reduces placement cost by 2.70%.
-- Random traversal contributes little after candidate selection is already
-  random. Its mean change is +0.12 percentage points in optimal mapped edges,
-  while maximal FIFO and placement cost slightly worsen.
-- Placement-cost trial selection changes the result on only 2 of 23 graphs in
-  the matched-candidate comparison. It is not the main source of Core's gain.
-
-The smallest strong variant is therefore mixed traversal with random candidate
-selection and annotations. At 1000 trials it reaches 85.92% optimal mapped
-edges, maximal FIFO 2.48, and 220.5 ms. YOTT Core reaches 85.85%, 2.57, and
-220.2 ms under the same benchmark setting.
-
-The YOTT Core Repair preset uses the same 100 YOTT Core trials, retains four
-placements, and applies 16 guarded local-repair iterations. On the 23 YOTT
-case-study DFGs with structural perimeter I/O, mean optimal mapped edges rise
-from 83.34% to 86.38%, mean FIFO falls from 0.257 to 0.205, and mean maximal
-FIFO falls from 3.09 to 1.91. Mean mapping time rises from 27.0 ms to 42.1 ms.
-Optimal mapped edges improve or tie on every DFG. Increasing the elite count
-from 4 to 16 changes optimal mapped edges by only 0.09 percentage points and
-does not further reduce maximal FIFO. These results cover 2D placement only
-and do not establish routed modulo quality.
-
 ## Reading Results
 
 Compare each row against the unchanged `yott` preset.

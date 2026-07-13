@@ -21,24 +21,34 @@ sh scripts/build.sh
 Place the Gurobi WLS license at `license_files/gurobi.lic`. Build VPR with
 `sh scripts/build_vpr.sh` before running a VPR baseline.
 
-## Run
+## Quick Check
 
 2D placement:
 
 ```bash
 python3 research/scripts/run_suite.py \
-  --manifest research/configs/experiments/placement2d/compare.json
+  --manifest research/configs/experiments/placement2d/compare.json \
+  --only-benchmark-set lisa_sample \
+  --only-benchmark atax \
+  --only-arch one_hop_perimeter_no_corners_io \
+  --only-mapper yott_core \
+  --tag quickstart
 ```
 
 Modulo mapping:
 
 ```bash
 python3 research/scripts/run_suite.py \
-  --manifest research/configs/experiments/modulo/compare.json
+  --manifest research/configs/experiments/modulo/compare.json \
+  --only-benchmark-set compute \
+  --only-benchmark fixed_stencil \
+  --only-arch mesh6x6_default_all \
+  --only-mapper modulo_placement_first__integrated_bfs \
+  --tag quickstart
 ```
 
-Use filters to run one benchmark, architecture, and mapper. See
-[Experiments](research/README.md) for commands and configuration.
+See [Experiments](research/README.md) for comparisons, filters, and custom
+configuration.
 
 ## Repository
 

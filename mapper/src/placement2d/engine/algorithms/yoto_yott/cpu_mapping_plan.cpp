@@ -6,9 +6,16 @@ namespace mapper::detail::placement2d {
 
 int Placement2DArrayEngine::FindUnusedEdgeIndex(
     int source, int target, const std::vector<char>& used_edges) const {
-  for (int i = 0; i < static_cast<int>(edges_.size()); i++) {
-    if (used_edges[i]) continue;
-    if (edges_[i].source == source && edges_[i].target == target) return i;
+  if (source < 0 || source >= static_cast<int>(incident_edge_ids_.size())) {
+    return -1;
+  }
+  // Incident IDs retain DFG edge order, so this matches the first-unused
+  // global scan without visiting unrelated edges.
+  for (int edge_id : incident_edge_ids_[source]) {
+    if (used_edges[edge_id]) continue;
+    if (edges_[edge_id].source == source && edges_[edge_id].target == target) {
+      return edge_id;
+    }
   }
   return -1;
 }

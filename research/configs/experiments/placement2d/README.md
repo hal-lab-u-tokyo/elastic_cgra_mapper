@@ -2,7 +2,7 @@
 
 | manifest | use |
 | --- | --- |
-| `compare.json` | YOTO, YOTT, YOTT Core, YOTT Core Repair, and VPR BB |
+| `compare.json` | placement heuristics and VPR BB |
 | `with_ilp.json` | small cases with the placement ILP baseline |
 | `literature/yott_2021.json` | the 23 YOTT 2021 case-study DFGs |
 

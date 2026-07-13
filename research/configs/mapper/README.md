@@ -12,6 +12,11 @@ Experiment manifests may change runtime parameters with `algorithm_overrides`.
 | `placement2d/yott_core.json` | YOTT Core |
 | `placement2d/yott_core_repair.json` | YOTT Core Repair |
 | `placement2d/ilp.json` | placement-only ILP |
+
+Experimental presets:
+
+| preset | mapper |
+| --- | --- |
 | `placement2d/prisa.json` | PRISA-style array mapper |
 | `placement2d/prisa_no_sis.json` | PRISA-style array mapper without SIS |
 
@@ -34,10 +39,15 @@ results has not been established.
 | `modulo/yott.json` | direct-context YOTT |
 | `modulo/sa.json` | simulated annealing |
 | `modulo/placement_first.json` | placement-first BFS mapper |
-| `modulo/prisa.json` | PRISA-style placement followed by BFS routing |
-| `modulo/prisa_manhattan.json` | PRISA-style placement and Manhattan routing |
 | `modulo/full_routing_ilp.json` | integrated placement and routing ILP |
 | `modulo/connectivity_path_ilp.json` | path-candidate routing ILP |
+
+Experimental presets:
+
+| preset | mapper |
+| --- | --- |
+| `modulo/prisa.json` | PRISA-style placement followed by BFS routing |
+| `modulo/prisa_manhattan.json` | PRISA-style placement and Manhattan routing |
 
 Their routing combinations are defined in
 [`../experiments/modulo/README.md`](../experiments/modulo/README.md).

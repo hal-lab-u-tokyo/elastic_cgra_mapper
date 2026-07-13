@@ -1,35 +1,16 @@
 # Research Results
 
-Generated experiment results are ignored by git. This directory keeps only layout markers and this guide.
+Generated experiment results are ignored by git.
 
-The runner creates result directories from each manifest's `result_group`:
+The runner writes each run beneath the manifest's `result_group`:
 
 ```text
-research/results/<result_group>/<YYYYMMDD-HHMMSS[_tag]>/
+research/results/<result_group>/<timestamp>[_tag]/
 ```
 
-Common groups:
-
-- `modulo/search/`
-- `modulo/all_mappers/`
-- `placement2d/search/`
-- `placement2d/all_mappers/`
-- `placement2d/paper_comparison/traversal_yott/`
-- `placement2d/paper_comparison/yott_cases2021/`
-- `placement2d/paper_comparison/prisa_vpr8/`
-- `preflight/`
-- `benchmark_compatibility/`
-
-Each run usually contains:
-
-- `run_info.md`
-- `run_metadata.json`
-- `metrics.csv`
-- `summary.json`
-- `summary_by_mapper.md`
-- `summary_by_set.md`
-- `benchmark_report.md`
-- `routing_validation.md` when route checks are applicable
+Each run contains normalized metrics, benchmark reports, validation reports,
+the expanded manifest, and environment metadata. See
+[`../README.md`](../README.md#results) for the file list.
 
 Run reports can be regenerated with:
 

@@ -5,6 +5,7 @@ import json
 import math
 import re
 from collections import defaultdict, deque
+from functools import lru_cache
 from pathlib import Path
 from typing import Dict, Iterable, Optional
 
@@ -176,8 +177,25 @@ def update_xy_link_demand(
         row = next_row
 
 
-def read_dfg_stats(dfg_path: Path) -> dict:
-    graph = nx.nx_pydot.read_dot(str(dfg_path))
+@lru_cache(maxsize=None)
+def _read_dot_graph_cached(dfg_path: str, mtime_ns: int, file_size: int):
+    del mtime_ns, file_size
+    return nx.nx_pydot.read_dot(dfg_path)
+
+
+def read_dot_graph(dfg_path: Path):
+    resolved_path = dfg_path.resolve()
+    file_stat = resolved_path.stat()
+    return _read_dot_graph_cached(
+        str(resolved_path), file_stat.st_mtime_ns, file_stat.st_size
+    )
+
+
+@lru_cache(maxsize=None)
+def _read_dfg_stats_cached(
+    dfg_path: str, mtime_ns: int, file_size: int
+) -> tuple:
+    graph = _read_dot_graph_cached(dfg_path, mtime_ns, file_size)
     op_counts: Dict[str, int] = {}
     nodes = []
     node_count = 0
@@ -210,12 +228,29 @@ def read_dfg_stats(dfg_path: Path) -> dict:
 
     input_count = sum(1 for node in nodes if predecessors[node] == 0)
     output_count = sum(1 for node in nodes if successors[node] == 0)
+    return (
+        node_count,
+        edge_count,
+        input_count,
+        output_count,
+        tuple(sorted(op_counts.items())),
+    )
+
+
+def read_dfg_stats(dfg_path: Path) -> dict:
+    resolved_path = dfg_path.resolve()
+    file_stat = resolved_path.stat()
+    node_count, edge_count, input_count, output_count, op_counts = (
+        _read_dfg_stats_cached(
+            str(resolved_path), file_stat.st_mtime_ns, file_stat.st_size
+        )
+    )
     return {
         "node_count": node_count,
         "edge_count": edge_count,
         "input_count": input_count,
         "output_count": output_count,
-        "op_counts": op_counts,
+        "op_counts": dict(op_counts),
     }
 
 
@@ -277,7 +312,7 @@ def compute_rec_mii(
     arch: dict,
     missing_distance_policy: str = "self_loop",
 ) -> dict:
-    raw_graph = nx.nx_pydot.read_dot(str(dfg_path))
+    raw_graph = read_dot_graph(dfg_path)
     graph = nx.DiGraph()
     node_latency_map = {}
     edge_distance_map = {}
@@ -380,12 +415,11 @@ def compute_rec_mii(
     }
 
 
-def compute_res_mii(
+def _compute_res_mii_for_arch(
     dfg_path: Path,
-    arch_template_path: Path,
-    missing_distance_policy: str = "self_loop",
+    arch: dict,
+    missing_distance_policy: str,
 ) -> dict:
-    arch = load_json(arch_template_path)
     dfg_stats = read_dfg_stats(dfg_path)
     total_pes = int(arch["row"]) * int(arch["column"])
     total_dfg_ops = sum(dfg_stats["op_counts"].values())
@@ -430,6 +464,41 @@ def compute_res_mii(
         "dfg_edges": dfg_stats["edge_count"],
         "notes": "RecMII uses explicit edge distance attributes when present and infers distance=1 only for missing-distance self-loops.",
     }
+
+
+@lru_cache(maxsize=None)
+def _compute_res_mii_cached(
+    dfg_path: str,
+    mtime_ns: int,
+    file_size: int,
+    arch_json: str,
+    missing_distance_policy: str,
+) -> str:
+    del mtime_ns, file_size
+    result = _compute_res_mii_for_arch(
+        Path(dfg_path), json.loads(arch_json), missing_distance_policy
+    )
+    return json.dumps(result, sort_keys=True)
+
+
+def compute_res_mii(
+    dfg_path: Path,
+    arch_template_path: Path,
+    missing_distance_policy: str = "self_loop",
+) -> dict:
+    resolved_path = dfg_path.resolve()
+    file_stat = resolved_path.stat()
+    arch_json = json.dumps(
+        load_json(arch_template_path), sort_keys=True, separators=(",", ":")
+    )
+    result_json = _compute_res_mii_cached(
+        str(resolved_path),
+        file_stat.st_mtime_ns,
+        file_stat.st_size,
+        arch_json,
+        missing_distance_policy,
+    )
+    return json.loads(result_json)
 
 
 def placement2d_capacity_check(dfg_path: Path, arch_template_path: Path) -> dict:
@@ -962,7 +1031,7 @@ def mapping_utilization(
     placement_estimated_p95_link_demand = ""
     placement_estimated_used_link_ratio = ""
     if dfg_path and dfg_path.exists():
-        raw_graph = nx.nx_pydot.read_dot(str(dfg_path))
+        raw_graph = read_dot_graph(dfg_path)
         clean_graph_nodes = {
             clean_node_name(node)
             for node, attrs in raw_graph.nodes(data=True)

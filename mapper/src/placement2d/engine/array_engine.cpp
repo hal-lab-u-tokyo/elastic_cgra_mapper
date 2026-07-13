@@ -25,8 +25,8 @@ Placement2DArrayEngine::Placement2DArrayEngine(
           NormalizePolicy(options.io_node_policy.value_or("opcode"))),
       trial_seed_policy_(
           NormalizePolicy(options.trial_seed_policy.value_or("continuous"))),
-      traversal_order_policy_(NormalizePolicy(
-          options.traversal_order_policy.value_or("zigzag"))),
+      traversal_order_policy_(
+          NormalizePolicy(options.traversal_order_policy.value_or("zigzag"))),
       traversal_neighbor_policy_(NormalizePolicy(
           options.traversal_neighbor_policy.value_or("default"))),
       candidate_scope_policy_(
@@ -57,7 +57,9 @@ Placement2DArrayEngine::Placement2DArrayEngine(
   } else if (kind_ == mapper::Placement2DArrayKind::kCPUMappingYOTTCore) {
     candidate_scope_policy_ = "default";
     candidate_rank_policy_ = "random";
-    use_yott_annotations_ = true;
+    if (!options.use_yott_annotations.has_value()) {
+      use_yott_annotations_ = true;
+    }
   }
   BuildDFGCache();
   critical_path_score_ = BuildCriticalPathScore();
@@ -110,8 +112,7 @@ mapper::MappingResult Placement2DArrayEngine::Run() {
       return mapper::MappingResult(false, entity::Mapping(config_),
                                    SecondsSince(start));
     }
-    if (UsesStructuralIOCellTypes() &&
-        !IsCPUMappingCompatible(node, cell)) {
+    if (UsesStructuralIOCellTypes() && !IsCPUMappingCompatible(node, cell)) {
       Log("failure mapper=" + MapperName() +
           " reason=final placement violates structural I/O node=" +
           NodeLabel(node) + " cell=" + std::to_string(cell));

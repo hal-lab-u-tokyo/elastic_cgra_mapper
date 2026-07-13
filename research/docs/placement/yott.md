@@ -25,7 +25,8 @@ reproduction.
 | network model | `one_hop_axis2` |
 | VPR BB setting | `inner_num = 7`, `seed = 1`, output-LUT I/O pads |
 
-The manifest compares YOTO, YOTT, YOTT Core, YOTT Core Repair, and VPR BB on all 23 benchmarks.
+The manifest compares YOTO, YOTT, YOTT Core, YOTT Core Repair, and VPR BB on
+all 23 benchmarks.
 
 ## Mappers
 

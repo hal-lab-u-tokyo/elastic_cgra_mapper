@@ -65,10 +65,9 @@ YOTT Core Repair
 ```
 
 The default repair minimizes maximal FIFO while preserving the YOTT Core
-baseline's direct-edge count, total FIFO, and maximal FIFO. Four elites and 16
-repair iterations capture nearly all of the measured gain. The alternative
-`core_tail_repair` policy requires the complete FIFO-tail distribution to be
-non-worsening after every move.
+baseline's direct-edge count, total FIFO, and maximal FIFO. The alternative
+`core_tail_repair` policy requires every accepted move to preserve the complete
+FIFO-tail distribution.
 
 The algorithm files show the processing order at their top-level multi-start
 function. Shared legality, distance, and quality definitions remain under

@@ -53,6 +53,13 @@ void Placement2DArrayEngine::BuildGridCache() {
     has_compute_cell = has_compute_cell || !cell_memory_accessible_[cell];
   }
   separate_io_cells_ = has_io_cell && has_compute_cell;
+
+  // Cell connectivity depends only on the architecture. Cache it once rather
+  // than rebuilding the same all-pairs table for every placement trial.
+  initial_freedom_.assign(rows_ * cols_, 0);
+  for (int cell = 0; cell < rows_ * cols_; cell++) {
+    if (cell_to_mrrg_[cell] >= 0) initial_freedom_[cell] = CellFreedom(cell);
+  }
 }
 
 void Placement2DArrayEngine::BuildCompatibilityCache() {
@@ -239,19 +246,29 @@ bool Placement2DArrayEngine::CanPlaceCPUMapping(
 
 int Placement2DArrayEngine::CellFreedom(int cell) const {
   int result = 0;
-  for (int other = 0; other < rows_ * cols_; other++) {
-    if (other == cell || cell_to_mrrg_[other] < 0) continue;
-    if (DistanceCost(cell, other) == 1) result++;
+  const int radius =
+      config_.network_type == entity::MRRGNetworkType::kOneHopAxis2 ? 2 : 1;
+  const int row = Row(cell);
+  const int col = Col(cell);
+  for (int dr = -radius; dr <= radius; dr++) {
+    for (int dc = -radius; dc <= radius; dc++) {
+      if (dr == 0 && dc == 0) continue;
+      const int other_row = row + dr;
+      const int other_col = col + dc;
+      if (other_row < 0 || other_col < 0 || other_row >= rows_ ||
+          other_col >= cols_) {
+        continue;
+      }
+      const int other = Cell(other_row, other_col);
+      if (cell_to_mrrg_[other] < 0) continue;
+      if (DistanceCost(cell, other) == 1) result++;
+    }
   }
   return result;
 }
 
 std::vector<int> Placement2DArrayEngine::InitialFreedomGrid() const {
-  std::vector<int> freedom(rows_ * cols_, 0);
-  for (int cell = 0; cell < rows_ * cols_; cell++) {
-    if (cell_to_mrrg_[cell] >= 0) freedom[cell] = CellFreedom(cell);
-  }
-  return freedom;
+  return initial_freedom_;
 }
 
 int Placement2DArrayEngine::DistanceCost(int a, int b) const {

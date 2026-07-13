@@ -74,6 +74,7 @@ class Placement2DArrayEngine {
   std::vector<int> critical_path_score_;
   int critical_path_max_ = 0;
   std::vector<std::vector<int>> compatible_cells_;
+  std::vector<int> initial_freedom_;
   std::vector<int> prisa_cell_order_;
   std::vector<int> prisa_order_index_;
   std::vector<int> prisa_distance_matrix_;
