@@ -16,6 +16,7 @@ add_subdirectory(third_party)
 
 enable_testing()
 
+add_subdirectory(common/logging)
 add_subdirectory(entity)
 add_subdirectory(io)
 add_subdirectory(mapper)
@@ -47,8 +48,9 @@ verilate(verilator_synchronous_CGRA TRACE INCLUDE_DIRS
 set_property(TARGET verilator_synchronous_CGRA PROPERTY CXX_STANDARD 17)
 target_compile_options(verilator_synchronous_CGRA INTERFACE -Wall -Wextra
                                                             -Wno-deprecated)
-target_link_libraries(verilator_synchronous_CGRA
-                      PRIVATE io entity mapper cpp_simulator cxxopts::cxxopts)
+target_link_libraries(
+  verilator_synchronous_CGRA PRIVATE common_logging io entity mapper
+                                     cpp_simulator cxxopts::cxxopts)
 add_executable(remapping src/remapping.cpp)
 set_property(TARGET remapping PROPERTY CXX_STANDARD 17)
 target_compile_options(remapping INTERFACE -Wall -Wextra -Wno-deprecated)

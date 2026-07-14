@@ -2,6 +2,7 @@
 #include <verilated.h>
 #include <verilated_vcd_c.h>
 
+#include <common/logging/debug_logger.hpp>
 #include <cxxopts.hpp>
 #include <io/architecture_io.hpp>
 #include <io/dfg_io.hpp>
@@ -22,13 +23,16 @@ int main(int argc, char** argv) {
                                      "Path to the mapper config json file",
                                      cxxopts::value<std::string>())(
       "fst_output_file", "Path to write the waveform output file",
-      cxxopts::value<std::string>())("h,help", "Print usage");
+      cxxopts::value<std::string>())(
+      "log_output", "Print debug log messages to stdout")("h,help",
+                                                          "Print usage");
 
   std::string dfg_dot_file_path;
   std::string mrrg_file_path;
   std::string mapping_file_path;
   std::string mapper_config_file_path;
   std::string fst_output_file_path;
+  bool log_output = false;
   try {
     const auto result = options.parse(argc, argv);
     if (result.count("help")) {
@@ -40,11 +44,13 @@ int main(int argc, char** argv) {
     mapping_file_path = result["mapping_file"].as<std::string>();
     mapper_config_file_path = result["mapper_config"].as<std::string>();
     fst_output_file_path = result["fst_output_file"].as<std::string>();
+    log_output = result.count("log_output") > 0;
   } catch (const cxxopts::exceptions::exception& e) {
     std::cerr << "invalid arguments: " << e.what() << std::endl;
     std::cerr << options.help();
     return 1;
   }
+  common::logging::DebugLogger logger(log_output);
 
   // create mapping
   std::shared_ptr<entity::DFG> dfg_ptr = std::make_shared<entity::DFG>();
@@ -183,16 +189,16 @@ int main(int argc, char** argv) {
         cgra->start_exec = 0;
         int exe_cycle = cycle - (config_size + 61);
         if (exe_cycle % 4 == 0) {
-          std::cout << "-- step " << exe_cycle / 4 << " --" << std::endl;
-          std::cout << cgra->DEBUG_memory_read_address[1][0] << std::endl;
-          std::cout << "output/input1/input2/index1/index2" << std::endl;
+          logger << "-- step " << exe_cycle / 4 << " --" << std::endl;
+          logger << cgra->DEBUG_memory_read_address[1][0] << std::endl;
+          logger << "output/input1/input2/index1/index2" << std::endl;
           for (int i = 0; i < 4; i++) {
             for (int j = 0; j < 4; j++) {
-              std::cout << cgra->pe_output[i][j] << "/"
-                        << cgra->DEBUG_input_PE_index_1[i][j] + 0 << "/"
-                        << cgra->DEBUG_input_PE_index_2[i][j] + 0 << " ";
+              logger << cgra->pe_output[i][j] << "/"
+                     << cgra->DEBUG_input_PE_index_1[i][j] + 0 << "/"
+                     << cgra->DEBUG_input_PE_index_2[i][j] + 0 << " ";
             }
-            std::cout << std::endl;
+            logger << std::endl;
           }
         }
       }
