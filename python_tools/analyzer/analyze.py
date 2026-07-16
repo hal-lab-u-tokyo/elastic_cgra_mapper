@@ -1,9 +1,12 @@
 import os
 import sys
-sys.path.append("/home/ubuntu/elastic_cgra_mapper/python_tools")
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from io_lib.load_remapper_result import *
 from io_lib.load_plotter_config import *
 from visualizer.plot_remapping_result import RemappingResultPlotter
+
+REMAPPER_RESULT_CSV_HEADER = "benchmark_name,cgra_row,cgra_column,cgra_memory_io,cgra_type,cgra_network_type,cgra_local_reg_size,cgra_context_size,cgra_loop_controllers,mapping_succeed,remapper_type,remapper_time_s,parallel_num,mapping_type_num,hardware_utilization,num_available_mappings,database_mapping_files_num\n"
+
 
 def remapper_result_to_csv(remapper_result):
     csv_str = ""
@@ -21,6 +24,7 @@ def remapper_result_to_csv(remapper_result):
     csv_str += str(remapper_result.remapper_time) + ","
     csv_str += str(remapper_result.parallel_num) + ","
     csv_str += str(remapper_result.mapping_type_num) + ","
+    csv_str += str(remapper_result.utilization) + ","
     csv_str += str(remapper_result.num_available_mappings) + ","
     csv_str += str(remapper_result.database_mapping_files_num)
 
@@ -51,13 +55,13 @@ if __name__ == "__main__":
     # output csv
     output_file_path = os.path.join(analysis_dir, "remapper_result.csv")
     with open(output_file_path, "w") as f:
-        f.write("benchmark_name,cgra_row,cgra_column,cgra_memory_io,cgra_type,cgra_network_type,cgra_local_reg_size,cgra_context_size,cgra_loop_controllers,mapping_succeed,remapper_type,remapper_time_s,parallel_num,mapping_type_num,num_available_mappings,database_mapping_files_num\n")
+        f.write(REMAPPER_RESULT_CSV_HEADER)
         for remapper_result in remapper_results:
             csv_str = remapper_result_to_csv(remapper_result)
             f.write(csv_str + "\n")
     output_file_path = os.path.join(analysis_dir, "remapper_failed_results.csv")
     with open(output_file_path, "w") as f:
-        f.write("benchmark_name,cgra_row,cgra_column,cgra_memory_io,cgra_type,cgra_network_type,cgra_local_reg_size,cgra_context_size,cgra_loop_controllers,mapping_succeed,remapper_type,remapper_time_s,parallel_num,mapping_type_num,num_available_mappings,database_mapping_files_num\n")
+        f.write(REMAPPER_RESULT_CSV_HEADER)
         for remapper_result in remapper_results:
             if not remapper_result.mapping_succeed:
                 csv_str = remapper_result_to_csv(remapper_result)
