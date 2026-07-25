@@ -5,7 +5,7 @@ from io_lib.load_remapper_result import *
 from io_lib.load_plotter_config import *
 from visualizer.plot_remapping_result import RemappingResultPlotter
 
-REMAPPER_RESULT_CSV_HEADER = "benchmark_name,cgra_row,cgra_column,cgra_memory_io,cgra_type,cgra_network_type,cgra_local_reg_size,cgra_context_size,cgra_loop_controllers,mapping_succeed,remapper_type,remapper_time_s,parallel_num,mapping_type_num,hardware_utilization,num_available_mappings,database_mapping_files_num\n"
+REMAPPER_RESULT_CSV_HEADER = "benchmark_name,cgra_row,cgra_column,cgra_memory_io,cgra_type,cgra_network_type,cgra_local_reg_size,cgra_context_size,cgra_loop_controllers,mapping_succeed,remapper_type,remapper_time_s,parallel_num,mapping_type_num,utilization,num_available_mappings,database_mapping_files_num\n"
 
 
 def remapper_result_to_csv(remapper_result):

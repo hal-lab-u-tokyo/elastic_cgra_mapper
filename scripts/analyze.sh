@@ -24,7 +24,7 @@ if [ -n "$baseline_experiment_dir_path" ]; then
     cd "$repo_dir"
     comparison_output_path="$experiment_dir_path/remapper/analysis/remapper_quality_compare.txt"
     set +e
-    python_tools/analyzer/compare_remapper_result_quality.py \
+    python3 python_tools/analyzer/compare_remapper_result_quality.py \
         "$baseline_experiment_dir_path/remapper/analysis/remapper_result.csv" \
         "$experiment_dir_path/remapper/analysis/remapper_result.csv" \
         > "$comparison_output_path" 2>&1
