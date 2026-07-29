@@ -12,10 +12,8 @@ target_link_libraries(VerilogSynchronousPETest PRIVATE gtest_main)
 add_test(NAME VerilogSynchronousPETest COMMAND VerilogSynchronousPETest)
 
 add_executable(VerilogSynchronousCGRATest verilog_synchronous_CGRA_test.cpp)
-verilate(VerilogSynchronousCGRATest INCLUDE_DIRS
-         ${CMAKE_CURRENT_SOURCE_DIR}/../src/ SOURCES
-         ${CMAKE_CURRENT_SOURCE_DIR}/../src/synchronous_CGRA.v)
-target_link_libraries(VerilogSynchronousCGRATest PRIVATE gtest_main io mapper)
+target_link_libraries(VerilogSynchronousCGRATest PRIVATE gtest_main io mapper
+                                                         verilog_runner)
 add_test(NAME VerilogSynchronousCGRATest COMMAND VerilogSynchronousCGRATest)
 
 add_executable(VerilogElasticBufferTest verilog_elastic_buffer_test.cpp)
