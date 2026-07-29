@@ -27,5 +27,7 @@ class DFG : public BaseGraphClass<DFGNodeProperty, DFGEdgeProperty,
   using BaseGraphClass<DFGNodeProperty, DFGEdgeProperty,
                        DFGGraphProperty>::BaseGraphClass;
   DFG(DFGGraph dfg_graph);
+  std::vector<int> Execute(std::vector<int>& memory, int iterations,
+                           int output_node_id);
 };
 }  // namespace entity

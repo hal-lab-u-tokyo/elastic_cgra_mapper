@@ -102,6 +102,8 @@ entity::Mapping::Mapping(
       }
     }
   }
+
+  UpdateCriticalPathLength();
 };
 
 entity::Mapping entity::GenerateMappingFromRoutingResult(
@@ -227,4 +229,148 @@ size_t entity::Mapping::GetOpNum() const {
   }
 
   return result;
+}
+
+entity::DFG entity::Mapping::GenerateDFGFromMapping() const {
+  entity::DFGGraph dfg_graph;
+  std::unordered_map<entity::ConfigId, entity::DFGGraph::vertex_descriptor,
+                     entity::HashConfigId>
+      config_id_to_vertex_id_map;
+  for (const auto& id_and_config : config_map_) {
+    if (id_and_config.second.operation_type != entity::OpType::kNop &&
+        id_and_config.second.operation_type != entity::OpType::kRoute) {
+      auto vertex_id = boost::add_vertex(dfg_graph);
+      config_id_to_vertex_id_map[id_and_config.first] = vertex_id;
+      dfg_graph[vertex_id] = entity::DFGNodeProperty{
+          .op = id_and_config.second.operation_type,
+          .op_str = entity::OpTypeToString(id_and_config.second.operation_type),
+          .op_name = id_and_config.second.operation_name,
+          .const_value = id_and_config.second.const_value};
+    }
+  }
+
+  for (const auto& id_and_config : config_map_) {
+    if (id_and_config.second.operation_type != entity::OpType::kNop &&
+        id_and_config.second.operation_type != entity::OpType::kRoute) {
+      int from_vertex_id = config_id_to_vertex_id_map.at(id_and_config.first);
+      std::queue<entity::ConfigId> config_id_queue(std::deque<entity::ConfigId>(
+          id_and_config.second.to_config_id_vec.begin(),
+          id_and_config.second.to_config_id_vec.end()));
+
+      while (config_id_queue.size() > 0) {
+        entity::ConfigId tmp_config_id = config_id_queue.front();
+        config_id_queue.pop();
+
+        entity::CGRAConfig tmp_config = GetConfig(tmp_config_id);
+        if (tmp_config.operation_type == entity::OpType::kRoute) {
+          for (const auto& to_config_id : tmp_config.to_config_id_vec) {
+            config_id_queue.push(to_config_id);
+          }
+          continue;
+        }
+
+        boost::add_edge(from_vertex_id,
+                        config_id_to_vertex_id_map.at(tmp_config_id),
+                        entity::DFGEdgeProperty{.operand = 0}, dfg_graph);
+      }
+    }
+  }
+
+  return entity::DFG(dfg_graph);
+}
+
+void entity::Mapping::UpdateCriticalPathLength() {
+  if (!config_id_to_critical_path_length_map_.empty()) {
+    return;
+  }
+
+  std::queue<entity::ConfigId> config_queue;
+  for (const auto& config : config_map_) {
+    if (config.second.from_config_id_vec.empty()) {
+      config_id_to_critical_path_length_map_[config.first] =
+          config.first.context_id;
+      for (const auto& child_config_id : config.second.to_config_id_vec) {
+        config_queue.push(child_config_id);
+      }
+    }
+  }
+
+  std::unordered_set<entity::ConfigId, entity::HashConfigId>
+      initial_value_config_id_set;
+  for (const auto& config : config_map_) {
+    std::unordered_set<entity::ConfigId, entity::HashConfigId>
+        child_config_id_set(config.second.to_config_id_vec.begin(),
+                            config.second.to_config_id_vec.end());
+    if (config.second.operation_type == entity::OpType::kRoute) {
+      entity::ConfigId original_config_id = config.first;
+      while (config_map_.at(original_config_id).operation_type ==
+             entity::OpType::kRoute) {
+        original_config_id =
+            config_map_.at(original_config_id).from_config_id_vec[0];
+      }
+      if (child_config_id_set.count(original_config_id) > 0) {
+        initial_value_config_id_set.emplace(config.first);
+      }
+    } else {
+      if (child_config_id_set.count(config.first) > 0) {
+        initial_value_config_id_set.emplace(config.first);
+      }
+    }
+  }
+
+  while (!config_queue.empty()) {
+    entity::ConfigId current_config_id = config_queue.front();
+    config_queue.pop();
+    const entity::CGRAConfig& current_config = GetConfig(current_config_id);
+
+    bool all_parents_processed = true;
+    for (const auto& parent_config_id : current_config.from_config_id_vec) {
+      if (initial_value_config_id_set.count(parent_config_id) > 0) {
+        continue;
+      }
+      if (config_id_to_critical_path_length_map_.find(parent_config_id) ==
+          config_id_to_critical_path_length_map_.end()) {
+        all_parents_processed = false;
+      }
+    }
+    if (!all_parents_processed) {
+      config_queue.push(current_config_id);
+      continue;
+    }
+
+    int max_parent_length = -1;
+    for (const auto& parent_config_id : current_config.from_config_id_vec) {
+      bool is_initial_value_config =
+          initial_value_config_id_set.count(parent_config_id) > 0;
+      bool is_parent_processed =
+          config_id_to_critical_path_length_map_.count(parent_config_id) > 0;
+      if (is_initial_value_config && !is_parent_processed) {
+        max_parent_length =
+            std::max(max_parent_length, parent_config_id.context_id);
+        continue;
+      }
+
+      max_parent_length =
+          std::max(max_parent_length,
+                   config_id_to_critical_path_length_map_[parent_config_id]);
+    }
+
+    config_id_to_critical_path_length_map_[current_config_id] =
+        max_parent_length + 1;
+
+    for (const auto& child_config_id : current_config.to_config_id_vec) {
+      if (config_id_to_critical_path_length_map_.count(child_config_id) == 0) {
+        config_queue.push(child_config_id);
+      }
+    }
+  }
+}
+
+int entity::Mapping::GetCriticalPathLength(entity::ConfigId config_id) {
+  UpdateCriticalPathLength();
+  if (config_id_to_critical_path_length_map_.count(config_id) > 0) {
+    return config_id_to_critical_path_length_map_.at(config_id);
+  } else {
+    return -1;
+  }
 }

@@ -42,15 +42,18 @@ target_link_libraries(bulk_mapping PRIVATE io entity mapper cpp_simulator
                                            cxxopts::cxxopts)
 
 add_executable(verilator_synchronous_CGRA src/verilator_synchronous_CGRA.cpp)
-verilate(verilator_synchronous_CGRA TRACE INCLUDE_DIRS
-         ${CMAKE_CURRENT_SOURCE_DIR}/simulator/verilog/src/ SOURCES
-         ${CMAKE_CURRENT_SOURCE_DIR}/simulator/verilog/src/synchronous_CGRA.v)
 set_property(TARGET verilator_synchronous_CGRA PROPERTY CXX_STANDARD 17)
 target_compile_options(verilator_synchronous_CGRA INTERFACE -Wall -Wextra
                                                             -Wno-deprecated)
 target_link_libraries(
-  verilator_synchronous_CGRA PRIVATE common_logging io entity mapper
-                                     cpp_simulator cxxopts::cxxopts)
+  verilator_synchronous_CGRA
+  PRIVATE common_logging
+          io
+          entity
+          mapper
+          cpp_simulator
+          verilog_runner
+          cxxopts::cxxopts)
 add_executable(remapping src/remapping.cpp)
 set_property(TARGET remapping PROPERTY CXX_STANDARD 17)
 target_compile_options(remapping INTERFACE -Wall -Wextra -Wno-deprecated)
