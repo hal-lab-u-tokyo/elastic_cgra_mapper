@@ -8,9 +8,9 @@ parameter PE_ROW_SIZE = 4;
 parameter PE_ROW_BIT_LENGTH = 2;  // log PE_HEIGHT
 parameter CONTEXT_SIZE_BIT_LENGTH = 3;  // log CONTEXT_HW_SIZE
 parameter CONTEXT_SIZE = 8;
-parameter ADDRESS_WIDTH = 10;  // log MEMORY_SIZE
-parameter MEMORY_SIZE = 1024;
-parameter CONTEXT_SWITCH_CLK_SIZE = 3;
+parameter ADDRESS_WIDTH = 32;  // log MEMORY_SIZE
+parameter MEMORY_SIZE = 1 << 16;  // 64KB
+parameter CONTEXT_SWITCH_CLK_SIZE = 0;
 
 // CGRA data path param
 parameter DATA_WIDTH = 32;

@@ -167,3 +167,38 @@ bool entity::IsMemoryAccessOperation(OpType op) {
 bool entity::IsDFGOp(OpType op) {
   return !(op == entity::OpType::kNop || op == entity::OpType::kRoute);
 };
+
+int entity::ExecuteOperation(entity::OpType op_type, int input1, int input2,
+                             int const_value, std::vector<int>& memory) {
+  switch (op_type) {
+    case entity::OpType::kAdd:
+      return input1 + input2;
+    case entity::OpType::kSub:
+      return input1 - input2;
+    case entity::OpType::kMul:
+      return input1 * input2;
+    case entity::OpType::kDiv:
+      return input1 / input2;
+    case entity::OpType::kConst:
+      return const_value;
+    case entity::OpType::kLoad:
+      if (input1 < 0 || input1 >= static_cast<int>(memory.size())) {
+        throw std::out_of_range("Memory access out of bounds");
+      }
+      return memory[input1];
+    case entity::OpType::kOutput:
+      return input1;
+    case entity::OpType::kStore:
+      if (input1 < 0 || input1 >= static_cast<int>(memory.size())) {
+        throw std::out_of_range("Memory access out of bounds");
+      }
+      memory[input1] = input2;
+      return 0;
+    case entity::OpType::kNop:
+      return 0;
+    case entity::OpType::kRoute:
+      return input1;
+    default:
+      throw std::invalid_argument("Unsupported operation type");
+  }
+};

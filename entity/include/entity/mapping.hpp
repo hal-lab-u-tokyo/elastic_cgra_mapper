@@ -33,10 +33,15 @@ class Mapping {
     return double(GetOpNum()) /
            (mrrg_config_.column * mrrg_config_.row * mrrg_config_.context_size);
   };
+  int GetCriticalPathLength(ConfigId config_id);
+  entity::DFG GenerateDFGFromMapping() const;
 
  private:
+  void UpdateCriticalPathLength();
   MRRGConfig mrrg_config_;
   ConfigMap config_map_;
+  std::unordered_map<ConfigId, int, entity::HashConfigId>
+      config_id_to_critical_path_length_map_;
 };
 
 entity::Mapping GenerateMappingFromRoutingResult(

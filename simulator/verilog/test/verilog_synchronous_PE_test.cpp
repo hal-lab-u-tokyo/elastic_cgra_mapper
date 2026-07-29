@@ -38,32 +38,32 @@ TEST(VerilogSimulatorTest, synchronous_PE_test) {
         pe->start_exec = 0;
         pe->pe_input_data[0] = 12;
         pe->pe_input_data[1] = 13;
-      } else if (cycle == 16) {  // 1, 2, SUB
+      } else if (cycle == 13) {  // 1, 2, SUB
         EXPECT_EQ(pe->pe_output_data, 25);
         pe->pe_input_data[1] = 20;
         pe->pe_input_data[2] = 15;
-      } else if (cycle == 20) {  // 2, 3, MUL
+      } else if (cycle == 14) {  // 2, 3, MUL
         EXPECT_EQ(pe->pe_output_data, 5);
         pe->pe_input_data[2] = 4;
         pe->pe_input_data[3] = 15;
-      } else if (cycle == 24) {  // 3, 0, DIV
+      } else if (cycle == 15) {  // 3, 0, DIV
         EXPECT_EQ(pe->pe_output_data, 60);
         pe->pe_input_data[3] = 62;
         pe->pe_input_data[0] = 2;
-      } else if (cycle == 28) {  // 0, 1, CONST
+      } else if (cycle == 16) {  // 0, 1, CONST
         EXPECT_EQ(pe->pe_output_data, 31);
         pe->pe_input_data[0] = 0;
-      } else if (cycle == 32) {  // 1, 2, load
+      } else if (cycle == 17) {  // 1, 2, load
         EXPECT_EQ(pe->pe_output_data, 10);
         pe->pe_input_data[1] = 20;
         pe->pe_input_data[2] = 15;
-      } else if (cycle == 36) {  // 2, 3, output
+      } else if (cycle == 18) {  // 2, 3, output
         EXPECT_EQ(pe->memory_read_address, 20);
         pe->pe_input_data[2] = 15;
-      } else if (cycle == 40) {  // 3, 0, route
+      } else if (cycle == 19) {  // 3, 0, route
         EXPECT_EQ(pe->pe_output_data, 15);
         pe->pe_input_data[3] = 20;
-      } else if (cycle == 44) {
+      } else if (cycle == 20) {
         EXPECT_EQ(pe->pe_output_data, 20);
       }
     }
