@@ -41,8 +41,14 @@ class RemappingResultPlotter:
             valid_column = remapper_result.cgra.column == self.plotter_config.compare_benchmark_config.column
             valid_context_size = remapper_result.cgra.context_size == self.plotter_config.compare_benchmark_config.context_size
             valid_network_type = remapper_result.cgra.network_type == self.plotter_config.compare_benchmark_config.network_type
+            valid_memory_io = True
+            if self.plotter_config.compare_benchmark_config.memory_io_type is not None:
+                valid_memory_io = remapper_result.cgra.memory_io_type == self.plotter_config.compare_benchmark_config.memory_io_type
+            valid_num_available_mappings = True
+            if self.plotter_config.compare_benchmark_config.num_available_mappings is not None:
+                valid_num_available_mappings = remapper_result.num_available_mappings == self.plotter_config.compare_benchmark_config.num_available_mappings
 
-            is_valid_result = valid_row and valid_column and valid_context_size and valid_network_type
+            is_valid_result = valid_row and valid_column and valid_context_size and valid_network_type and valid_memory_io and valid_num_available_mappings
             if not is_valid_result:
                 continue
 

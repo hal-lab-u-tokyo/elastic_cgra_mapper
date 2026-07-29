@@ -23,11 +23,15 @@ struct MappingTransformElement {
     const int row_search_width = max_cgra_size - tmp_mapping_config.row + 1;
     const int column_search_width =
         max_cgra_size - tmp_mapping_config.column + 1;
+    const int search_num =
+        row_search_width * column_search_width * remapper::kRotateOpNum;
 
-    max_search_id =
-        row_search_width * column_search_width * remapper::kRotateOpNum - 1;
+    max_search_id = -1;
+    if (search_num <= 0) {
+      return;
+    }
 
-    for (size_t search_id = 0; search_id < max_search_id; search_id++) {
+    for (int search_id = 0; search_id < search_num; search_id++) {
       remapper::MappingTransformOp transform_op(
           search_id / (column_search_width * remapper::kRotateOpNum),
           (search_id / remapper::kRotateOpNum) % column_search_width,
@@ -87,6 +91,19 @@ class FullSearchHelper {
     return max_search_id_vec;
   };
 
+  bool HasTransformCandidate(int mapping_id) const {
+    return mapping_transform_element_vec_[mapping_id].max_search_id >= 0;
+  }
+
+  bool HasTransformCandidateVec(const std::vector<int>& mapping_id_vec) const {
+    for (const auto mapping_id : mapping_id_vec) {
+      if (!HasTransformCandidate(mapping_id)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   std::vector<remapper::MappingTransformOp> GetTransformOpVec(
       const std::vector<int>& mapping_id_vec,
       const std::vector<int>& search_id_vec) const {
@@ -119,6 +136,16 @@ remapper::RemappingResult remapper::FullSearchRemapping(
   while (1) {
     const std::vector<int> selected_mapping_id_vec =
         selected_mapping_combination.GetCombination();
+    if (!helper.HasTransformCandidateVec(selected_mapping_id_vec)) {
+      bool test_all_mapping_combination =
+          !(selected_mapping_combination.Next());
+      if (test_all_mapping_combination) {
+        break;
+      }
+      mapping_group_id++;
+      continue;
+    }
+
     const std::vector<remapper::MappingMatrix> selected_mapping_matrix_vec =
         helper.BulkGetMappingMatrixVec(selected_mapping_id_vec);
     std::vector<int> max_selected_search_id_vec =
@@ -148,13 +175,14 @@ remapper::RemappingResult remapper::FullSearchRemapping(
                                          transform_op_vec);
       }
 
-      if (best_remapping_result.result_transform_op_vec.size() <
-          transform_op_vec.size()) {
+      if (best_remapping_result.result_transform_op_vec.size() < mapping_num) {
         std::vector<int> result_mapping_id_vec(
             selected_mapping_id_vec.begin(),
-            selected_mapping_id_vec.begin() + transform_op_vec.size());
-        best_remapping_result =
-            remapper::RemappingResult(result_mapping_id_vec, transform_op_vec);
+            selected_mapping_id_vec.begin() + mapping_num);
+        std::vector<remapper::MappingTransformOp> result_transform_op_vec(
+            transform_op_vec.begin(), transform_op_vec.begin() + mapping_num);
+        best_remapping_result = remapper::RemappingResult(
+            result_mapping_id_vec, result_transform_op_vec);
       }
 
       const auto tmp_time = std::chrono::system_clock::now();

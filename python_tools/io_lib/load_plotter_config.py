@@ -8,6 +8,8 @@ class CompareBenchmarkConfig:
     self.column: int = 0
     self.context_size: int = 0
     self.network_type: NetworkType = NetworkType.Orthogonal
+    self.memory_io_type: MemoryIOType = None
+    self.num_available_mappings = None
 
 class CompareCGRASizeConfig:
   def __init__(self):
@@ -100,6 +102,10 @@ def load_plotter_config(config_path):
   plotter_config.compare_benchmark_config.column = json_dict["compare_benchmark_config"]["column"]
   plotter_config.compare_benchmark_config.context_size = json_dict["compare_benchmark_config"]["context_size"]
   plotter_config.compare_benchmark_config.network_type = NetworkType.get_from_string(json_dict["compare_benchmark_config"]["network_type"])
+  if "memory_io" in json_dict["compare_benchmark_config"]:
+    plotter_config.compare_benchmark_config.memory_io_type = MemoryIOType.get_from_string(json_dict["compare_benchmark_config"]["memory_io"])
+  if "num_available_mappings" in json_dict["compare_benchmark_config"]:
+    plotter_config.compare_benchmark_config.num_available_mappings = json_dict["compare_benchmark_config"]["num_available_mappings"]
 
   # compare cgra size config
   plotter_config.compare_cgra_size_config.min_size = json_dict["compare_cgra_size_config"]["min_size"]
