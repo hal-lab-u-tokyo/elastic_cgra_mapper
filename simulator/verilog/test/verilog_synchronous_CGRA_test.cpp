@@ -11,9 +11,9 @@
 
 TEST(VerilogSimulatorTest, synchronous_CGRA_test) {
   std::string mapping_file_path =
-      "../../../../simulator/verilog/test/data/default_mapping.json";
+      std::string(VERILOG_TEST_DATA_DIR) + "/default_mapping.json";
   std::string fst_output_file_path =
-      "../../../../simulator/verilog/test/data/synchronous_CGRA_test.fst";
+      std::string(VERILOG_TEST_DATA_DIR) + "/synchronous_CGRA_test.fst";
 
   simulator::SimulationRunner simulation_runner(mapping_file_path,
                                                 fst_output_file_path);

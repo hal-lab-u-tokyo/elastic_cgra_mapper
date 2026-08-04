@@ -5,7 +5,7 @@
 #include <remapper/remapper.hpp>
 
 std::filesystem::path kDatabaseDirPath =
-    "../../../remapper/test/data/database/";
+    std::filesystem::path(REMAPPER_TEST_DATA_DIR) / "database";
 
 // Create a mapping database for testing
 // DFG: load0 -> add2 <- load1, add2 -> output3
