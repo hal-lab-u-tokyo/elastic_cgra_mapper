@@ -58,6 +58,15 @@ module PE (
                 r_config_memory[i] <= 0;
             end
             r_counter <= 0;
+            r_config_index <= 0;
+            r_output <= 0;
+            r_exec_active <= 0;
+            memory_write_address <= 0;
+            memory_write <= 0;
+            memory_write_data <= 0;
+            memory_read_address <= 0;
+            DEBUG_valid_output <= 0;
+            DEBUG_output_context_id <= 0;
         end else begin
             if (write_config_data) begin
                 // write config memory
