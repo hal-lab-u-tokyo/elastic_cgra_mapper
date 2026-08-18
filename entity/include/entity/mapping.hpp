@@ -36,7 +36,8 @@ class Mapping {
 };
 
 entity::Mapping GenerateMappingFromRoutingResult(
-    const entity::MRRG& mrrg, const entity::DFG& dfg,
+    const entity::MRRG& mrrg, entity::DFG& dfg,
     const std::vector<int>& dfg_node_to_mrrg_node,
-    const std::vector<std::vector<int>>& dfg_output_to_mrrg_edge);
+    const std::vector<std::vector<int>>& dfg_output_to_mrrg_edge,
+    const std::vector<int>& dropped_dfg_edge_ids = {});
 }  // namespace entity

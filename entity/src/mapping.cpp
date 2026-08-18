@@ -105,16 +105,39 @@ entity::Mapping::Mapping(
 };
 
 entity::Mapping entity::GenerateMappingFromRoutingResult(
-    const entity::MRRG& mrrg, const entity::DFG& dfg,
+    const entity::MRRG& mrrg, entity::DFG& dfg,
     const std::vector<int>& dfg_node_to_mrrg_node,
-    const std::vector<std::vector<int>>& dfg_output_to_mrrg_edge) {
+    const std::vector<std::vector<int>>& dfg_output_to_mrrg_edge,
+    const std::vector<int>& dropped_dfg_edge_ids) {
   entity::MRRGConfig mrrg_config_ = mrrg.GetMRRGConfig();
   entity::ConfigMap config_map_ = {};
 
   entity::MRRG dc_mrrg = mrrg;
 
+  for (int op_id = 0; op_id < dfg.GetNodeNum(); op_id++) {
+    const int PE_id = dfg_node_to_mrrg_node[op_id];
+    if (PE_id < 0) {
+      continue;
+    }
+
+    entity::ConfigId config_id(mrrg.GetNodeProperty(PE_id));
+    const entity::DFGNodeProperty op_property = dfg.GetNodeProperty(op_id);
+    if (config_map_.count(config_id) == 0) {
+      config_map_.emplace(
+          config_id,
+          entity::CGRAConfig(op_property.op, op_property.op_name));
+    }
+    if (op_property.op == entity::OpType::CONST &&
+        op_property.const_value.has_value()) {
+      config_map_[config_id].SetConstValue(op_property.const_value.value());
+    }
+  }
+
   for (int from_op_id = 0; from_op_id < dfg.GetNodeNum(); from_op_id++) {
     int from_op_PE_id = dfg_node_to_mrrg_node[from_op_id];
+    if (from_op_PE_id < 0) {
+      continue;
+    }
 
     std::vector<int> mrrg_edge_id_vec = dfg_output_to_mrrg_edge[from_op_id];
     std::vector<int> mrrg_out_edge_ids = dc_mrrg.GetOutEdgeIdVec(from_op_PE_id);
@@ -194,8 +217,6 @@ entity::Mapping entity::GenerateMappingFromRoutingResult(
               dfg.GetNodeProperty(from_op_id).const_value.value());
         }
       }
-      std::cout << "Adjacent edge count: " << adj_edge_id_vec.size() << "\n";
-
       if (to_op_type != entity::OpType::ROUTE) {
         continue;
       }
@@ -215,6 +236,20 @@ entity::Mapping entity::GenerateMappingFromRoutingResult(
         }
       }
     }
+  }
+
+  for (int dfg_edge_id : dropped_dfg_edge_ids) {
+    const auto src_and_dst = dfg.GetEdgeSourceTarget(dfg_edge_id);
+    const int from_PE_id = dfg_node_to_mrrg_node[src_and_dst.first];
+    const int to_PE_id = dfg_node_to_mrrg_node[src_and_dst.second];
+    if (from_PE_id < 0 || to_PE_id < 0) {
+      continue;
+    }
+
+    const entity::ConfigId from_config_id(mrrg.GetNodeProperty(from_PE_id));
+    const entity::ConfigId to_config_id(mrrg.GetNodeProperty(to_PE_id));
+    config_map_[from_config_id].AddDroppedToConfig(to_config_id);
+    config_map_[to_config_id].AddDroppedFromConfig(from_config_id);
   }
   return entity::Mapping(mrrg_config_, config_map_);
 }

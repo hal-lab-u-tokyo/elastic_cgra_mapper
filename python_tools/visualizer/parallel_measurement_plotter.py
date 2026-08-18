@@ -10,13 +10,16 @@ from matplotlib import pyplot as plt
 def estimate_parallel_num(mapping_file_path, dfg_node_num):
   max_op_index = 0
   mapping = read_mapping_from_json(mapping_file_path)
+  pe_list = []
   for row_id in range(mapping.row_num):
     for column_id in range(mapping.column_num):
-      pe = mapping.PE_array[row_id][column_id]
-      for config in pe.config_list:
-        op_index = re.sub(r"\D", "", config.operation_name)
-        if op_index != "":
-          max_op_index = max(int(op_index), max_op_index)
+      pe_list.append(mapping.PE_array[row_id][column_id])
+  pe_list.extend(getattr(mapping, "extra_PE_list", []))
+  for pe in pe_list:
+    for config in pe.config_list:
+      op_index = re.sub(r"\D", "", config.operation_name)
+      if op_index != "":
+        max_op_index = max(int(op_index), max_op_index)
   return (max_op_index + 1) // dfg_node_num
 
 

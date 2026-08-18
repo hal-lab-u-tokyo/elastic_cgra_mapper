@@ -412,7 +412,7 @@ mapper::MappingResult mapper::GurobiPlacementILPMapper::Execution() {
     if (status != GRB_OPTIMAL && status != GRB_SUBOPTIMAL) {
       if (status == GRB_INFEASIBLE) {
         model.computeIIS();
-        model.write("debug.iis");
+        model.write("debug.ilp");
       }
       const auto end_time = std::chrono::system_clock::now();
       const double mapping_time =

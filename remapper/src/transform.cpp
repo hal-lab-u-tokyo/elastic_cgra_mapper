@@ -120,6 +120,20 @@ entity::Mapping remapper::MappingRotater(const entity::Mapping& mapping,
       rotated_cgra_config.from_config_id_vec.push_back(remapper::RotateConfigId(
           from_config_id, mapping.GetMRRGConfig(), rotate_op));
     }
+    rotated_cgra_config.dropped_to_config_id_vec.clear();
+    for (const auto& to_config_id :
+         cgra_config.second.dropped_to_config_id_vec) {
+      rotated_cgra_config.dropped_to_config_id_vec.push_back(
+          remapper::RotateConfigId(to_config_id, mapping.GetMRRGConfig(),
+                                   rotate_op));
+    }
+    rotated_cgra_config.dropped_from_config_id_vec.clear();
+    for (const auto& from_config_id :
+         cgra_config.second.dropped_from_config_id_vec) {
+      rotated_cgra_config.dropped_from_config_id_vec.push_back(
+          remapper::RotateConfigId(from_config_id, mapping.GetMRRGConfig(),
+                                   rotate_op));
+    }
 
     rotated_config_map.emplace(rotated_config_id, rotated_cgra_config);
   }

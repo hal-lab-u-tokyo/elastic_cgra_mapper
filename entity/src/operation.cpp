@@ -70,6 +70,9 @@ std::string entity::OpTypeToString(OpType op) {
     case entity::OpType::CMPEQ:
       return "cmpeq";
       break;
+    case entity::OpType::CMPNE:
+      return "cmpne";
+      break;
     case entity::OpType::SDIV:
       return "sdiv";
       break;
@@ -84,6 +87,8 @@ std::string entity::OpTypeToString(OpType op) {
       break;
     case entity::OpType::SELECT:
       return "select";
+    case entity::OpType::SPM:
+      return "spm";
     default:
       assert("invalid OpType");
       abort();
@@ -137,6 +142,8 @@ entity::OpType entity::OpTypeFromString(std::string op_string) {
     return entity::OpType::CMPGE;
   } else if (op_string == "cmpeq" || op_string == "icmpeq") {
     return entity::OpType::CMPEQ;
+  } else if (op_string == "cmpne" || op_string == "icmpne") {
+    return entity::OpType::CMPNE;
   } else if (op_string == "sdiv") {
     return entity::OpType::SDIV;
   } else if (op_string == "fdiv") {
@@ -147,6 +154,8 @@ entity::OpType entity::OpTypeFromString(std::string op_string) {
     return entity::OpType::TM;
   } else if (op_string == "select") {
     return entity::OpType::SELECT;
+  } else if (op_string == "spm") {
+    return entity::OpType::SPM;
   } else {
     std::string message = "invalid op string: " + op_string;
     std::cerr << message << std::endl;
@@ -164,7 +173,7 @@ std::vector<entity::OpType> entity::GetAllOperations() {
        entity::OpType::OR,    entity::OpType::AND,    entity::OpType::XOR,
        entity::OpType::SHIFTL, entity::OpType::SHIFTR, entity::OpType::ICMP,
        entity::OpType::CMPGT, entity::OpType::CMPGE,  entity::OpType::CMPEQ,
-       entity::OpType::SELECT});
+       entity::OpType::CMPNE, entity::OpType::SELECT});
 };
 
 std::vector<entity::OpType> entity::GetAllOperationsExceptMemoryAccess() {
@@ -176,7 +185,7 @@ std::vector<entity::OpType> entity::GetAllOperationsExceptMemoryAccess() {
        entity::OpType::OR, entity::OpType::AND,      entity::OpType::XOR,
        entity::OpType::SHIFTL, entity::OpType::SHIFTR, entity::OpType::ICMP,
        entity::OpType::CMPGT, entity::OpType::CMPGE, entity::OpType::CMPEQ,
-       entity::OpType::SELECT});
+       entity::OpType::CMPNE, entity::OpType::SELECT});
 };
 
 std::vector<entity::OpType> entity::GetLoopOperations() {
@@ -187,6 +196,10 @@ std::vector<entity::OpType> entity::GetTMOperations() {
   auto result = entity::GetAllOperationsExceptMemoryAccess();
   result.emplace_back(entity::OpType::TM);
   return result;
+};
+
+std::vector<entity::OpType> entity::GetOuterLspeOperations() {
+  return std::vector<OpType>({entity::OpType::SPM});
 };
 
 bool entity::IsMemoryAccessOperation(OpType op) {

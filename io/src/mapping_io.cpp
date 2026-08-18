@@ -3,6 +3,7 @@
 #include <boost/property_tree/ptree.hpp>
 #include <io/json_reader.hpp>
 #include <io/mapping_io.hpp>
+#include <set>
 
 struct ConfigIdIOStruct {
   int row_id;
@@ -39,9 +40,11 @@ struct ConfigIOStruct {
   int context_id;
   int const_value;
   std::vector<ConfigIdIOStruct> to_config_id;
+  std::vector<ConfigIdIOStruct> dropped_to_config_id;
   std::string operation_type;
   std::string operation_name;
   std::vector<ConfigIdIOStruct> from_config_id;
+  std::vector<ConfigIdIOStruct> dropped_from_config_id;
 
   ConfigIOStruct(int context_id_) {
     context_id = context_id_;
@@ -59,6 +62,12 @@ struct ConfigIOStruct {
     }
     for (entity::ConfigId config_id : cgra_config.from_config_id_vec) {
       from_config_id.emplace_back(config_id);
+    }
+    for (entity::ConfigId config_id : cgra_config.dropped_to_config_id_vec) {
+      dropped_to_config_id.emplace_back(config_id);
+    }
+    for (entity::ConfigId config_id : cgra_config.dropped_from_config_id_vec) {
+      dropped_from_config_id.emplace_back(config_id);
     }
   }
   ConfigIOStruct(const boost::property_tree::ptree& ptree) {
@@ -78,6 +87,18 @@ struct ConfigIOStruct {
 
       from_config_id.emplace_back(info);
     }
+    if (const auto child = ptree.get_child_optional("dropped_to_config_id")) {
+      BOOST_FOREACH (const boost::property_tree::ptree::value_type& element,
+                     child.value()) {
+        dropped_to_config_id.emplace_back(element.second);
+      }
+    }
+    if (const auto child = ptree.get_child_optional("dropped_from_config_id")) {
+      BOOST_FOREACH (const boost::property_tree::ptree::value_type& element,
+                     child.value()) {
+        dropped_from_config_id.emplace_back(element.second);
+      }
+    }
   }
 
   entity::CGRAConfig CreateCGRAConfig() {
@@ -92,6 +113,13 @@ struct ConfigIOStruct {
       cgra_config.AddToConfig(to_config_id_ele.CreateConfigId(), op,
                               operation_name);
     }
+    for (ConfigIdIOStruct dropped_from_config_id_ele : dropped_from_config_id) {
+      cgra_config.AddDroppedFromConfig(
+          dropped_from_config_id_ele.CreateConfigId());
+    }
+    for (ConfigIdIOStruct dropped_to_config_id_ele : dropped_to_config_id) {
+      cgra_config.AddDroppedToConfig(dropped_to_config_id_ele.CreateConfigId());
+    }
     cgra_config.operation_type = op;
     cgra_config.operation_name = operation_type;
     cgra_config.const_value = const_value;
@@ -102,7 +130,8 @@ struct ConfigIOStruct {
   boost::property_tree::ptree ConvertToPTree() {
     boost::property_tree::ptree result;
     boost::property_tree::ptree to_config_id_vec_ptree,
-        from_config_id_vec_ptree;
+        from_config_id_vec_ptree, dropped_to_config_id_vec_ptree,
+        dropped_from_config_id_vec_ptree;
 
     for (ConfigIdIOStruct to_config_id : to_config_id) {
       auto new_ele = std::make_pair("", to_config_id.ConvertToPTree());
@@ -112,12 +141,25 @@ struct ConfigIOStruct {
       auto new_ele = std::make_pair("", from_config_id.ConvertToPTree());
       from_config_id_vec_ptree.push_back(new_ele);
     }
+    for (ConfigIdIOStruct dropped_to_config_id : dropped_to_config_id) {
+      auto new_ele =
+          std::make_pair("", dropped_to_config_id.ConvertToPTree());
+      dropped_to_config_id_vec_ptree.push_back(new_ele);
+    }
+    for (ConfigIdIOStruct dropped_from_config_id : dropped_from_config_id) {
+      auto new_ele =
+          std::make_pair("", dropped_from_config_id.ConvertToPTree());
+      dropped_from_config_id_vec_ptree.push_back(new_ele);
+    }
     result.put("context_id", context_id);
     result.put("operation_type", operation_type);
     result.put("operation_name", operation_name);
     result.put("const_value", const_value);
     result.add_child("to_config_id", to_config_id_vec_ptree);
     result.add_child("from_config_id", from_config_id_vec_ptree);
+    result.add_child("dropped_to_config_id", dropped_to_config_id_vec_ptree);
+    result.add_child("dropped_from_config_id",
+                     dropped_from_config_id_vec_ptree);
 
     return result;
   }
@@ -165,6 +207,7 @@ struct MappingIOStruct {
   std::string memory_io_type;
   std::string cgra_type;
   std::string network_type;
+  std::string extension;
 
   std::vector<PEConfigIOStruct> PE_config;
 
@@ -176,25 +219,51 @@ struct MappingIOStruct {
     memory_io_type = entity::MRRGMemoryIoTypeToString(mrrg_config.memory_io);
     cgra_type = entity::MRRGCGRATypeToString(mrrg_config.cgra_type);
     network_type = entity::MRRGNetworkTypeToString(mrrg_config.network_type);
+    extension = entity::MRRGExtensionTypeToString(mrrg_config.extension);
 
     auto config_map = mapping_ptr_->GetConfigMap();
+    auto add_pe_config = [&](int row_id, int column_id) {
+      PEConfigIOStruct PE_config_ele(row_id, column_id);
+
+      for (int context_id = 0; context_id < mrrg_config.context_size;
+           context_id++) {
+        entity::ConfigId tmp_config_id(row_id, column_id, context_id);
+        if (config_map.count(tmp_config_id) == 0) {
+          PE_config_ele.config.emplace_back(context_id);
+        } else {
+          PE_config_ele.config.emplace_back(config_map[tmp_config_id],
+                                            context_id);
+        }
+      }
+
+      PE_config.push_back(PE_config_ele);
+    };
+
     for (int row_id = 0; row_id < mrrg_config.row; row_id++) {
       for (int column_id = 0; column_id < mrrg_config.column; column_id++) {
-        PEConfigIOStruct PE_config_ele(row_id, column_id);
-
-        for (int context_id = 0; context_id < mrrg_config.context_size;
-             context_id++) {
-          entity::ConfigId tmp_config_id(row_id, column_id, context_id);
-          if (config_map.count(tmp_config_id) == 0) {
-            PE_config_ele.config.emplace_back(context_id);
-          } else {
-            PE_config_ele.config.emplace_back(config_map[tmp_config_id],
-                                              context_id);
-          }
-        }
-
-        PE_config.push_back(PE_config_ele);
+        add_pe_config(row_id, column_id);
       }
+    }
+
+    std::set<entity::PEPositionId> extra_position_set;
+    if (mrrg_config.extension == entity::MRRGExtensionType::kOuterLspeGroup4) {
+      constexpr int kGroupSize = 4;
+      for (int row_group_start = 0; row_group_start < mrrg_config.row;
+           row_group_start += kGroupSize) {
+        extra_position_set.emplace(row_group_start, -1);
+        extra_position_set.emplace(row_group_start, mrrg_config.column);
+      }
+    }
+    for (const auto& config_pair : config_map) {
+      entity::ConfigId config_id = config_pair.first;
+      if (config_id.row_id < 0 || config_id.row_id >= mrrg_config.row ||
+          config_id.column_id < 0 ||
+          config_id.column_id >= mrrg_config.column) {
+        extra_position_set.emplace(config_id.row_id, config_id.column_id);
+      }
+    }
+    for (const auto& extra_position : extra_position_set) {
+      add_pe_config(extra_position.row_id, extra_position.column_id);
     }
   }
 
@@ -205,6 +274,7 @@ struct MappingIOStruct {
     memory_io_type = GetValueFromPTree<std::string>(ptree, "memory_io_type");
     cgra_type = GetValueFromPTree<std::string>(ptree, "cgra_type");
     network_type = GetValueFromPTree<std::string>(ptree, "network_type");
+    extension = ptree.get<std::string>("extension", "none");
 
     BOOST_FOREACH (const boost::property_tree::ptree::value_type& child,
                    ptree.get_child("PE_config")) {
@@ -224,6 +294,7 @@ struct MappingIOStruct {
     mrrg_config.memory_io = entity::MRRGMemoryIOTypeFromString(memory_io_type);
     mrrg_config.cgra_type = entity::MRRGCGRATypeFromString(cgra_type);
     mrrg_config.network_type = entity::MRRGNetworkTypeFromString(network_type);
+    mrrg_config.extension = entity::MRRGExtensionTypeFromString(extension);
 
     for (PEConfigIOStruct PE_config_ele : PE_config) {
       for (ConfigIOStruct config_ele : PE_config_ele.config) {
@@ -252,6 +323,9 @@ struct MappingIOStruct {
     result.put("memory_io_type", memory_io_type);
     result.put("cgra_type", cgra_type);
     result.put("network_type", network_type);
+    if (extension != "none") {
+      result.put("extension", extension);
+    }
     result.add_child("PE_config", mapping_config_ptree);
 
     return result;

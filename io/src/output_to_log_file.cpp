@@ -73,9 +73,13 @@ void io::MappingLogger::LogMappingInput(const io::MappingInput& input) {
   log_file_ << "timeout (s): " << input.timeout_s << std::endl;
   log_file_ << "parallel num: " << input.parallel_num << std::endl;
 
-  std::shared_ptr<entity::MRRG> mrrg_ptr =
-      std::make_shared<entity::MRRG>(input.mrrg_config);
-  io::WriteMRRGToJsonFile(arch_file_path_.string(), mrrg_ptr);
+  if (!input.mrrg_file_path.empty()) {
+    CopyArchFile(input.mrrg_file_path);
+  } else {
+    std::shared_ptr<entity::MRRG> mrrg_ptr =
+        std::make_shared<entity::MRRG>(input.mrrg_config);
+    io::WriteMRRGToJsonFile(arch_file_path_.string(), mrrg_ptr);
+  }
 }
 
 void io::MappingLogger::LogMappingOutput(const io::MappingOutput& output) {

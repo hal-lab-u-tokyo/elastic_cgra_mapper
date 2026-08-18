@@ -10,6 +10,7 @@ namespace io {
 
 struct MappingInput {
   std::filesystem::path dfg_dot_file_path;
+  std::filesystem::path mrrg_file_path;
   entity::MRRGConfig mrrg_config;
   std::filesystem::path output_dir_path;
   double timeout_s;

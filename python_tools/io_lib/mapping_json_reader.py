@@ -1,6 +1,6 @@
 import json
 from entity import *
-from typing import Dict
+from typing import Dict, Optional
 
 
 def read_PE_from_dict(dict: Dict, context_size: int) -> PE:
@@ -29,10 +29,63 @@ def read_PE_from_dict(dict: Dict, context_size: int) -> PE:
             to_config_id.column_id = int(to_config_dict["column_id"])
             to_config_id.context_id = int(to_config_dict["context_id"])
             config_element.to_config_id.append(to_config_id)
+        config_element.dropped_from_config_id = []
+        for from_config_dict in config_dict.get("dropped_from_config_id", []):
+            from_config_id: ConfigId = ConfigId()
+            from_config_id.row_id = int(from_config_dict["row_id"])
+            from_config_id.column_id = int(from_config_dict["column_id"])
+            from_config_id.context_id = int(from_config_dict["context_id"])
+            config_element.dropped_from_config_id.append(from_config_id)
+        config_element.dropped_to_config_id = []
+        for to_config_dict in config_dict.get("dropped_to_config_id", []):
+            to_config_id: ConfigId = ConfigId()
+            to_config_id.row_id = int(to_config_dict["row_id"])
+            to_config_id.column_id = int(to_config_dict["column_id"])
+            to_config_id.context_id = int(to_config_dict["context_id"])
+            config_element.dropped_to_config_id.append(to_config_id)
         result.config_list.append(config_element)
     return result
 
-def read_mapping_from_json(file_name: str) -> Mapping:
+def read_architecture_from_json(file_name: str):
+    with open(file_name) as f:
+        architecture_dict = json.load(f)
+
+    if architecture_dict.get("format") != "explicit":
+        raise ValueError(
+            "mapping visualization requires an explicit CGRA architecture")
+
+    node_list = []
+    node_id_set = set()
+    for node_dict in architecture_dict.get("nodes", []):
+        node = ArchitectureNode()
+        node.node_id = node_dict["id"]
+        node.row_id = int(node_dict["row_id"])
+        node.column_id = int(node_dict["column_id"])
+        node.context_id = int(node_dict["context_id"])
+        node.supported_operations = [
+            OperationType.get_from_string(operation)
+            for operation in node_dict["supported_operations"]
+        ]
+        node.memory_accessible = bool(node_dict["memory_accessible"])
+        node_list.append(node)
+        node_id_set.add(node.node_id)
+
+    edge_list = []
+    for edge_dict in architecture_dict.get("edges", []):
+        edge = ArchitectureEdge()
+        edge.from_node_id = edge_dict["from"]
+        edge.to_node_id = edge_dict["to"]
+        if edge.from_node_id not in node_id_set or edge.to_node_id not in node_id_set:
+            raise ValueError(
+                "explicit CGRA edge refers to an unknown node: "
+                f"{edge.from_node_id} -> {edge.to_node_id}")
+        edge_list.append(edge)
+
+    return node_list, edge_list
+
+
+def read_mapping_from_json(file_name: str,
+                           architecture_file_name: Optional[str] = None) -> Mapping:
     result: Mapping = Mapping()
     with open(file_name) as f:
         df = json.load(f)
@@ -43,7 +96,12 @@ def read_mapping_from_json(file_name: str) -> Mapping:
             df["memory_io_type"])
         result.CGRA_type = CGRAType.get_from_string(df["cgra_type"])
         result.network_type = NetworkType.get_from_string(df["network_type"])
+        result.extension = df.get("extension", "none")
         result.PE_array = []
+        result.extra_PE_list = []
+        result.PE_dict = {}
+        result.architecture_node_list = []
+        result.architecture_edge_list = []
 
         # PE_array initialize
         for _ in range(result.row_num):
@@ -55,22 +113,14 @@ def read_mapping_from_json(file_name: str) -> Mapping:
         for PE_config_dict in df["PE_config"]:
             PE_ele: PE = read_PE_from_dict(PE_config_dict, result.context_size)
 
-            have_memory_access_op = False
-            for config in PE_ele.config_list:
-                if config.operation_type.is_memory_access_op():
-                    have_memory_access_op = True
-                    break
+            result.PE_dict[(PE_ele.row_id, PE_ele.column_id)] = PE_ele
+            if 0 <= PE_ele.row_id < result.row_num and 0 <= PE_ele.column_id < result.column_num:
+                result.PE_array[PE_ele.row_id][PE_ele.column_id] = PE_ele
+            else:
+                result.extra_PE_list.append(PE_ele)
 
-            if result.memory_io_type == MemoryIOType.BothEnds:
-                is_memory_accecible_PE = False
-                if PE_ele.column_id == 0 or PE_ele.column_id == result.column_num - 1:
-                    is_memory_accecible_PE = True
-                assert is_memory_accecible_PE == True or have_memory_access_op == False
-            elif result.memory_io_type == MemoryIOType.OneEnd:
-                is_memory_accecible_PE = False
-                if PE_ele.column_id == 0:
-                    is_memory_accecible_PE = True
-                assert is_memory_accecible_PE == True or have_memory_access_op == False
-
-            result.PE_array[PE_ele.row_id][PE_ele.column_id] = PE_ele
+        if architecture_file_name is not None:
+            (result.architecture_node_list,
+             result.architecture_edge_list) = read_architecture_from_json(
+                 architecture_file_name)
     return result

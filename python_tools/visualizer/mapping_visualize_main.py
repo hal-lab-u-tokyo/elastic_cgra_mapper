@@ -12,13 +12,22 @@ if __name__ == "__main__":
         raise ValueError
     file_name: str = args[1]
 
-    output_dir = os.path.dirname(
-        os.path.abspath(__file__)) + "/output"
+    # output_dir = os.path.dirname(os.path.abspath(__file__)) + "/output"
+    if len(args) >= 3:
+        output_dir: str = args[2]
+    else:
+        output_dir = os.path.dirname(os.path.abspath(__file__)) + "/output"
+    if len(args) >= 4:
+        architecture_file_name: str = args[3]
+    else:
+        architecture_file_name = None
+
 
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
 
-    mapping: Mapping = read_mapping_from_json(file_name)
+    mapping: Mapping = read_mapping_from_json(
+        file_name, architecture_file_name)
 
     Visualizer.visualize_mapping(mapping, output_dir)

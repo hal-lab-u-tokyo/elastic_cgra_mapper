@@ -55,14 +55,18 @@ struct CGRAConfig {
  public:
   int const_value = 0;
   std::vector<ConfigId> to_config_id_vec;
+  std::vector<ConfigId> dropped_to_config_id_vec;
   OpType operation_type;
   std::string operation_name;
   std::vector<ConfigId> from_config_id_vec;
+  std::vector<ConfigId> dropped_from_config_id_vec;
 
   CGRAConfig()
       : operation_type(entity::OpType::NOP),
         to_config_id_vec({}),
-        from_config_id_vec({}){};
+        dropped_to_config_id_vec({}),
+        from_config_id_vec({}),
+        dropped_from_config_id_vec({}){};
   CGRAConfig(entity::OpType op_type, std::string op_name)
       : operation_type(op_type), operation_name(op_name) {}
 
@@ -86,6 +90,14 @@ struct CGRAConfig {
     operation_name = op_name;
 
     return;
+  }
+
+  void AddDroppedFromConfig(ConfigId from_config_id) {
+    dropped_from_config_id_vec.emplace_back(from_config_id);
+  }
+
+  void AddDroppedToConfig(ConfigId to_config_id) {
+    dropped_to_config_id_vec.emplace_back(to_config_id);
   }
 
   void SetConstValue(int _const_value) {

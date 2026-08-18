@@ -48,6 +48,17 @@ std::vector<std::vector<int>> CollectDFGOutgoingEdges(
   return result;
 }
 
+std::vector<std::vector<int>> CollectDFGIncidentEdges(
+    const std::vector<DFGEdgeInfo>& dfg_edges, int dfg_node_num) {
+  std::vector<std::vector<int>> result(dfg_node_num);
+  for (int edge_id = 0; edge_id < static_cast<int>(dfg_edges.size());
+       ++edge_id) {
+    result[dfg_edges[edge_id].src].push_back(edge_id);
+    result[dfg_edges[edge_id].dst].push_back(edge_id);
+  }
+  return result;
+}
+
 std::vector<std::vector<int>> CollectMRRGIncidentEdges(
     const std::vector<entity::Edge>& mrrg_edges, int mrrg_node_num) {
   std::vector<std::vector<int>> result(mrrg_node_num);
@@ -92,7 +103,7 @@ mapper::MappingResult mapper::GurobiILPMapper::Execution() {
   try {
     GRBEnv env = GRBEnv(true);
     env.set(GRB_IntParam_Threads, 32);
-    // env.set(GRB_IntParam_SolutionLimit, 3);
+    // env.set(GRB_IntParam_SolutionLimit, 15);
     env.set(GRB_IntParam_MIPFocus, 1);
     env.start();
 
@@ -112,6 +123,8 @@ mapper::MappingResult mapper::GurobiILPMapper::Execution() {
     const std::vector<entity::Edge> mrrg_edges = CollectMRRGEdges(*mrrg_ptr_);
     const auto dfg_out_edges =
         CollectDFGOutgoingEdges(dfg_edges, dfg_node_num);
+    const auto dfg_incident_edges =
+        CollectDFGIncidentEdges(dfg_edges, dfg_node_num);
     const auto mrrg_incident_edges =
         CollectMRRGIncidentEdges(mrrg_edges, mrrg_node_num);
 
@@ -135,6 +148,9 @@ mapper::MappingResult mapper::GurobiILPMapper::Execution() {
     std::vector<std::vector<GRBVar>> fanout_uses_route_node(
         dfg_edge_num, std::vector<GRBVar>(mrrg_node_num));
 
+    // D[q]: DFG edge q is intentionally left unmapped.
+    std::vector<GRBVar> drop_edge(dfg_edge_num);
+
     for (int dfg_node_id = 0; dfg_node_id < dfg_node_num; ++dfg_node_id) {
       for (int mrrg_node_id = 0; mrrg_node_id < mrrg_node_num;
            ++mrrg_node_id) {
@@ -157,6 +173,9 @@ mapper::MappingResult mapper::GurobiILPMapper::Execution() {
     }
 
     for (int dfg_edge_id = 0; dfg_edge_id < dfg_edge_num; ++dfg_edge_id) {
+      drop_edge[dfg_edge_id] =
+          model.addVar(0.0, 1.0, 0.0, GRB_BINARY,
+                       "D_" + std::to_string(dfg_edge_id));
       for (int mrrg_edge_id = 0; mrrg_edge_id < mrrg_edge_num;
            ++mrrg_edge_id) {
         fanout_uses_edge[dfg_edge_id][mrrg_edge_id] = model.addVar(
@@ -179,6 +198,11 @@ mapper::MappingResult mapper::GurobiILPMapper::Execution() {
            ++mrrg_edge_id) {
         objective += value_uses_edge[dfg_node_id][mrrg_edge_id];
       }
+    }
+    const double drop_penalty =
+        static_cast<double>(dfg_node_num * mrrg_edge_num + 1);
+    for (int dfg_edge_id = 0; dfg_edge_id < dfg_edge_num; ++dfg_edge_id) {
+      objective += drop_penalty * drop_edge[dfg_edge_id];
     }
     model.setObjective(objective, GRB_MINIMIZE);
 
@@ -216,7 +240,22 @@ mapper::MappingResult mapper::GurobiILPMapper::Execution() {
                 value_uses_edge[src_dfg_node_id][mrrg_edge_id],
             "c_sub_value_" + std::to_string(dfg_edge_id) + "_" +
                 std::to_string(mrrg_edge_id));
+        model.addConstr(
+            fanout_uses_edge[dfg_edge_id][mrrg_edge_id] <=
+                1 - drop_edge[dfg_edge_id],
+            "c_drop_disables_fanout_" + std::to_string(dfg_edge_id) + "_" +
+                std::to_string(mrrg_edge_id));
       }
+    }
+
+    // Each DFG node may give up mapping at most one of its incident DFG edges.
+    for (int dfg_node_id = 0; dfg_node_id < dfg_node_num; ++dfg_node_id) {
+      GRBLinExpr dropped_incident_edges;
+      for (int dfg_edge_id : dfg_incident_edges[dfg_node_id]) {
+        dropped_incident_edges += drop_edge[dfg_edge_id];
+      }
+      model.addConstr(dropped_incident_edges <= 1,
+                      "c_drop_limit_" + std::to_string(dfg_node_id));
     }
 
     // Keep R equal to the union of all S variables for that value. This also
@@ -252,11 +291,16 @@ mapper::MappingResult mapper::GurobiILPMapper::Execution() {
           incoming += fanout_uses_edge[dfg_edge_id][mrrg_edge_id];
         }
 
+        GRBLinExpr flow_balance =
+            outgoing - incoming - place_op[src_dfg_node_id][mrrg_node_id] +
+            place_op[dst_dfg_node_id][mrrg_node_id];
         model.addConstr(
-            outgoing - incoming ==
-                place_op[src_dfg_node_id][mrrg_node_id] -
-                    place_op[dst_dfg_node_id][mrrg_node_id],
-            "c_flow_" + std::to_string(dfg_edge_id) + "_" +
+            flow_balance <= drop_edge[dfg_edge_id],
+            "c_flow_upper_" + std::to_string(dfg_edge_id) + "_" +
+                std::to_string(mrrg_node_id));
+        model.addConstr(
+            flow_balance >= -drop_edge[dfg_edge_id],
+            "c_flow_lower_" + std::to_string(dfg_edge_id) + "_" +
                 std::to_string(mrrg_node_id));
       }
     }
@@ -348,6 +392,7 @@ mapper::MappingResult mapper::GurobiILPMapper::Execution() {
 
     std::vector<int> dfg_node_to_mrrg_node(dfg_node_num, -1);
     std::vector<std::vector<int>> dfg_output_to_mrrg_edge(dfg_node_num);
+    std::vector<int> dropped_dfg_edge_ids;
 
     for (int dfg_node_id = 0; dfg_node_id < dfg_node_num; ++dfg_node_id) {
       for (int mrrg_node_id = 0; mrrg_node_id < mrrg_node_num;
@@ -364,6 +409,11 @@ mapper::MappingResult mapper::GurobiILPMapper::Execution() {
         }
       }
     }
+    for (int dfg_edge_id = 0; dfg_edge_id < dfg_edge_num; ++dfg_edge_id) {
+      if (drop_edge[dfg_edge_id].get(GRB_DoubleAttr_X) > 0.5) {
+        dropped_dfg_edge_ids.push_back(dfg_edge_id);
+      }
+    }
 
     const auto end_time = std::chrono::system_clock::now();
     const double mapping_time =
@@ -374,7 +424,8 @@ mapper::MappingResult mapper::GurobiILPMapper::Execution() {
     return MappingResult(true,
                          entity::GenerateMappingFromRoutingResult(
                              *mrrg_ptr_, *dfg_ptr_, dfg_node_to_mrrg_node,
-                             dfg_output_to_mrrg_edge),
+                             dfg_output_to_mrrg_edge,
+                             dropped_dfg_edge_ids),
                          mapping_time);
   } catch (GRBException e) {
     std::cout << "Error code = " << e.getErrorCode() << std::endl;

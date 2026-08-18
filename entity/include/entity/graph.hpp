@@ -149,6 +149,10 @@ class BaseGraphClass {
 
   void SetEdgeMap() {
     int edge_count = 0;
+    for (int node_id = 0; node_id < GetNodeNum(); ++node_id) {
+      node_to_in_edge_id_map_.emplace(node_id, std::set<int>());
+      node_to_out_edge_id_map_.emplace(node_id, std::set<int>());
+    }
     typename boost::graph_traits<
         BaseGraph<NodeProperty, EdgeProperty, GraphProperty>>::edge_iterator ei,
         ei_end;
@@ -159,15 +163,7 @@ class BaseGraphClass {
           {edge_count, std::make_pair(from_node_id, to_node_id)});
       edge_to_edge_id_map_.insert(
           {std::make_pair(from_node_id, to_node_id), edge_count});
-      if (node_to_out_edge_id_map_.find(from_node_id) ==
-          node_to_out_edge_id_map_.end()) {
-        node_to_out_edge_id_map_.insert({from_node_id, std::set<int>()});
-      }
       node_to_out_edge_id_map_.at(from_node_id).insert(edge_count);
-      if (node_to_in_edge_id_map_.find(to_node_id) ==
-          node_to_in_edge_id_map_.end()) {
-        node_to_in_edge_id_map_.insert({to_node_id, std::set<int>()});
-      }
       node_to_in_edge_id_map_.at(to_node_id).insert(edge_count);
       edge_count++;
     }

@@ -58,6 +58,16 @@ entity::Mapping remapper::MappingConcater(
         shifted_config.from_config_id_vec[j] =
             ShiftConfigId(shifted_config.from_config_id_vec[j]);
       }
+      for (int j = 0; j < shifted_config.dropped_to_config_id_vec.size();
+           j++) {
+        shifted_config.dropped_to_config_id_vec[j] =
+            ShiftConfigId(shifted_config.dropped_to_config_id_vec[j]);
+      }
+      for (int j = 0; j < shifted_config.dropped_from_config_id_vec.size();
+           j++) {
+        shifted_config.dropped_from_config_id_vec[j] =
+            ShiftConfigId(shifted_config.dropped_from_config_id_vec[j]);
+      }
 
       result_config_map.emplace(shifted_id, shifted_config);
     }

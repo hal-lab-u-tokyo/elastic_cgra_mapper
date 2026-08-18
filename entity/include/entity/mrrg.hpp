@@ -58,12 +58,18 @@ enum MRRGNetworkType {
   kDiagonal,
 };
 
+enum MRRGExtensionType {
+  kNone,
+  kOuterLspeGroup4,
+};
+
 struct MRRGGraphProperty {
   int row_num;
   int column_num;
   MRRGMemoryIOType memory_io;
   MRRGCGRAType cgra_type;
   MRRGNetworkType network_type;
+  MRRGExtensionType extension = MRRGExtensionType::kNone;
   std::vector<entity::PEPositionId> loop_controller_position_vec;
   std::vector<entity::PEPositionId> tm_pe_position_vec;
 };
@@ -74,6 +80,7 @@ struct MRRGConfig {
   MRRGMemoryIOType memory_io;
   MRRGCGRAType cgra_type;
   MRRGNetworkType network_type;
+  MRRGExtensionType extension = MRRGExtensionType::kNone;
   int local_reg_size;
   int context_size;
   std::vector<entity::PEPositionId> loop_controller_position_vec;
@@ -89,6 +96,8 @@ MRRGMemoryIOType MRRGMemoryIOTypeFromString(std::string memory_io_type_string);
 std::string MRRGMemoryIoTypeToString(MRRGMemoryIOType memory_io_type);
 MRRGNetworkType MRRGNetworkTypeFromString(std::string network_type_string);
 std::string MRRGNetworkTypeToString(MRRGNetworkType network_type);
+MRRGExtensionType MRRGExtensionTypeFromString(std::string extension_type_string);
+std::string MRRGExtensionTypeToString(MRRGExtensionType extension_type);
 
 typedef BaseGraph<MRRGNodeProperty, MRRGEdgeProperty, MRRGGraphProperty>
     MRRGGraph;

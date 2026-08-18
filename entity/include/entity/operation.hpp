@@ -28,10 +28,12 @@ enum OpType {
   CMPGT,
   CMPGE,
   CMPEQ,
+  CMPNE,
   FSUB,
   LOOP,
   TM,
-  SELECT
+  SELECT,
+  SPM
 };
 std::string OpTypeToString(OpType op);
 OpType OpTypeFromString(std::string op_string);
@@ -39,6 +41,7 @@ std::vector<OpType> GetAllOperations();
 std::vector<OpType> GetAllOperationsExceptMemoryAccess();
 std::vector<OpType> GetLoopOperations();
 std::vector<OpType> GetTMOperations();
+std::vector<OpType> GetOuterLspeOperations();
 bool IsMemoryAccessOperation(OpType op);
 bool IsDFGOp(OpType op);
 }  // namespace entity
