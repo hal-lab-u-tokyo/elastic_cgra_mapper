@@ -6,7 +6,7 @@ import tempfile
 import unittest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
-from remapper_debugger import read_commands, write_launch_json
+from experiment_runner.remapper_debugger import read_commands, write_launch_json
 
 
 class Config:
