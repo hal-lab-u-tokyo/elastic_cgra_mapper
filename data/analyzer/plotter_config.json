@@ -15,7 +15,9 @@
     "row": 6,
     "column": 6,
     "context_size": 4,
-    "network_type": "orthogonal"
+    "network_type": "orthogonal",
+    "memory_io": "all",
+    "num_available_mappings": -1
   },
   "compare_cgra_size_config": {
     "min_size": 6,
