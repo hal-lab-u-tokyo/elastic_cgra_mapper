@@ -2,6 +2,7 @@
 import argparse
 import ast
 import csv
+import datetime
 import json
 import multiprocessing
 import os
@@ -10,6 +11,7 @@ import sys
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 PYTHON_TOOLS_DIR = os.path.dirname(SCRIPT_DIR)
+REPO_DIR = os.path.dirname(PYTHON_TOOLS_DIR)
 sys.path.insert(0, SCRIPT_DIR)
 sys.path.insert(0, PYTHON_TOOLS_DIR)
 from exec import *
@@ -21,6 +23,48 @@ REQUIRED_COLUMNS = {
     "cgra_type", "cgra_network_type", "cgra_local_reg_size",
     "cgra_context_size", "remapper_type", "num_available_mappings",
 }
+
+
+def resolve_experiment(csv_path):
+    """Return the original experiment directory and its date for a debug CSV."""
+    csv_path = os.path.realpath(csv_path)
+    current_dir = os.path.dirname(csv_path)
+    while True:
+        metadata_path = os.path.join(current_dir, "debug_metadata.json")
+        if os.path.isfile(metadata_path):
+            with open(metadata_path) as metadata_file:
+                metadata = json.load(metadata_file)
+            return (
+                os.path.realpath(metadata["experiment_dir"]),
+                metadata["experiment_date"],
+            )
+
+        parent_dir = os.path.dirname(current_dir)
+        if os.path.basename(parent_dir) == "experiments":
+            experiment_dir = current_dir
+            config_path = os.path.join(experiment_dir, "remapper_config.json")
+            if not os.path.isfile(config_path):
+                raise ValueError("Experiment config does not exist: " + config_path)
+            return experiment_dir, os.path.basename(experiment_dir)
+        if parent_dir == current_dir:
+            break
+        current_dir = parent_dir
+
+    raise ValueError(
+        "CSV must be below experiments/<experiment_date> or a debug run "
+        "containing debug_metadata.json: " + csv_path
+    )
+
+
+def default_debug_dir(experiment_dir, debug_date=None):
+    if debug_date is None:
+        debug_date = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+    return os.path.join(
+        REPO_DIR,
+        "debug",
+        os.path.basename(os.path.realpath(experiment_dir)),
+        debug_date,
+    )
 
 
 def generate_remapper_input(row, config, output_dir, program="/home/ubuntu/elastic_cgra_mapper/build/remapping"):
@@ -97,7 +141,8 @@ def write_launch_json(inputs, path, program):
 
 def main():
     parser = argparse.ArgumentParser(description="Re-run remapper commands from analyzer CSV.")
-    parser.add_argument("experiment_dir")
+    parser.add_argument("experiment_dir", nargs="?")
+    parser.add_argument("--resolve-experiment", metavar="CSV")
     parser.add_argument("--csv")
     parser.add_argument("--output-dir")
     parser.add_argument("--launch-json")
@@ -105,13 +150,21 @@ def main():
     parser.add_argument("--launch-only", action="store_true")
     args = parser.parse_args()
 
+    if args.resolve_experiment:
+        experiment_dir, experiment_date = resolve_experiment(args.resolve_experiment)
+        print(experiment_dir)
+        print(experiment_date)
+        return 0
+    if not args.experiment_dir:
+        parser.error("experiment_dir is required unless --resolve-experiment is used")
+
     experiment_dir = os.path.realpath(args.experiment_dir)
     csv_path = args.csv or os.path.join(
         experiment_dir, "remapper", "analysis", "remapper_failed_results.csv"
     )
     config = RemappingRunnerConfig()
     config.load(os.path.join(experiment_dir, "remapper_config.json"))
-    debug_experiment = args.output_dir or os.path.join(experiment_dir, "debug-rerun")
+    debug_experiment = args.output_dir or default_debug_dir(experiment_dir)
     output_dir = os.path.join(debug_experiment, "remapper", "remapping")
     os.makedirs(output_dir, exist_ok=True)
     shutil.copy(

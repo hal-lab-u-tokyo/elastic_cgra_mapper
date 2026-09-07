@@ -6,7 +6,12 @@ import tempfile
 import unittest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
-from experiment_runner.remapper_debugger import read_commands, write_launch_json
+from experiment_runner.remapper_debugger import (
+    default_debug_dir,
+    read_commands,
+    resolve_experiment,
+    write_launch_json,
+)
 
 
 class Config:
@@ -59,6 +64,49 @@ class RemapperDebuggerTest(unittest.TestCase):
                 output.write("benchmark_name\nfixed_fir_pro\n")
             with self.assertRaisesRegex(ValueError, "Missing CSV columns"):
                 read_commands(csv_path, Config(), directory)
+
+    def test_resolve_experiment_from_experiment_csv(self):
+        with tempfile.TemporaryDirectory() as directory:
+            experiment_dir = os.path.join(directory, "experiments", "2026-09-07-12-00-00")
+            analysis_dir = os.path.join(experiment_dir, "remapper", "analysis")
+            os.makedirs(analysis_dir)
+            open(os.path.join(experiment_dir, "remapper_config.json"), "w").close()
+            csv_path = os.path.join(analysis_dir, "remapper_failed_results.csv")
+            open(csv_path, "w").close()
+
+            resolved_dir, experiment_date = resolve_experiment(csv_path)
+
+            self.assertEqual(resolved_dir, experiment_dir)
+            self.assertEqual(experiment_date, "2026-09-07-12-00-00")
+
+    def test_resolve_experiment_from_previous_debug_run(self):
+        with tempfile.TemporaryDirectory() as directory:
+            experiment_dir = os.path.join(directory, "output", "experiments", "original-date")
+            debug_dir = os.path.join(directory, "debug", "original-date", "debug-date")
+            os.makedirs(debug_dir)
+            with open(os.path.join(debug_dir, "debug_metadata.json"), "w") as output:
+                json.dump(
+                    {
+                        "experiment_dir": experiment_dir,
+                        "experiment_date": "original-date",
+                    },
+                    output,
+                )
+            csv_path = os.path.join(debug_dir, "failed_results.csv")
+            open(csv_path, "w").close()
+
+            resolved_dir, experiment_date = resolve_experiment(csv_path)
+
+            self.assertEqual(resolved_dir, experiment_dir)
+            self.assertEqual(experiment_date, "original-date")
+
+    def test_default_debug_dir_is_separate_from_experiment_output(self):
+        experiment_dir = "/repo/output/experiments/original-date"
+
+        debug_dir = default_debug_dir(experiment_dir, "debug-date")
+
+        self.assertTrue(debug_dir.endswith("/debug/original-date/debug-date"))
+        self.assertNotIn("/output/experiments/", debug_dir)
 
 
 if __name__ == "__main__":
