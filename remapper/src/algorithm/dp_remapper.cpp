@@ -147,12 +147,11 @@ class RectangleKnapsack {
                   for (const IdAndPlacement& result :
                        dp_id_to_placement_[rectangle_item_id]) {
                     IdAndPlacement new_result = result;
-                    Eigen::Vector3d tmp_shift_size =
-                        GetRectangleShiftSize(rectangle_id, rotated_item_size);
+                    Eigen::Vector3d item_size = item_size_vec_[result.id];
 
                     new_result = get_shifted_placement_(
                         result, tmp_shift_size.x(), tmp_shift_size.y(),
-                        rectangle_size);
+                        item_size, rectangle_size);
 
                     dp_id_to_placement_[dp_size_id].push_back(new_result);
                   }
@@ -188,8 +187,9 @@ class RectangleKnapsack {
   }
 
   void SetGetShiftedPlacement(
-      const std::function<IdAndPlacement(
-          IdAndPlacement, int, int, Eigen::Vector3d)>& get_shifted_placement) {
+      const std::function<IdAndPlacement(IdAndPlacement, int, int,
+                                         Eigen::Vector3d, Eigen::Vector3d)>&
+          get_shifted_placement) {
     get_shifted_placement_ = get_shifted_placement;
   }
 
@@ -273,7 +273,8 @@ class RectangleKnapsack {
   std::function<bool(int, int)> is_available_item_placement_;
   std::function<bool(Eigen::Vector3d, Eigen::Vector3d)> is_available_transform_;
   std::function<Eigen::Vector3d(int, int)> get_rotated_item_size_;
-  std::function<IdAndPlacement(IdAndPlacement, int, int, Eigen::Vector3d)>
+  std::function<IdAndPlacement(IdAndPlacement, int, int, Eigen::Vector3d,
+                               Eigen::Vector3d)>
       get_shifted_placement_;
 
   Eigen::Vector3d container_size_;
@@ -395,7 +396,7 @@ class DPRemappingHelper {
   }
 
   IdAndPlacement GetShiftedPlacement(IdAndPlacement placement, int x_shift,
-                                     int y_shift,
+                                     int y_shift, Eigen::Vector3d item_size,
                                      Eigen::Vector3d rectangle_size) const {
     bool is_available_without_rotation = IsAvailableTransformWithoutRotation(
         Eigen::Vector3d(x_shift, y_shift, 0), rectangle_size);
@@ -420,8 +421,10 @@ class DPRemappingHelper {
     }
 
     if (need_rotation) {
-      new_placement.x = x_shift + rectangle_size.x() - 1 - placement.x;
-      new_placement.y = y_shift + rectangle_size.y() - 1 - placement.y;
+      new_placement.x = x_shift + (rectangle_size.x() - 1) - placement.x -
+                        (item_size.x() - 1);
+      new_placement.y = y_shift + (rectangle_size.y() - 1) - placement.y -
+                        (item_size.y() - 1);
     } else {
       new_placement.x += x_shift;
       new_placement.y += y_shift;
@@ -510,9 +513,9 @@ remapper::RemappingResult remapper::DPRemapping(
     return helper.GetRotatedItemSize(item_id, rotation_type);
   });
   solver.SetGetShiftedPlacement([&](IdAndPlacement placement, int x_shift,
-                                    int y_shift,
+                                    int y_shift, Eigen::Vector3d item_size,
                                     Eigen::Vector3d rectangle_size) {
-    return helper.GetShiftedPlacement(placement, x_shift, y_shift,
+    return helper.GetShiftedPlacement(placement, x_shift, y_shift, item_size,
                                       rectangle_size);
   });
   solver.ExecKnapsack(target_parallel_num);
