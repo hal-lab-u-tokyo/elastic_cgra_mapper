@@ -11,9 +11,10 @@ TEST(SimulatorTest, simulator_default_result_test) {
 
   entity::DFGConfig dfg_config;
   *dfg_ptr = io::ReadDFGDotFile(
-      "../../../../simulator/cpp/test/data/matrixmultiply.dot", dfg_config);
+      std::string(CPP_SIMULATOR_TEST_DATA_DIR) + "/matrixmultiply.dot",
+      dfg_config);
   *mrrg_ptr = io::ReadMRRGFromJsonFile(
-      "../../../../simulator/cpp/test/data/4x4_default_cgra.json");
+      std::string(CPP_SIMULATOR_TEST_DATA_DIR) + "/4x4_default_cgra.json");
 
   // verify A[0][i] * A[i][0]
   // const9: 0, const7: 4, const3: 1000, const16: 1, const 18: 1, const1: 0
@@ -40,6 +41,9 @@ TEST(SimulatorTest, simulator_default_result_test) {
   std::shared_ptr<entity::Mapping> mapping_ptr =
       std::make_shared<entity::Mapping>();
   const auto result = mapper->Execution();
+  ASSERT_TRUE(result.is_success)
+      << "Mapping must succeed before the simulator result can be tested";
+  ASSERT_NE(result.mapping_ptr, nullptr);
 
   std::cout << "start cgra constructor" << std::endl;
   simulator::CGRA cgra(mrrg_ptr->GetMRRGConfig());
