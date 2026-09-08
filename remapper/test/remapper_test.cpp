@@ -3,6 +3,7 @@
 #include <filesystem>
 #include <io/mapping_io.hpp>
 #include <remapper/remapper.hpp>
+#include <remapper/transform.hpp>
 
 #ifndef REMAPPER_TEST_DATABASE_DIR
 #define REMAPPER_TEST_DATABASE_DIR "../../../remapper/test/data/database/"
@@ -34,6 +35,21 @@ entity::MRRGConfig GetMRRGConfig() {
   mrrg_config.local_reg_size = 1;
 
   return mrrg_config;
+}
+
+entity::MRRGConfig GetMRRGConfig(int row, int column, int context_size) {
+  entity::MRRGConfig mrrg_config = GetMRRGConfig();
+  mrrg_config.row = row;
+  mrrg_config.column = column;
+  mrrg_config.context_size = context_size;
+  return mrrg_config;
+}
+
+entity::Mapping CreateMapping(int row, int column) {
+  entity::ConfigMap config_map;
+  config_map.emplace(entity::ConfigId(0, 0, 0),
+                     entity::CGRAConfig(entity::OpType::kAdd, "add"));
+  return entity::Mapping(GetMRRGConfig(row, column, 1), config_map);
 }
 
 // 3x3 CGRA with 2 context size
@@ -86,4 +102,65 @@ TEST(RemapperTest, full_search_returns_empty_when_mapping_cannot_fit) {
 
   EXPECT_TRUE(remapping_result.result_mapping_id_vec.empty());
   EXPECT_TRUE(remapping_result.result_transform_op_vec.empty());
+}
+
+TEST(RemapperTest, MappingRotaterRotatesConfigIdsAndDimensions) {
+  const entity::ConfigId source_id(0, 0, 0);
+  const entity::ConfigId destination_id(1, 2, 0);
+  entity::CGRAConfig source_config(entity::OpType::kAdd, "source");
+  source_config.to_config_id_vec.push_back(destination_id);
+  entity::CGRAConfig destination_config(entity::OpType::kOutput, "destination");
+  destination_config.from_config_id_vec.push_back(source_id);
+  entity::ConfigMap config_map = {{source_id, source_config},
+                                  {destination_id, destination_config}};
+  const entity::Mapping mapping(GetMRRGConfig(2, 3, 1), config_map);
+
+  const entity::Mapping rotated =
+      remapper::MappingRotater(mapping, remapper::RotateOp::kTopIsRight);
+
+  EXPECT_EQ(rotated.GetMRRGConfig().row, 3);
+  EXPECT_EQ(rotated.GetMRRGConfig().column, 2);
+  const entity::ConfigId rotated_source_id(0, 1, 0);
+  const entity::ConfigId rotated_destination_id(2, 0, 0);
+  const auto rotated_source = rotated.GetConfig(rotated_source_id);
+  const auto rotated_destination = rotated.GetConfig(rotated_destination_id);
+  ASSERT_EQ(rotated_source.to_config_id_vec.size(), 1);
+  ASSERT_EQ(rotated_destination.from_config_id_vec.size(), 1);
+  EXPECT_EQ(rotated_source.to_config_id_vec[0], rotated_destination_id);
+  EXPECT_EQ(rotated_destination.from_config_id_vec[0], rotated_source_id);
+}
+
+TEST(RemapperTest, GetRotatedItemSizeAllowsOnlyFittingQuarterTurn) {
+  const std::vector<entity::Mapping> mappings = {CreateMapping(2, 3)};
+  const entity::MRRGConfig target_config = GetMRRGConfig(3, 2, 1);
+  std::ofstream log_file("/dev/null");
+
+  const auto result = remapper::Remapper::Remapping(
+      mappings, target_config, 1, log_file, remapper::RemappingMode::kDP, 100);
+
+  ASSERT_EQ(result.result_mapping_id_vec.size(), 1);
+  ASSERT_EQ(result.result_transform_op_vec.size(), 1);
+  EXPECT_EQ(result.result_mapping_id_vec[0], 0);
+  EXPECT_EQ(result.result_transform_op_vec[0].row, 0);
+  EXPECT_EQ(result.result_transform_op_vec[0].column, 0);
+  EXPECT_EQ(result.result_transform_op_vec[0].rotate_op,
+            remapper::RotateOp::kTopIsRight);
+}
+
+TEST(RemapperTest, GetShiftedPlacementMovesPreviousItemBesideNewItem) {
+  const std::vector<entity::Mapping> mappings = {CreateMapping(1, 1)};
+  const entity::MRRGConfig target_config = GetMRRGConfig(1, 2, 1);
+  std::ofstream log_file("/dev/null");
+
+  const auto result = remapper::Remapper::Remapping(
+      mappings, target_config, 2, log_file, remapper::RemappingMode::kDP, 100);
+
+  ASSERT_EQ(result.result_mapping_id_vec.size(), 2);
+  ASSERT_EQ(result.result_transform_op_vec.size(), 2);
+  EXPECT_EQ(result.result_mapping_id_vec[0], 0);
+  EXPECT_EQ(result.result_mapping_id_vec[1], 0);
+  EXPECT_EQ(result.result_transform_op_vec[0].row, 0);
+  EXPECT_EQ(result.result_transform_op_vec[0].column, 1);
+  EXPECT_EQ(result.result_transform_op_vec[1].row, 0);
+  EXPECT_EQ(result.result_transform_op_vec[1].column, 0);
 }
