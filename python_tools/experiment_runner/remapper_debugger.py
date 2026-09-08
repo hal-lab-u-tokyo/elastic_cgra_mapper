@@ -112,7 +112,7 @@ def main():
     config = RemappingRunnerConfig()
     config.load(os.path.join(experiment_dir, "remapper_config.json"))
     debug_experiment = args.output_dir or os.path.join(experiment_dir, "debug-rerun")
-    output_dir = os.path.join(debug_experiment, "remapper", "remapping")
+    output_dir = os.path.join(debug_experiment, "remapper")
     os.makedirs(output_dir, exist_ok=True)
     shutil.copy(
         os.path.join(experiment_dir, "remapper_config.json"),

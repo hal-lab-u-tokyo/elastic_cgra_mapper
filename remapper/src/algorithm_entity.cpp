@@ -224,6 +224,9 @@ int remapper::CGRAMatrix::TryRemappingAsynchronousCGRA(
     assert("mapping_matrix_vec and transform_op_vec should have the same size");
     abort();
   }
+  if (mapping_matrix_vec.empty()) {
+    return 0;
+  }
 
   for (int i = 0; i < mapping_matrix_vec.size(); i++) {
     if (!IsAvailableRemapping(mapping_matrix_vec[i], transform_op_vec[i])) {
@@ -258,6 +261,9 @@ int remapper::CGRAMatrix::TryRemappingSynchronousCGRA(
   if (mapping_matrix_vec.size() != transform_op_vec.size()) {
     assert("mapping_matrix_vec and transform_op_vec should have the same size");
     abort();
+  }
+  if (mapping_matrix_vec.empty()) {
+    return 0;
   }
 
   for (int i = 0; i < mapping_matrix_vec.size(); i++) {

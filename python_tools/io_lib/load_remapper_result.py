@@ -29,7 +29,10 @@ def load_remapper_result(remapper_dir_path):
             remapping_json = {}
             transform_op_json = {}
         else:
-            with open(os.path.join(remapper_dir_path, remapping_file_name), 'r') as f:
+            remapping_path = output_summary_json.get("mapping_file", "")
+            if not os.path.exists(remapping_path):
+                remapping_path = os.path.join(remapper_dir_path, remapping_file_name)
+            with open(remapping_path, 'r') as f:
                 remapping_json = json.load(f)
             with open(os.path.join(remapper_dir_path, transform_op_name), 'r') as f:
                 transform_op_json = json.load(f)
@@ -62,7 +65,10 @@ def load_remapper_result(remapper_dir_path):
     remapper_result.parallel_num = output_summary_json["parallel_num"]
     remapper_result.mapping_type_num = output_summary_json["mapping_type_num"]
 
-    mapping_result = read_mapping_from_json(output_summary_json["mapping_file"])
+    mapping_file_path = output_summary_json.get("mapping_file", "")
+    if not os.path.exists(mapping_file_path):
+        mapping_file_path = os.path.join(remapper_dir_path, remapping_file_name)
+    mapping_result = read_mapping_from_json(mapping_file_path)
     remapper_result.utilization = mapping_result.get_utilization()
 
     return remapper_result
