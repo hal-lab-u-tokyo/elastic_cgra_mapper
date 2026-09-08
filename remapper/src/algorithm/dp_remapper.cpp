@@ -228,23 +228,24 @@ class RectangleKnapsack {
     dp_splited_rectangle_size.emplace_back(pattern3);
 
     std::vector<Eigen::Vector3d> pattern4;
-    pattern4.emplace_back(shift_size.x(), container_size.y(), item_size.z());
-    pattern4.emplace_back(item_size.x(), shift_size.y(), item_size.z());
-    pattern4.emplace_back(container_size.x(), container_size.y(),
-                          shift_size.z());
+    pattern4.emplace_back(shift_size.x(), item_size.y(), container_size.z());
+    pattern4.emplace_back(container_size.x(), shift_size.y(),
+                          container_size.z());
+    pattern4.emplace_back(item_size.x(), item_size.y(), shift_size.z());
     dp_splited_rectangle_size.emplace_back(pattern4);
 
     std::vector<Eigen::Vector3d> pattern5;
-    pattern5.emplace_back(shift_size.x(), item_size.y(), item_size.z());
-    pattern5.emplace_back(container_size.x(), shift_size.y(), item_size.z());
-    pattern5.emplace_back(container_size.x(), item_size.y(), shift_size.z());
+    pattern5.emplace_back(shift_size.x(), container_size.y(),
+                          container_size.z());
+    pattern5.emplace_back(item_size.x(), shift_size.y(), item_size.z());
+    pattern5.emplace_back(item_size.x(), container_size.y(), shift_size.z());
     dp_splited_rectangle_size.emplace_back(pattern5);
 
     std::vector<Eigen::Vector3d> pattern6;
-    pattern6.emplace_back(shift_size.x(), container_size.y(), item_size.z());
-    pattern6.emplace_back(item_size.x(), shift_size.y(), item_size.z());
-    pattern6.emplace_back(container_size.x(), container_size.y(),
-                          shift_size.z());
+    pattern6.emplace_back(shift_size.x(), container_size.y(),
+                          container_size.z());
+    pattern6.emplace_back(item_size.x(), shift_size.y(), container_size.z());
+    pattern6.emplace_back(item_size.x(), item_size.y(), shift_size.z());
     dp_splited_rectangle_size.emplace_back(pattern6);
 
     return dp_splited_rectangle_size;
