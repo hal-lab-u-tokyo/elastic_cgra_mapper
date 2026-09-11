@@ -1,4 +1,5 @@
-add_executable(io_test dfg_io_test.cpp mrrg_io_test.cpp mapping_io_test.cpp)
+add_executable(io_test dfg_io_test.cpp mrrg_io_test.cpp mapping_io_test.cpp
+                       mapper_config_io_test.cpp)
 
 # find_package(GTest REQUIRED)
 include(GoogleTest)

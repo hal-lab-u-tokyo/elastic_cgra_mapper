@@ -1,0 +1,24 @@
+digraph G {
+  mul_mul0 [opcode="mul"];
+  const_const1 [opcode="const", const_value=" 0"];
+  load_load2 [opcode="load"];
+  mul_mul3 [opcode="mul"];
+  const_const4 [opcode="const", const_value=" 0"];
+  load_load5 [opcode="load"];
+  mul_mul6 [opcode="mul"];
+  add_add7 [opcode="add"];
+  output_output8 [opcode="output"];
+  add_add9 [opcode="add"];
+  const_const10 [opcode="const", const_value=" 0"];
+  mul_mul0 -> load_load2 [operand=0];
+  const_const1 -> mul_mul0 [operand=0, distance=1];
+  load_load2 -> mul_mul6 [operand=1];
+  mul_mul3 -> load_load5 [operand=0];
+  const_const4 -> mul_mul3 [operand=0, distance=1];
+  load_load5 -> mul_mul6 [operand=0];
+  mul_mul6 -> add_add7 [operand=0];
+  add_add7 -> output_output8 [operand=0];
+  add_add9 -> mul_mul0 [operand=1, distance=1];
+  add_add9 -> mul_mul3 [operand=1, distance=1];
+  const_const10 -> add_add9 [operand=1, distance=1];
+}

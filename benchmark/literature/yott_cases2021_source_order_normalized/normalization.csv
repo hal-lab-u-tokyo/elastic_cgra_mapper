@@ -1,0 +1,24 @@
+source,output,status,nodes,edges,op_counts,unsupported_ops,skipped_control_nodes,bypassed_control_edges,dropped_edges
+Cplx8.dot,Cplx8.dot,ready,77,91,"{'add': 11, 'load': 6, 'mul': 8, 'output': 1, 'select': 47, 'sub': 4}",,0,0,0
+FilterRGB.dot,FilterRGB.dot,ready,84,97,"{'cmpgt': 3, 'icmp': 3, 'mul': 6, 'or': 7, 'output': 1, 'select': 49, 'shift': 9, 'sub': 6}",,0,0,0
+Fir16.dot,Fir16.dot,ready,77,91,"{'add': 18, 'mul': 16, 'select': 43}",,0,0,0
+arf.dot,arf.dot,ready,28,30,"{'add': 12, 'mul': 16}",,0,0,0
+collapse_pyr.dot,collapse_pyr.dot,ready,105,122,"{'add': 22, 'load': 9, 'mul': 9, 'output': 9, 'select': 33, 'shift': 12, 'sub': 11}",,0,0,0
+conv3.dot,conv3.dot,ready,28,30,"{'add': 4, 'const': 9, 'load': 3, 'mul': 7, 'output': 1, 'select': 4}",,0,0,0
+cosine1.dot,cosine1.dot,ready,66,76,"{'add': 37, 'mul': 16, 'sub': 13}",,0,0,0
+cosine2.dot,cosine2.dot,ready,81,91,"{'add': 52, 'mul': 16, 'sub': 13}",,0,0,0
+ewf.dot,ewf.dot,ready,66,79,"{'add': 26, 'mul': 8, 'select': 32}",,0,0,0
+fdback_pts.dot,fdback_pts.dot,ready,54,51,"{'add': 23, 'cmpge': 1, 'div': 2, 'load': 7, 'mul': 17, 'output': 4}",,0,0,0
+fir1.dot,fir1.dot,ready,44,43,"{'add': 10, 'load': 22, 'mul': 11, 'output': 1}",,0,0,0
+fir2.dot,fir2.dot,ready,40,39,{'add': 40},,0,0,0
+h2v2_smo.dot,h2v2_smo.dot,ready,62,65,"{'add': 31, 'load': 16, 'mul': 3, 'output': 1, 'select': 10, 'shift': 1}",,0,0,0
+horner_bs.dot,horner_bs.dot,ready,17,16,"{'add': 6, 'load': 2, 'mul': 8, 'output': 1}",,0,0,0
+interpolate.dot,interpolate.dot,ready,108,104,"{'add': 52, 'load': 12, 'mul': 36, 'output': 4, 'sub': 4}",,0,0,0
+invert_matrix.dot,invert_matrix.dot,ready,357,378,"{'add': 94, 'div': 1, 'load': 64, 'mul': 140, 'output': 16, 'select': 24, 'sub': 18}",,0,0,0
+k4n4op.dot,k4n4op.dot,ready,59,74,{'add': 59},,0,0,0
+mac.dot,mac.dot,ready,11,11,"{'add': 2, 'const': 3, 'load': 2, 'mul': 3, 'output': 1}",,0,0,0
+matmul.dot,matmul.dot,ready,116,124,"{'add': 44, 'load': 28, 'mul': 40, 'output': 4}",,0,0,0
+motion_vec.dot,motion_vec.dot,ready,32,29,"{'add': 14, 'load': 2, 'mul': 14, 'output': 2}",,0,0,0
+mults1.dot,mults1.dot,ready,24,27,"{'add': 7, 'load': 4, 'mul': 8, 'output': 1, 'select': 4}",,0,0,0
+simple.dot,simple.dot,ready,14,15,"{'add': 2, 'const': 4, 'load': 2, 'mul': 3, 'output': 1, 'select': 2}",,0,0,0
+w_bmp_head.dot,w_bmp_head.dot,ready,110,92,"{'add': 38, 'load': 11, 'mul': 2, 'or': 18, 'output': 24, 'select': 4, 'shift': 13}",,0,0,0
