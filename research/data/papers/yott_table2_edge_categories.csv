@@ -1,0 +1,5 @@
+category,vpr_bb,vpr_fast,yoto_1,yott_1,yoto_10,yott_10,yoto_100,yott_100,yoto_1000,sa_100,source
+total,1.25,1.31,1.30,1.27,1.24,1.18,1.20,1.16,1.17,1.16,YOTT Table 2
+first,1.16,1.27,1.15,1.10,1.07,1.05,1.06,1.03,1.05,1.03,YOTT Table 2
+reconvergent,2.54,2.52,2.97,2.56,2.58,2.20,2.44,1.98,2.32,2.13,YOTT Table 2
+io,1.20,1.17,,1.24,,1.20,,1.18,,1.23,YOTT Table 2

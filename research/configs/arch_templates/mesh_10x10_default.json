@@ -1,0 +1,9 @@
+{
+  "row": 10,
+  "column": 10,
+  "memory_io": "all",
+  "CGRA_type": "default",
+  "network_type": "orthogonal",
+  "local_reg_size": 1,
+  "loop_controllers": []
+}

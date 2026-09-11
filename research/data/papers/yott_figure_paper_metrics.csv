@@ -1,0 +1,24 @@
+figure,panel,scope,benchmark_index,benchmark,method,trials,metric,value,unit,value_source,confidence,notes
+Fig21,b,per_benchmark,1,mac,VPR_BB,,maximal_fifo_size,1,fifo_slots,paper_vpr_bb,corrected,Corrected VPR-BB maximal FIFO reference for YOTT Fig. 21(b).
+Fig21,b,per_benchmark,2,simple,VPR_BB,,maximal_fifo_size,1,fifo_slots,paper_vpr_bb,corrected,Corrected VPR-BB maximal FIFO reference for YOTT Fig. 21(b).
+Fig21,b,per_benchmark,3,horner_bs,VPR_BB,,maximal_fifo_size,1,fifo_slots,paper_vpr_bb,corrected,Corrected VPR-BB maximal FIFO reference for YOTT Fig. 21(b).
+Fig21,b,per_benchmark,4,mults1,VPR_BB,,maximal_fifo_size,3,fifo_slots,paper_vpr_bb,corrected,Corrected VPR-BB maximal FIFO reference for YOTT Fig. 21(b).
+Fig21,b,per_benchmark,5,arf,VPR_BB,,maximal_fifo_size,1,fifo_slots,paper_vpr_bb,corrected,Corrected VPR-BB maximal FIFO reference for YOTT Fig. 21(b).
+Fig21,b,per_benchmark,6,conv3,VPR_BB,,maximal_fifo_size,2,fifo_slots,paper_vpr_bb,corrected,Corrected VPR-BB maximal FIFO reference for YOTT Fig. 21(b).
+Fig21,b,per_benchmark,7,motion_vec,VPR_BB,,maximal_fifo_size,2,fifo_slots,paper_vpr_bb,corrected,Corrected VPR-BB maximal FIFO reference for YOTT Fig. 21(b).
+Fig21,b,per_benchmark,8,fir2,VPR_BB,,maximal_fifo_size,4,fifo_slots,paper_vpr_bb,corrected,Corrected VPR-BB maximal FIFO reference for YOTT Fig. 21(b).
+Fig21,b,per_benchmark,9,fir1,VPR_BB,,maximal_fifo_size,4,fifo_slots,paper_vpr_bb,corrected,Corrected VPR-BB maximal FIFO reference for YOTT Fig. 21(b).
+Fig21,b,per_benchmark,10,fdback_pts,VPR_BB,,maximal_fifo_size,2,fifo_slots,paper_vpr_bb,corrected,Corrected VPR-BB maximal FIFO reference for YOTT Fig. 21(b).
+Fig21,b,per_benchmark,11,k4n4op,VPR_BB,,maximal_fifo_size,4,fifo_slots,paper_vpr_bb,corrected,Corrected VPR-BB maximal FIFO reference for YOTT Fig. 21(b).
+Fig21,b,per_benchmark,12,h2v2_smo,VPR_BB,,maximal_fifo_size,4,fifo_slots,paper_vpr_bb,corrected,Corrected VPR-BB maximal FIFO reference for YOTT Fig. 21(b).
+Fig21,b,per_benchmark,13,cosine1,VPR_BB,,maximal_fifo_size,2,fifo_slots,paper_vpr_bb,corrected,Corrected VPR-BB maximal FIFO reference for YOTT Fig. 21(b).
+Fig21,b,per_benchmark,14,ewf,VPR_BB,,maximal_fifo_size,3,fifo_slots,paper_vpr_bb,corrected,Corrected VPR-BB maximal FIFO reference for YOTT Fig. 21(b).
+Fig21,b,per_benchmark,15,cplx8,VPR_BB,,maximal_fifo_size,2,fifo_slots,paper_vpr_bb,corrected,Corrected VPR-BB maximal FIFO reference for YOTT Fig. 21(b).
+Fig21,b,per_benchmark,16,fir16,VPR_BB,,maximal_fifo_size,2,fifo_slots,paper_vpr_bb,corrected,Corrected VPR-BB maximal FIFO reference for YOTT Fig. 21(b).
+Fig21,b,per_benchmark,17,cosine2,VPR_BB,,maximal_fifo_size,3,fifo_slots,paper_vpr_bb,corrected,Corrected VPR-BB maximal FIFO reference for YOTT Fig. 21(b).
+Fig21,b,per_benchmark,18,filter_rgb,VPR_BB,,maximal_fifo_size,3,fifo_slots,paper_vpr_bb,corrected,Corrected VPR-BB maximal FIFO reference for YOTT Fig. 21(b).
+Fig21,b,per_benchmark,19,collapse_pyr,VPR_BB,,maximal_fifo_size,4,fifo_slots,paper_vpr_bb,corrected,Corrected VPR-BB maximal FIFO reference for YOTT Fig. 21(b).
+Fig21,b,per_benchmark,20,interpolate,VPR_BB,,maximal_fifo_size,2,fifo_slots,paper_vpr_bb,corrected,Corrected VPR-BB maximal FIFO reference for YOTT Fig. 21(b).
+Fig21,b,per_benchmark,21,w_bmp_head,VPR_BB,,maximal_fifo_size,3,fifo_slots,paper_vpr_bb,corrected,Corrected VPR-BB maximal FIFO reference for YOTT Fig. 21(b).
+Fig21,b,per_benchmark,22,matmul,VPR_BB,,maximal_fifo_size,4,fifo_slots,paper_vpr_bb,corrected,Corrected VPR-BB maximal FIFO reference for YOTT Fig. 21(b).
+Fig21,b,per_benchmark,23,invert_matrix,VPR_BB,,maximal_fifo_size,9,fifo_slots,paper_vpr_bb,corrected,Corrected VPR-BB maximal FIFO reference for YOTT Fig. 21(b).

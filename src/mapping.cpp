@@ -9,9 +9,7 @@
 #include <io/mapping_io.hpp>
 #include <io/output_to_log_file.hpp>
 #include <iostream>
-#include <mapper/gurobi_mapper.hpp>
-#include <mapper/gurobi_placement_mapper.hpp>
-#include <mapper/mapper.hpp>
+#include <mapper/mapper_factory.hpp>
 
 std::string FixOpName(std::string op_name, int node_offset) {
   std::string result = "";
@@ -122,22 +120,36 @@ int main(int argc, char* argv[]) {
     dfg_ptr = AddDFG(dfg_ptr, dfg_ptr_to_add, dfg_ptr_to_add->GetNodeNum() * i);
   }
 
-  mapper::IILPMapper* mapper_impl;
-  if (mapper_config.algorithm_config.algorithm ==
-      entity::AlgorithmType::kILPMapper) {
-    mapper_impl = mapper::GurobiILPMapper().CreateMapper(dfg_ptr, mrrg_ptr);
-  } else if (mapper_config.algorithm_config.algorithm ==
-             entity::AlgorithmType::kPlacementILPMapper) {
-    mapper_impl =
-        mapper::GurobiPlacementILPMapper().CreateMapper(dfg_ptr, mrrg_ptr);
-  } else {
-    std::cerr << "Invalid algorithm type in mapper config: "
-              << static_cast<int>(mapper_config.algorithm_config.algorithm)
-              << std::endl;
-    abort();
-  }
-  mapper_impl->SetLogFilePath(logger.GetGurobiLogFilePath());
-  mapper_impl->SetTimeOut(timeout_s);
+  std::unique_ptr<mapper::IMapper> mapper_impl = mapper::CreateMapper(
+      mapper_config.algorithm_config.type, dfg_ptr, mrrg_ptr);
+  mapper::MapperOptions options;
+  options.log_file_path = logger.GetGurobiLogFilePath();
+  options.timeout_s = timeout_s;
+  options.accept_feasible_solution =
+      mapper_config.algorithm_config.accept_feasible_solution;
+  options.placement_only = mapper_config.algorithm_config.placement_only;
+  options.max_trials = mapper_config.algorithm_config.max_trials;
+  options.seed_count = mapper_config.algorithm_config.seed_count;
+  options.routing_retry_count =
+      mapper_config.algorithm_config.routing_retry_count;
+  options.random_seed = mapper_config.algorithm_config.random_seed;
+  options.max_iterations = mapper_config.algorithm_config.max_iterations;
+  options.elite_placement_count =
+      mapper_config.algorithm_config.elite_placement_count;
+  options.io_node_policy = mapper_config.algorithm_config.io_node_policy;
+  options.trial_seed_policy = mapper_config.algorithm_config.trial_seed_policy;
+  options.traversal_order_policy =
+      mapper_config.algorithm_config.traversal_order_policy;
+  options.traversal_neighbor_policy =
+      mapper_config.algorithm_config.traversal_neighbor_policy;
+  options.candidate_scope_policy =
+      mapper_config.algorithm_config.candidate_scope_policy;
+  options.candidate_rank_policy =
+      mapper_config.algorithm_config.candidate_rank_policy;
+  options.use_yott_annotations =
+      mapper_config.algorithm_config.use_yott_annotations;
+  options.trace_trials = mapper_config.algorithm_config.trace_trials;
+  mapper_impl->Configure(options);
 
   const auto result = mapper_impl->Execution();
 
