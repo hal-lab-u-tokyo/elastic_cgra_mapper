@@ -1,0 +1,35 @@
+digraph G {
+  mul_MUL_0 [opcode="mul"];
+  load_LOD_6 [opcode="load"];
+  mul_MUL_21 [opcode="mul"];
+  add_ADD_5 [opcode="add"];
+  load_LOD_15 [opcode="load"];
+  mul_MUL_19 [opcode="mul"];
+  add_ADD_24 [opcode="add"];
+  mul_MUL_2 [opcode="mul"];
+  add_ADD_18 [opcode="add"];
+  mul_MUL_10 [opcode="mul"];
+  add_ADD_1 [opcode="add"];
+  output_STR_25 [opcode="output"];
+  mul_MUL_8 [opcode="mul"];
+  mul_MUL_17 [opcode="mul"];
+  mul_MUL_11 [opcode="mul"];
+  add_ADD_14 [opcode="add"];
+  add_ADD_20 [opcode="add"];
+  mul_MUL_0 -> add_ADD_1 [operand=0];
+  load_LOD_6 -> mul_MUL_8 [operand=0];
+  mul_MUL_21 -> add_ADD_24 [operand=0];
+  add_ADD_5 -> load_LOD_6 [operand=0, distance=1];
+  load_LOD_15 -> mul_MUL_17 [operand=0];
+  mul_MUL_19 -> add_ADD_20 [operand=0];
+  add_ADD_24 -> output_STR_25 [operand=0];
+  mul_MUL_2 -> add_ADD_5 [operand=0, distance=1];
+  add_ADD_18 -> output_STR_25 [operand=1];
+  mul_MUL_10 -> mul_MUL_17 [operand=1];
+  add_ADD_1 -> mul_MUL_2 [operand=0, distance=1];
+  mul_MUL_8 -> add_ADD_18 [operand=0, distance=1];
+  mul_MUL_17 -> add_ADD_18 [operand=1, distance=1];
+  mul_MUL_11 -> add_ADD_14 [operand=0];
+  add_ADD_14 -> load_LOD_15 [operand=0, distance=1];
+  add_ADD_20 -> mul_MUL_21 [operand=0, distance=1];
+}
