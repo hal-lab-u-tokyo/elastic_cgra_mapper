@@ -1,0 +1,201 @@
+{
+  "name": "placement2d_yott_scaling",
+  "problem_type": "placement2d",
+  "evaluation_mode": "placement_only",
+  "mode": "placement2d_fixed_ii",
+  "result_group": "placement2d/yott_scaling",
+  "allow_placement2d_capacity_mismatch": true,
+  "mapping_bin": "build/mapping",
+  "benchmark_sets": [
+    {
+      "name": "reconvergent_scaling",
+      "benchmark_root": "research/reproduction/benchmarks/placement_scaling",
+      "benchmarks": [
+        "reconvergent_0064",
+        "reconvergent_0128",
+        "reconvergent_0256",
+        "reconvergent_0512",
+        "reconvergent_1024",
+        "reconvergent_2048"
+      ]
+    }
+  ],
+  "architectures": [
+    {
+      "name": "fit_io_no_corners",
+      "template": "research/configs/arch_templates/mesh_10x10_default.json",
+      "auto_grid": {
+        "policy": "cpu_mapping_yoto_yott_fit_structural_io",
+        "margin": 0
+      },
+      "memory_io": "perimeter_no_corners",
+      "network_type": "one_hop_axis2",
+      "ii": 1
+    }
+  ],
+  "mappers": [
+    {
+      "name": "yott_seed_01",
+      "mapper_config": "research/configs/mapper/placement2d/yott.json",
+      "algorithm_overrides": {
+        "max_trials": 100,
+        "random_seed": 1706961029
+      }
+    },
+    {
+      "name": "yott_seed_02",
+      "mapper_config": "research/configs/mapper/placement2d/yott.json",
+      "algorithm_overrides": {
+        "max_trials": 100,
+        "random_seed": 1706961030
+      }
+    },
+    {
+      "name": "yott_seed_03",
+      "mapper_config": "research/configs/mapper/placement2d/yott.json",
+      "algorithm_overrides": {
+        "max_trials": 100,
+        "random_seed": 1706961031
+      }
+    },
+    {
+      "name": "yott_seed_04",
+      "mapper_config": "research/configs/mapper/placement2d/yott.json",
+      "algorithm_overrides": {
+        "max_trials": 100,
+        "random_seed": 1706961032
+      }
+    },
+    {
+      "name": "yott_seed_05",
+      "mapper_config": "research/configs/mapper/placement2d/yott.json",
+      "algorithm_overrides": {
+        "max_trials": 100,
+        "random_seed": 1706961033
+      }
+    },
+    {
+      "name": "yott_seed_06",
+      "mapper_config": "research/configs/mapper/placement2d/yott.json",
+      "algorithm_overrides": {
+        "max_trials": 100,
+        "random_seed": 1706961034
+      }
+    },
+    {
+      "name": "yott_seed_07",
+      "mapper_config": "research/configs/mapper/placement2d/yott.json",
+      "algorithm_overrides": {
+        "max_trials": 100,
+        "random_seed": 1706961035
+      }
+    },
+    {
+      "name": "yott_seed_08",
+      "mapper_config": "research/configs/mapper/placement2d/yott.json",
+      "algorithm_overrides": {
+        "max_trials": 100,
+        "random_seed": 1706961036
+      }
+    },
+    {
+      "name": "yott_seed_09",
+      "mapper_config": "research/configs/mapper/placement2d/yott.json",
+      "algorithm_overrides": {
+        "max_trials": 100,
+        "random_seed": 1706961037
+      }
+    },
+    {
+      "name": "yott_seed_10",
+      "mapper_config": "research/configs/mapper/placement2d/yott.json",
+      "algorithm_overrides": {
+        "max_trials": 100,
+        "random_seed": 1706961038
+      }
+    },
+    {
+      "name": "core_seed_01",
+      "mapper_config": "research/configs/mapper/placement2d/yott_core.json",
+      "algorithm_overrides": {
+        "max_trials": 100,
+        "random_seed": 1706961029
+      }
+    },
+    {
+      "name": "core_seed_02",
+      "mapper_config": "research/configs/mapper/placement2d/yott_core.json",
+      "algorithm_overrides": {
+        "max_trials": 100,
+        "random_seed": 1706961030
+      }
+    },
+    {
+      "name": "core_seed_03",
+      "mapper_config": "research/configs/mapper/placement2d/yott_core.json",
+      "algorithm_overrides": {
+        "max_trials": 100,
+        "random_seed": 1706961031
+      }
+    },
+    {
+      "name": "core_seed_04",
+      "mapper_config": "research/configs/mapper/placement2d/yott_core.json",
+      "algorithm_overrides": {
+        "max_trials": 100,
+        "random_seed": 1706961032
+      }
+    },
+    {
+      "name": "core_seed_05",
+      "mapper_config": "research/configs/mapper/placement2d/yott_core.json",
+      "algorithm_overrides": {
+        "max_trials": 100,
+        "random_seed": 1706961033
+      }
+    },
+    {
+      "name": "core_seed_06",
+      "mapper_config": "research/configs/mapper/placement2d/yott_core.json",
+      "algorithm_overrides": {
+        "max_trials": 100,
+        "random_seed": 1706961034
+      }
+    },
+    {
+      "name": "core_seed_07",
+      "mapper_config": "research/configs/mapper/placement2d/yott_core.json",
+      "algorithm_overrides": {
+        "max_trials": 100,
+        "random_seed": 1706961035
+      }
+    },
+    {
+      "name": "core_seed_08",
+      "mapper_config": "research/configs/mapper/placement2d/yott_core.json",
+      "algorithm_overrides": {
+        "max_trials": 100,
+        "random_seed": 1706961036
+      }
+    },
+    {
+      "name": "core_seed_09",
+      "mapper_config": "research/configs/mapper/placement2d/yott_core.json",
+      "algorithm_overrides": {
+        "max_trials": 100,
+        "random_seed": 1706961037
+      }
+    },
+    {
+      "name": "core_seed_10",
+      "mapper_config": "research/configs/mapper/placement2d/yott_core.json",
+      "algorithm_overrides": {
+        "max_trials": 100,
+        "random_seed": 1706961038
+      }
+    }
+  ],
+  "timeout_sec": 300,
+  "parallel_num": 1,
+  "mii_missing_distance_policy": "self_loop"
+}

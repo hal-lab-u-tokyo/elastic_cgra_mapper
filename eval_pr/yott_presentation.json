@@ -1,0 +1,163 @@
+{
+    "name": "placement2d_yott_presentation",
+    "problem_type": "placement2d",
+    "evaluation_mode": "placement_only",
+    "mode": "placement2d_fixed_ii",
+    "result_group": "placement2d/yott_presentation",
+    "mapping_bin": "build/mapping",
+    "benchmark_sets": [
+        {
+            "name": "yott_2021",
+            "benchmark_root": "benchmark/literature/yott_cases2021_source_order_normalized",
+            "benchmarks": [
+                "mac",
+                "simple",
+                "horner_bs",
+                "mults1",
+                "arf",
+                "conv3",
+                "motion_vec",
+                "fir2",
+                "fir1",
+                "fdback_pts",
+                "k4n4op",
+                "h2v2_smo",
+                "cosine1",
+                "ewf",
+                "Cplx8",
+                "Fir16",
+                "cosine2",
+                "FilterRGB",
+                "collapse_pyr",
+                "interpolate",
+                "w_bmp_head",
+                "matmul",
+                "invert_matrix"
+            ]
+        }
+    ],
+    "architectures": [
+        {
+            "name": "fit_io_no_corners",
+            "template": "research/configs/arch_templates/mesh_10x10_default.json",
+            "auto_grid": {
+                "policy": "cpu_mapping_yoto_yott_fit_structural_io",
+                "margin": 0
+            },
+            "memory_io": "perimeter_no_corners",
+            "network_type": "one_hop_axis2",
+            "ii": 1
+        }
+    ],
+    "mappers": [
+        {
+            "name": "yott_default",
+            "mapper_config": "research/configs/mapper/placement2d/yott.json"
+        },
+        {
+            "name": "yott_no_annotations",
+            "mapper_config": "research/configs/mapper/placement2d/yott.json",
+            "algorithm_overrides": {
+                "use_yott_annotations": false
+            }
+        },
+        {
+            "name": "yott_traversal_degree",
+            "mapper_config": "research/configs/mapper/placement2d/yott.json",
+            "algorithm_overrides": {
+                "traversal_neighbor_policy": "degree"
+            }
+        },
+        {
+            "name": "yott_traversal_betweenness",
+            "mapper_config": "research/configs/mapper/placement2d/yott.json",
+            "algorithm_overrides": {
+                "traversal_neighbor_policy": "betweenness"
+            }
+        },
+        {
+            "name": "yott_traversal_critical_path",
+            "mapper_config": "research/configs/mapper/placement2d/yott.json",
+            "algorithm_overrides": {
+                "traversal_neighbor_policy": "critical_path"
+            }
+        },
+        {
+            "name": "yott_traversal_zigzag",
+            "mapper_config": "research/configs/mapper/placement2d/yott.json",
+            "algorithm_overrides": {
+                "traversal_neighbor_policy": "zigzag"
+            }
+        },
+        {
+            "name": "yott_traversal_random",
+            "mapper_config": "research/configs/mapper/placement2d/yott.json",
+            "algorithm_overrides": {
+                "traversal_neighbor_policy": "random"
+            }
+        },
+        {
+            "name": "yott_scope_all",
+            "mapper_config": "research/configs/mapper/placement2d/yott.json",
+            "algorithm_overrides": {
+                "candidate_scope_policy": "all"
+            }
+        },
+        {
+            "name": "yott_scope_adjacent",
+            "mapper_config": "research/configs/mapper/placement2d/yott.json",
+            "algorithm_overrides": {
+                "candidate_scope_policy": "adjacent"
+            }
+        },
+        {
+            "name": "yott_scope_tips",
+            "mapper_config": "research/configs/mapper/placement2d/yott.json",
+            "algorithm_overrides": {
+                "candidate_scope_policy": "tips"
+            }
+        },
+        {
+            "name": "yott_scope_tips_only",
+            "mapper_config": "research/configs/mapper/placement2d/yott.json",
+            "algorithm_overrides": {
+                "candidate_scope_policy": "tips_no_fallback"
+            }
+        },
+        {
+            "name": "yott_scope_annotation_only",
+            "mapper_config": "research/configs/mapper/placement2d/yott.json",
+            "algorithm_overrides": {
+                "candidate_scope_policy": "annotation_intersection_only"
+            }
+        },
+        {
+            "name": "yott_rank_high_freedom",
+            "mapper_config": "research/configs/mapper/placement2d/yott.json",
+            "algorithm_overrides": {
+                "candidate_rank_policy": "high_freedom"
+            }
+        },
+        {
+            "name": "yott_rank_low_freedom",
+            "mapper_config": "research/configs/mapper/placement2d/yott.json",
+            "algorithm_overrides": {
+                "candidate_rank_policy": "low_freedom"
+            }
+        },
+        {
+            "name": "yott_rank_random",
+            "mapper_config": "research/configs/mapper/placement2d/yott.json",
+            "algorithm_overrides": {
+                "candidate_rank_policy": "random"
+            }
+        },
+        {
+            "name": "yott_core",
+            "mapper_config": "research/configs/mapper/placement2d/yott_core.json"
+        }
+    ],
+    "timeout_sec": 240,
+    "parallel_num": 1,
+    "mii_missing_distance_policy": "self_loop"
+}
