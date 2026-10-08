@@ -3,30 +3,30 @@
 #include <cassert>
 #include <filesystem>
 #include <fstream>
-#include <mapper/gurobi_placement_mapper.hpp>
+#include <mapper/placement2d/placement2d_ilp_mapper.hpp>
+#include <memory>
 
-mapper::GurobiPlacementILPMapper::GurobiPlacementILPMapper(
+mapper::Placement2DILPMapper::Placement2DILPMapper(
     const std::shared_ptr<entity::DFG> dfg_ptr,
     const std::shared_ptr<entity::MRRG> mrrg_ptr)
     : dfg_ptr_(dfg_ptr), mrrg_ptr_(mrrg_ptr) {}
 
-mapper::GurobiPlacementILPMapper*
-mapper::GurobiPlacementILPMapper::CreateMapper(
+mapper::Placement2DILPMapper* mapper::Placement2DILPMapper::CreateMapper(
     const std::shared_ptr<entity::DFG> dfg_ptr,
     const std::shared_ptr<entity::MRRG> mrrg_ptr) {
-  mapper::GurobiPlacementILPMapper* result =
-      new mapper::GurobiPlacementILPMapper;
-  *result = mapper::GurobiPlacementILPMapper(dfg_ptr, mrrg_ptr);
+  mapper::Placement2DILPMapper* result = new mapper::Placement2DILPMapper;
+  *result = mapper::Placement2DILPMapper(dfg_ptr, mrrg_ptr);
 
   return result;
 }
 
-mapper::MappingResult mapper::GurobiPlacementILPMapper::Execution() {
+mapper::MappingResult mapper::Placement2DILPMapper::Execution() {
   const auto start_time = std::chrono::system_clock::now();
   try {
     // create gurobi env
     GRBEnv env = GRBEnv(true);
-    env.set(GRB_IntParam_Threads, 32);
+    // Let Gurobi choose the thread count; fixed high values are fragile in
+    // container environments.
     env.start();
 
     // create an empty model
@@ -409,11 +409,23 @@ mapper::MappingResult mapper::GurobiPlacementILPMapper::Execution() {
 
     int status = model.get(GRB_IntAttr_Status);
 
-    if (status != GRB_OPTIMAL && status != GRB_SUBOPTIMAL) {
-      if (status == GRB_INFEASIBLE) {
-        model.computeIIS();
-        model.write("debug.iis");
-      }
+    // Time-limited runs may still have a feasible incumbent. Keep that
+    // behavior configurable for experiments that require stricter status.
+    if (status == GRB_INFEASIBLE) {
+      model.computeIIS();
+      model.write("debug.iis");
+      const auto end_time = std::chrono::system_clock::now();
+      const double mapping_time =
+          std::chrono::duration_cast<std::chrono::milliseconds>(end_time -
+                                                                start_time)
+              .count() /
+          1000.0;
+      return MappingResult(false, entity::Mapping(mrrg_ptr_->GetMRRGConfig()),
+                           mapping_time);
+    }
+
+    if (!accept_feasible_solution_ && status != GRB_OPTIMAL &&
+        status != GRB_SUBOPTIMAL) {
       const auto end_time = std::chrono::system_clock::now();
       const double mapping_time =
           std::chrono::duration_cast<std::chrono::milliseconds>(end_time -
@@ -440,11 +452,17 @@ mapper::MappingResult mapper::GurobiPlacementILPMapper::Execution() {
     std::vector<std::vector<int>> dfg_output_to_mrrg_reg(dfg_node_num);
 
     for (int i = 0; i < dfg_node_num; i++) {
+      // Binary solution values are returned as doubles; read them in bulk and
+      // use a 0.5 threshold instead of exact equality to tolerate solver eps.
+      std::unique_ptr<double[]> map_op_to_PE_values(
+          model.get(GRB_DoubleAttr_X, map_op_to_PE[i].data(), mrrg_node_num));
+      std::unique_ptr<double[]> map_output_to_route_values(model.get(
+          GRB_DoubleAttr_X, map_output_to_route[i].data(), mrrg_node_num));
       for (int j = 0; j < mrrg_node_num; j++) {
-        if (map_op_to_PE[i][j].get(GRB_DoubleAttr_X) == 1) {
+        if (map_op_to_PE_values[j] > 0.5) {
           dfg_node_to_mrrg_node[i] = j;
         }
-        if (map_output_to_route[i][j].get(GRB_DoubleAttr_X) == 1) {
+        if (map_output_to_route_values[j] > 0.5) {
           dfg_output_to_mrrg_reg[i].push_back(j);
         }
       }
@@ -477,13 +495,19 @@ mapper::MappingResult mapper::GurobiPlacementILPMapper::Execution() {
   }
 }
 
-void mapper::GurobiPlacementILPMapper::SetLogFilePath(
+void mapper::Placement2DILPMapper::SetLogFilePath(
     const std::string& log_file_path) {
   log_file_path_ = log_file_path;
   return;
 }
 
-void mapper::GurobiPlacementILPMapper::SetTimeOut(double timeout_s) {
+void mapper::Placement2DILPMapper::SetTimeOut(double timeout_s) {
   timeout_s_ = timeout_s;
+  return;
+}
+
+void mapper::Placement2DILPMapper::SetAcceptFeasibleSolution(
+    bool accept_feasible_solution) {
+  accept_feasible_solution_ = accept_feasible_solution;
   return;
 }

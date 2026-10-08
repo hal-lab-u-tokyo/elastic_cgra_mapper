@@ -1,50 +1,68 @@
-# Elastic CGRA Mapper
-mapping tool for Elastic CGRA
+# CGRA Mapper
 
-## requirement (currently confirmed to work)
-GCC >= 8.5.0, gurobi = 9.1.1, cmake >= 3.20.2
+Toolkit for CGRA mapping experiments.
 
-## 1. Setup Environment
-- clone this repository to your $HOME directory
-- Download gurobi WLS license file from [Web License Manager](https://license.gurobi.com/manager/licenses) and place it to license_files directory
-- build and run docker container using the following command
-```docker
+- Modulo mapping places operations on `(PE, context)` and routes DFG edges.
+- 2D placement assigns operations to physical PEs and measures placement quality.
+- Experiment manifests compare in-repository mappers and VTR/VPR baselines.
+
+## Setup
+
+```bash
+git submodule update --init --recursive
 cd environment
 docker compose build
 docker compose up -d
-```
-
-## 2. Build
-```bash
+docker compose exec gurobi bash
+cd /home/ubuntu/elastic_cgra_mapper
 sh scripts/build.sh
 ```
 
-## 3. Usage
-### mapping
+Place the Gurobi WLS license at `license_files/gurobi.lic`. Build VPR with
+`sh scripts/build_vpr.sh` before running a VPR baseline.
+
+## Quick Check
+
+2D placement:
+
 ```bash
-cd build
-./mapping {input/dotfile} {input/archfile} {output/mapping/json}
+python3 research/scripts/run_suite.py \
+  --manifest research/configs/experiments/placement2d/compare.json \
+  --only-benchmark-set lisa_sample \
+  --only-benchmark atax \
+  --only-arch one_hop_perimeter_no_corners_io \
+  --only-mapper yott_core \
+  --tag quickstart
 ```
 
-### visualizer
-```bash
-cd python_tools/visualizer
+Modulo mapping:
 
-## output mapping image
-dot -Tpng {input/dotfile} -o {output/pngfile} # visualize dot file
-python3 mapping_visualize_main.py {input/mapping/json} # visualize mapping result
+```bash
+python3 research/scripts/run_suite.py \
+  --manifest research/configs/experiments/modulo/compare.json \
+  --only-benchmark-set compute \
+  --only-benchmark fixed_stencil \
+  --only-arch mesh6x6_default_all \
+  --only-mapper modulo_placement_first__integrated_bfs \
+  --tag quickstart
 ```
 
-### experiment runner
-```bash
-sh scripts/exec_mapping_experiment.sh
-sh scripts/exec_remapper_experiment.sh
-```
+See [Experiments](research/README.md) for comparisons, filters, and custom
+configuration.
 
+## Repository
 
+| path | contents |
+| --- | --- |
+| [`mapper/`](mapper/README.md) | mapper interfaces, registration, and algorithms |
+| [`research/`](research/README.md) | experiment manifests, scripts, metrics, and results |
+| [`benchmark/`](benchmark/README.md) | native and normalized DFG benchmark sets |
+| [`python_tools/`](python_tools/README.md) | DFG and mapping visualizers |
+| [`environment/`](environment/) | Docker image and Compose service |
 
-## 4.test
-```bash
-cd build
-ctest
-```
+## Guides
+
+- [Experiments and custom comparisons](research/README.md)
+- [Mapper implementation and extension](mapper/README.md)
+- [Benchmark sets](benchmark/README.md)
+- [Direct CLI and visualizer usage](docs/usage.md)

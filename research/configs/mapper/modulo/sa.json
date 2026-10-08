@@ -1,0 +1,13 @@
+{
+  "Algorithm": {
+    "type": "ModuloSAMapper",
+    "accept_feasible_solution": true,
+    "seed_count": 1,
+    "routing_retry_count": 6,
+    "random_seed": 1003,
+    "max_iterations": 15000
+  },
+  "DFG": {
+    "operation_name_label": "node_id"
+  }
+}

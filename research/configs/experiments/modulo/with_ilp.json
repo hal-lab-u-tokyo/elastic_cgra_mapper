@@ -1,0 +1,175 @@
+{
+  "name": "modulo_with_ilp",
+  "problem_type": "modulo",
+  "mode": "modulo_default_ii_sweep",
+  "result_group": "modulo/with_ilp",
+  "mapping_bin": "build/mapping",
+  "benchmark_sets": [
+    {
+      "name": "compute_small",
+      "benchmark_root": "benchmark/kernel",
+      "benchmarks": [
+        "fixed_fir_pro",
+        "fixed_stencil"
+      ]
+    },
+    {
+      "name": "memory_small",
+      "benchmark_root": "benchmark/kernel",
+      "benchmarks": [
+        "fixed_ellpack"
+      ]
+    }
+  ],
+  "architectures": [
+    {
+      "name": "mesh6x6_default_all",
+      "template": "research/configs/arch_templates/mesh_6x6_default.json",
+      "ii_max": 8,
+      "mii": "auto"
+    }
+  ],
+  "mappers": [
+    {
+      "name": "full_routing_ilp_mapper",
+      "mapper_config": "research/configs/mapper/modulo/full_routing_ilp.json",
+      "mapper_role": "routing_aware_placement",
+      "placement_method": "full_routing_ilp",
+      "routing_method": "integrated_ilp"
+    },
+    {
+      "name": "connectivity_path_ilp_mapper",
+      "mapper_config": "research/configs/mapper/modulo/connectivity_path_ilp.json",
+      "mapper_role": "routing_aware_placement",
+      "placement_method": "connectivity_path_ilp",
+      "routing_method": "integrated_ilp"
+    },
+    {
+      "name": "modulo_placement_first__integrated_bfs",
+      "mapper_config": "research/configs/mapper/modulo/placement_first.json",
+      "mapper_role": "placement_then_routing",
+      "placement_method": "placement_first",
+      "routing_method": "integrated_bfs"
+    },
+    {
+      "name": "modulo_prisa_physical_context__manhattan",
+      "mapper_config": "research/configs/mapper/modulo/prisa_manhattan.json",
+      "mapper_role": "placement_then_routing",
+      "placement_method": "prisa_physical_context",
+      "routing_method": "manhattan"
+    }
+  ],
+  "mapper_matrix": {
+    "name_template": "{placement}__{routing}",
+    "mapper_role": "placement_then_routing",
+    "placements": [
+      {
+        "name": "modulo_yoto_physical_context",
+        "mapper_config": "research/configs/mapper/modulo/physical_yoto.json",
+        "placement_method": "yoto_physical_context",
+        "algorithm_overrides": {
+          "max_trials": 1000,
+          "seed_count": 1,
+          "random_seed": 1706961029
+        }
+      },
+      {
+        "name": "modulo_yott_physical_context",
+        "mapper_config": "research/configs/mapper/modulo/physical_yott.json",
+        "placement_method": "yott_physical_context",
+        "algorithm_overrides": {
+          "max_trials": 1000,
+          "seed_count": 1,
+          "random_seed": 1706961029
+        }
+      },
+      {
+        "name": "modulo_prisa_physical_context",
+        "mapper_config": "research/configs/mapper/modulo/prisa.json",
+        "placement_method": "prisa_physical_context",
+        "algorithm_overrides": {
+          "seed_count": 1,
+          "random_seed": 1005,
+          "max_iterations": 500
+        }
+      },
+      {
+        "name": "modulo_yoto_direct_context",
+        "mapper_config": "research/configs/mapper/modulo/yoto.json",
+        "placement_method": "yoto_direct_context",
+        "algorithm_overrides": {
+          "max_trials": 1000,
+          "seed_count": 1,
+          "random_seed": 1706961029
+        }
+      },
+      {
+        "name": "modulo_yott_direct_context",
+        "mapper_config": "research/configs/mapper/modulo/yott.json",
+        "placement_method": "yott_direct_context",
+        "algorithm_overrides": {
+          "max_trials": 1000,
+          "seed_count": 1,
+          "random_seed": 1706961029
+        }
+      },
+      {
+        "name": "modulo_sa",
+        "mapper_config": "research/configs/mapper/modulo/sa.json",
+        "placement_method": "sa"
+      }
+    ],
+    "routers": [
+      {
+        "name": "cgra_bfs_retry6",
+        "routing_method": "cgra_bfs_retry6",
+        "algorithm_overrides": {
+          "routing_retry_count": 6
+        }
+      },
+      {
+        "name": "cgra_bfs_retry12",
+        "routing_method": "cgra_bfs_retry12",
+        "algorithm_overrides": {
+          "routing_retry_count": 12
+        }
+      }
+    ]
+  },
+  "external_mappers": [
+    {
+      "name": "vpr_sa__cgra_bfs",
+      "runner": "vpr_modulo",
+      "placement_method": "vpr_sa",
+      "routing_method": "cgra_bfs",
+      "vpr_bin": "${VPR_BIN:-third_party/vtr/build/vpr/vpr}",
+      "arch_xml": "${VPR_ARCH_XML:-third_party/vtr/vtr_flow/arch/timing/k6_N10_40nm.xml}",
+      "pack_capacity": 1,
+      "place_algorithm": "bounding_box",
+      "place_all_ops": true,
+      "context_seed_count": 16,
+      "routing_retry_count": 8,
+      "random_seed": 3001
+    },
+    {
+      "name": "vpr_sa__vpr_full_route",
+      "runner": "vpr_modulo_full_route",
+      "placement_method": "vpr_sa",
+      "routing_method": "vpr_full_route",
+      "vpr_bin": "${VPR_BIN:-third_party/vtr/build/vpr/vpr}",
+      "arch_xml": "${VPR_ARCH_XML:-third_party/vtr/vtr_flow/arch/timing/k6_N10_40nm.xml}",
+      "pack_capacity": 1,
+      "place_algorithm": "bounding_box",
+      "place_all_ops": true,
+      "modulo_placement_mode": "vpr_context",
+      "context_seed_count": 4,
+      "route_bb_factor": 1000,
+      "route_chan_width": 32,
+      "segment_length": 1,
+      "random_seed": 3001
+    }
+  ],
+  "timeout_sec": 60,
+  "parallel_num": 1,
+  "mii_missing_distance_policy": "self_loop"
+}
