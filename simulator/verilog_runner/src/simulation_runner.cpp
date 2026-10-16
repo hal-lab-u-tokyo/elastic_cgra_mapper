@@ -88,13 +88,13 @@ simulator::SimulationRunner::CalculateExpectedOutput(int max_cycle) {
       config_id_to_dfg_id_map;
 
   for (const auto& id_and_config : mapping_result_.GetConfigMap()) {
-    if (id_and_config.second.operation_type == entity::OpType::kOutput) {
+    if (id_and_config.second.operation_type == entity::OpType::OUTPUT) {
       output_config_id_vec.push_back(id_and_config.first);
     }
   }
 
   for (int i = 0; i < dfg.GetNodeNum(); i++) {
-    if (dfg.GetNodeProperty(i).op == entity::OpType::kOutput) {
+    if (dfg.GetNodeProperty(i).op == entity::OpType::OUTPUT) {
       output_dfg_id_vec.push_back(i);
     }
   }
@@ -157,7 +157,7 @@ void simulator::SimulationRunner::SetParameters() {
   }
 
   for (const auto& id_and_config : mapping_result_.GetConfigMap()) {
-    if (id_and_config.second.operation_type == entity::OpType::kOutput) {
+    if (id_and_config.second.operation_type == entity::OpType::OUTPUT) {
       int output_critical_path_length =
           mapping_result_.GetCriticalPathLength(id_and_config.first);
       std::cout << "ConfigId (row: " << id_and_config.first.row_id

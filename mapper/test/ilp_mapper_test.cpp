@@ -25,7 +25,7 @@ TEST(MapperTest, placement2d_ilp_mapper_test) {
   entity::DFGGraph g;
   for (int i = 0; i < node_num; i++) {
     auto v1 = boost::add_vertex(g);
-    g[v1].op = entity::OpType::kAdd;
+    g[v1].op = entity::OpType::ADD;
   }
 
   boost::graph_traits<entity::DFGGraph>::edge_descriptor e;
@@ -67,7 +67,7 @@ TEST(MapperTest, full_routing_ilp_mapper_test) {
   entity::DFGGraph g;
   for (int i = 0; i < node_num; i++) {
     auto v1 = boost::add_vertex(g);
-    g[v1].op = entity::OpType::kAdd;
+    g[v1].op = entity::OpType::ADD;
   }
 
   boost::graph_traits<entity::DFGGraph>::edge_descriptor e;
@@ -108,7 +108,7 @@ TEST(MapperTest, algorithm_selects_engine_from_mrrg_test) {
   entity::DFGGraph graph;
   for (int i = 0; i < 3; ++i) {
     auto vertex = boost::add_vertex(graph);
-    graph[vertex].op = entity::OpType::kAdd;
+    graph[vertex].op = entity::OpType::ADD;
     graph[vertex].op_name = "add";
   }
   for (int i = 0; i < 2; ++i) {

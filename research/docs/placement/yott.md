@@ -22,7 +22,7 @@ reproduction.
 | architecture | `fit_io_no_corners` |
 | grid policy | `cpu_mapping_yoto_yott_fit_structural_io` |
 | I/O cells | perimeter, corners excluded |
-| network model | `one_hop_axis2` |
+| network model | `one_hop_2d` |
 | VPR BB setting | `inner_num = 7`, `seed = 1`, output-LUT I/O pads |
 
 The manifest compares YOTO, YOTT, YOTT Core, YOTT Core Repair, and VPR BB on

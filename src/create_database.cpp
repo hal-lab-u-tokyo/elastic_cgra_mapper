@@ -152,7 +152,7 @@ int main(int argc, char* argv[]) {
   constexpr double kMinUtilization = 0.5;
 
   std::shared_ptr<entity::DFG> dfg_ptr = std::make_shared<entity::DFG>();
-  entity::MapperConfig mapper_config =
+  mapper::MapperConfig mapper_config =
       io::ReadMapperConfigFromJsonFile(mapper_config_file_path);
   *dfg_ptr = io::ReadDFGDotFile(dfg_dot_file_path, mapper_config.dfg_config);
   std::shared_ptr<entity::MRRG> target_mrrg_ptr =

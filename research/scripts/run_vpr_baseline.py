@@ -390,7 +390,7 @@ def architecture_summary(arch_path: Path) -> dict:
     arch = load_json(arch_path)
     network_type = str(arch.get("network_type", ""))
     placement_cost_model = str(arch.get("placement_cost_model", "mesh"))
-    if placement_cost_model == "mesh" and network_type in {"one_hop_axis2", "one_hop", "1hop"}:
+    if placement_cost_model == "mesh" and network_type in {"one_hop_2d", "one_hop_axis2", "one_hop", "1hop"}:
         placement_cost_model = "one_hop_axis2"
     return {
         "rows": int(arch["row"]),

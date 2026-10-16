@@ -241,7 +241,7 @@ bool Placement2DPRISAEngine::IsCPUMappingCompatible(int dfg_node,
 int Placement2DPRISAEngine::CellFreedom(int cell) const {
   int result = 0;
   const int radius =
-      config_.network_type == entity::MRRGNetworkType::kOneHopAxis2 ? 2 : 1;
+      config_.network_type == entity::MRRGNetworkType::kOneHop2d ? 2 : 1;
   const int row = Row(cell);
   const int col = Col(cell);
   for (int dr = -radius; dr <= radius; dr++) {
@@ -264,7 +264,7 @@ int Placement2DPRISAEngine::CellFreedom(int cell) const {
 int Placement2DPRISAEngine::DistanceCost(int a, int b) const {
   const int dx = std::abs(Row(a) - Row(b));
   const int dy = std::abs(Col(a) - Col(b));
-  if (config_.network_type == entity::MRRGNetworkType::kOneHopAxis2) {
+  if (config_.network_type == entity::MRRGNetworkType::kOneHop2d) {
     return std::max(1, (dx + 1) / 2 + (dy + 1) / 2);
   }
   if (config_.network_type == entity::MRRGNetworkType::kDiagonal) {

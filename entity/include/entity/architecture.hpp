@@ -60,7 +60,7 @@ struct CGRAConfig {
   std::vector<ConfigId> from_config_id_vec;
 
   CGRAConfig()
-      : operation_type(entity::OpType::kNop),
+      : operation_type(entity::OpType::NOP),
         to_config_id_vec({}),
         from_config_id_vec({}){};
   CGRAConfig(entity::OpType op_type, std::string op_name)

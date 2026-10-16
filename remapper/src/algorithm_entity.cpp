@@ -56,7 +56,7 @@ remapper::MappingMatrix::MappingMatrix(
            context_id < mapping.GetMRRGConfig().context_size; context_id++) {
         const entity::ConfigId config_id(row_id, column_id, context_id);
         const auto config = mapping.GetConfig(config_id);
-        if (config.operation_type != entity::OpType::kNop) {
+        if (config.operation_type != entity::OpType::NOP) {
           pe_op_count++;
         }
         if (entity::IsDFGOp(config.operation_type)) {

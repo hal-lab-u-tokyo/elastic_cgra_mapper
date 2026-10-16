@@ -181,7 +181,7 @@ int Placement2DPRISAEngine::SpatialStepDistance(int from_mrrg_node,
   const int row_distance = std::abs(from.first - to.first);
   const int column_distance = std::abs(from.second - to.second);
   const auto config = mrrg_.GetMRRGConfig();
-  if (config.network_type == entity::MRRGNetworkType::kOneHopAxis2) {
+  if (config.network_type == entity::MRRGNetworkType::kOneHop2d) {
     return (row_distance + 1) / 2 + (column_distance + 1) / 2;
   }
   if (config.network_type == entity::MRRGNetworkType::kDiagonal) {

@@ -10,31 +10,31 @@ T ExecuteOperation(entity::OpType op_type, T input_1, T input_2,
                    entity::CGRAConfig cgra_config) {
   T output;
   switch (op_type) {
-    case entity::OpType::kAdd:
+    case entity::OpType::ADD:
       output = input_1 + input_2;
       break;
-    case entity::OpType::kSub:
+    case entity::OpType::SUB:
       output = input_1 - input_2;
       break;
-    case entity::OpType::kMul:
+    case entity::OpType::MUL:
       output = input_1 * input_2;
       break;
-    case entity::OpType::kDiv:
+    case entity::OpType::DIV:
       output = input_1 / input_2;
       break;
-    case entity::OpType::kConst:
+    case entity::OpType::CONST:
       output = cgra_config.const_value;
       break;
-    case entity::OpType::kLoad:
+    case entity::OpType::LOAD:
       output = memory_ptr->Load(input_1);
       break;
-    case entity::OpType::kOutput:
+    case entity::OpType::OUTPUT:
       output = input_1;
       break;
-    case entity::OpType::kNop:
+    case entity::OpType::NOP:
       output = 0;
       break;
-    case entity::OpType::kRoute:
+    case entity::OpType::ROUTE:
       output = input_1;
       break;
     default:

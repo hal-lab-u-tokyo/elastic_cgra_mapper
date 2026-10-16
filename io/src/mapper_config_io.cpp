@@ -3,11 +3,11 @@
 #include <io/json_reader.hpp>
 #include <io/mapper_config_io.hpp>
 
-entity::MapperConfig io::ReadMapperConfigFromJsonFile(std::string file_name) {
+mapper::MapperConfig io::ReadMapperConfigFromJsonFile(std::string file_name) {
   boost::property_tree::ptree ptree;
   boost::property_tree::read_json(file_name, ptree);
 
-  entity::MapperConfig mapper_config;
+  mapper::MapperConfig mapper_config;
 
   boost::property_tree::ptree dfg_config_ptree = ptree.get_child("DFG");
   mapper_config.dfg_config.operation_name_label =
@@ -97,7 +97,7 @@ entity::MapperConfig io::ReadMapperConfigFromJsonFile(std::string file_name) {
 }
 
 void io::WriteMapperConfigToJsonFile(
-    std::string file_name, const entity::MapperConfig& mapper_config) {
+    std::string file_name, const mapper::MapperConfig& mapper_config) {
   boost::property_tree::ptree dfg_config_ptree, ptree, algorithm_config_ptree;
 
   dfg_config_ptree.put("operation_name_label",

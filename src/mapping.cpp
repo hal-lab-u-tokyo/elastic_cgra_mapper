@@ -127,7 +127,7 @@ int main(int argc, char* argv[]) {
   std::shared_ptr<entity::DFG> dfg_ptr_to_add = std::make_shared<entity::DFG>();
   std::shared_ptr<entity::MRRG> mrrg_ptr = std::make_shared<entity::MRRG>();
 
-  entity::MapperConfig mapper_config =
+  mapper::MapperConfig mapper_config =
       io::ReadMapperConfigFromJsonFile(mapper_config_file_path);
   *dfg_ptr_to_add =
       io::ReadDFGDotFile(dfg_dot_file_path, mapper_config.dfg_config);

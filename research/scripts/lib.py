@@ -867,6 +867,7 @@ def mapping_utilization(
 
     mapping = load_json(mapping_path)
     if placement_cost_model == "mesh" and mapping.get("network_type") in {
+        "one_hop_2d",
         "one_hop_axis2",
         "one_hop",
         "1hop",

@@ -28,7 +28,7 @@
       "template": "research/configs/arch_templates/mesh_10x10_default.json",
       "auto_grid": {"policy": "ceil_sqrt_non_io_plus_2"},
       "memory_io": "perimeter_no_corners",
-      "network_type": "one_hop_axis2",
+      "network_type": "one_hop_2d",
       "ii": 1
     }
   ],

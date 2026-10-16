@@ -74,7 +74,7 @@ int main(int argc, char* argv[]) {
   assert(std::filesystem::path(output_dir).is_absolute());
 
   std::shared_ptr<entity::DFG> dfg_ptr = std::make_shared<entity::DFG>();
-  entity::MapperConfig mapper_config =
+  mapper::MapperConfig mapper_config =
       io::ReadMapperConfigFromJsonFile(mapper_config_file_path);
   *dfg_ptr = io::ReadDFGDotFile(dfg_dot_file_path, mapper_config.dfg_config);
 

@@ -38,3 +38,12 @@ algorithm directories; include, for example, `<mapper/yott/yott_mapper.hpp>`.
 To add an algorithm, add its public class and implementation under matching
 algorithm directories, register its name in `src/mapper_registry.cpp`, then
 validate the supported MRRGs. CMake discovers `.cpp` files recursively.
+
+## Entity integration
+
+PR140's reviewed entity configuration and MRRG model remain authoritative.
+`mapper/configuration.hpp` extends `entity::AlgorithmConfig` with registry names
+and optional search settings, rather than adding algorithm fields to entity.
+MRRG uses `kOneHop2d` / `one_hop_2d`; legacy architecture JSON spellings are
+translated by IO, and new mappings always serialize `one_hop_2d`. The research
+metric `placement_cost_model=one_hop_axis2` keeps its mathematical definition.

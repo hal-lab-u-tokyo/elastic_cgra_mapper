@@ -125,7 +125,7 @@ def adjacent_nodes(node: tuple, arch: dict) -> list:
     next_ctx = (ctx + 1) % ii
     network_type = str(arch.get("network_type", "orthogonal"))
     deltas = []
-    if network_type in {"one_hop_axis2", "one_hop", "1hop"}:
+    if network_type in {"one_hop_2d", "one_hop_axis2", "one_hop", "1hop"}:
         deltas = [(0, 1), (0, 2), (1, 0), (2, 0), (0, -1), (0, -2), (-1, 0), (-2, 0)]
     else:
         for dr in (-1, 0, 1):

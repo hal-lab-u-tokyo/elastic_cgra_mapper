@@ -48,7 +48,7 @@ entity::MRRGConfig GetMRRGConfig(int row, int column, int context_size) {
 entity::Mapping CreateMapping(int row, int column) {
   entity::ConfigMap config_map;
   config_map.emplace(entity::ConfigId(0, 0, 0),
-                     entity::CGRAConfig(entity::OpType::kAdd, "add"));
+                     entity::CGRAConfig(entity::OpType::ADD, "add"));
   return entity::Mapping(GetMRRGConfig(row, column, 1), config_map);
 }
 
@@ -107,9 +107,9 @@ TEST(RemapperTest, full_search_returns_empty_when_mapping_cannot_fit) {
 TEST(RemapperTest, MappingRotaterRotatesConfigIdsAndDimensions) {
   const entity::ConfigId source_id(0, 0, 0);
   const entity::ConfigId destination_id(1, 2, 0);
-  entity::CGRAConfig source_config(entity::OpType::kAdd, "source");
+  entity::CGRAConfig source_config(entity::OpType::ADD, "source");
   source_config.to_config_id_vec.push_back(destination_id);
-  entity::CGRAConfig destination_config(entity::OpType::kOutput, "destination");
+  entity::CGRAConfig destination_config(entity::OpType::OUTPUT, "destination");
   destination_config.from_config_id_vec.push_back(source_id);
   entity::ConfigMap config_map = {{source_id, source_config},
                                   {destination_id, destination_config}};

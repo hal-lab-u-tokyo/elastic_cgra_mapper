@@ -1,5 +1,5 @@
-#include <entity/mrrg.hpp>
 #include <algorithm>
+#include <entity/mrrg.hpp>
 #include <map>
 
 bool entity::MRRGConfig::IsLoopController(
@@ -88,10 +88,8 @@ entity::MRRGNetworkType entity::MRRGNetworkTypeFromString(
     return entity::MRRGNetworkType::kOrthogonal;
   } else if (network_type_string == "diagonal") {
     return entity::MRRGNetworkType::kDiagonal;
-  } else if (network_type_string == "one_hop_axis2" ||
-             network_type_string == "one_hop" ||
-             network_type_string == "1hop") {
-    return entity::MRRGNetworkType::kOneHopAxis2;
+  } else if (network_type_string == "one_hop_2d") {
+    return entity::MRRGNetworkType::kOneHop2d;
   } else {
     assert("invalid Network Type String");
     abort();
@@ -107,8 +105,8 @@ std::string entity::MRRGNetworkTypeToString(
     case entity::MRRGNetworkType::kDiagonal:
       return "diagonal";
       break;
-    case entity::MRRGNetworkType::kOneHopAxis2:
-      return "one_hop_axis2";
+    case entity::MRRGNetworkType::kOneHop2d:
+      return "one_hop_2d";
       break;
     default:
       assert("invalid Network Type");
@@ -135,11 +133,11 @@ std::vector<std::tuple<int, int, int>> GetConnectedNodeIdVector(
     return true;
   };
 
-  if (mrrg_config.network_type == entity::MRRGNetworkType::kOneHopAxis2) {
-    for (auto delta : {std::make_pair(0, 1), std::make_pair(0, 2),
-                       std::make_pair(1, 0), std::make_pair(2, 0),
-                       std::make_pair(0, -1), std::make_pair(0, -2),
-                       std::make_pair(-1, 0), std::make_pair(-2, 0)}) {
+  if (mrrg_config.network_type == entity::MRRGNetworkType::kOneHop2d) {
+    for (auto delta :
+         {std::make_pair(0, 1), std::make_pair(0, 2), std::make_pair(1, 0),
+          std::make_pair(2, 0), std::make_pair(0, -1), std::make_pair(0, -2),
+          std::make_pair(-1, 0), std::make_pair(-2, 0)}) {
       const int to_row = from_row_id + delta.first;
       const int to_column = from_column_id + delta.second;
       if (is_available(to_row, to_column)) {
@@ -203,15 +201,14 @@ std::vector<entity::OpType> GetSupportedOperation(
     }
   } else if (mrrg_config.memory_io ==
              entity::MRRGMemoryIOType::kPerimeterNoCorners) {
-    const bool is_perimeter =
-        position_id.row_id == 0 || position_id.column_id == 0 ||
-        position_id.row_id == mrrg_config.row - 1 ||
-        position_id.column_id == mrrg_config.column - 1;
-    const bool is_corner =
-        (position_id.row_id == 0 ||
-         position_id.row_id == mrrg_config.row - 1) &&
-        (position_id.column_id == 0 ||
-         position_id.column_id == mrrg_config.column - 1);
+    const bool is_perimeter = position_id.row_id == 0 ||
+                              position_id.column_id == 0 ||
+                              position_id.row_id == mrrg_config.row - 1 ||
+                              position_id.column_id == mrrg_config.column - 1;
+    const bool is_corner = (position_id.row_id == 0 ||
+                            position_id.row_id == mrrg_config.row - 1) &&
+                           (position_id.column_id == 0 ||
+                            position_id.column_id == mrrg_config.column - 1);
     if (is_perimeter && !is_corner) {
       return entity::GetAllOperations();
     } else {
@@ -231,7 +228,9 @@ std::vector<entity::OpType> GetSupportedOperation(
       return entity::GetAllOperationsExceptMemoryAccess();
     }
   }
-  return entity::GetAllOperationsExceptMemoryAccess();
+
+  assert("invalid MRRG Memory IO Type");
+  abort();
 }
 
 entity::MRRG::MRRG(entity::MRRGConfig mrrg_config)

@@ -3,7 +3,7 @@
 #include <cpp_simulator/CGRA.hpp>
 #include <io/architecture_io.hpp>
 #include <io/dfg_io.hpp>
-#include <mapper/gurobi_placement_mapper.hpp>
+#include <mapper/ilp/placement2d_ilp_mapper.hpp>
 
 TEST(SimulatorTest, simulator_default_result_test) {
   std::shared_ptr<entity::DFG> dfg_ptr = std::make_shared<entity::DFG>();
@@ -36,8 +36,8 @@ TEST(SimulatorTest, simulator_default_result_test) {
     dfg_ptr->SetNodeProperty(i, node_property);
   }
 
-  mapper::IILPMapper* mapper;
-  mapper = mapper::GurobiPlacementILPMapper().CreateMapper(dfg_ptr, mrrg_ptr);
+  std::unique_ptr<mapper::IMapper> mapper(
+      mapper::Placement2DILPMapper().CreateMapper(dfg_ptr, mrrg_ptr));
   std::shared_ptr<entity::Mapping> mapping_ptr =
       std::make_shared<entity::Mapping>();
   const auto result = mapper->Execution();
@@ -71,7 +71,7 @@ TEST(SimulatorTest, simulator_default_result_test) {
 
   int output_config_id;
   for (auto config_pair : result.mapping_ptr->GetConfigMap()) {
-    if (config_pair.second.operation_type == entity::OpType::kOutput) {
+    if (config_pair.second.operation_type == entity::OpType::OUTPUT) {
       output_config_id = config_pair.first.context_id;
     }
   }

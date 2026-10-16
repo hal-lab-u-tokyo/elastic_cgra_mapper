@@ -56,7 +56,7 @@ std::vector<std::pair<int, int>> Placement2DYOTTCoreEngine::CPUMappingTipCells(
 
   std::vector<std::pair<int, int>> result;
   const bool one_hop =
-      config_.network_type == entity::MRRGNetworkType::kOneHopAxis2;
+      config_.network_type == entity::MRRGNetworkType::kOneHop2d;
   const int anchor_row = Row(anchor_cell);
   const int anchor_col = Col(anchor_cell);
   const auto push_if_valid = [&](int dr, int dc) {
@@ -87,7 +87,7 @@ Placement2DYOTTCoreEngine::CPUMappingCellsWithinAnnotatedDistance(
   if (anchor_cell < 0 || distance < 0) return result;
   int search_distance = distance;
   const bool one_hop =
-      config_.network_type == entity::MRRGNetworkType::kOneHopAxis2;
+      config_.network_type == entity::MRRGNetworkType::kOneHop2d;
   if (one_hop) search_distance *= 2;
   if (search_distance == 0) search_distance = 1;
   const int anchor_row = Row(anchor_cell);
@@ -231,7 +231,7 @@ void Placement2DYOTTCoreEngine::UpdateCPUMappingFreedomGrid(
   }
   freedom[placed_cell] = 0;
   const bool one_hop =
-      config_.network_type == entity::MRRGNetworkType::kOneHopAxis2;
+      config_.network_type == entity::MRRGNetworkType::kOneHop2d;
   static constexpr std::array<std::pair<int, int>, 8> kOneHopTips = {
       std::pair<int, int>{0, 1},
       {0, 2},

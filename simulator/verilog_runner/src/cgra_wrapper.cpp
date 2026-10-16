@@ -9,15 +9,15 @@ int GetInputPEIndex(entity::ConfigId from, entity::ConfigId to) {
 }
 
 int GetOpIndex(entity::OpType op) {
-  if (op == entity::OpType::kNop) return 0;
-  if (op == entity::OpType::kAdd) return 1;
-  if (op == entity::OpType::kSub) return 2;
-  if (op == entity::OpType::kMul) return 3;
-  if (op == entity::OpType::kDiv) return 4;
-  if (op == entity::OpType::kConst) return 5;
-  if (op == entity::OpType::kLoad) return 6;
-  if (op == entity::OpType::kOutput) return 7;
-  if (op == entity::OpType::kRoute) return 8;
+  if (op == entity::OpType::NOP) return 0;
+  if (op == entity::OpType::ADD) return 1;
+  if (op == entity::OpType::SUB) return 2;
+  if (op == entity::OpType::MUL) return 3;
+  if (op == entity::OpType::DIV) return 4;
+  if (op == entity::OpType::CONST) return 5;
+  if (op == entity::OpType::LOAD) return 6;
+  if (op == entity::OpType::OUTPUT) return 7;
+  if (op == entity::OpType::ROUTE) return 8;
   return 0;
 }
 

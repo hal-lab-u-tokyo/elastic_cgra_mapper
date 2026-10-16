@@ -4,73 +4,73 @@
 
 std::string entity::OpTypeToString(OpType op) {
   switch (op) {
-    case entity::OpType::kAdd:
+    case entity::OpType::ADD:
       return "add";
       break;
-    case entity::OpType::kFAdd:
+    case entity::OpType::FADD:
       return "fadd";
       break;
-    case entity::OpType::kSub:
+    case entity::OpType::SUB:
       return "sub";
       break;
-    case entity::OpType::kFSub:
+    case entity::OpType::FSUB:
       return "fsub";
       break;
-    case entity::OpType::kMul:
+    case entity::OpType::MUL:
       return "mul";
       break;
-    case entity::OpType::kFMul:
+    case entity::OpType::FMUL:
       return "fmul";
       break;
-    case entity::OpType::kDiv:
+    case entity::OpType::DIV:
       return "div";
       break;
-    case entity::OpType::kConst:
+    case entity::OpType::CONST:
       return "const";
       break;
-    case entity::OpType::kLoad:
+    case entity::OpType::LOAD:
       return "load";
       break;
-    case entity::OpType::kOutput:
+    case entity::OpType::OUTPUT:
       return "output";
       break;
-    case entity::OpType::kNop:
+    case entity::OpType::NOP:
       return "nop";
       break;
-    case entity::OpType::kRoute:
+    case entity::OpType::ROUTE:
       return "route";
       break;
-    case entity::OpType::kStore:
+    case entity::OpType::STORE:
       return "store";
       break;
-    case entity::OpType::kOr:
+    case entity::OpType::OR:
       return "or";
       break;
-    case entity::OpType::kShift:
+    case entity::OpType::SHIFT:
       return "shift";
       break;
-    case entity::OpType::kIcmp:
+    case entity::OpType::ICMP:
       return "icmp";
       break;
-    case entity::OpType::kCmpGt:
+    case entity::OpType::CMPGT:
       return "cmpgt";
       break;
-    case entity::OpType::kCmpGe:
+    case entity::OpType::CMPGE:
       return "cmpge";
       break;
-    case entity::OpType::kCmpEq:
+    case entity::OpType::CMPEQ:
       return "cmpeq";
       break;
-    case entity::OpType::kSDiv:
+    case entity::OpType::SDIV:
       return "sdiv";
       break;
-    case entity::OpType::kFDiv:
+    case entity::OpType::FDIV:
       return "fdiv";
       break;
-    case entity::OpType::kLoop:
+    case entity::OpType::LOOP:
       return "loop";
       break;
-    case entity::OpType::kSelect:
+    case entity::OpType::SELECT:
       return "select";
     default:
       assert("invalid OpType");
@@ -80,51 +80,51 @@ std::string entity::OpTypeToString(OpType op) {
 
 entity::OpType entity::OpTypeFromString(std::string op_string) {
   if (op_string == "add") {
-    return entity::OpType::kAdd;
+    return entity::OpType::ADD;
   } else if (op_string == "fadd") {
-    return entity::OpType::kFAdd;
+    return entity::OpType::FADD;
   } else if (op_string == "sub") {
-    return entity::OpType::kSub;
+    return entity::OpType::SUB;
   } else if (op_string == "fsub") {
-    return entity::OpType::kFSub;
+    return entity::OpType::FSUB;
   } else if (op_string == "mul") {
-    return entity::OpType::kMul;
+    return entity::OpType::MUL;
   } else if (op_string == "fmul") {
-    return entity::OpType::kFMul;
+    return entity::OpType::FMUL;
   } else if (op_string == "div") {
-    return entity::OpType::kDiv;
+    return entity::OpType::DIV;
   } else if (op_string == "const") {
-    return entity::OpType::kConst;
+    return entity::OpType::CONST;
   } else if (op_string == "load") {
-    return entity::OpType::kLoad;
+    return entity::OpType::LOAD;
   } else if (op_string == "output") {
-    return entity::OpType::kOutput;
+    return entity::OpType::OUTPUT;
   } else if (op_string == "store") {
-    return entity::OpType::kStore;
+    return entity::OpType::STORE;
   } else if (op_string == "nop") {
-    return entity::OpType::kNop;
+    return entity::OpType::NOP;
   } else if (op_string == "route") {
-    return entity::OpType::kRoute;
+    return entity::OpType::ROUTE;
   } else if (op_string == "or") {
-    return entity::OpType::kOr;
+    return entity::OpType::OR;
   } else if (op_string == "shift") {
-    return entity::OpType::kShift;
+    return entity::OpType::SHIFT;
   } else if (op_string == "icmp") {
-    return entity::OpType::kIcmp;
+    return entity::OpType::ICMP;
   } else if (op_string == "cmpgt" || op_string == "icmpgt") {
-    return entity::OpType::kCmpGt;
+    return entity::OpType::CMPGT;
   } else if (op_string == "cmpge" || op_string == "icmpge") {
-    return entity::OpType::kCmpGe;
+    return entity::OpType::CMPGE;
   } else if (op_string == "cmpeq" || op_string == "icmpeq") {
-    return entity::OpType::kCmpEq;
+    return entity::OpType::CMPEQ;
   } else if (op_string == "sdiv") {
-    return entity::OpType::kSDiv;
+    return entity::OpType::SDIV;
   } else if (op_string == "fdiv") {
-    return entity::OpType::kFDiv;
+    return entity::OpType::FDIV;
   } else if (op_string == "loop") {
-    return entity::OpType::kLoop;
+    return entity::OpType::LOOP;
   } else if (op_string == "select") {
-    return entity::OpType::kSelect;
+    return entity::OpType::SELECT;
   } else {
     std::string message = "invalid op string: " + op_string;
     std::cerr << message << std::endl;
@@ -134,69 +134,69 @@ entity::OpType entity::OpTypeFromString(std::string op_string) {
 
 std::vector<entity::OpType> entity::GetAllOperations() {
   return std::vector<OpType>(
-      {entity::OpType::kAdd,   entity::OpType::kFAdd,  entity::OpType::kSub,
-       entity::OpType::kFSub,  entity::OpType::kMul,   entity::OpType::kFMul,
-       entity::OpType::kDiv,   entity::OpType::kSDiv,  entity::OpType::kFDiv,
-       entity::OpType::kConst, entity::OpType::kLoad,  entity::OpType::kOutput,
-       entity::OpType::kStore, entity::OpType::kNop,   entity::OpType::kRoute,
-       entity::OpType::kOr,    entity::OpType::kShift, entity::OpType::kIcmp,
-       entity::OpType::kCmpGt, entity::OpType::kCmpGe, entity::OpType::kCmpEq,
-       entity::OpType::kSelect});
+      {entity::OpType::ADD,   entity::OpType::FADD,  entity::OpType::SUB,
+       entity::OpType::FSUB,  entity::OpType::MUL,   entity::OpType::FMUL,
+       entity::OpType::DIV,   entity::OpType::SDIV,  entity::OpType::FDIV,
+       entity::OpType::CONST, entity::OpType::LOAD,  entity::OpType::OUTPUT,
+       entity::OpType::STORE, entity::OpType::NOP,   entity::OpType::ROUTE,
+       entity::OpType::OR,    entity::OpType::SHIFT, entity::OpType::ICMP,
+       entity::OpType::CMPGT, entity::OpType::CMPGE, entity::OpType::CMPEQ,
+       entity::OpType::SELECT});
 };
 
 std::vector<entity::OpType> entity::GetAllOperationsExceptMemoryAccess() {
   return std::vector<OpType>(
-      {entity::OpType::kAdd, entity::OpType::kFAdd, entity::OpType::kSub,
-       entity::OpType::kFSub, entity::OpType::kMul, entity::OpType::kFMul,
-       entity::OpType::kDiv, entity::OpType::kSDiv, entity::OpType::kFDiv,
-       entity::OpType::kConst, entity::OpType::kNop, entity::OpType::kRoute,
-       entity::OpType::kOr, entity::OpType::kShift, entity::OpType::kIcmp,
-       entity::OpType::kCmpGt, entity::OpType::kCmpGe, entity::OpType::kCmpEq,
-       entity::OpType::kSelect});
+      {entity::OpType::ADD, entity::OpType::FADD, entity::OpType::SUB,
+       entity::OpType::FSUB, entity::OpType::MUL, entity::OpType::FMUL,
+       entity::OpType::DIV, entity::OpType::SDIV, entity::OpType::FDIV,
+       entity::OpType::CONST, entity::OpType::NOP, entity::OpType::ROUTE,
+       entity::OpType::OR, entity::OpType::SHIFT, entity::OpType::ICMP,
+       entity::OpType::CMPGT, entity::OpType::CMPGE, entity::OpType::CMPEQ,
+       entity::OpType::SELECT});
 };
 
 std::vector<entity::OpType> entity::GetLoopOperations() {
-  return std::vector<OpType>({entity::OpType::kLoop});
+  return std::vector<OpType>({entity::OpType::LOOP});
 };
 
 bool entity::IsMemoryAccessOperation(OpType op) {
-  return (op == entity::OpType::kLoad || op == entity::OpType::kStore ||
-          op == entity::OpType::kOutput);
+  return (op == entity::OpType::LOAD || op == entity::OpType::STORE ||
+          op == entity::OpType::OUTPUT);
 };
 
 bool entity::IsDFGOp(OpType op) {
-  return !(op == entity::OpType::kNop || op == entity::OpType::kRoute);
+  return !(op == entity::OpType::NOP || op == entity::OpType::ROUTE);
 };
 
 int entity::ExecuteOperation(entity::OpType op_type, int input1, int input2,
                              int const_value, std::vector<int>& memory) {
   switch (op_type) {
-    case entity::OpType::kAdd:
+    case entity::OpType::ADD:
       return input1 + input2;
-    case entity::OpType::kSub:
+    case entity::OpType::SUB:
       return input1 - input2;
-    case entity::OpType::kMul:
+    case entity::OpType::MUL:
       return input1 * input2;
-    case entity::OpType::kDiv:
+    case entity::OpType::DIV:
       return input1 / input2;
-    case entity::OpType::kConst:
+    case entity::OpType::CONST:
       return const_value;
-    case entity::OpType::kLoad:
+    case entity::OpType::LOAD:
       if (input1 < 0 || input1 >= static_cast<int>(memory.size())) {
         throw std::out_of_range("Memory access out of bounds");
       }
       return memory[input1];
-    case entity::OpType::kOutput:
+    case entity::OpType::OUTPUT:
       return input1;
-    case entity::OpType::kStore:
+    case entity::OpType::STORE:
       if (input1 < 0 || input1 >= static_cast<int>(memory.size())) {
         throw std::out_of_range("Memory access out of bounds");
       }
       memory[input1] = input2;
       return 0;
-    case entity::OpType::kNop:
+    case entity::OpType::NOP:
       return 0;
-    case entity::OpType::kRoute:
+    case entity::OpType::ROUTE:
       return input1;
     default:
       throw std::invalid_argument("Unsupported operation type");

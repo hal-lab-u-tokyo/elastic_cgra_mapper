@@ -35,7 +35,7 @@ entity::Mapping::Mapping(
     auto GetOpTypeFromPEId = [&](int PE_id) {
       int op_id = PE_id_to_op_id_map.at(PE_id);
       if (op_id == kRouteOpId) {
-        return entity::OpType::kRoute;
+        return entity::OpType::ROUTE;
       }
       return dfg.GetNodeProperty(op_id).op;
     };
@@ -65,7 +65,7 @@ entity::Mapping::Mapping(
         config_map_.emplace(from_config_id,
                             entity::CGRAConfig(from_op_type, from_op_name));
       }
-      if (from_op_type == entity::OpType::kConst) {
+      if (from_op_type == entity::OpType::CONST) {
         int op_id = PE_id_to_op_id_map.at(from_PE_id);
         if (dfg.GetNodeProperty(op_id).const_value.has_value()) {
           config_map_[from_config_id].SetConstValue(
@@ -93,7 +93,7 @@ entity::Mapping::Mapping(
           config_map_[to_config_id].AddFromConfig(from_config_id, to_op_type,
                                                   to_op_name);
           if (searched_PE_id.count(adj_PE_id) == 0) {
-            if (to_op_type == entity::OpType::kRoute) {
+            if (to_op_type == entity::OpType::ROUTE) {
               from_PE_id_queue.push(to_PE_id);
             }
             searched_PE_id.emplace(to_PE_id);
@@ -138,7 +138,7 @@ entity::Mapping entity::GenerateMappingFromRoutingResult(
     auto GetOpTypeFromPEId = [&](int PE_id) {
       int op_id = PE_id_to_op_id_map.at(PE_id);
       if (op_id == kRouteOpId) {
-        return entity::OpType::kRoute;
+        return entity::OpType::ROUTE;
       }
       return dfg.GetNodeProperty(op_id).op;
     };
@@ -190,14 +190,14 @@ entity::Mapping entity::GenerateMappingFromRoutingResult(
       config_map_[to_config_id].AddFromConfig(from_config_id, to_op_type,
                                               to_op_name);
 
-      if (from_op_type == entity::OpType::kConst) {
+      if (from_op_type == entity::OpType::CONST) {
         if (dfg.GetNodeProperty(from_op_id).const_value.has_value()) {
           config_map_[from_config_id].SetConstValue(
               dfg.GetNodeProperty(from_op_id).const_value.value());
         }
       }
 
-      if (to_op_type != entity::OpType::kRoute) {
+      if (to_op_type != entity::OpType::ROUTE) {
         continue;
       }
 
@@ -223,7 +223,7 @@ entity::Mapping entity::GenerateMappingFromRoutingResult(
 size_t entity::Mapping::GetOpNum() const {
   size_t result = 0;
   for (const auto& id_and_config : config_map_) {
-    if (id_and_config.second.operation_type != entity::OpType::kNop) {
+    if (id_and_config.second.operation_type != entity::OpType::NOP) {
       result++;
     }
   }
@@ -237,8 +237,8 @@ entity::DFG entity::Mapping::GenerateDFGFromMapping() const {
                      entity::HashConfigId>
       config_id_to_vertex_id_map;
   for (const auto& id_and_config : config_map_) {
-    if (id_and_config.second.operation_type != entity::OpType::kNop &&
-        id_and_config.second.operation_type != entity::OpType::kRoute) {
+    if (id_and_config.second.operation_type != entity::OpType::NOP &&
+        id_and_config.second.operation_type != entity::OpType::ROUTE) {
       auto vertex_id = boost::add_vertex(dfg_graph);
       config_id_to_vertex_id_map[id_and_config.first] = vertex_id;
       dfg_graph[vertex_id] = entity::DFGNodeProperty{
@@ -250,8 +250,8 @@ entity::DFG entity::Mapping::GenerateDFGFromMapping() const {
   }
 
   for (const auto& id_and_config : config_map_) {
-    if (id_and_config.second.operation_type != entity::OpType::kNop &&
-        id_and_config.second.operation_type != entity::OpType::kRoute) {
+    if (id_and_config.second.operation_type != entity::OpType::NOP &&
+        id_and_config.second.operation_type != entity::OpType::ROUTE) {
       int from_vertex_id = config_id_to_vertex_id_map.at(id_and_config.first);
       std::queue<entity::ConfigId> config_id_queue(std::deque<entity::ConfigId>(
           id_and_config.second.to_config_id_vec.begin(),
@@ -262,7 +262,7 @@ entity::DFG entity::Mapping::GenerateDFGFromMapping() const {
         config_id_queue.pop();
 
         entity::CGRAConfig tmp_config = GetConfig(tmp_config_id);
-        if (tmp_config.operation_type == entity::OpType::kRoute) {
+        if (tmp_config.operation_type == entity::OpType::ROUTE) {
           for (const auto& to_config_id : tmp_config.to_config_id_vec) {
             config_id_queue.push(to_config_id);
           }
@@ -301,10 +301,10 @@ void entity::Mapping::UpdateCriticalPathLength() {
     std::unordered_set<entity::ConfigId, entity::HashConfigId>
         child_config_id_set(config.second.to_config_id_vec.begin(),
                             config.second.to_config_id_vec.end());
-    if (config.second.operation_type == entity::OpType::kRoute) {
+    if (config.second.operation_type == entity::OpType::ROUTE) {
       entity::ConfigId original_config_id = config.first;
       while (config_map_.at(original_config_id).operation_type ==
-             entity::OpType::kRoute) {
+             entity::OpType::ROUTE) {
         original_config_id =
             config_map_.at(original_config_id).from_config_id_vec[0];
       }
