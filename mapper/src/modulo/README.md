@@ -13,8 +13,9 @@ Assigns DFG nodes to PE contexts and constructs or validates routes.
 | full-routing ILP | `full_routing_ilp_mapper.cpp` |
 | connectivity-path ILP | `connectivity_path_ilp_mapper.cpp` |
 
-Shared traversal, context assignment, and routing are under
-`mapper/src/common/search/`. Mapper names and aliases are listed in
+Each algorithm owns traversal, context assignment, cost, and routing methods under
+`sa/routed/`, `prisa/routed/`, `yoto/routed/`, or `yott/routed/`.
+`../algorithm_dispatch.cpp` only constructs the selected engine. Mapper names and aliases are listed in
 `mapper/src/mapper_registry.cpp`.
 
 ## Experiment Roles
@@ -24,4 +25,4 @@ Shared traversal, context assignment, and routing are under
 - `external_mappers`: external baselines
 
 The standard placement-first router is implemented in
-`mapper/src/common/search/support/routing.cpp`.
+each selected algorithm’s `routed/support_routing.cpp`.

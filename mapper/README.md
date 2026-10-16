@@ -30,18 +30,19 @@ mapper/src/
   mapper_registry.cpp        built-in mapper names
   placement2d/               2D placement adapters and engines
   modulo/                    modulo placement and routing
-  common/search/             shared placement/routing search
+  algorithm_dispatch.cpp     selects an algorithm-owned engine
 ```
 
 - [2D placement](src/placement2d/README.md)
 - [Modulo mapping](src/modulo/README.md)
-- [Shared search engine](src/common/search/README.md)
 
 ## Boundaries
 
 - A frontend selects an engine kind and forwards configuration.
 - An algorithm file contains traversal, candidate selection, or optimization.
-- `support/` contains behavior shared by multiple algorithms.
+- Each algorithm directory owns its engine, objectives, placement state, and helper methods.
+- `algorithm_dispatch.cpp` constructs an engine; it contains no optimization or routing logic.
+- Helpers are deliberately local to each algorithm so changing one method does not affect another.
 - 2D placement returns PE assignments without routes.
 - Modulo mapping assigns contexts and constructs or validates routes.
 

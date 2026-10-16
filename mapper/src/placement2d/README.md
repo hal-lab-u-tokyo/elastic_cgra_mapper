@@ -2,49 +2,24 @@
 
 Assigns each DFG node to one physical PE. Edge routes are not produced.
 
-## Flow
+The registry and mapper interfaces retain their existing names and options.
+`placement2d_array_mapper_base.cpp` forwards direct-grid options;
+`placement2d_search_engine.cpp` forwards MRRG-search options.
+`../algorithm_dispatch.cpp` selects one algorithm-owned engine.
 
-```text
-Algorithm.type
-  -> mapper/src/mapper_registry.cpp
-  -> mapper class in mapper/include/mapper/placement2d/
-  -> search or direct-grid frontend
-  -> algorithm implementation
-```
-
-## Source Tree
-
-```text
-placement2d/
-  placement2d_search_mapper_base.cpp   generic-search frontend
-  placement2d_array_mapper_base.cpp    direct-grid frontend
-  placement2d_search_engine.cpp        shared-search adapter
-  placement2d_ilp_mapper.cpp           ILP implementation
-  engine/
-    array_engine.cpp                   cache, dispatch, result conversion
-    array_engine_internal.hpp          shared private interface
-    array_engine_types.hpp             placement and traversal data
-    support/                            cache, options, quality, traversal
-    algorithms/
-      yoto_yott/                        YOTO, YOTT, YOTT Core, repair
-      prisa/                            initial placement, moves, refinement
-      sa/                               simulated annealing
-```
-
-## Mapper Families
-
-| family | frontend | implementation |
+| Algorithm | Direct-grid engine | MRRG-search engine |
 | --- | --- | --- |
-| MRRG YOTO/YOTT/SA/PRISA | `Placement2DSearchMapperBase` | `../common/search/` |
-| direct-grid YOTO/YOTT | `Placement2DArrayMapperBase` | `engine/algorithms/yoto_yott/` |
-| YOTT Core | `Placement2DArrayMapperBase` | `engine/algorithms/yoto_yott/yott_core.cpp` |
-| YOTT Core Repair | `Placement2DArrayMapperBase` | `engine/algorithms/yoto_yott/yott_core_repair*.cpp`, `yott_core_profile_repair.cpp` |
-| array PRISA | `Placement2DArrayMapperBase` | `engine/algorithms/prisa/` |
-| array SA | `Placement2DArrayMapperBase` | `engine/algorithms/sa/` |
-| ILP | `Placement2DILPMapper` | `placement2d_ilp_mapper.cpp` |
+| SA | `sa/array/Placement2DSAEngine` | `sa/routed/Placement2DSAEngine` |
+| PRISA and variants | `prisa/array/Placement2DPRISAEngine` | `prisa/routed/Placement2DPRISAEngine` |
+| YOTO | `yoto/array/Placement2DYOTOEngine` | `yoto/routed/Placement2DYOTOEngine` |
+| YOTT | `yott/array/Placement2DYOTTEngine` | `yott/routed/Placement2DYOTTEngine` |
+| YOTT Core | `yott_core/array/Placement2DYOTTCoreEngine` | — |
+| YOTT Core Repair | `yott_core_repair/array/Placement2DYOTTCoreRepairEngine` | — |
+| ILP | `placement2d_ilp_mapper.cpp` | — |
 
-Compatibility aliases such as `Placement2DFaithfulArrayYOTT` are visible in
-`mapper/src/mapper_registry.cpp`.
+Each directory contains `engine.hpp`, algorithm-local support and optimization
+methods, and (for direct-grid engines) `types.hpp`. Variant dispatch remains
+within its algorithm family, including paper-guided and CPU-mapping variants.
+Cost/objective methods belong to that engine rather than an all-algorithm utility.
 
-- [Direct-grid engine](engine/README.md)
-- [Experiment configuration](../../../research/configs/experiments/placement2d/README.md)
+[Experiment configuration](../../../research/configs/experiments/placement2d/README.md)
