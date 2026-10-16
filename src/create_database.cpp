@@ -9,7 +9,7 @@
 #include <io/mapping_io.hpp>
 #include <io/output_to_log_file.hpp>
 #include <iostream>
-#include <mapper/placement2d/placement2d_ilp_mapper.hpp>
+#include <mapper/ilp/placement2d_ilp_mapper.hpp>
 #include <remapper/algorithm/dp_remapper.hpp>
 
 std::vector<entity::MRRGConfig> GetMRRGOfSubCGRA(

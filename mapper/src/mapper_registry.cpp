@@ -1,21 +1,25 @@
+#include <mapper/sa/sa_mapper.hpp>
+#include <mapper/prisa/prisa_mapper.hpp>
+#include <mapper/yoto/yoto_mapper.hpp>
+#include <mapper/yott/yott_mapper.hpp>
 #include <initializer_list>
 #include <mapper/mapper_factory.hpp>
-#include <mapper/modulo/connectivity_path_ilp_mapper.hpp>
-#include <mapper/modulo/full_routing_ilp_mapper.hpp>
-#include <mapper/modulo/modulo_placement_first_mapper.hpp>
-#include <mapper/modulo/modulo_prisa_mapper.hpp>
-#include <mapper/modulo/modulo_sa_mapper.hpp>
-#include <mapper/modulo/modulo_yoto_mapper.hpp>
-#include <mapper/modulo/modulo_yoto_with_fallback_mapper.hpp>
-#include <mapper/modulo/modulo_yott_mapper.hpp>
-#include <mapper/modulo/modulo_yott_with_fallback_mapper.hpp>
-#include <mapper/placement2d/placement2d_ilp_mapper.hpp>
-#include <mapper/placement2d/placement2d_prisa_mapper.hpp>
-#include <mapper/placement2d/placement2d_sa_mapper.hpp>
-#include <mapper/placement2d/placement2d_yoto_mapper.hpp>
-#include <mapper/placement2d/placement2d_yott_core_mapper.hpp>
-#include <mapper/placement2d/placement2d_yott_core_repair_mapper.hpp>
-#include <mapper/placement2d/placement2d_yott_mapper.hpp>
+#include <mapper/connectivity_path_ilp/connectivity_path_ilp_mapper.hpp>
+#include <mapper/full_routing_ilp/full_routing_ilp_mapper.hpp>
+#include <mapper/placement_first/modulo_placement_first_mapper.hpp>
+#include <mapper/prisa/modulo_prisa_mapper.hpp>
+#include <mapper/sa/modulo_sa_mapper.hpp>
+#include <mapper/yoto/modulo_yoto_mapper.hpp>
+#include <mapper/yoto/modulo_yoto_with_fallback_mapper.hpp>
+#include <mapper/yott/modulo_yott_mapper.hpp>
+#include <mapper/yott/modulo_yott_with_fallback_mapper.hpp>
+#include <mapper/ilp/placement2d_ilp_mapper.hpp>
+#include <mapper/prisa/placement2d_prisa_mapper.hpp>
+#include <mapper/sa/placement2d_sa_mapper.hpp>
+#include <mapper/yoto/placement2d_yoto_mapper.hpp>
+#include <mapper/yott_core/placement2d_yott_core_mapper.hpp>
+#include <mapper/yott_core_repair/placement2d_yott_core_repair_mapper.hpp>
+#include <mapper/yott/placement2d_yott_mapper.hpp>
 
 namespace {
 
@@ -27,7 +31,13 @@ void RegisterNames(std::initializer_list<const char*> names) {
 }
 
 bool RegisterBuiltInMappers() {
-  // 2D placement.
+  // Canonical algorithm names select the implementation from the input MRRG.
+  RegisterNames<mapper::SAMapper>({"SA", "SAMapper"});
+  RegisterNames<mapper::PRISAMapper>({"PRISA", "PRISAMapper"});
+  RegisterNames<mapper::YOTOMapper>({"YOTO", "YOTOMapper"});
+  RegisterNames<mapper::YOTTMapper>({"YOTT", "YOTTMapper"});
+
+  // Legacy explicit-variant aliases for reproducible experiment configs.
   RegisterNames<mapper::Placement2DILPMapper>({"Placement2DILPMapper"});
   RegisterNames<mapper::Placement2DYOTOMapper>(
       {"Placement2DYOTOMapper", "Placement2DYOTO"});
@@ -79,15 +89,15 @@ bool RegisterBuiltInMappers() {
       {"ModuloPlacementFirstMapper", "ModuloPlacementFirst",
        "PlacementFirstHeuristicMapper"});
   RegisterNames<mapper::ModuloSAMapper>(
-      {"ModuloSAMapper", "ModuloSA", "SAMapper", "SA"});
+      {"ModuloSAMapper", "ModuloSA"});
   RegisterNames<mapper::ModuloYOTOMapper>(
-      {"ModuloYOTOMapper", "ModuloYOTO", "YOTOMapper", "YOTO"});
+      {"ModuloYOTOMapper", "ModuloYOTO"});
   RegisterNames<mapper::ModuloPhysicalYOTOMapper>(
       {"ModuloPhysicalYOTOMapper", "ModuloPhysicalYOTO"});
   RegisterNames<mapper::ModuloYOTOWithFallbackMapper>(
       {"ModuloYOTOWithFallbackMapper", "ModuloYOTOWithFallback"});
   RegisterNames<mapper::ModuloYOTTMapper>(
-      {"ModuloYOTTMapper", "ModuloYOTT", "YOTTMapper", "YOTT"});
+      {"ModuloYOTTMapper", "ModuloYOTT"});
   RegisterNames<mapper::ModuloPhysicalYOTTMapper>(
       {"ModuloPhysicalYOTTMapper", "ModuloPhysicalYOTT"});
   RegisterNames<mapper::ModuloYOTTWithFallbackMapper>(

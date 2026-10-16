@@ -1,57 +1,40 @@
 # Mapper
 
-C++ mapping algorithms and their common interface.
-
-## Execution
-
-```text
-mapper JSON
-  -> mapper::CreateMapper(Algorithm.type)
-  -> mapper::IMapper::Configure()
-  -> mapper::IMapper::Execution()
-  -> mapper::MappingResult
-```
-
-`mapper/src/mapper_registry.cpp` lists every accepted `Algorithm.type`,
-including compatibility aliases.
+`mapper::CreateMapper(Algorithm.type)` creates an algorithm, followed by
+`Configure()` and `Execution()`. The registry and factory remain the common API.
 
 ## Layout
 
-```text
-mapper/include/mapper/
-  mapper.hpp                 interface, options, and result
-  mapper_factory.hpp         creation and registration API
-  placement2d/               2D placement frontends
-  modulo/                    modulo mapping frontends
+Public headers live in `mapper/include/mapper/<algorithm>/`; implementations
+live in `mapper/src/<algorithm>/`. Algorithms are `sa`, `prisa`, `yoto`, `yott`,
+`yott_core`, `yott_core_repair`, `ilp`, `connectivity_path_ilp`,
+`full_routing_ilp`, and `placement_first`. `detail/` contains shared option
+forwarding and compatibility adapters, without optimization logic.
 
-mapper/src/
-  mapper.cpp                 shared option application
-  mapper_factory.cpp         runtime factory
-  mapper_registry.cpp        built-in mapper names
-  placement2d/               2D placement adapters and engines
-  modulo/                    modulo placement and routing
-  algorithm_dispatch.cpp     selects an algorithm-owned engine
-```
+Each algorithm owns its objectives, state, moves, and engine construction.
+`array/` retains direct-grid paper/CPU variants, `spatial/` maps physical PEs,
+and `context/` assigns contexts and routes. These are private implementations
+inside an algorithm, rather than separate public mapping domains.
 
-- [2D placement](src/placement2d/README.md)
-- [Modulo mapping](src/modulo/README.md)
+## MRRG selection
 
-## Boundaries
+Use `SA`, `PRISA`, `YOTO`, or `YOTT` (also `<name>Mapper`) as `Algorithm.type`.
+The corresponding algorithm's `search.cpp` reads the input MRRG:
 
-- A frontend selects an engine kind and forwards configuration.
-- An algorithm file contains traversal, candidate selection, or optimization.
-- Each algorithm directory owns its engine, objectives, placement state, and helper methods.
-- `algorithm_dispatch.cpp` constructs an engine; it contains no optimization or routing logic.
-- Helpers are deliberately local to each algorithm so changing one method does not affect another.
-- 2D placement returns PE assignments without routes.
-- Modulo mapping assigns contexts and constructs or validates routes.
+- `context_size == 1`: its spatial engine.
+- `context_size > 1`: its context-aware engine (physical/context assignment for PRISA).
 
-## Adding A Mapper
+Example: `{"Algorithm": {"type": "YOTT", "random_seed": 42}}` works with
+either a single-context array or a multi-context MRRG. `placement_only` remains
+an output/evaluation option; it does not choose the implementation.
 
-1. Add its public class under `mapper/include/mapper/<problem>/`.
-2. Put the algorithm under the matching `mapper/src/<problem>/` tree.
-3. Add its stable JSON name to `mapper/src/mapper_registry.cpp`.
-4. Add a preset under `research/configs/mapper/`.
-5. Run one focused experiment before adding it to broad comparisons.
+Existing `Placement2D*`, `Modulo*`, paper, CPU, fallback, and ILP names remain
+explicit variant compatibility aliases for old experiment configurations.
+Their behavior is preserved. The generic `SA`, `SAMapper`, `YOTO`, `YOTOMapper`,
+`YOTT`, and `YOTTMapper` names now select from the MRRG instead of implicitly
+selecting the context-aware variant. Public include paths have moved to the
+algorithm directories; include, for example, `<mapper/yott/yott_mapper.hpp>`.
 
-CMake discovers new `.cpp` files under `mapper/src/` after reconfiguration.
+To add an algorithm, add its public class and implementation under matching
+algorithm directories, register its name in `src/mapper_registry.cpp`, then
+validate the supported MRRGs. CMake discovers `.cpp` files recursively.

@@ -9,6 +9,7 @@
 namespace mapper::detail {
 
 enum class PlacementSearchKind {
+  kAutoSA, kAutoPRISA, kAutoYOTO, kAutoYOTT,
   // Modulo-aware adaptations: different contexts of one physical PE may hold
   // different operations.
   kYOTO,
@@ -45,6 +46,34 @@ struct PlacementSearchOptions {
 };
 
 MappingResult RunPlacementSearchMapper(
+    const std::shared_ptr<entity::DFG>& dfg_ptr,
+    const std::shared_ptr<entity::MRRG>& mrrg_ptr,
+    PlacementSearchKind search_kind, const std::optional<double>& timeout_s,
+    const std::optional<std::string>& log_file_path,
+    const PlacementSearchOptions& options);
+
+MappingResult RunSASearch(
+    const std::shared_ptr<entity::DFG>& dfg_ptr,
+    const std::shared_ptr<entity::MRRG>& mrrg_ptr,
+    PlacementSearchKind search_kind, const std::optional<double>& timeout_s,
+    const std::optional<std::string>& log_file_path,
+    const PlacementSearchOptions& options);
+
+MappingResult RunPRISASearch(
+    const std::shared_ptr<entity::DFG>& dfg_ptr,
+    const std::shared_ptr<entity::MRRG>& mrrg_ptr,
+    PlacementSearchKind search_kind, const std::optional<double>& timeout_s,
+    const std::optional<std::string>& log_file_path,
+    const PlacementSearchOptions& options);
+
+MappingResult RunYOTOSearch(
+    const std::shared_ptr<entity::DFG>& dfg_ptr,
+    const std::shared_ptr<entity::MRRG>& mrrg_ptr,
+    PlacementSearchKind search_kind, const std::optional<double>& timeout_s,
+    const std::optional<std::string>& log_file_path,
+    const PlacementSearchOptions& options);
+
+MappingResult RunYOTTSearch(
     const std::shared_ptr<entity::DFG>& dfg_ptr,
     const std::shared_ptr<entity::MRRG>& mrrg_ptr,
     PlacementSearchKind search_kind, const std::optional<double>& timeout_s,

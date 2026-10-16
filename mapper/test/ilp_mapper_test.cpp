@@ -2,8 +2,8 @@
 
 #include <algorithm>
 #include <mapper/mapper_factory.hpp>
-#include <mapper/modulo/full_routing_ilp_mapper.hpp>
-#include <mapper/placement2d/placement2d_ilp_mapper.hpp>
+#include <mapper/full_routing_ilp/full_routing_ilp_mapper.hpp>
+#include <mapper/ilp/placement2d_ilp_mapper.hpp>
 
 TEST(MapperTest, built_in_mapper_registry_test) {
   const auto types = mapper::GetRegisteredMapperTypes();
@@ -100,4 +100,65 @@ TEST(MapperTest, full_routing_ilp_mapper_test) {
   const auto result = mapper_ptr->Execution();
 
   EXPECT_EQ(result.is_success, true);
+}
+
+
+TEST(MapperTest, algorithm_selects_engine_from_mrrg_test) {
+  // Connected operations exercise placement and routing, not just registration.
+  entity::DFGGraph graph;
+  for (int i = 0; i < 3; ++i) {
+    auto vertex = boost::add_vertex(graph);
+    graph[vertex].op = entity::OpType::kAdd;
+    graph[vertex].op_name = "add";
+  }
+  for (int i = 0; i < 2; ++i) {
+    auto edge = boost::add_edge(i, i + 1, graph).first;
+    graph[edge].operand = 0;
+  }
+  auto dfg = std::make_shared<entity::DFG>(graph);
+  for (int contexts : {1, 2}) {
+    entity::MRRGConfig config{};
+    config.column = 3;
+    config.row = 3;
+    config.memory_io = entity::MRRGMemoryIOType::kAll;
+    config.cgra_type = entity::MRRGCGRAType::kDefault;
+    config.network_type = entity::MRRGNetworkType::kOrthogonal;
+    config.local_reg_size = 3;
+    config.context_size = contexts;
+    auto mrrg = std::make_shared<entity::MRRG>(config);
+    const std::vector<std::pair<std::string, std::string>> variants = {
+        {"SA", contexts == 1 ? "Placement2DSA" : "ModuloSA"},
+        {"PRISA", contexts == 1 ? "Placement2DPRISA" : "ModuloPhysicalPRISA"},
+        {"YOTO", contexts == 1 ? "Placement2DYOTO" : "ModuloYOTO"},
+        {"YOTT", contexts == 1 ? "Placement2DYOTT" : "ModuloYOTT"}};
+    for (const auto& variant : variants) {
+      SCOPED_TRACE(variant.first + " contexts=" + std::to_string(contexts));
+      mapper::MapperOptions options;
+      options.timeout_s = 5;
+      options.random_seed = 42;
+      options.max_trials = 2;
+      options.max_iterations = 30;
+      options.seed_count = 1;
+      auto automatic = mapper::CreateMapper(variant.first, dfg, mrrg);
+      auto explicit_variant = mapper::CreateMapper(variant.second, dfg, mrrg);
+      automatic->Configure(options);
+      explicit_variant->Configure(options);
+      const auto actual = automatic->Execution();
+      const auto expected = explicit_variant->Execution();
+      ASSERT_TRUE(expected.is_success);
+      ASSERT_TRUE(actual.is_success);
+      const auto actual_configs = actual.mapping_ptr->GetConfigMap();
+      const auto expected_configs = expected.mapping_ptr->GetConfigMap();
+      ASSERT_EQ(actual_configs.size(), expected_configs.size());
+      for (const auto& entry : expected_configs) {
+        ASSERT_EQ(actual_configs.count(entry.first), 1U);
+        const auto& value = actual_configs.at(entry.first);
+        EXPECT_EQ(value.operation_type, entry.second.operation_type);
+        EXPECT_EQ(value.operation_name, entry.second.operation_name);
+        EXPECT_EQ(value.const_value, entry.second.const_value);
+        EXPECT_EQ(value.from_config_id_vec, entry.second.from_config_id_vec);
+        EXPECT_EQ(value.to_config_id_vec, entry.second.to_config_id_vec);
+      }
+    }
+  }
 }

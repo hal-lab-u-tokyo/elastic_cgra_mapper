@@ -1,19 +1,7 @@
+#include <mapper/detail/placement2d_array_mapper_base.hpp>
+#include <mapper/detail/placement_search_engine.hpp>
 #include <stdexcept>
 
-#include "modulo/prisa/routed/engine.hpp"
-#include "modulo/sa/routed/engine.hpp"
-#include "modulo/yoto/routed/engine.hpp"
-#include "modulo/yott/routed/engine.hpp"
-#include "placement2d/prisa/array/engine.hpp"
-#include "placement2d/prisa/routed/engine.hpp"
-#include "placement2d/sa/array/engine.hpp"
-#include "placement2d/sa/routed/engine.hpp"
-#include "placement2d/yoto/array/engine.hpp"
-#include "placement2d/yoto/routed/engine.hpp"
-#include "placement2d/yott/array/engine.hpp"
-#include "placement2d/yott/routed/engine.hpp"
-#include "placement2d/yott_core/array/engine.hpp"
-#include "placement2d/yott_core_repair/array/engine.hpp"
 
 namespace mapper::detail {
 
@@ -22,46 +10,23 @@ MappingResult RunPlacement2DArrayEngine(
     const Placement2DArrayOptions& options) {
   switch (kind) {
     case Placement2DArrayKind::kSA:
-      return placement2d_sa_array::Placement2DSAEngine(dfg, mrrg, kind, options)
-          .Run();
+      return RunSaArray(dfg, mrrg, kind, options);
     case Placement2DArrayKind::kPRISA:
-      return placement2d_prisa_array::Placement2DPRISAEngine(dfg, mrrg, kind,
-                                                             options)
-          .Run();
     case Placement2DArrayKind::kPRISANoSIS:
-      return placement2d_prisa_array::Placement2DPRISAEngine(dfg, mrrg, kind,
-                                                             options)
-          .Run();
     case Placement2DArrayKind::kCostAwarePRISA:
-      return placement2d_prisa_array::Placement2DPRISAEngine(dfg, mrrg, kind,
-                                                             options)
-          .Run();
+      return RunPrisaArray(dfg, mrrg, kind, options);
     case Placement2DArrayKind::kPaperGuidedYOTO:
-      return placement2d_yoto_array::Placement2DYOTOEngine(dfg, mrrg, kind,
-                                                           options)
-          .Run();
     case Placement2DArrayKind::kCPUMappingYOTO:
-      return placement2d_yoto_array::Placement2DYOTOEngine(dfg, mrrg, kind,
-                                                           options)
-          .Run();
+      return RunYotoArray(dfg, mrrg, kind, options);
     case Placement2DArrayKind::kPaperGuidedYOTT:
-      return placement2d_yott_array::Placement2DYOTTEngine(dfg, mrrg, kind,
-                                                           options)
-          .Run();
     case Placement2DArrayKind::kCPUMappingYOTT:
-      return placement2d_yott_array::Placement2DYOTTEngine(dfg, mrrg, kind,
-                                                           options)
-          .Run();
+      return RunYottArray(dfg, mrrg, kind, options);
     case Placement2DArrayKind::kCPUMappingYOTTCore:
-      return placement2d_yott_core_array::Placement2DYOTTCoreEngine(
-                 dfg, mrrg, kind, options)
-          .Run();
+      return RunYottCoreArray(dfg, mrrg, kind, options);
     case Placement2DArrayKind::kCPUMappingYOTTCoreRepair:
-      return placement2d_yott_core_repair_array::
-          Placement2DYOTTCoreRepairEngine(dfg, mrrg, kind, options)
-              .Run();
+      return RunYottCoreRepairArray(dfg, mrrg, kind, options);
   }
-  throw std::invalid_argument("unknown placement array kind");
+  throw std::invalid_argument("unknown array algorithm");
 }
 
 MappingResult RunPlacementSearchMapper(
@@ -70,85 +35,32 @@ MappingResult RunPlacementSearchMapper(
     PlacementSearchKind search_kind, const std::optional<double>& timeout_s,
     const std::optional<std::string>& log_file_path,
     const PlacementSearchOptions& options) {
-  const double effective_timeout = timeout_s.value_or(1.0);
   switch (search_kind) {
-    case PlacementSearchKind::kYOTO:
-      return modulo_yoto_routed::ModuloYOTOEngine(
-                 *dfg_ptr, *mrrg_ptr, search_kind, effective_timeout,
-                 log_file_path, options)
-          .Run();
-    case PlacementSearchKind::kYOTT:
-      return modulo_yott_routed::ModuloYOTTEngine(
-                 *dfg_ptr, *mrrg_ptr, search_kind, effective_timeout,
-                 log_file_path, options)
-          .Run();
-    case PlacementSearchKind::kModuloPhysicalYOTO:
-      return modulo_yoto_routed::ModuloYOTOEngine(
-                 *dfg_ptr, *mrrg_ptr, search_kind, effective_timeout,
-                 log_file_path, options)
-          .Run();
-    case PlacementSearchKind::kModuloPhysicalYOTT:
-      return modulo_yott_routed::ModuloYOTTEngine(
-                 *dfg_ptr, *mrrg_ptr, search_kind, effective_timeout,
-                 log_file_path, options)
-          .Run();
-    case PlacementSearchKind::kModuloPhysicalPRISA:
-      return modulo_prisa_routed::ModuloPRISAEngine(
-                 *dfg_ptr, *mrrg_ptr, search_kind, effective_timeout,
-                 log_file_path, options)
-          .Run();
-    case PlacementSearchKind::kModuloPhysicalPRISAManhattan:
-      return modulo_prisa_routed::ModuloPRISAEngine(
-                 *dfg_ptr, *mrrg_ptr, search_kind, effective_timeout,
-                 log_file_path, options)
-          .Run();
-    case PlacementSearchKind::kYOTOWithFallback:
-      return modulo_yoto_routed::ModuloYOTOEngine(
-                 *dfg_ptr, *mrrg_ptr, search_kind, effective_timeout,
-                 log_file_path, options)
-          .Run();
-    case PlacementSearchKind::kYOTTWithFallback:
-      return modulo_yott_routed::ModuloYOTTEngine(
-                 *dfg_ptr, *mrrg_ptr, search_kind, effective_timeout,
-                 log_file_path, options)
-          .Run();
+    case PlacementSearchKind::kAutoSA:
     case PlacementSearchKind::kSA:
-      return modulo_sa_routed::ModuloSAEngine(*dfg_ptr, *mrrg_ptr, search_kind,
-                                              effective_timeout, log_file_path,
-                                              options)
-          .Run();
-    case PlacementSearchKind::kPlacement2DYOTO:
-      return placement2d_yoto_routed::Placement2DYOTOEngine(
-                 *dfg_ptr, *mrrg_ptr, search_kind, effective_timeout,
-                 log_file_path, options)
-          .Run();
-    case PlacementSearchKind::kPlacement2DYOTT:
-      return placement2d_yott_routed::Placement2DYOTTEngine(
-                 *dfg_ptr, *mrrg_ptr, search_kind, effective_timeout,
-                 log_file_path, options)
-          .Run();
     case PlacementSearchKind::kPlacement2DSA:
-      return placement2d_sa_routed::Placement2DSAEngine(
-                 *dfg_ptr, *mrrg_ptr, search_kind, effective_timeout,
-                 log_file_path, options)
-          .Run();
+      return RunSASearch(dfg_ptr, mrrg_ptr, search_kind, timeout_s, log_file_path, options);
+    case PlacementSearchKind::kAutoPRISA:
+    case PlacementSearchKind::kModuloPhysicalPRISA:
+    case PlacementSearchKind::kModuloPhysicalPRISAManhattan:
     case PlacementSearchKind::kPlacement2DPRISA:
-      return placement2d_prisa_routed::Placement2DPRISAEngine(
-                 *dfg_ptr, *mrrg_ptr, search_kind, effective_timeout,
-                 log_file_path, options)
-          .Run();
     case PlacementSearchKind::kPlacement2DPRISANoSIS:
-      return placement2d_prisa_routed::Placement2DPRISAEngine(
-                 *dfg_ptr, *mrrg_ptr, search_kind, effective_timeout,
-                 log_file_path, options)
-          .Run();
     case PlacementSearchKind::kPlacement2DCostAwarePRISA:
-      return placement2d_prisa_routed::Placement2DPRISAEngine(
-                 *dfg_ptr, *mrrg_ptr, search_kind, effective_timeout,
-                 log_file_path, options)
-          .Run();
+      return RunPRISASearch(dfg_ptr, mrrg_ptr, search_kind, timeout_s, log_file_path, options);
+    case PlacementSearchKind::kAutoYOTO:
+    case PlacementSearchKind::kYOTO:
+    case PlacementSearchKind::kModuloPhysicalYOTO:
+    case PlacementSearchKind::kYOTOWithFallback:
+    case PlacementSearchKind::kPlacement2DYOTO:
+      return RunYOTOSearch(dfg_ptr, mrrg_ptr, search_kind, timeout_s, log_file_path, options);
+    case PlacementSearchKind::kAutoYOTT:
+    case PlacementSearchKind::kYOTT:
+    case PlacementSearchKind::kModuloPhysicalYOTT:
+    case PlacementSearchKind::kYOTTWithFallback:
+    case PlacementSearchKind::kPlacement2DYOTT:
+      return RunYOTTSearch(dfg_ptr, mrrg_ptr, search_kind, timeout_s, log_file_path, options);
   }
-  throw std::invalid_argument("unknown placement search kind");
+  throw std::invalid_argument("unknown search algorithm");
 }
 
 }  // namespace mapper::detail

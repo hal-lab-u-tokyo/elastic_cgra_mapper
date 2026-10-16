@@ -106,7 +106,7 @@ entries. Wire it through:
 1. `entity/include/entity/mapper_config.hpp`
 2. `io/src/mapper_config_io.cpp`
 3. `mapper/include/mapper/mapper.hpp`
-4. `mapper/include/mapper/placement2d/placement2d_array_mapper_base.hpp`
+4. `mapper/include/mapper/detail/placement2d_array_mapper_base.hpp`
 5. `mapper/src/placement2d/placement2d_array_mapper_base.cpp`
 6. `mapper/src/placement2d/engine/array_engine_internal.hpp`
 7. the stage function under `mapper/src/placement2d/engine/`
