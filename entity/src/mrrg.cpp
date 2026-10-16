@@ -1,4 +1,5 @@
 #include <entity/mrrg.hpp>
+#include <algorithm>
 #include <map>
 
 bool entity::MRRGConfig::IsLoopController(
@@ -41,6 +42,12 @@ entity::MRRGMemoryIOType entity::MRRGMemoryIOTypeFromString(
     std::string memory_io_type_string) {
   if (memory_io_type_string == "all") {
     return entity::MRRGMemoryIOType::kAll;
+  } else if (memory_io_type_string == "perimeter" ||
+             memory_io_type_string == "border") {
+    return entity::MRRGMemoryIOType::kPerimeter;
+  } else if (memory_io_type_string == "perimeter_no_corners" ||
+             memory_io_type_string == "border_no_corners") {
+    return entity::MRRGMemoryIOType::kPerimeterNoCorners;
   } else if (memory_io_type_string == "both_ends") {
     return entity::MRRGMemoryIOType::kBothEnds;
   } else if (memory_io_type_string == "one_end") {
@@ -56,6 +63,12 @@ std::string entity::MRRGMemoryIoTypeToString(
   switch (memory_io_type) {
     case entity::MRRGMemoryIOType::kAll:
       return "all";
+      break;
+    case entity::MRRGMemoryIOType::kPerimeter:
+      return "perimeter";
+      break;
+    case entity::MRRGMemoryIOType::kPerimeterNoCorners:
+      return "perimeter_no_corners";
       break;
     case entity::MRRGMemoryIOType::kBothEnds:
       return "both_ends";
@@ -75,6 +88,10 @@ entity::MRRGNetworkType entity::MRRGNetworkTypeFromString(
     return entity::MRRGNetworkType::kOrthogonal;
   } else if (network_type_string == "diagonal") {
     return entity::MRRGNetworkType::kDiagonal;
+  } else if (network_type_string == "one_hop_axis2" ||
+             network_type_string == "one_hop" ||
+             network_type_string == "1hop") {
+    return entity::MRRGNetworkType::kOneHopAxis2;
   } else {
     assert("invalid Network Type String");
     abort();
@@ -89,6 +106,9 @@ std::string entity::MRRGNetworkTypeToString(
       break;
     case entity::MRRGNetworkType::kDiagonal:
       return "diagonal";
+      break;
+    case entity::MRRGNetworkType::kOneHopAxis2:
+      return "one_hop_axis2";
       break;
     default:
       assert("invalid Network Type");
@@ -115,17 +135,30 @@ std::vector<std::tuple<int, int, int>> GetConnectedNodeIdVector(
     return true;
   };
 
-  for (int i = -1; i <= 1; i++) {
-    for (int j = -1; j <= 1; j++) {
-      if (i == 0 && j == 0) continue;
-      if (mrrg_config.network_type == entity::MRRGNetworkType::kOrthogonal &&
-          abs(i) + abs(j) > 1) {
-        continue;
+  if (mrrg_config.network_type == entity::MRRGNetworkType::kOneHopAxis2) {
+    for (auto delta : {std::make_pair(0, 1), std::make_pair(0, 2),
+                       std::make_pair(1, 0), std::make_pair(2, 0),
+                       std::make_pair(0, -1), std::make_pair(0, -2),
+                       std::make_pair(-1, 0), std::make_pair(-2, 0)}) {
+      const int to_row = from_row_id + delta.first;
+      const int to_column = from_column_id + delta.second;
+      if (is_available(to_row, to_column)) {
+        spatial_connected_node_vec.emplace_back(to_row, to_column);
       }
+    }
+  } else {
+    for (int i = -1; i <= 1; i++) {
+      for (int j = -1; j <= 1; j++) {
+        if (i == 0 && j == 0) continue;
+        if (mrrg_config.network_type == entity::MRRGNetworkType::kOrthogonal &&
+            abs(i) + abs(j) > 1) {
+          continue;
+        }
 
-      if (is_available(from_row_id + i, from_column_id + j)) {
-        spatial_connected_node_vec.emplace_back(from_row_id + i,
-                                                from_column_id + j);
+        if (is_available(from_row_id + i, from_column_id + j)) {
+          spatial_connected_node_vec.emplace_back(from_row_id + i,
+                                                  from_column_id + j);
+        }
       }
     }
   }
@@ -160,6 +193,30 @@ std::vector<entity::OpType> GetSupportedOperation(
 
   if (mrrg_config.memory_io == entity::MRRGMemoryIOType::kAll) {
     return entity::GetAllOperations();
+  } else if (mrrg_config.memory_io == entity::MRRGMemoryIOType::kPerimeter) {
+    if (position_id.row_id == 0 || position_id.column_id == 0 ||
+        position_id.row_id == mrrg_config.row - 1 ||
+        position_id.column_id == mrrg_config.column - 1) {
+      return entity::GetAllOperations();
+    } else {
+      return entity::GetAllOperationsExceptMemoryAccess();
+    }
+  } else if (mrrg_config.memory_io ==
+             entity::MRRGMemoryIOType::kPerimeterNoCorners) {
+    const bool is_perimeter =
+        position_id.row_id == 0 || position_id.column_id == 0 ||
+        position_id.row_id == mrrg_config.row - 1 ||
+        position_id.column_id == mrrg_config.column - 1;
+    const bool is_corner =
+        (position_id.row_id == 0 ||
+         position_id.row_id == mrrg_config.row - 1) &&
+        (position_id.column_id == 0 ||
+         position_id.column_id == mrrg_config.column - 1);
+    if (is_perimeter && !is_corner) {
+      return entity::GetAllOperations();
+    } else {
+      return entity::GetAllOperationsExceptMemoryAccess();
+    }
   } else if (mrrg_config.memory_io == entity::MRRGMemoryIOType::kBothEnds) {
     if (position_id.column_id == 0 ||
         position_id.column_id == mrrg_config.column - 1) {
@@ -174,6 +231,7 @@ std::vector<entity::OpType> GetSupportedOperation(
       return entity::GetAllOperationsExceptMemoryAccess();
     }
   }
+  return entity::GetAllOperationsExceptMemoryAccess();
 }
 
 entity::MRRG::MRRG(entity::MRRGConfig mrrg_config)
@@ -195,9 +253,9 @@ entity::MRRG::MRRG(entity::MRRGConfig mrrg_config)
         graph_[vertex_id].context_id = k;
         node_id_to_vertex_id[{i, j, k}] = vertex_id;
 
-        if (mrrg_config.memory_io == entity::MRRGMemoryIOType::kAll) {
-          graph_[vertex_id].is_memory_accessible = true;
-        }
+        graph_[vertex_id].is_memory_accessible =
+            std::find(supported_operations.begin(), supported_operations.end(),
+                      entity::OpType::LOAD) != supported_operations.end();
         graph_[vertex_id].local_reg_size = mrrg_config.local_reg_size;
         graph_[vertex_id].context_size = mrrg_config.context_size;
         graph_[vertex_id].supported_operations = supported_operations;

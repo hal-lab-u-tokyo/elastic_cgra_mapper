@@ -1,0 +1,65 @@
+{
+  "name": "placement2d_compare",
+  "problem_type": "placement2d",
+  "evaluation_mode": "placement_only",
+  "mode": "placement2d_fixed_ii",
+  "result_group": "placement2d/compare",
+  "mapping_bin": "build/mapping",
+  "benchmark_sets": [
+    {
+      "name": "lisa_sample",
+      "benchmark_root": "benchmark/literature/traversal_yott_normalized/lisa/dac",
+      "benchmarks": ["atax", "bicg", "gemm", "mvt", "syrk"]
+    },
+    {
+      "name": "m_bench_sample",
+      "benchmark_root": "benchmark/literature/traversal_yott_normalized/m_bench/dac",
+      "benchmarks": ["arf", "collapse_pyr", "conv3", "ewf", "h2v2_smooth"]
+    },
+    {
+      "name": "vpr8_medium_sample",
+      "benchmark_root": "benchmark/literature/prisa_vpr8_normalized/vpr8",
+      "benchmarks": ["motion_vec", "fir2", "k4n4op", "fir16", "cosine2", "h2v2_smo"]
+    }
+  ],
+  "architectures": [
+    {
+      "name": "one_hop_perimeter_no_corners_io",
+      "template": "research/configs/arch_templates/mesh_10x10_default.json",
+      "auto_grid": {"policy": "ceil_sqrt_non_io_plus_2"},
+      "memory_io": "perimeter_no_corners",
+      "network_type": "one_hop_axis2",
+      "ii": 1
+    }
+  ],
+  "mappers": [
+    {
+      "name": "yoto",
+      "mapper_config": "research/configs/mapper/placement2d/yoto.json"
+    },
+    {
+      "name": "yott",
+      "mapper_config": "research/configs/mapper/placement2d/yott.json"
+    },
+    {
+      "name": "yott_core",
+      "mapper_config": "research/configs/mapper/placement2d/yott_core.json"
+    },
+    {
+      "name": "yott_core_repair",
+      "mapper_config": "research/configs/mapper/placement2d/yott_core_repair.json"
+    },
+    {
+      "name": "vpr_bb",
+      "runner": "vpr",
+      "vpr_bin": "${VPR_BIN:-third_party/vtr/build/vpr/vpr}",
+      "arch_xml": "${VPR_ARCH_XML:-third_party/vtr/vtr_flow/arch/timing/k6_N10_40nm.xml}",
+      "pack_capacity": 1,
+      "place_algorithm": "bounding_box",
+      "allow_missing": true
+    }
+  ],
+  "timeout_sec": 60,
+  "parallel_num": 1,
+  "mii_missing_distance_policy": "self_loop"
+}

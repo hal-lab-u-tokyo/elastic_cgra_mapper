@@ -27,7 +27,31 @@ enum class OpType {
   kCmpEq,
   kFSub,
   kLoop,
-  kSelect
+  kSelect,
+  // PR131 mapper spellings retained as aliases to the current scoped enum.
+  ADD = kAdd,
+  FADD = kFAdd,
+  SUB = kSub,
+  MUL = kMul,
+  FMUL = kFMul,
+  DIV = kDiv,
+  SDIV = kSDiv,
+  FDIV = kFDiv,
+  CONST = kConst,
+  LOAD = kLoad,
+  OUTPUT = kOutput,
+  STORE = kStore,
+  NOP = kNop,
+  ROUTE = kRoute,
+  OR = kOr,
+  SHIFT = kShift,
+  ICMP = kIcmp,
+  CMPGT = kCmpGt,
+  CMPGE = kCmpGe,
+  CMPEQ = kCmpEq,
+  FSUB = kFSub,
+  LOOP = kLoop,
+  SELECT = kSelect
 };
 std::string OpTypeToString(OpType op);
 OpType OpTypeFromString(std::string op_string);
