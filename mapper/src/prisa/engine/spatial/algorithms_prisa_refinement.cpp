@@ -1,6 +1,6 @@
-#include "engine.hpp"
+#include <mapper/prisa/engine/spatial/prisa_spatial_engine.hpp>
 
-namespace mapper::detail::prisa_spatial {
+namespace mapper::prisa_spatial {
 
 // Cost-aware PRISA cleanup passes.
 
@@ -197,4 +197,4 @@ PlacementState Placement2DPRISAEngine::PolishCostAwarePRISADirectEdges(
   return state;
 }
 
-}  // namespace mapper::detail::prisa_spatial
+}  // namespace mapper::prisa_spatial

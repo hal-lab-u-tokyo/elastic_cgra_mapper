@@ -1,6 +1,6 @@
-#include "engine.hpp"
+#include <mapper/yoto/engine/array/yoto_array_engine.hpp>
 
-namespace mapper::detail::yoto_array {
+namespace mapper::yoto_array {
 
 // Shared traversal graph utilities used by paper-guided and cpu_mapping
 // YOTO/YOTT variants. Method-specific files decide how these scores are used.
@@ -160,4 +160,4 @@ std::vector<double> Placement2DYOTOEngine::BuildBetweennessCentralityScore()
   return centrality;
 }
 
-}  // namespace mapper::detail::yoto_array
+}  // namespace mapper::yoto_array

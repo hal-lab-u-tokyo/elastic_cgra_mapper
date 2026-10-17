@@ -1,6 +1,6 @@
-#include "engine.hpp"
+#include <mapper/prisa/engine/array/prisa_array_engine.hpp>
 
-namespace mapper::detail::prisa_array {
+namespace mapper::prisa_array {
 
 // Initial placement and SIS order.
 
@@ -193,4 +193,4 @@ Placement2DPRISAEngine::ConstructPRISAInitialPlacement() {
   return ConstructPRISAInitialPlacementFromOrder(LowBandwidthNodeOrder());
 }
 
-}  // namespace mapper::detail::prisa_array
+}  // namespace mapper::prisa_array

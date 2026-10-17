@@ -1,6 +1,5 @@
 #include <mapper/ilp/full_routing_ilp_mapper.hpp>
-
-#include "workflow.hpp"
+#include <mapper/ilp/ilp_workflow.hpp>
 mapper::FullRoutingILPMapper::FullRoutingILPMapper(
     const std::shared_ptr<entity::DFG> dfg_ptr,
     const std::shared_ptr<entity::MRRG> mrrg_ptr)
@@ -16,9 +15,9 @@ mapper::FullRoutingILPMapper* mapper::FullRoutingILPMapper::CreateMapper(
 }
 
 mapper::MappingResult mapper::FullRoutingILPMapper::Execution() {
-  return detail::RunILP<detail::FullRoutingILPEngine>(
-      dfg_ptr_, mrrg_ptr_, log_file_path_, timeout_s_,
-      accept_feasible_solution_);
+  return ilp::RunILP<ilp::FullRoutingILPEngine>(dfg_ptr_, mrrg_ptr_,
+                                                log_file_path_, timeout_s_,
+                                                accept_feasible_solution_);
 }
 
 void mapper::FullRoutingILPMapper::SetLogFilePath(

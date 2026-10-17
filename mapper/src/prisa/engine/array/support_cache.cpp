@@ -1,6 +1,6 @@
-#include "engine.hpp"
+#include <mapper/prisa/engine/array/prisa_array_engine.hpp>
 
-namespace mapper::detail::prisa_array {
+namespace mapper::prisa_array {
 
 void Placement2DPRISAEngine::BuildDFGCache() {
   const int node_num = dfg_.GetNodeNum();
@@ -273,4 +273,4 @@ int Placement2DPRISAEngine::DistanceCost(int a, int b) const {
   return std::max(1, dx + dy);
 }
 
-}  // namespace mapper::detail::prisa_array
+}  // namespace mapper::prisa_array

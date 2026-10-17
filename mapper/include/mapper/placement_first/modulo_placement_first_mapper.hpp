@@ -1,7 +1,6 @@
 #pragma once
 
 #include <mapper/mapper.hpp>
-
 #include <memory>
 #include <optional>
 #include <string>
@@ -11,9 +10,8 @@ namespace mapper {
 class ModuloPlacementFirstMapper : public IMapper {
  public:
   ModuloPlacementFirstMapper(){};
-  ModuloPlacementFirstMapper(
-      const std::shared_ptr<entity::DFG> dfg_ptr,
-      const std::shared_ptr<entity::MRRG> mrrg_ptr);
+  ModuloPlacementFirstMapper(const std::shared_ptr<entity::DFG> dfg_ptr,
+                             const std::shared_ptr<entity::MRRG> mrrg_ptr);
   ModuloPlacementFirstMapper* CreateMapper(
       const std::shared_ptr<entity::DFG> dfg_ptr,
       const std::shared_ptr<entity::MRRG> mrrg_ptr);

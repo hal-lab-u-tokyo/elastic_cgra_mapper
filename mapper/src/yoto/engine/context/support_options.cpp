@@ -1,6 +1,6 @@
-#include "engine.hpp"
+#include <mapper/yoto/engine/context/yoto_context_engine.hpp>
 
-namespace mapper::detail::yoto_context {
+namespace mapper::yoto_context {
 
 std::string ModuloYOTOEngine::MapperName() const {
   switch (search_kind_) {
@@ -59,47 +59,6 @@ bool ModuloYOTOEngine::NeedsAllPairsDistances() const {
   return !UsesApproximatePlacementDistance();
 }
 
-int ModuloYOTOEngine::SeedCount() const {
-  if (!options_.seed_count.has_value()) return 1;
-  return std::max(1, options_.seed_count.value());
-}
-
-int ModuloYOTOEngine::MaxTrials() const {
-  const int default_trials = std::max(100, dfg_.GetNodeNum() * 4);
-  if (!options_.max_trials.has_value()) return default_trials;
-  return std::max(1, options_.max_trials.value());
-}
-
-int ModuloYOTOEngine::RoutingRetryCount() const {
-  if (!options_.routing_retry_count.has_value()) return 4;
-  return std::max(1, options_.routing_retry_count.value());
-}
-
-int ModuloYOTOEngine::MaxIterations() const {
-  const int default_iterations =
-      std::max(5000, dfg_.GetNodeNum() * mrrg_.GetNodeNum() * 30);
-  if (!options_.max_iterations.has_value()) return default_iterations;
-  return std::max(1, options_.max_iterations.value());
-}
-
-unsigned int ModuloYOTOEngine::SeedFor(int seed_index) const {
-  const unsigned int configured_seed =
-      options_.random_seed.has_value()
-          ? static_cast<unsigned int>(options_.random_seed.value())
-          : base_seed_;
-  return configured_seed + static_cast<unsigned int>(0x9E3779B9u * seed_index);
-}
-
-void ModuloYOTOEngine::ResetSeed(int seed_index) {
-  rng_.seed(SeedFor(seed_index));
-}
-
-void ModuloYOTOEngine::Log(const std::string& message) const {
-  if (!log_file_path_.has_value()) return;
-  std::ofstream ofs(log_file_path_.value(), std::ios::app);
-  if (ofs) ofs << "[" << MapperName() << "] " << message << "\n";
-}
-
 mapper::MappingResult ModuloYOTOEngine::MakeFailureResult(
     std::chrono::steady_clock::time_point start) const {
   const double mapping_time_s = SecondsSince(start);
@@ -118,4 +77,4 @@ entity::Mapping ModuloYOTOEngine::MakePlacementOnlyMapping(
   return entity::Mapping(mrrg_, dfg_, placement.dfg_to_mrrg, empty_route_edges);
 }
 
-}  // namespace mapper::detail::yoto_context
+}  // namespace mapper::yoto_context

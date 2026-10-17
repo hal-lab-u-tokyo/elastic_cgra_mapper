@@ -1,6 +1,6 @@
-#include "engine.hpp"
+#include <mapper/yott/engine/array/yott_array_engine.hpp>
 
-namespace mapper::detail::yott_array {
+namespace mapper::yott_array {
 
 double Placement2DYOTTEngine::PlacementCost(const PlacementState& state) const {
   double cost = 0.0;
@@ -34,4 +34,4 @@ void Placement2DYOTTEngine::PlaceNode(int dfg_node, int cell,
   state.cell_to_dfg[cell] = dfg_node;
 }
 
-}  // namespace mapper::detail::yott_array
+}  // namespace mapper::yott_array

@@ -1,6 +1,6 @@
-#include "engine.hpp"
+#include <mapper/yoto/engine/context/yoto_context_engine.hpp>
 
-namespace mapper::detail::yoto_context {
+namespace mapper::yoto_context {
 
 // Initial placement, candidate ranking, and traversal execution.
 
@@ -50,14 +50,6 @@ std::optional<int> ModuloYOTOEngine::PlaceInitialNode(int dfg_node_id,
   state.dfg_to_mrrg[dfg_node_id] = chosen;
   state.mrrg_to_dfg[chosen] = dfg_node_id;
   return chosen;
-}
-
-double ModuloYOTOEngine::DegreeMatchScore(int dfg_node_id, int mrrg_node_id,
-                                          const PlacementState& state) const {
-  const int target_degree = annotation_.degree[dfg_node_id];
-  const int freedom = ResourceFreedom(mrrg_node_id, state);
-  if (freedom >= target_degree) return freedom - target_degree;
-  return 4.0 * (target_degree - freedom);
 }
 
 int ModuloYOTOEngine::FreeResourcesAtDistance(
@@ -250,4 +242,4 @@ std::optional<PlacementState> ModuloYOTOEngine::ConstructTraversalPlacement(
   return state;
 }
 
-}  // namespace mapper::detail::yoto_context
+}  // namespace mapper::yoto_context

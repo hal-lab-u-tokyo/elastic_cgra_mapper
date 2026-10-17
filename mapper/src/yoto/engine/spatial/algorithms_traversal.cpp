@@ -1,6 +1,6 @@
-#include "engine.hpp"
+#include <mapper/yoto/engine/spatial/yoto_spatial_engine.hpp>
 
-namespace mapper::detail::yoto_spatial {
+namespace mapper::yoto_spatial {
 
 std::vector<PlacementState>
 Placement2DYOTOEngine::ConstructGreedyPlacementCandidates() {
@@ -77,4 +77,4 @@ std::optional<PlacementState> Placement2DYOTOEngine::RunGreedyMultiStart(
   return best_unrouted;
 }
 
-}  // namespace mapper::detail::yoto_spatial
+}  // namespace mapper::yoto_spatial

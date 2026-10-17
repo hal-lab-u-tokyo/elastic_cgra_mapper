@@ -1,6 +1,6 @@
-#include "engine.hpp"
+#include <mapper/yott/engine/array/yott_array_engine.hpp>
 
-namespace mapper::detail::yott_array {
+namespace mapper::yott_array {
 
 // Candidate cells and local placement primitives.
 
@@ -431,4 +431,4 @@ void Placement2DYOTTEngine::UpdateCPUMappingFreedomGrid(
   }
 }
 
-}  // namespace mapper::detail::yott_array
+}  // namespace mapper::yott_array

@@ -1,6 +1,6 @@
-#include "engine.hpp"
+#include <mapper/yoto/engine/array/yoto_array_engine.hpp>
 
-namespace mapper::detail::yoto_array {
+namespace mapper::yoto_array {
 
 namespace {
 
@@ -24,25 +24,25 @@ void WriteCost(std::ofstream& trace, double value) {
 
 std::string Placement2DYOTOEngine::MapperName() const {
   switch (kind_) {
-    case mapper::Placement2DArrayKind::kPaperGuidedYOTO:
+    case mapper::yoto::Placement2DArrayKind::kPaperGuidedYOTO:
       return "Placement2DPaperGuidedArrayYOTO";
-    case mapper::Placement2DArrayKind::kCPUMappingYOTO:
+    case mapper::yoto::Placement2DArrayKind::kCPUMappingYOTO:
       return "Placement2DCPUMappingYOTO";
   }
   return "Placement2DArray";
 }
 
 bool Placement2DYOTOEngine::IsCPUMappingLike() const {
-  return kind_ == mapper::Placement2DArrayKind::kCPUMappingYOTO || false ||
-         false || false;
+  return kind_ == mapper::yoto::Placement2DArrayKind::kCPUMappingYOTO ||
+         false || false || false;
 }
 
 bool Placement2DYOTOEngine::IsPaperGuidedTraversalLike() const {
-  return kind_ == mapper::Placement2DArrayKind::kPaperGuidedYOTO || false;
+  return kind_ == mapper::yoto::Placement2DArrayKind::kPaperGuidedYOTO || false;
 }
 
 bool Placement2DYOTOEngine::IsPaperGuidedYOTO() const {
-  return kind_ == mapper::Placement2DArrayKind::kPaperGuidedYOTO;
+  return kind_ == mapper::yoto::Placement2DArrayKind::kPaperGuidedYOTO;
 }
 
 bool Placement2DYOTOEngine::UsesYOTTAnnotations() const {
@@ -333,4 +333,4 @@ void Placement2DYOTOEngine::RecordFailure(const std::string& reason) {
   if (last_failure_reason_.empty()) last_failure_reason_ = reason;
 }
 
-}  // namespace mapper::detail::yoto_array
+}  // namespace mapper::yoto_array

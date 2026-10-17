@@ -1,6 +1,6 @@
-#include "engine.hpp"
+#include <mapper/prisa/engine/array/prisa_array_engine.hpp>
 
-namespace mapper::detail::prisa_array {
+namespace mapper::prisa_array {
 
 double Placement2DPRISAEngine::PlacementCost(
     const PlacementState& state) const {
@@ -152,4 +152,4 @@ void Placement2DPRISAEngine::PlaceNode(int dfg_node, int cell,
   state.cell_to_dfg[cell] = dfg_node;
 }
 
-}  // namespace mapper::detail::prisa_array
+}  // namespace mapper::prisa_array

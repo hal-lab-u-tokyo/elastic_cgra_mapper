@@ -1,13 +1,12 @@
-#include "placement2d_ilp_engine.hpp"
-
 #include <gurobi_c++.h>
 
 #include <cassert>
 #include <filesystem>
 #include <fstream>
+#include <mapper/ilp/engine/placement2d_ilp_engine.hpp>
 #include <memory>
 
-namespace mapper::detail {
+namespace mapper::ilp {
 SpatialILPEngine::SpatialILPEngine(
     const std::shared_ptr<entity::DFG>& dfg,
     const std::shared_ptr<entity::MRRG>& mrrg,
@@ -470,4 +469,4 @@ MappingResult SpatialILPEngine::CollectResult(
                       dfg_output_to_mrrg_reg),
       mapping_time);
 }
-}  // namespace mapper::detail
+}  // namespace mapper::ilp

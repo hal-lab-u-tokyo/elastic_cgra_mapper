@@ -1,7 +1,6 @@
 #pragma once
 
 #include <mapper/mapper.hpp>
-
 #include <memory>
 #include <optional>
 #include <string>

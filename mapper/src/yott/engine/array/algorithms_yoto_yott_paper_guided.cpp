@@ -1,6 +1,6 @@
-#include "engine.hpp"
+#include <mapper/yott/engine/array/yott_array_engine.hpp>
 
-namespace mapper::detail::yott_array {
+namespace mapper::yott_array {
 
 // Paper-guided YOTO/YOTT pipeline.
 //
@@ -229,8 +229,7 @@ double Placement2DYOTTEngine::PaperGuidedDegreeMatchScore(
     int dfg_node, int cell, const PlacementState& state) const {
   const int target_degree = degree_[dfg_node];
   const int freedom = PaperGuidedCellFreedom(cell, state);
-  if (freedom >= target_degree) return freedom - target_degree;
-  return 4.0 * (target_degree - freedom);
+  return mapper::yott::DegreePenalty(target_degree, freedom);
 }
 
 int Placement2DYOTTEngine::FreeCellsAtDistance(
@@ -511,4 +510,4 @@ Placement2DYOTTEngine::RunPaperGuidedTraversalMultiStart(
   return best;
 }
 
-}  // namespace mapper::detail::yott_array
+}  // namespace mapper::yott_array

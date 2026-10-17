@@ -1,6 +1,6 @@
-#include "engine.hpp"
+#include <mapper/yott/engine/array/yott_array_engine.hpp>
 
-namespace mapper::detail::yott_array {
+namespace mapper::yott_array {
 
 // cpu_mapping-style YOTO/YOTT pipeline.
 //
@@ -158,4 +158,4 @@ std::optional<PlacementState> Placement2DYOTTEngine::RunCPUMappingMultiStart(
   return best;
 }
 
-}  // namespace mapper::detail::yott_array
+}  // namespace mapper::yott_array

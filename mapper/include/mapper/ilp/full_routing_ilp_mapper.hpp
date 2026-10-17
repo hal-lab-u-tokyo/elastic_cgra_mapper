@@ -9,8 +9,9 @@ class FullRoutingILPMapper : public IMapper {
   FullRoutingILPMapper(){};
   FullRoutingILPMapper(const std::shared_ptr<entity::DFG> dfg_ptr,
                        const std::shared_ptr<entity::MRRG> mmrg_ptr);
-  FullRoutingILPMapper* CreateMapper(const std::shared_ptr<entity::DFG> dfg_ptr,
-                                     const std::shared_ptr<entity::MRRG> mmrg_ptr);
+  FullRoutingILPMapper* CreateMapper(
+      const std::shared_ptr<entity::DFG> dfg_ptr,
+      const std::shared_ptr<entity::MRRG> mmrg_ptr);
   MappingResult Execution();
   void SetLogFilePath(const std::string& log_file_path);
   void SetTimeOut(double time_out_s);

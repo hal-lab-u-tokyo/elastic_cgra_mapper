@@ -1,6 +1,6 @@
-#include "engine.hpp"
+#include <mapper/yoto/engine/spatial/yoto_spatial_engine.hpp>
 
-namespace mapper::detail::yoto_spatial {
+namespace mapper::yoto_spatial {
 
 std::string Placement2DYOTOEngine::MapperName() const {
   switch (search_kind_) {
@@ -23,47 +23,6 @@ bool Placement2DYOTOEngine::UsesSeparatePlacement2DIOCells() const {
   return has_memory_cell && has_compute_only_cell;
 }
 
-int Placement2DYOTOEngine::SeedCount() const {
-  if (!options_.seed_count.has_value()) return 1;
-  return std::max(1, options_.seed_count.value());
-}
-
-int Placement2DYOTOEngine::MaxTrials() const {
-  const int default_trials = std::max(100, dfg_.GetNodeNum() * 4);
-  if (!options_.max_trials.has_value()) return default_trials;
-  return std::max(1, options_.max_trials.value());
-}
-
-int Placement2DYOTOEngine::RoutingRetryCount() const {
-  if (!options_.routing_retry_count.has_value()) return 4;
-  return std::max(1, options_.routing_retry_count.value());
-}
-
-int Placement2DYOTOEngine::MaxIterations() const {
-  const int default_iterations =
-      std::max(5000, dfg_.GetNodeNum() * mrrg_.GetNodeNum() * 30);
-  if (!options_.max_iterations.has_value()) return default_iterations;
-  return std::max(1, options_.max_iterations.value());
-}
-
-unsigned int Placement2DYOTOEngine::SeedFor(int seed_index) const {
-  const unsigned int configured_seed =
-      options_.random_seed.has_value()
-          ? static_cast<unsigned int>(options_.random_seed.value())
-          : base_seed_;
-  return configured_seed + static_cast<unsigned int>(0x9E3779B9u * seed_index);
-}
-
-void Placement2DYOTOEngine::ResetSeed(int seed_index) {
-  rng_.seed(SeedFor(seed_index));
-}
-
-void Placement2DYOTOEngine::Log(const std::string& message) const {
-  if (!log_file_path_.has_value()) return;
-  std::ofstream ofs(log_file_path_.value(), std::ios::app);
-  if (ofs) ofs << "[" << MapperName() << "] " << message << "\n";
-}
-
 mapper::MappingResult Placement2DYOTOEngine::MakeFailureResult(
     std::chrono::steady_clock::time_point start) const {
   const double mapping_time_s = SecondsSince(start);
@@ -82,4 +41,4 @@ entity::Mapping Placement2DYOTOEngine::MakePlacementOnlyMapping(
   return entity::Mapping(mrrg_, dfg_, placement.dfg_to_mrrg, empty_route_edges);
 }
 
-}  // namespace mapper::detail::yoto_spatial
+}  // namespace mapper::yoto_spatial

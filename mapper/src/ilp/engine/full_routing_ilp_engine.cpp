@@ -1,16 +1,15 @@
-#include "full_routing_ilp_engine.hpp"
-
 #include <gurobi_c++.h>
 
 #include <algorithm>
 #include <cassert>
 #include <filesystem>
 #include <fstream>
+#include <mapper/ilp/engine/full_routing_ilp_engine.hpp>
 #include <memory>
 #include <vector>
 
 namespace {
-using mapper::detail::DFGEdge;
+using mapper::ilp::DFGEdge;
 
 std::vector<DFGEdge> BuildDFGEdgeVec(entity::DFG& dfg) {
   std::vector<DFGEdge> result;
@@ -30,7 +29,7 @@ bool SupportsOperation(const entity::MRRGNodeProperty& mrrg_node,
 }
 }  // namespace
 
-namespace mapper::detail {
+namespace mapper::ilp {
 FullRoutingILPEngine::FullRoutingILPEngine(
     const std::shared_ptr<entity::DFG>& dfg,
     const std::shared_ptr<entity::MRRG>& mrrg,
@@ -422,4 +421,4 @@ MappingResult FullRoutingILPEngine::CollectResult(
                            dfg_output_to_mrrg_edge),
                        mapping_time);
 }
-}  // namespace mapper::detail
+}  // namespace mapper::ilp

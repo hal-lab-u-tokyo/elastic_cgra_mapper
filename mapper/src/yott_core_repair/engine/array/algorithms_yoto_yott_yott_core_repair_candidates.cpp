@@ -1,6 +1,6 @@
-#include "engine.hpp"
+#include <mapper/yott_core_repair/engine/array/yott_core_repair_array_engine.hpp>
 
-namespace mapper::detail::yott_core_repair_array {
+namespace mapper::yott_core_repair_array {
 namespace {
 
 void PushUniqueCell(std::vector<std::pair<int, int>>& cells, int freedom,
@@ -182,4 +182,4 @@ bool Placement2DYOTTCoreRepairEngine::PlaceCoreRepairStep(
   return TryCPUMappingAdjacency(dfg_node, anchor_cell, context, true);
 }
 
-}  // namespace mapper::detail::yott_core_repair_array
+}  // namespace mapper::yott_core_repair_array

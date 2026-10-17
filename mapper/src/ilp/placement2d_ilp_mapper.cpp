@@ -1,6 +1,5 @@
+#include <mapper/ilp/ilp_workflow.hpp>
 #include <mapper/ilp/placement2d_ilp_mapper.hpp>
-
-#include "workflow.hpp"
 mapper::Placement2DILPMapper::Placement2DILPMapper(
     const std::shared_ptr<entity::DFG> dfg_ptr,
     const std::shared_ptr<entity::MRRG> mrrg_ptr)
@@ -16,9 +15,9 @@ mapper::Placement2DILPMapper* mapper::Placement2DILPMapper::CreateMapper(
 }
 
 mapper::MappingResult mapper::Placement2DILPMapper::Execution() {
-  return detail::RunILP<detail::SpatialILPEngine>(dfg_ptr_, mrrg_ptr_,
-                                                  log_file_path_, timeout_s_,
-                                                  accept_feasible_solution_);
+  return ilp::RunILP<ilp::SpatialILPEngine>(dfg_ptr_, mrrg_ptr_, log_file_path_,
+                                            timeout_s_,
+                                            accept_feasible_solution_);
 }
 
 void mapper::Placement2DILPMapper::SetLogFilePath(

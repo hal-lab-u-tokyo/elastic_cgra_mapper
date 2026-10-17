@@ -1,6 +1,6 @@
-#include "engine.hpp"
+#include <mapper/sa/engine/array/sa_array_engine.hpp>
 
-namespace mapper::detail::sa_array {
+namespace mapper::sa_array {
 
 // Shared traversal graph utilities used by paper-guided and cpu_mapping
 // YOTO/YOTT variants. Method-specific files decide how these scores are used.
@@ -26,4 +26,4 @@ std::vector<int> Placement2DSAEngine::BuildCriticalPathScore() const {
   return memo;
 }
 
-}  // namespace mapper::detail::sa_array
+}  // namespace mapper::sa_array

@@ -1,6 +1,6 @@
-#include "engine.hpp"
+#include <mapper/yott_core_repair/engine/array/yott_core_repair_array_engine.hpp>
 
-namespace mapper::detail::yott_core_repair_array {
+namespace mapper::yott_core_repair_array {
 namespace {
 
 constexpr int kActiveNodeLimit = 16;
@@ -508,4 +508,4 @@ Placement2DYOTTCoreRepairEngine::RunCoreTailRepairMultiStart(
   return best;
 }
 
-}  // namespace mapper::detail::yott_core_repair_array
+}  // namespace mapper::yott_core_repair_array

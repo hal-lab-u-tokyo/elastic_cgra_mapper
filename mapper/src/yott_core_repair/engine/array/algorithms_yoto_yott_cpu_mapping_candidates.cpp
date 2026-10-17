@@ -1,6 +1,6 @@
-#include "engine.hpp"
+#include <mapper/yott_core_repair/engine/array/yott_core_repair_array_engine.hpp>
 
-namespace mapper::detail::yott_core_repair_array {
+namespace mapper::yott_core_repair_array {
 
 // Candidate cells and local placement primitives.
 
@@ -268,4 +268,4 @@ void Placement2DYOTTCoreRepairEngine::UpdateCPUMappingFreedomGrid(
   }
 }
 
-}  // namespace mapper::detail::yott_core_repair_array
+}  // namespace mapper::yott_core_repair_array

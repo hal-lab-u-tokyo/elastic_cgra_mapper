@@ -1,6 +1,6 @@
-#include "engine.hpp"
+#include <mapper/yott_core_repair/engine/array/yott_core_repair_array_engine.hpp>
 
-namespace mapper::detail::yott_core_repair_array {
+namespace mapper::yott_core_repair_array {
 
 // PR/WR region accounting and local swap deltas.
 
@@ -74,4 +74,4 @@ bool Placement2DYOTTCoreRepairEngine::ApplyCellSwap(PlacementState& state,
 // PRISA move proposal. The base variant tries to repair weak-region edges;
 // cost-aware variants use additional direct-edge and hop-distance terms.
 
-}  // namespace mapper::detail::yott_core_repair_array
+}  // namespace mapper::yott_core_repair_array

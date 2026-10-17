@@ -1,6 +1,6 @@
-#include "engine.hpp"
+#include <mapper/yott_core_repair/engine/array/yott_core_repair_array_engine.hpp>
 
-namespace mapper::detail::yott_core_repair_array {
+namespace mapper::yott_core_repair_array {
 
 // YOTT Core keeps only the compact traversal pieces:
 // random local traversal, reconvergence annotations, annotated tip placement,
@@ -147,4 +147,4 @@ Placement2DYOTTCoreRepairEngine::ConstructYOTTCorePlacement(
   return context.state;
 }
 
-}  // namespace mapper::detail::yott_core_repair_array
+}  // namespace mapper::yott_core_repair_array

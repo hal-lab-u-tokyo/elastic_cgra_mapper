@@ -1,6 +1,6 @@
-#include "engine.hpp"
+#include <mapper/sa/engine/array/sa_array_engine.hpp>
 
-namespace mapper::detail::sa_array {
+namespace mapper::sa_array {
 
 void Placement2DSAEngine::BuildDFGCache() {
   const int node_num = dfg_.GetNodeNum();
@@ -186,4 +186,4 @@ int Placement2DSAEngine::DistanceCost(int a, int b) const {
   return std::max(1, dx + dy);
 }
 
-}  // namespace mapper::detail::sa_array
+}  // namespace mapper::sa_array

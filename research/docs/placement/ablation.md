@@ -103,13 +103,13 @@ modulo routing-aware algorithm design.
 Add a JSON option only when the stage cannot be isolated by existing mapper
 entries. Wire it through:
 
-1. `entity/include/entity/mapper_config.hpp`
+1. `mapper/include/mapper/configuration.hpp`
 2. `io/src/mapper_config_io.cpp`
 3. `mapper/include/mapper/mapper.hpp`
-4. `mapper/include/mapper/detail/placement2d_array_mapper_base.hpp`
-5. `mapper/src/placement2d/placement2d_array_mapper_base.cpp`
-6. `mapper/src/yott/engine/array/engine.hpp`
-7. the stage function under `mapper/src/placement2d/engine/`
+4. `mapper/include/mapper/yott/yott_options.hpp`
+5. `mapper/include/mapper/yott/placement2d_yott_mapper.hpp`
+6. `mapper/include/mapper/yott/engine/array/yott_array_engine.hpp`
+7. the stage function under `mapper/src/yott/engine/array/`
 
 Keep the option name tied to the stage, for example
 `traversal_neighbor_policy` or `candidate_rank_policy`.

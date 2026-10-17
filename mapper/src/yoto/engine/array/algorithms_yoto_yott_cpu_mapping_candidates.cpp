@@ -1,6 +1,6 @@
-#include "engine.hpp"
+#include <mapper/yoto/engine/array/yoto_array_engine.hpp>
 
-namespace mapper::detail::yoto_array {
+namespace mapper::yoto_array {
 
 // Candidate cells and local placement primitives.
 
@@ -316,4 +316,4 @@ void Placement2DYOTOEngine::UpdateCPUMappingFreedomGrid(
   }
 }
 
-}  // namespace mapper::detail::yoto_array
+}  // namespace mapper::yoto_array

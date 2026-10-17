@@ -1,6 +1,6 @@
-#include "engine.hpp"
+#include <mapper/prisa/engine/context/prisa_context_engine.hpp>
 
-namespace mapper::detail::prisa_context {
+namespace mapper::prisa_context {
 
 // DFG traversal roots, order, and YOTT annotations.
 
@@ -11,4 +11,4 @@ int ModuloPRISAEngine::OtherEndpoint(const DFGEdgeInfo& edge,
   return -1;
 }
 
-}  // namespace mapper::detail::prisa_context
+}  // namespace mapper::prisa_context

@@ -1,6 +1,6 @@
-#include "engine.hpp"
+#include <mapper/yott/engine/context/yott_context_engine.hpp>
 
-namespace mapper::detail::yott_context {
+namespace mapper::yott_context {
 
 std::vector<PlacementState>
 ModuloYOTTEngine::ConstructGreedyPlacementCandidates() {
@@ -90,4 +90,4 @@ std::optional<PlacementState> ModuloYOTTEngine::RunGreedyMultiStart(
   return best_unrouted;
 }
 
-}  // namespace mapper::detail::yott_context
+}  // namespace mapper::yott_context

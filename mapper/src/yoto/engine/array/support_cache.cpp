@@ -1,6 +1,6 @@
-#include "engine.hpp"
+#include <mapper/yoto/engine/array/yoto_array_engine.hpp>
 
-namespace mapper::detail::yoto_array {
+namespace mapper::yoto_array {
 
 void Placement2DYOTOEngine::BuildDFGCache() {
   const int node_num = dfg_.GetNodeNum();
@@ -197,4 +197,4 @@ int Placement2DYOTOEngine::DistanceCost(int a, int b) const {
   return std::max(1, dx + dy);
 }
 
-}  // namespace mapper::detail::yoto_array
+}  // namespace mapper::yoto_array

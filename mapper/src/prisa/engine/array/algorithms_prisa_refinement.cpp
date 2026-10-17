@@ -1,6 +1,6 @@
-#include "engine.hpp"
+#include <mapper/prisa/engine/array/prisa_array_engine.hpp>
 
-namespace mapper::detail::prisa_array {
+namespace mapper::prisa_array {
 
 // Array PRISA pipeline.
 //
@@ -387,4 +387,4 @@ std::optional<PlacementState> Placement2DPRISAEngine::RunPRISAMultiSeed(
   return best;
 }
 
-}  // namespace mapper::detail::prisa_array
+}  // namespace mapper::prisa_array

@@ -1,86 +1,13 @@
-#include "engine.hpp"
+#include <mapper/sa/engine/context/sa_context_engine.hpp>
 
-namespace mapper::detail::sa_context {
+namespace mapper::sa_context {
 
 // DFG traversal roots, order, and YOTT annotations.
-
-std::vector<int> ModuloSAEngine::GetRawOutputTraversalRoots() {
-  std::vector<int> roots;
-  for (int v = 0; v < dfg_.GetNodeNum(); v++) {
-    if (successors_[v].empty() ||
-        dfg_.GetNodeProperty(v).op == entity::OpType::kOutput) {
-      roots.push_back(v);
-    }
-  }
-  if (roots.empty()) {
-    for (int v = 0; v < dfg_.GetNodeNum(); v++) roots.push_back(v);
-  }
-  std::shuffle(roots.begin(), roots.end(), rng_);
-  return roots;
-}
-
-std::vector<int> ModuloSAEngine::GetOutputTraversalRoots() {
-  std::vector<int> roots;
-  for (int v = 0; v < dfg_.GetNodeNum(); v++) {
-    if (successors_[v].empty() ||
-        dfg_.GetNodeProperty(v).op == entity::OpType::kOutput) {
-      roots.push_back(v);
-    }
-  }
-  if (roots.empty()) {
-    for (int v = 0; v < dfg_.GetNodeNum(); v++) roots.push_back(v);
-  }
-  std::shuffle(roots.begin(), roots.end(), rng_);
-  std::stable_sort(roots.begin(), roots.end(), [&](int a, int b) {
-    if (IsIONode(a) != IsIONode(b)) return IsIONode(a) > IsIONode(b);
-    return annotation_.degree[a] > annotation_.degree[b];
-  });
-  return roots;
-}
 
 int ModuloSAEngine::OtherEndpoint(const DFGEdgeInfo& edge, int node_id) const {
   if (edge.source == node_id) return edge.target;
   if (edge.target == node_id) return edge.source;
   return -1;
-}
-
-int ModuloSAEngine::FindDFGEdgeId(int source, int target) const {
-  for (const auto& edge : dfg_edges_) {
-    if (edge.source == source && edge.target == target) return edge.id;
-  }
-  for (const auto& edge : dfg_edges_) {
-    if (edge.source == target && edge.target == source) return edge.id;
-  }
-  return -1;
-}
-
-std::vector<int> ModuloSAEngine::UnvisitedIncidentEdges(
-    int dfg_node_id, const std::vector<char>& visited_edges) const {
-  std::vector<int> result;
-  for (int edge_id : incident_edge_ids_[dfg_node_id]) {
-    if (!visited_edges[edge_id]) result.push_back(edge_id);
-  }
-  return result;
-}
-
-int ModuloSAEngine::PickTraversalEdge(int dfg_node_id,
-                                      const std::vector<char>& visited_nodes,
-                                      const std::vector<char>& visited_edges) {
-  std::vector<int> candidates =
-      UnvisitedIncidentEdges(dfg_node_id, visited_edges);
-  if (candidates.empty()) return -1;
-  std::shuffle(candidates.begin(), candidates.end(), rng_);
-  std::stable_sort(candidates.begin(), candidates.end(), [&](int a, int b) {
-    const int oa = OtherEndpoint(dfg_edges_[a], dfg_node_id);
-    const int ob = OtherEndpoint(dfg_edges_[b], dfg_node_id);
-    const bool a_unvisited = oa >= 0 && !visited_nodes[oa];
-    const bool b_unvisited = ob >= 0 && !visited_nodes[ob];
-    if (a_unvisited != b_unvisited) return a_unvisited > b_unvisited;
-    const int degree_a = oa >= 0 ? annotation_.degree[oa] : -1;
-    const int degree_b = ob >= 0 ? annotation_.degree[ob] : -1;
-    return degree_a > degree_b;
-  });
-  return candidates.front();
 }
 
 int ModuloSAEngine::FindLastStepTargeting(const TraversalPlan& plan,
@@ -106,27 +33,6 @@ void ModuloSAEngine::BackpropagateAnnotation(TraversalPlan& plan, int from_node,
     current = plan.sequence[step_index].placed_node;
     distance++;
   }
-}
-
-std::vector<int> ModuloSAEngine::BuildCriticalPathScore() const {
-  const int n = dfg_.GetNodeNum();
-  std::vector<int> memo(n, -1);
-  std::vector<char> visiting(n, false);
-  std::function<int(int)> dfs = [&](int node) {
-    if (memo[node] >= 0) return memo[node];
-    if (visiting[node]) return 0;
-    visiting[node] = true;
-    int best = 0;
-    for (int successor : successors_[node]) {
-      if (successor == node) continue;
-      best = std::max(best, 1 + dfs(successor));
-    }
-    visiting[node] = false;
-    memo[node] = best;
-    return best;
-  };
-  for (int node = 0; node < n; node++) dfs(node);
-  return memo;
 }
 
 std::vector<double> ModuloSAEngine::BuildBetweennessCentralityScore() const {
@@ -170,53 +76,6 @@ std::vector<double> ModuloSAEngine::BuildBetweennessCentralityScore() const {
     }
   }
   return centrality;
-}
-
-int ModuloSAEngine::ChoosePlacement2DNeighbor(
-    const std::vector<int>& candidates, bool choose_from_fanout, int mode,
-    bool zigzag_take_back, const std::vector<int>& critical_path,
-    const std::vector<double>& betweenness) {
-  if (candidates.empty()) return -1;
-  if (candidates.size() == 1) return candidates.front();
-
-  if (mode == 0) {
-    return *std::max_element(
-        candidates.begin(), candidates.end(), [&](int a, int b) {
-          const int da = choose_from_fanout
-                             ? static_cast<int>(successors_[a].size())
-                             : static_cast<int>(predecessors_[a].size());
-          const int db = choose_from_fanout
-                             ? static_cast<int>(successors_[b].size())
-                             : static_cast<int>(predecessors_[b].size());
-          if (da != db) return da < db;
-          return annotation_.degree[a] < annotation_.degree[b];
-        });
-  }
-  if (mode == 1) {
-    return *std::max_element(
-        candidates.begin(), candidates.end(), [&](int a, int b) {
-          if (betweenness[a] != betweenness[b]) {
-            return betweenness[a] < betweenness[b];
-          }
-          return annotation_.degree[a] < annotation_.degree[b];
-        });
-  }
-  if (mode == 2) {
-    return *std::max_element(
-        candidates.begin(), candidates.end(), [&](int a, int b) {
-          if (critical_path[a] != critical_path[b]) {
-            return critical_path[a] < critical_path[b];
-          }
-          return annotation_.degree[a] < annotation_.degree[b];
-        });
-  }
-  if (mode == 3) {
-    return zigzag_take_back ? candidates.back() : candidates.front();
-  }
-
-  std::uniform_int_distribution<int> dist(
-      0, static_cast<int>(candidates.size()) - 1);
-  return candidates[dist(rng_)];
 }
 
 TraversalPlan ModuloSAEngine::BuildPlacement2DTraversalPlan(bool annotate) {
@@ -419,4 +278,4 @@ TraversalPlan ModuloSAEngine::BuildTraversalPlan(bool annotate) {
   return plan;
 }
 
-}  // namespace mapper::detail::sa_context
+}  // namespace mapper::sa_context

@@ -1,6 +1,6 @@
-#include "engine.hpp"
+#include <mapper/sa/engine/context/sa_context_engine.hpp>
 
-namespace mapper::detail::sa_context {
+namespace mapper::sa_context {
 
 std::optional<PlacementState> ModuloSAEngine::RunSAMultiSeed(
     std::chrono::steady_clock::time_point start) {
@@ -89,54 +89,4 @@ std::optional<PlacementState> ModuloSAEngine::RunSA(
   return best;
 }
 
-bool ModuloSAEngine::ApplyRandomMove(PlacementState& state) {
-  const int node_num = dfg_.GetNodeNum();
-  if (node_num <= 0) return false;
-  std::uniform_int_distribution<int> node_dist(0, node_num - 1);
-  std::uniform_real_distribution<double> unit(0.0, 1.0);
-
-  if (unit(rng_) < 0.55) {
-    // Swap two DFG nodes when both operations are legal at the other's PE.
-    int a = node_dist(rng_);
-    int b = node_dist(rng_);
-    return ApplySwapMove(state, a, b);
-  }
-
-  return ApplyMoveToFreeResource(state);
-}
-
-bool ModuloSAEngine::ApplySwapMove(PlacementState& state, int a, int b) const {
-  if (a == b) return false;
-  int ra = state.dfg_to_mrrg[a];
-  int rb = state.dfg_to_mrrg[b];
-  if (ra < 0 || rb < 0) return false;
-  if (!IsCompatible(a, rb) || !IsCompatible(b, ra)) return false;
-  std::swap(state.dfg_to_mrrg[a], state.dfg_to_mrrg[b]);
-  state.mrrg_to_dfg[ra] = b;
-  state.mrrg_to_dfg[rb] = a;
-  return true;
-}
-
-bool ModuloSAEngine::ApplyMoveToFreeResource(PlacementState& state) {
-  const int node_num = dfg_.GetNodeNum();
-  if (node_num <= 0) return false;
-  std::uniform_int_distribution<int> node_dist(0, node_num - 1);
-  int a = node_dist(rng_);
-  std::vector<int> free_candidates;
-  for (int r = 0; r < mrrg_.GetNodeNum(); r++) {
-    if (CanOccupyResource(a, r, state)) {
-      free_candidates.push_back(r);
-    }
-  }
-  if (free_candidates.empty()) return false;
-  std::uniform_int_distribution<int> resource_dist(
-      0, static_cast<int>(free_candidates.size()) - 1);
-  int old_r = state.dfg_to_mrrg[a];
-  int new_r = free_candidates[resource_dist(rng_)];
-  state.dfg_to_mrrg[a] = new_r;
-  state.mrrg_to_dfg[old_r] = -1;
-  state.mrrg_to_dfg[new_r] = a;
-  return true;
-}
-
-}  // namespace mapper::detail::sa_context
+}  // namespace mapper::sa_context

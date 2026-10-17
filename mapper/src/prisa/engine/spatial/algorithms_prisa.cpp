@@ -1,6 +1,6 @@
-#include "engine.hpp"
+#include <mapper/prisa/engine/spatial/prisa_spatial_engine.hpp>
 
-namespace mapper::detail::prisa_spatial {
+namespace mapper::prisa_spatial {
 
 std::optional<PlacementState> Placement2DPRISAEngine::RunPRISAMultiSeed(
     std::chrono::steady_clock::time_point start) {
@@ -129,4 +129,4 @@ std::optional<PlacementState> Placement2DPRISAEngine::RunPRISA(
   return FinalizePhysicalPlacementIfNeeded(best);
 }
 
-}  // namespace mapper::detail::prisa_spatial
+}  // namespace mapper::prisa_spatial

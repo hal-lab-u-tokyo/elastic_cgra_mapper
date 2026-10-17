@@ -1,14 +1,6 @@
-#include "engine.hpp"
+#include <mapper/yott/engine/context/yott_context_engine.hpp>
 
-namespace mapper::detail::yott_context {
-
-double ModuloYOTTEngine::ResourcePairPlacementCost(int from_mrrg_node,
-                                                   int to_mrrg_node) const {
-  if (from_mrrg_node < 0 || to_mrrg_node < 0) return kImpossibleCost;
-  const int distance = DirectedResourceDistance(from_mrrg_node, to_mrrg_node);
-  if (distance >= kInfDistance) return kImpossibleCost;
-  return DirectedDistanceCost(distance);
-}
+namespace mapper::yott_context {
 
 double ModuloYOTTEngine::EdgePlacementCost(
     const DFGEdgeInfo& edge, const std::vector<int>& dfg_to_mrrg) const {
@@ -16,14 +8,4 @@ double ModuloYOTTEngine::EdgePlacementCost(
                                    dfg_to_mrrg[edge.target]);
 }
 
-double ModuloYOTTEngine::PlacementCost(const PlacementState& state) const {
-  double cost = 0.0;
-  for (const auto& edge : dfg_edges_) {
-    const double edge_cost = EdgePlacementCost(edge, state.dfg_to_mrrg);
-    if (edge_cost >= kImpossibleCost) return kImpossibleCost;
-    cost += edge_cost;
-  }
-  return cost;
-}
-
-}  // namespace mapper::detail::yott_context
+}  // namespace mapper::yott_context

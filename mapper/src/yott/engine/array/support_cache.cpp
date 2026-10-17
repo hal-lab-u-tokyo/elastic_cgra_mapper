@@ -1,6 +1,6 @@
-#include "engine.hpp"
+#include <mapper/yott/engine/array/yott_array_engine.hpp>
 
-namespace mapper::detail::yott_array {
+namespace mapper::yott_array {
 
 void Placement2DYOTTEngine::BuildDFGCache() {
   const int node_num = dfg_.GetNodeNum();
@@ -197,4 +197,4 @@ int Placement2DYOTTEngine::DistanceCost(int a, int b) const {
   return std::max(1, dx + dy);
 }
 
-}  // namespace mapper::detail::yott_array
+}  // namespace mapper::yott_array

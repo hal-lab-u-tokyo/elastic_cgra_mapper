@@ -1,6 +1,6 @@
-#include "engine.hpp"
+#include <mapper/sa/engine/array/sa_array_engine.hpp>
 
-namespace mapper::detail::sa_array {
+namespace mapper::sa_array {
 
 double Placement2DSAEngine::PlacementCost(const PlacementState& state) const {
   double cost = 0.0;
@@ -29,4 +29,4 @@ void Placement2DSAEngine::PlaceNode(int dfg_node, int cell,
   state.cell_to_dfg[cell] = dfg_node;
 }
 
-}  // namespace mapper::detail::sa_array
+}  // namespace mapper::sa_array

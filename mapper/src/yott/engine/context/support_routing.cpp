@@ -1,6 +1,6 @@
-#include "engine.hpp"
+#include <mapper/yott/engine/context/yott_context_engine.hpp>
 
-namespace mapper::detail::yott_context {
+namespace mapper::yott_context {
 
 std::optional<RouteUsage> ModuloYOTTEngine::TryRoutePlacement(
     const PlacementState& state) {
@@ -101,18 +101,6 @@ std::optional<PathResult> ModuloYOTTEngine::FindRoutePath(
     return result;
   }
   return std::nullopt;
-}
-
-int ModuloYOTTEngine::ManhattanRouteScore(int from_mrrg_node,
-                                          int to_mrrg_node) const {
-  if (from_mrrg_node < 0 || to_mrrg_node < 0) return kInfDistance;
-  if (from_mrrg_node == to_mrrg_node) return 0;
-  const auto from = mrrg_.GetNodeProperty(from_mrrg_node);
-  const auto to = mrrg_.GetNodeProperty(to_mrrg_node);
-  const int context_size = std::max(1, from.context_size);
-  const int context_delta =
-      (to.context_id - from.context_id + context_size) % context_size;
-  return SpatialStepDistance(from_mrrg_node, to_mrrg_node) + context_delta;
 }
 
 std::optional<PathResult> ModuloYOTTEngine::FindManhattanRoutePath(
@@ -329,4 +317,4 @@ int ModuloYOTTEngine::RouteEdgeCount(const RouteUsage& usage) const {
   return result;
 }
 
-}  // namespace mapper::detail::yott_context
+}  // namespace mapper::yott_context

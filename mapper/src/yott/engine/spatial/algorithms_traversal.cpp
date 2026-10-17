@@ -1,6 +1,6 @@
-#include "engine.hpp"
+#include <mapper/yott/engine/spatial/yott_spatial_engine.hpp>
 
-namespace mapper::detail::yott_spatial {
+namespace mapper::yott_spatial {
 
 std::vector<PlacementState>
 Placement2DYOTTEngine::ConstructGreedyPlacementCandidates() {
@@ -77,4 +77,4 @@ std::optional<PlacementState> Placement2DYOTTEngine::RunGreedyMultiStart(
   return best_unrouted;
 }
 
-}  // namespace mapper::detail::yott_spatial
+}  // namespace mapper::yott_spatial

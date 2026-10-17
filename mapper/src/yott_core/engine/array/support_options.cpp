@@ -1,6 +1,6 @@
-#include "engine.hpp"
+#include <mapper/yott_core/engine/array/yott_core_array_engine.hpp>
 
-namespace mapper::detail::yott_core_array {
+namespace mapper::yott_core_array {
 
 namespace {
 
@@ -24,7 +24,7 @@ void WriteCost(std::ofstream& trace, double value) {
 
 std::string Placement2DYOTTCoreEngine::MapperName() const {
   switch (kind_) {
-    case mapper::Placement2DArrayKind::kCPUMappingYOTTCore:
+    case mapper::yott_core::Placement2DArrayKind::kCPUMappingYOTTCore:
       return "Placement2DCPUMappingYOTTCore";
   }
   return "Placement2DArray";
@@ -321,4 +321,4 @@ void Placement2DYOTTCoreEngine::RecordFailure(const std::string& reason) {
   if (last_failure_reason_.empty()) last_failure_reason_ = reason;
 }
 
-}  // namespace mapper::detail::yott_core_array
+}  // namespace mapper::yott_core_array

@@ -1,6 +1,6 @@
-#include "engine.hpp"
+#include <mapper/sa/engine/array/sa_array_engine.hpp>
 
-namespace mapper::detail::sa_array {
+namespace mapper::sa_array {
 
 // Initial placement and SIS order.
 
@@ -25,4 +25,4 @@ std::optional<PlacementState> Placement2DSAEngine::RandomPlacement() {
   return state;
 }
 
-}  // namespace mapper::detail::sa_array
+}  // namespace mapper::sa_array

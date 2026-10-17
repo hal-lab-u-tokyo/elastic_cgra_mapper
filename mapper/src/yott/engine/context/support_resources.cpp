@@ -1,54 +1,6 @@
-#include "engine.hpp"
+#include <mapper/yott/engine/context/yott_context_engine.hpp>
 
-namespace mapper::detail::yott_context {
-
-void ModuloYOTTEngine::BuildMRRGCache() {
-  const int node_num = mrrg_.GetNodeNum();
-  placement2d_resources_.clear();
-  placement2d_resources_.reserve(node_num);
-  std::set<std::pair<int, int>> seen_positions;
-  for (int r = 0; r < node_num; r++) {
-    const auto property = mrrg_.GetNodeProperty(r);
-    if (property.context_id != 0) continue;
-    if (!SupportsAnyDFGOperation(r)) continue;
-    if (!seen_positions.insert(property.position_id).second) continue;
-    placement2d_resources_.push_back(r);
-  }
-  std::sort(placement2d_resources_.begin(), placement2d_resources_.end(),
-            [&](int a, int b) {
-              const auto pa = mrrg_.GetNodeProperty(a).position_id;
-              const auto pb = mrrg_.GetNodeProperty(b).position_id;
-              if (pa.first != pb.first) return pa.first < pb.first;
-              // Paper-style 2D placement labels resources in row-major
-              // order before applying PRISA's distance-matrix/SIS logic.
-              return pa.second < pb.second;
-            });
-  placement2d_resource_order_index_.assign(node_num, -1);
-  for (int i = 0; i < static_cast<int>(placement2d_resources_.size()); i++) {
-    placement2d_resource_order_index_[placement2d_resources_[i]] = i;
-  }
-
-  prisa_resources_ = placement2d_resources_;
-  int min_row = std::numeric_limits<int>::max();
-  for (int r : prisa_resources_) {
-    min_row = std::min(min_row, mrrg_.GetNodeProperty(r).position_id.first);
-  }
-  std::sort(
-      prisa_resources_.begin(), prisa_resources_.end(), [&](int a, int b) {
-        const auto pa = mrrg_.GetNodeProperty(a).position_id;
-        const auto pb = mrrg_.GetNodeProperty(b).position_id;
-        if (pa.first != pb.first) return pa.first < pb.first;
-        // PRISA's low-bandwidth labeling assumes nearby labels are
-        // nearby resources. A serpentine path avoids row-major jumps
-        // from the end of one row to the start of the next row.
-        const bool reverse_row = ((pa.first - min_row) % 2) != 0;
-        return reverse_row ? pa.second > pb.second : pa.second < pb.second;
-      });
-  prisa_resource_order_index_.assign(node_num, -1);
-  for (int i = 0; i < static_cast<int>(prisa_resources_.size()); i++) {
-    prisa_resource_order_index_[prisa_resources_[i]] = i;
-  }
-}
+namespace mapper::yott_context {
 
 void ModuloYOTTEngine::BuildAllPairsDistances() {
   const int node_num = mrrg_.GetNodeNum();
@@ -84,31 +36,6 @@ Annotation ModuloYOTTEngine::BuildAnnotation() {
   return annotation;
 }
 
-bool ModuloYOTTEngine::HasTimedOut(std::chrono::steady_clock::time_point start,
-                                   double reserve_s) const {
-  return SecondsSince(start) + reserve_s >= timeout_s_;
-}
-
-bool ModuloYOTTEngine::IsCompatible(int dfg_node_id, int mrrg_node_id) const {
-  const entity::OpType op = dfg_.GetNodeProperty(dfg_node_id).op;
-  return SupportsOperation(mrrg_.GetNodeProperty(mrrg_node_id), op);
-}
-
-bool ModuloYOTTEngine::SamePhysicalPosition(int lhs_mrrg_node,
-                                            int rhs_mrrg_node) const {
-  return mrrg_.GetNodeProperty(lhs_mrrg_node).position_id ==
-         mrrg_.GetNodeProperty(rhs_mrrg_node).position_id;
-}
-
-bool ModuloYOTTEngine::IsPhysicalPositionOccupied(
-    int mrrg_node_id, const PlacementState& state) const {
-  for (int r = 0; r < mrrg_.GetNodeNum(); r++) {
-    if (state.mrrg_to_dfg[r] == -1) continue;
-    if (SamePhysicalPosition(mrrg_node_id, r)) return true;
-  }
-  return false;
-}
-
 bool ModuloYOTTEngine::CanOccupyResource(int dfg_node_id, int mrrg_node_id,
                                          const PlacementState& state) const {
   if (state.mrrg_to_dfg[mrrg_node_id] != -1) return false;
@@ -132,17 +59,6 @@ bool ModuloYOTTEngine::CanOccupyResource(int dfg_node_id, int mrrg_node_id,
   return true;
 }
 
-std::vector<int> ModuloYOTTEngine::CompatibleResources(
-    int dfg_node_id, const PlacementState& state) const {
-  std::vector<int> result;
-  result.reserve(mrrg_.GetNodeNum());
-  for (int r = 0; r < mrrg_.GetNodeNum(); r++) {
-    if (!CanOccupyResource(dfg_node_id, r, state)) continue;
-    result.push_back(r);
-  }
-  return result;
-}
-
 std::vector<int> ModuloYOTTEngine::ClosestCompatibleResources(
     int dfg_node_id, int anchor_mrrg_node, const PlacementState& state) const {
   if (anchor_mrrg_node < 0) return CompatibleResources(dfg_node_id, state);
@@ -161,82 +77,6 @@ std::vector<int> ModuloYOTTEngine::ClosestCompatibleResources(
     result.push_back(r);
   }
   return result;
-}
-
-bool ModuloYOTTEngine::IsIONode(int dfg_node_id) const {
-  const entity::OpType op = dfg_.GetNodeProperty(dfg_node_id).op;
-  return entity::IsMemoryAccessOperation(op);
-}
-
-bool ModuloYOTTEngine::SupportsAnyDFGOperation(int mrrg_node_id) const {
-  const auto property = mrrg_.GetNodeProperty(mrrg_node_id);
-  for (entity::OpType op : property.supported_operations) {
-    if (entity::IsDFGOp(op) && op != entity::OpType::kRoute &&
-        op != entity::OpType::kNop) {
-      return true;
-    }
-  }
-  return false;
-}
-
-int ModuloYOTTEngine::ResourceDistance(int from_mrrg_node,
-                                       int to_mrrg_node) const {
-  if (from_mrrg_node < 0 || to_mrrg_node < 0) return kInfDistance;
-  return std::min(DirectedResourceDistance(from_mrrg_node, to_mrrg_node),
-                  DirectedResourceDistance(to_mrrg_node, from_mrrg_node));
-}
-
-int ModuloYOTTEngine::DirectedResourceDistance(int from_mrrg_node,
-                                               int to_mrrg_node) const {
-  if (from_mrrg_node < 0 || to_mrrg_node < 0) return kInfDistance;
-  if (!distance_.empty()) return distance_[from_mrrg_node][to_mrrg_node];
-  return ApproximateDirectedResourceDistance(from_mrrg_node, to_mrrg_node);
-}
-
-int ModuloYOTTEngine::SpatialStepDistance(int from_mrrg_node,
-                                          int to_mrrg_node) const {
-  if (from_mrrg_node < 0 || to_mrrg_node < 0) return kInfDistance;
-  const auto from = mrrg_.GetNodeProperty(from_mrrg_node).position_id;
-  const auto to = mrrg_.GetNodeProperty(to_mrrg_node).position_id;
-  const int row_distance = std::abs(from.first - to.first);
-  const int column_distance = std::abs(from.second - to.second);
-  const auto config = mrrg_.GetMRRGConfig();
-  if (config.network_type == entity::MRRGNetworkType::kOneHop2d) {
-    return (row_distance + 1) / 2 + (column_distance + 1) / 2;
-  }
-  if (config.network_type == entity::MRRGNetworkType::kDiagonal) {
-    return std::max(row_distance, column_distance);
-  }
-  return row_distance + column_distance;
-}
-
-int ModuloYOTTEngine::ApproximateDirectedResourceDistance(
-    int from_mrrg_node, int to_mrrg_node) const {
-  if (from_mrrg_node == to_mrrg_node) return 0;
-  const auto from = mrrg_.GetNodeProperty(from_mrrg_node);
-  const auto to = mrrg_.GetNodeProperty(to_mrrg_node);
-  const int context_size = std::max(1, from.context_size);
-  const int context_delta =
-      (to.context_id - from.context_id + context_size) % context_size;
-  const int spatial_steps = SpatialStepDistance(from_mrrg_node, to_mrrg_node);
-
-  if (mrrg_.GetMRRGConfig().cgra_type == entity::MRRGCGRAType::kElastic) {
-    if (spatial_steps > 0) return std::max(1, spatial_steps);
-    return context_delta == 0 ? 0 : context_delta;
-  }
-
-  int steps = std::max(spatial_steps, context_delta);
-  if (steps == 0) steps = context_size;
-  while (steps % context_size != context_delta) {
-    steps++;
-  }
-  return steps;
-}
-
-int ModuloYOTTEngine::PhysicalDistance(int from_mrrg_node,
-                                       int to_mrrg_node) const {
-  if (from_mrrg_node < 0 || to_mrrg_node < 0) return kInfDistance;
-  return std::max(1, SpatialStepDistance(from_mrrg_node, to_mrrg_node));
 }
 
 int ModuloYOTTEngine::ResourceFreedom(int mrrg_node_id,
@@ -264,53 +104,4 @@ int ModuloYOTTEngine::ResourceFreedom(int mrrg_node_id,
   return result;
 }
 
-int ModuloYOTTEngine::BorderDistance(int mrrg_node_id) const {
-  const auto property = mrrg_.GetNodeProperty(mrrg_node_id);
-  const int row = property.position_id.first;
-  const int column = property.position_id.second;
-  const auto config = mrrg_.GetMRRGConfig();
-  return std::min(std::min(row, config.row - 1 - row),
-                  std::min(column, config.column - 1 - column));
-}
-
-bool ModuloYOTTEngine::IsCornerResource(int mrrg_node_id) const {
-  const auto property = mrrg_.GetNodeProperty(mrrg_node_id);
-  const auto config = mrrg_.GetMRRGConfig();
-  const bool row_on_border = property.position_id.first == 0 ||
-                             property.position_id.first == config.row - 1;
-  const bool column_on_border =
-      property.position_id.second == 0 ||
-      property.position_id.second == config.column - 1;
-  return row_on_border && column_on_border;
-}
-
-double ModuloYOTTEngine::IOPlacementScore(int dfg_node_id,
-                                          int mrrg_node_id) const {
-  const auto property = mrrg_.GetNodeProperty(mrrg_node_id);
-  double score = BorderDistance(mrrg_node_id);
-  if (entity::IsMemoryAccessOperation(dfg_.GetNodeProperty(dfg_node_id).op) ||
-      dfg_.GetNodeProperty(dfg_node_id).op == entity::OpType::kOutput) {
-    score += property.is_memory_accessible ? -8.0 : 40.0;
-  } else {
-    score += property.is_memory_accessible ? -1.0 : 0.0;
-  }
-  return score;
-}
-
-double ModuloYOTTEngine::Placement2DInitialPlacementScore(
-    int dfg_node_id, int mrrg_node_id) const {
-  if (IsIONode(dfg_node_id)) {
-    double score = IOPlacementScore(dfg_node_id, mrrg_node_id);
-    if (IsCornerResource(mrrg_node_id)) score += 4.0;
-    return score;
-  }
-  double score = 0.0;
-  if (BorderDistance(mrrg_node_id) == 0) score += 50.0;
-  if (UsesSeparatePlacement2DIOCells() &&
-      mrrg_.GetNodeProperty(mrrg_node_id).is_memory_accessible) {
-    score += 100.0;
-  }
-  return score;
-}
-
-}  // namespace mapper::detail::yott_context
+}  // namespace mapper::yott_context

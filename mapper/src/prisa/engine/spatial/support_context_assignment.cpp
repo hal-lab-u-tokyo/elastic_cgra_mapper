@@ -1,44 +1,8 @@
-#include "engine.hpp"
+#include <mapper/prisa/engine/spatial/prisa_spatial_engine.hpp>
 
-namespace mapper::detail::prisa_spatial {
+namespace mapper::prisa_spatial {
 
 // Physical-placement to modulo-context assignment.
-
-std::vector<int> Placement2DPRISAEngine::BuildASAPContextLevels() const {
-  const int n = dfg_.GetNodeNum();
-  std::vector<int> indegree(n, 0);
-  std::vector<int> level(n, 0);
-  for (const auto& edge : dfg_edges_) {
-    if (edge.source == edge.target) continue;
-    indegree[edge.target]++;
-  }
-
-  std::queue<int> ready;
-  for (int node_id = 0; node_id < n; node_id++) {
-    if (indegree[node_id] == 0) ready.push(node_id);
-  }
-
-  std::vector<char> visited(n, false);
-  while (!ready.empty()) {
-    const int node_id = ready.front();
-    ready.pop();
-    visited[node_id] = true;
-    for (int successor : successors_[node_id]) {
-      if (successor == node_id) continue;
-      level[successor] = std::max(level[successor], level[node_id] + 1);
-      indegree[successor]--;
-      if (indegree[successor] == 0) ready.push(successor);
-    }
-  }
-
-  // Most DFGs are DAGs, with recurrent behavior represented by self edges.
-  // If a benchmark contains a non-self cycle, keep the assignment
-  // deterministic rather than introducing another heuristic fallback.
-  for (int node_id = 0; node_id < n; node_id++) {
-    if (!visited[node_id]) level[node_id] = node_id;
-  }
-  return level;
-}
 
 std::optional<int> Placement2DPRISAEngine::FindSamePhysicalResourceAtContext(
     int base_resource, int dfg_node_id, int desired_context,
@@ -93,4 +57,4 @@ Placement2DPRISAEngine::FinalizePhysicalPlacementIfNeeded(
   return AssignContextsToPhysicalPlacement(placement);
 }
 
-}  // namespace mapper::detail::prisa_spatial
+}  // namespace mapper::prisa_spatial

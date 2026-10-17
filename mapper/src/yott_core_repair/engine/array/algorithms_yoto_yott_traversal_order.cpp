@@ -1,6 +1,6 @@
-#include "engine.hpp"
+#include <mapper/yott_core_repair/engine/array/yott_core_repair_array_engine.hpp>
 
-namespace mapper::detail::yott_core_repair_array {
+namespace mapper::yott_core_repair_array {
 
 // DFS/BFS baselines traverse DFG edges as an undirected graph so that, like
 // zigzag, a Step always means "place target near anchor" regardless of the
@@ -125,4 +125,4 @@ std::vector<Step> Placement2DYOTTCoreRepairEngine::BuildFullyRandomPlan() {
   return plan;
 }
 
-}  // namespace mapper::detail::yott_core_repair_array
+}  // namespace mapper::yott_core_repair_array

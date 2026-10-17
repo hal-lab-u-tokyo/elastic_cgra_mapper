@@ -1,6 +1,6 @@
-#include "engine.hpp"
+#include <mapper/yoto/engine/spatial/yoto_spatial_engine.hpp>
 
-namespace mapper::detail::yoto_spatial {
+namespace mapper::yoto_spatial {
 
 // Initial placement, candidate ranking, and traversal execution.
 
@@ -33,14 +33,6 @@ std::optional<int> Placement2DYOTOEngine::PlaceInitialNode(
   state.dfg_to_mrrg[dfg_node_id] = chosen;
   state.mrrg_to_dfg[chosen] = dfg_node_id;
   return chosen;
-}
-
-double Placement2DYOTOEngine::DegreeMatchScore(
-    int dfg_node_id, int mrrg_node_id, const PlacementState& state) const {
-  const int target_degree = annotation_.degree[dfg_node_id];
-  const int freedom = ResourceFreedom(mrrg_node_id, state);
-  if (freedom >= target_degree) return freedom - target_degree;
-  return 4.0 * (target_degree - freedom);
 }
 
 int Placement2DYOTOEngine::FreeResourcesAtDistance(
@@ -229,4 +221,4 @@ Placement2DYOTOEngine::ConstructTraversalPlacement(
   return state;
 }
 
-}  // namespace mapper::detail::yoto_spatial
+}  // namespace mapper::yoto_spatial

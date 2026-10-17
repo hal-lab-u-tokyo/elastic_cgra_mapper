@@ -1,6 +1,6 @@
-#include "engine.hpp"
+#include <mapper/sa/engine/array/sa_array_engine.hpp>
 
-namespace mapper::detail::sa_array {
+namespace mapper::sa_array {
 
 bool Placement2DSAEngine::ApplySwap(PlacementState& state, int a, int b) {
   if (a == b) return false;
@@ -87,4 +87,4 @@ std::optional<PlacementState> Placement2DSAEngine::RunSAMultiSeed(
   return best;
 }
 
-}  // namespace mapper::detail::sa_array
+}  // namespace mapper::sa_array

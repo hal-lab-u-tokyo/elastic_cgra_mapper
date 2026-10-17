@@ -1,6 +1,6 @@
-#include "engine.hpp"
+#include <mapper/prisa/engine/array/prisa_array_engine.hpp>
 
-namespace mapper::detail::prisa_array {
+namespace mapper::prisa_array {
 
 // PR/WR region accounting and local swap deltas.
 
@@ -738,4 +738,4 @@ Placement2DPRISAEngine::ProposePRISAMove(const PlacementState& state,
                        candidate->affected_max_after};
 }
 
-}  // namespace mapper::detail::prisa_array
+}  // namespace mapper::prisa_array

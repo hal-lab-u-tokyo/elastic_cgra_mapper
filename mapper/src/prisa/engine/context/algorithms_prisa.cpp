@@ -1,6 +1,6 @@
-#include "engine.hpp"
+#include <mapper/prisa/engine/context/prisa_context_engine.hpp>
 
-namespace mapper::detail::prisa_context {
+namespace mapper::prisa_context {
 
 std::optional<PlacementState> ModuloPRISAEngine::RunPRISAMultiSeed(
     std::chrono::steady_clock::time_point start) {
@@ -121,4 +121,4 @@ std::optional<PlacementState> ModuloPRISAEngine::RunPRISA(
   return FinalizePhysicalPlacementIfNeeded(best);
 }
 
-}  // namespace mapper::detail::prisa_context
+}  // namespace mapper::prisa_context

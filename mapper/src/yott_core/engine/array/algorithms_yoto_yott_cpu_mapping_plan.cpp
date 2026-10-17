@@ -1,6 +1,6 @@
-#include "engine.hpp"
+#include <mapper/yott_core/engine/array/yott_core_array_engine.hpp>
 
-namespace mapper::detail::yott_core_array {
+namespace mapper::yott_core_array {
 
 // Traversal plan and YOTT annotation construction.
 
@@ -233,4 +233,4 @@ std::vector<Step> Placement2DYOTTCoreEngine::BuildCPUMappingPlan() {
   return plan;
 }
 
-}  // namespace mapper::detail::yott_core_array
+}  // namespace mapper::yott_core_array

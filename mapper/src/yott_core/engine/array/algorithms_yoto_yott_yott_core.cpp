@@ -1,6 +1,6 @@
-#include "engine.hpp"
+#include <mapper/yott_core/engine/array/yott_core_array_engine.hpp>
 
-namespace mapper::detail::yott_core_array {
+namespace mapper::yott_core_array {
 
 // YOTT Core keeps only the compact traversal pieces:
 // random local traversal, reconvergence annotations, annotated tip placement,
@@ -184,4 +184,4 @@ std::optional<PlacementState> Placement2DYOTTCoreEngine::RunYOTTCoreMultiStart(
   return best;
 }
 
-}  // namespace mapper::detail::yott_core_array
+}  // namespace mapper::yott_core_array

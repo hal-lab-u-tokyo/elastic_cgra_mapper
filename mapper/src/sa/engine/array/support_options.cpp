@@ -1,6 +1,6 @@
-#include "engine.hpp"
+#include <mapper/sa/engine/array/sa_array_engine.hpp>
 
-namespace mapper::detail::sa_array {
+namespace mapper::sa_array {
 
 namespace {
 
@@ -24,7 +24,7 @@ void WriteCost(std::ofstream& trace, double value) {
 
 std::string Placement2DSAEngine::MapperName() const {
   switch (kind_) {
-    case mapper::Placement2DArrayKind::kSA:
+    case mapper::sa::Placement2DArrayKind::kSA:
       return "Placement2DArraySA";
   }
   return "Placement2DArray";
@@ -81,4 +81,4 @@ std::string Placement2DSAEngine::NodeLabel(int node) const {
   return std::to_string(node) + ":" + property.op_name + "/" + property.op_str;
 }
 
-}  // namespace mapper::detail::sa_array
+}  // namespace mapper::sa_array

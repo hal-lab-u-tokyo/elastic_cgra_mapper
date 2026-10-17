@@ -1,9 +1,9 @@
-#include "engine.hpp"
+#include <mapper/sa/engine/context/sa_context_engine.hpp>
 
-namespace mapper::detail::sa_context {
+namespace mapper::sa_context {
 
 std::optional<PlacementState> ModuloSAEngine::ConstructGreedyPlacement() {
   return ConstructTraversalPlacement(false, false);
 }
 
-}  // namespace mapper::detail::sa_context
+}  // namespace mapper::sa_context

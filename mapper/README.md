@@ -8,19 +8,20 @@
 Public headers live in `mapper/include/mapper/<algorithm>/`; implementations
 live in `mapper/src/<algorithm>/`. Algorithms are `sa`, `prisa`, `yoto`, `yott`,
 `yott_core`, `yott_core_repair`, `ilp`, `connectivity_path_ilp`,
-and `placement_first`. `detail/` contains shared option
-forwarding and compatibility adapters, without optimization logic.
+and `placement_first`. Headers, including backend declarations, live under
+`include/mapper/<algorithm>/`; no `detail/` dispatcher or cross-algorithm
+mapper base remains. Each concrete frontend implements `IMapper` directly.
 
-Each algorithm's `mapper.cpp` owns the readable execution workflow. Private
+Each algorithm's `<algorithm>_mapper.cpp` owns the readable execution workflow. Private
 `engine/` classes provide search, resource/cost, routing, and result operations.
 The six stochastic algorithms combine their former array dispatch and routed
 dispatch in one frontend, sharing the workflow across explicit variants. Engines
 no longer expose a complete `Run()` workflow. Spatial and context engines use
 the same routed frontend; array variants share their placement-only frontend.
-`placement_first/mapper.cpp` similarly orders placement, routing, and output.
+`placement_first/placement_first_mapper.cpp` similarly orders placement, routing, and output.
 
-ILP lives entirely in `ilp/`: `mapper.cpp` selects the formulation and
-`workflow.hpp` orders variable creation, objective, constraints, optimization,
+ILP lives entirely in `ilp/`: `ilp_mapper.cpp` selects the formulation and
+`include/mapper/ilp/ilp_workflow.hpp` orders variable creation, objective, constraints, optimization,
 and result collection. `engine/` owns the Gurobi model and variables.
 `connectivity_path_ilp` is deliberately unchanged pending a separate decision.
 
@@ -51,13 +52,20 @@ and result collection. `engine/` owns the Gurobi model and variables.
 These are semantic boundaries, not separate public algorithms. Keeping private
 `engine/{array,spatial,context}/` implementations preserves traversal/RNG order
 and the existing experiment contracts while eliminating duplicated frontend
-workflows. Further backend unification would require explicit policies for
-state, candidate ordering, and objectives, with a separate equivalence audit.
+workflows. Identical spatial/context operations live in each algorithm’s
+`include/mapper/<algorithm>/engine/<algorithm>_engine_operations.hpp`. These
+algorithm-owned CRTP operation classes share cache-independent search, scoring,
+resource queries, traversal and routing helpers while using concrete engine
+state and legality rules. SA shares 39 methods, PRISA 44, YOTO 38 and YOTT 38.
+Per-algorithm timing/operation-compatibility/distance helpers are shared too;
+YOTO/YOTT array and routed engines use the same degree penalty. No helper
+selects among different algorithms. Domain-specific state, legal-resource
+checks, candidate ordering and objectives remain in the domain engines.
 
 ## MRRG selection
 
 Use `SA`, `PRISA`, `YOTO`, `YOTT`, or `ILP` (also `<name>Mapper`) as
-`Algorithm.type`. The corresponding algorithm's `mapper.cpp` reads the input MRRG:
+`Algorithm.type`. The corresponding algorithm's `<algorithm>_mapper.cpp` reads the input MRRG:
 
 - `context_size == 1`: its spatial engine (spatial formulation for ILP).
 - `context_size > 1`: its context-aware engine (physical/context assignment for PRISA,

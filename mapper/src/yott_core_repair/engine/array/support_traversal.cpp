@@ -1,6 +1,6 @@
-#include "engine.hpp"
+#include <mapper/yott_core_repair/engine/array/yott_core_repair_array_engine.hpp>
 
-namespace mapper::detail::yott_core_repair_array {
+namespace mapper::yott_core_repair_array {
 
 // Shared traversal graph utilities used by paper-guided and cpu_mapping
 // YOTO/YOTT variants. Method-specific files decide how these scores are used.
@@ -122,4 +122,4 @@ Placement2DYOTTCoreRepairEngine::BuildBetweennessCentralityScore() const {
   return centrality;
 }
 
-}  // namespace mapper::detail::yott_core_repair_array
+}  // namespace mapper::yott_core_repair_array

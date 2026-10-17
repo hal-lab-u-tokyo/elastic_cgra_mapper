@@ -1,10 +1,9 @@
-#include "placement_first_engine.hpp"
-
 #include <algorithm>
 #include <chrono>
 #include <cmath>
 #include <fstream>
 #include <limits>
+#include <mapper/placement_first/engine/placement_first_engine.hpp>
 #include <queue>
 #include <set>
 #include <unordered_map>
@@ -142,7 +141,7 @@ std::vector<int> FindRoutePath(
 
 }  // namespace
 
-namespace mapper::detail {
+namespace mapper::placement_first {
 PlacementFirstEngine::PlacementFirstEngine(
     const std::shared_ptr<entity::DFG>& dfg,
     const std::shared_ptr<entity::MRRG>& mrrg)
@@ -269,4 +268,4 @@ MappingResult PlacementFirstEngine::Failure(
                          1000.0;
   return MappingResult(false, entity::Mapping(mrrg_config), elapsed);
 }
-}  // namespace mapper::detail
+}  // namespace mapper::placement_first

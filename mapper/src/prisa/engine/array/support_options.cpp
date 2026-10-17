@@ -1,6 +1,6 @@
-#include "engine.hpp"
+#include <mapper/prisa/engine/array/prisa_array_engine.hpp>
 
-namespace mapper::detail::prisa_array {
+namespace mapper::prisa_array {
 
 namespace {
 
@@ -24,23 +24,23 @@ void WriteCost(std::ofstream& trace, double value) {
 
 std::string Placement2DPRISAEngine::MapperName() const {
   switch (kind_) {
-    case mapper::Placement2DArrayKind::kPRISA:
+    case mapper::prisa::Placement2DArrayKind::kPRISA:
       return "Placement2DArrayPRISA";
-    case mapper::Placement2DArrayKind::kPRISANoSIS:
+    case mapper::prisa::Placement2DArrayKind::kPRISANoSIS:
       return "Placement2DArrayPRISANoSIS";
-    case mapper::Placement2DArrayKind::kCostAwarePRISA:
+    case mapper::prisa::Placement2DArrayKind::kCostAwarePRISA:
       return "Placement2DArrayCostAwarePRISA";
   }
   return "Placement2DArray";
 }
 
 bool Placement2DPRISAEngine::UsesPRISASIS() const {
-  return kind_ == mapper::Placement2DArrayKind::kPRISA ||
-         kind_ == mapper::Placement2DArrayKind::kCostAwarePRISA;
+  return kind_ == mapper::prisa::Placement2DArrayKind::kPRISA ||
+         kind_ == mapper::prisa::Placement2DArrayKind::kCostAwarePRISA;
 }
 
 bool Placement2DPRISAEngine::UsesCostAwarePRISA() const {
-  return kind_ == mapper::Placement2DArrayKind::kCostAwarePRISA;
+  return kind_ == mapper::prisa::Placement2DArrayKind::kCostAwarePRISA;
 }
 
 bool Placement2DPRISAEngine::UsesStructuralIOCellTypes() const {
@@ -87,4 +87,4 @@ std::string Placement2DPRISAEngine::NodeLabel(int node) const {
   return std::to_string(node) + ":" + property.op_name + "/" + property.op_str;
 }
 
-}  // namespace mapper::detail::prisa_array
+}  // namespace mapper::prisa_array

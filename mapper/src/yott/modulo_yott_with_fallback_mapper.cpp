@@ -1,6 +1,5 @@
 #include <mapper/yott/modulo_yott_with_fallback_mapper.hpp>
-
-#include <mapper/detail/modulo_search_engine.hpp>
+#include <mapper/yott/yott_options.hpp>
 
 namespace mapper {
 
@@ -10,15 +9,14 @@ ModuloYOTTWithFallbackMapper::ModuloYOTTWithFallbackMapper(
     : dfg_ptr_(dfg_ptr), mrrg_ptr_(mrrg_ptr) {}
 
 MappingResult ModuloYOTTWithFallbackMapper::Execution() {
-  detail::PlacementSearchOptions options;
+  yott::PlacementSearchOptions options;
   options.max_trials = max_trials_;
   options.seed_count = seed_count_;
   options.routing_retry_count = routing_retry_count_;
   options.random_seed = random_seed_;
-  return detail::RunModuloPlacementSearchMapper(
-      dfg_ptr_, mrrg_ptr_,
-      detail::ModuloPlacementSearchKind::kYOTTWithFallback, timeout_s_,
-      log_file_path_, options);
+  return yott::RunYOTTSearch(dfg_ptr_, mrrg_ptr_,
+                             yott::PlacementSearchKind::kYOTTWithFallback,
+                             timeout_s_, log_file_path_, options);
 }
 
 void ModuloYOTTWithFallbackMapper::SetLogFilePath(

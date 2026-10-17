@@ -1,6 +1,6 @@
-#include "engine.hpp"
+#include <mapper/yott_core_repair/engine/array/yott_core_repair_array_engine.hpp>
 
-namespace mapper::detail::yott_core_repair_array {
+namespace mapper::yott_core_repair_array {
 
 namespace {
 
@@ -24,7 +24,8 @@ void WriteCost(std::ofstream& trace, double value) {
 
 std::string Placement2DYOTTCoreRepairEngine::MapperName() const {
   switch (kind_) {
-    case mapper::Placement2DArrayKind::kCPUMappingYOTTCoreRepair:
+    case mapper::yott_core_repair::Placement2DArrayKind::
+        kCPUMappingYOTTCoreRepair:
       return "Placement2DCPUMappingYOTTCoreRepair";
   }
   return "Placement2DArray";
@@ -337,4 +338,4 @@ void Placement2DYOTTCoreRepairEngine::RecordFailure(const std::string& reason) {
   if (last_failure_reason_.empty()) last_failure_reason_ = reason;
 }
 
-}  // namespace mapper::detail::yott_core_repair_array
+}  // namespace mapper::yott_core_repair_array

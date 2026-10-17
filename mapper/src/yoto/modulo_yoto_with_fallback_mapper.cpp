@@ -1,6 +1,5 @@
 #include <mapper/yoto/modulo_yoto_with_fallback_mapper.hpp>
-
-#include <mapper/detail/modulo_search_engine.hpp>
+#include <mapper/yoto/yoto_options.hpp>
 
 namespace mapper {
 
@@ -10,15 +9,14 @@ ModuloYOTOWithFallbackMapper::ModuloYOTOWithFallbackMapper(
     : dfg_ptr_(dfg_ptr), mrrg_ptr_(mrrg_ptr) {}
 
 MappingResult ModuloYOTOWithFallbackMapper::Execution() {
-  detail::PlacementSearchOptions options;
+  yoto::PlacementSearchOptions options;
   options.max_trials = max_trials_;
   options.seed_count = seed_count_;
   options.routing_retry_count = routing_retry_count_;
   options.random_seed = random_seed_;
-  return detail::RunModuloPlacementSearchMapper(
-      dfg_ptr_, mrrg_ptr_,
-      detail::ModuloPlacementSearchKind::kYOTOWithFallback, timeout_s_,
-      log_file_path_, options);
+  return yoto::RunYOTOSearch(dfg_ptr_, mrrg_ptr_,
+                             yoto::PlacementSearchKind::kYOTOWithFallback,
+                             timeout_s_, log_file_path_, options);
 }
 
 void ModuloYOTOWithFallbackMapper::SetLogFilePath(

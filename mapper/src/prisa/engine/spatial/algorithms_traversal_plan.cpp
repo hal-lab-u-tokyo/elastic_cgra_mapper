@@ -1,6 +1,6 @@
-#include "engine.hpp"
+#include <mapper/prisa/engine/spatial/prisa_spatial_engine.hpp>
 
-namespace mapper::detail::prisa_spatial {
+namespace mapper::prisa_spatial {
 
 // DFG traversal roots, order, and YOTT annotations.
 
@@ -11,4 +11,4 @@ int Placement2DPRISAEngine::OtherEndpoint(const DFGEdgeInfo& edge,
   return -1;
 }
 
-}  // namespace mapper::detail::prisa_spatial
+}  // namespace mapper::prisa_spatial
