@@ -1,0 +1,6 @@
+{
+  "Algorithm": {
+    "type": "Placement2DILPMapper",
+    "accept_feasible_solution": true
+  }
+}

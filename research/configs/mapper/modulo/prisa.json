@@ -1,0 +1,13 @@
+{
+  "Algorithm": {
+    "type": "ModuloPhysicalPRISAMapper",
+    "accept_feasible_solution": true,
+    "seed_count": 1,
+    "routing_retry_count": 6,
+    "random_seed": 1005,
+    "max_iterations": 500
+  },
+  "DFG": {
+    "operation_name_label": "node_id"
+  }
+}

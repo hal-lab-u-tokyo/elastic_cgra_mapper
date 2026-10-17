@@ -1,0 +1,20 @@
+source,output,status,nodes,edges,op_counts,unsupported_ops,skipped_control_nodes,bypassed_control_edges,dropped_edges
+lisa/dac/atax.dot,lisa/dac/atax.dot,ready,15,15,"{'add': 2, 'load': 4, 'mul': 3, 'output': 2, 'select': 4}",,0,0,0
+lisa/dac/bicg.dot,lisa/dac/bicg.dot,ready,26,27,"{'add': 3, 'load': 6, 'mul': 5, 'output': 4, 'select': 8}",,0,0,0
+lisa/dac/cholesky.dot,lisa/dac/cholesky.dot,ready,9,9,"{'add': 1, 'load': 2, 'mul': 2, 'output': 1, 'select': 2, 'sub': 1}",,0,0,0
+lisa/dac/doitgen.dot,lisa/dac/doitgen.dot,ready,19,19,"{'add': 2, 'load': 4, 'mul': 3, 'output': 3, 'select': 7}",,0,0,0
+lisa/dac/gemm.dot,lisa/dac/gemm.dot,ready,19,19,"{'add': 2, 'load': 5, 'mul': 4, 'output': 2, 'select': 6}",,0,0,0
+lisa/dac/gemver.dot,lisa/dac/gemver.dot,ready,23,24,"{'add': 3, 'load': 6, 'mul': 5, 'output': 2, 'select': 7}",,0,0,0
+lisa/dac/gesummv.dot,lisa/dac/gesummv.dot,ready,26,27,"{'add': 3, 'load': 6, 'mul': 5, 'output': 4, 'select': 8}",,0,0,0
+lisa/dac/mvt.dot,lisa/dac/mvt.dot,ready,16,16,"{'add': 2, 'load': 4, 'mul': 3, 'output': 2, 'select': 5}",,0,0,0
+lisa/dac/symm.dot,lisa/dac/symm.dot,ready,18,18,"{'add': 2, 'load': 4, 'mul': 3, 'output': 2, 'select': 7}",,0,0,0
+lisa/dac/syrk.dot,lisa/dac/syrk.dot,ready,15,15,"{'add': 2, 'load': 4, 'mul': 3, 'output': 2, 'select': 4}",,0,0,0
+lisa/dac/trmm.dot,lisa/dac/trmm.dot,ready,20,20,"{'add': 2, 'load': 5, 'mul': 4, 'output': 2, 'select': 7}",,0,0,0
+m_bench/dac/arf.dot,m_bench/dac/arf.dot,ready,38,40,"{'add': 12, 'load': 8, 'mul': 16, 'output': 2}",,0,0,0
+m_bench/dac/collapse_pyr.dot,m_bench/dac/collapse_pyr.dot,ready,86,95,"{'add': 18, 'load': 6, 'mul': 9, 'output': 17, 'select': 28, 'sub': 8}",,0,0,0
+m_bench/dac/conv3.dot,m_bench/dac/conv3.dot,ready,25,26,"{'add': 4, 'load': 9, 'mul': 7, 'output': 2, 'select': 3}",,0,0,0
+m_bench/dac/ewf.dot,m_bench/dac/ewf.dot,ready,47,60,"{'add': 26, 'load': 2, 'mul': 8, 'output': 5, 'select': 6}",,0,0,0
+m_bench/dac/h2v2_smooth.dot,m_bench/dac/h2v2_smooth.dot,ready,64,67,"{'add': 29, 'load': 16, 'mul': 2, 'output': 1, 'select': 16}",,0,0,0
+m_bench/dac/mac.dot,m_bench/dac/mac.dot,ready,11,11,"{'add': 2, 'load': 3, 'mul': 3, 'output': 1, 'select': 2}",,0,0,0
+m_bench/dac/mults1.dot,m_bench/dac/mults1.dot,ready,25,28,"{'add': 7, 'load': 1, 'mul': 8, 'output': 1, 'select': 8}",,0,0,0
+m_bench/dac/simple.dot,m_bench/dac/simple.dot,ready,14,15,"{'add': 2, 'load': 4, 'mul': 3, 'output': 1, 'select': 4}",,0,0,0
