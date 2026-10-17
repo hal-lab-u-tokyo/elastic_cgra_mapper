@@ -62,7 +62,7 @@ void simulator::CGRA::SetConfig(std::shared_ptr<entity::Mapping> mapping) {
     PE_array_[tmp_config_id.row_id][tmp_config_id.column_id].SetConfig(
         tmp_config_id.context_id, config_map[tmp_config_id]);
     entity::CGRAConfig tmp_config = itr->second;
-    if (tmp_config.operation_type == entity::OpType::OUTPUT) {
+    if (tmp_config.operation_type == entity::OpType::kOutput) {
       output_config_id_ = tmp_config_id;
     }
   }

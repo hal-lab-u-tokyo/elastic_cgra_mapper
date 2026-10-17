@@ -254,7 +254,7 @@ entity::MRRG::MRRG(entity::MRRGConfig mrrg_config)
 
         graph_[vertex_id].is_memory_accessible =
             std::find(supported_operations.begin(), supported_operations.end(),
-                      entity::OpType::LOAD) != supported_operations.end();
+                      entity::OpType::kLoad) != supported_operations.end();
         graph_[vertex_id].local_reg_size = mrrg_config.local_reg_size;
         graph_[vertex_id].context_size = mrrg_config.context_size;
         graph_[vertex_id].supported_operations = supported_operations;

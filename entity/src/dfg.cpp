@@ -21,9 +21,9 @@ std::vector<int> entity::DFG::Execute(std::vector<int>& memory, int iterations,
     std::unordered_set<int> child_node_ids = std::unordered_set<int>(
         child_node_id_vec.begin(), child_node_id_vec.end());
 
-    if (node_property.op == entity::OpType::ROUTE) {
+    if (node_property.op == entity::OpType::kRoute) {
       int tmp_node_id = i;
-      while (GetNodeProperty(tmp_node_id).op == entity::OpType::ROUTE) {
+      while (GetNodeProperty(tmp_node_id).op == entity::OpType::kRoute) {
         std::vector<int> parent_node_id_vec = GetParentNodeIdVec(tmp_node_id);
         tmp_node_id = parent_node_id_vec[0];
       }

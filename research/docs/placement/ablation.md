@@ -108,7 +108,7 @@ entries. Wire it through:
 3. `mapper/include/mapper/mapper.hpp`
 4. `mapper/include/mapper/detail/placement2d_array_mapper_base.hpp`
 5. `mapper/src/placement2d/placement2d_array_mapper_base.cpp`
-6. `mapper/src/placement2d/engine/array_engine_internal.hpp`
+6. `mapper/src/yott/engine/array/engine.hpp`
 7. the stage function under `mapper/src/placement2d/engine/`
 
 Keep the option name tied to the stage, for example

@@ -45,7 +45,7 @@ struct ConfigIOStruct {
 
   ConfigIOStruct(int context_id_) {
     context_id = context_id_;
-    operation_type = entity::OpTypeToString(entity::OpType::NOP);
+    operation_type = entity::OpTypeToString(entity::OpType::kNop);
     operation_name = "nop";
     const_value = 0;
   }

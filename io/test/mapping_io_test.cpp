@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <io/mapping_io.hpp>
-#include <mapper/full_routing_ilp/full_routing_ilp_mapper.hpp>
+#include <mapper/ilp/full_routing_ilp_mapper.hpp>
 
 TEST(IOTest, maping_io_test) {
   // create mapping

@@ -7,14 +7,15 @@ Organize each mapper by algorithm under `mapper/include/mapper/<algorithm>/`
 and `mapper/src/<algorithm>/`. Within an algorithm, select spatial or
 context-aware implementations from the input MRRG. Keep optimization state and
 helpers owned by the algorithm; use `detail/` only for shared option forwarding
-and compatibility adapters. `SA`, `PRISA`, `YOTO`, and `YOTT` already select
+and compatibility adapters. `SA`, `PRISA`, `YOTO`, `YOTT`, and `ILP` already select
 implementations from MRRG context size.
 
 ## C++ Extension Points
 
 1. Implement a class derived from `mapper::IMapper`.
 2. Put declarations under `mapper/include/mapper/<algorithm>/`.
-3. Put implementations under `mapper/src/<algorithm>/`.
+3. Put workflow in `mapper/src/<algorithm>/mapper.cpp` and backend operations
+   under `engine/`; choose private implementations from the MRRG.
 4. Register the mapper type in `mapper/src/mapper_registry.cpp`.
 5. Add a mapper config under `research/configs/mapper/`.
 6. Add the new mapper config to a research experiment manifest.
