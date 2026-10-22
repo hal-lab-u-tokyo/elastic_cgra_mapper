@@ -12,19 +12,17 @@ and `placement_first`. Headers, including backend declarations, live under
 `include/mapper/<algorithm>/`; no `detail/` dispatcher or cross-algorithm
 mapper base remains. Each concrete frontend implements `IMapper` directly.
 
-Each algorithm's `<algorithm>_mapper.cpp` owns the readable execution workflow. Private
-`engine/` classes provide search, resource/cost, routing, and result operations.
-The six stochastic algorithms combine their former array dispatch and routed
-dispatch in one frontend, sharing the workflow across explicit variants. Engines
-no longer expose a complete `Run()` workflow. Spatial and context engines use
-the same routed frontend; array variants share their placement-only frontend.
-SA now uses one concrete `sa::SaEngine` for all three variants, with one
-workflow in `sa_mapper.cpp`. Its backend has only `sa_engine.cpp` (setup,
-resource caches and shared operations), `sa_placement.cpp` (placement/search
-and costs), and `sa_routing.cpp` (routing). The single header is
-`include/mapper/sa/engine/sa_engine.hpp`; there are no SA domain subfolders or
-template mapper/engine base classes.
-`placement_first/placement_first_mapper.cpp` similarly orders placement, routing, and output.
+Each algorithm's `<algorithm>_mapper.cpp` owns the execution workflow.
+SA, PRISA, YOTO and YOTT each have one concrete engine declared in
+`include/mapper/<algorithm>/engine/<algorithm>_engine.hpp`. Each backend has
+three implementation files: `<algorithm>_engine.cpp` for setup, caches and
+shared operations; `<algorithm>_placement.cpp` for search and placement costs;
+and `<algorithm>_routing.cpp` for route search and reservation. There are no
+array/spatial/context engine subfolders, CRTP engine bases, or template mapper
+gateways for these four algorithms. Their frontends call placement and routing
+operations directly, including the placement-only result path.
+`placement_first/placement_first_mapper.cpp` similarly orders placement,
+routing, and output. Core and core-repair retain their own single backends.
 
 ILP lives entirely in `ilp/`: `ilp_mapper.cpp` selects the formulation and
 `include/mapper/ilp/ilp_workflow.hpp` orders variable creation, objective, constraints, optimization,
@@ -36,57 +34,41 @@ They are renamed from `gurobi_mapper.cpp` and `gurobi_placement_mapper.cpp`,
 respectively. Engine declarations remain under `include/mapper/ilp/engine/`.
 `connectivity_path_ilp` is deliberately unchanged pending a separate decision.
 
-### Why private backend variants remain
+### Variant policies within one engine
 
-- Array engines store `dfg_to_cell` / `cell_to_dfg`, use grid compatibility
-  caches and paper/CPU candidate policies, and produce a placement with empty
-  routes. Routed engines store MRRG-node assignments and route ownership;
-  both representations are retained explicitly in SA’s single placement state
-  so their candidate order and output semantics remain unchanged.
-- SA handles one-context spatial and multiple-context resources in one engine.
-  Named legacy variants retain their placement strategy, distance-cache policy,
-  resource legality and random ordering, including explicit variants on a
-  multi-context MRRG. Grid placement keeps its grid objective and empty-route
-  output. Seed/budget/logging and critical-path operations are shared; grid
-  and MRRG candidate/move policies remain distinct operations on that engine.
-- PRISA's context backend adds physical placement followed by context
-  assignment and routing; the spatial backend's refinement and candidate
-  resources differ. The array variant has its own SIS/grid objective.
-- YOTO and YOTT context backends support physical-to-context assignment and
-  modulo fallback policies; spatial backends enforce physical exclusivity.
-  Their `CanOccupyResource`, `ConstructTraversalPlacement`, context assignment,
-  and routing legality differ. YOTT also retains annotated ranking; YOTO does
-  not gain those semantics through consolidation.
-- YOTT core and core-repair are already single array backends with distinct
-  core objectives and repair passes. They each now have one mapper frontend.
-- Spatial ILP uses operation/route-node constraints; full-routing ILP uses
-  per-DFG-edge flow variables plus producer-level route ownership. Combining
-  those mathematical formulations would change the feasible set. They share
-  solver orchestration, but keep separate constraint builders.
+Grid placement retains cell coordinates, grid compatibility/cost policies and
+empty-route output. Routed placement retains MRRG-node assignments and route
+ownership. Both coordinate representations belong to the algorithm's one
+placement state; neither is silently substituted for the other. Seed/budget,
+timeout, logging and critical-path operations are shared where identical.
+Per-trial seed handling, candidate order and existing counters are preserved.
 
-For PRISA, YOTO and YOTT, these remain private implementation boundaries. Keeping private
-`engine/{array,spatial,context}/` implementations preserves traversal/RNG order
-and the existing experiment contracts while eliminating duplicated frontend
-workflows. Identical spatial/context operations live in each algorithm’s
-`include/mapper/<algorithm>/engine/<algorithm>_engine_operations.hpp`. These
-algorithm-owned CRTP operation classes share cache-independent search, scoring,
-resource queries, traversal and routing helpers while using concrete engine
-state and legality rules. PRISA shares 44 methods, YOTO 38 and YOTT 38.
-SA folds its former 39 shared methods into ordinary concrete engine methods,
-without a CRTP adapter. Its grid and routed paths also share seed configuration,
-trial budgets, timeout handling, logging and critical-path computation.
-Per-algorithm timing/operation-compatibility/distance helpers are shared too;
-YOTO/YOTT array and routed engines use the same degree penalty. No helper
-selects among different algorithms. Domain-specific state, legal-resource
-checks, candidate ordering and objectives remain in the domain engines.
+One-context spatial and multi-context placement use the same concrete engine.
+The generic algorithm name chooses a strategy from the MRRG, while explicit
+legacy variants retain their original behavior, including explicit spatial
+strategies on multi-context input. Context-aware policies handle physical PE
+exclusivity, distance caching and assignment to time-expanded resources.
+
+- PRISA retains SIS/no-SIS and cost-aware placement/refinement, including
+  physical placement followed by context assignment and optional Manhattan
+  routing. Grid and MRRG cost-aware metrics remain distinct types because
+  they represent different coordinate domains.
+- YOTO and YOTT retain physical-to-context assignment and modulo fallback
+  candidate policies. YOTT retains its reconvergence annotations and ranking;
+  YOTO does not acquire those behaviors through consolidation.
+- YOTT core and core-repair remain separate algorithms with their original
+  compact objectives and repair passes; this does not fold them into YOTT.
+- Spatial ILP and full-routing ILP retain separate mathematical formulations
+  within the ILP algorithm. They share solver orchestration and keep distinct
+  constraint builders. Connectivity-path ILP remains deferred.
 
 ## MRRG selection
 
 Use `SA`, `PRISA`, `YOTO`, `YOTT`, or `ILP` (also `<name>Mapper`) as
 `Algorithm.type`. The corresponding algorithm's `<algorithm>_mapper.cpp` reads the input MRRG:
 
-- `context_size == 1`: its spatial engine (spatial formulation for ILP).
-- `context_size > 1`: its context-aware engine (physical/context assignment for PRISA,
+- `context_size == 1`: its spatial placement strategy (spatial formulation for ILP).
+- `context_size > 1`: its context-aware strategy (physical/context assignment for PRISA,
   full per-edge routing formulation for ILP).
 
 Example: `{"Algorithm": {"type": "YOTT", "random_seed": 42}}` works with

@@ -1,52 +1,21 @@
-#include <mapper/yoto/engine/array/yoto_array_engine.hpp>
-#include <mapper/yoto/engine/context/yoto_context_engine.hpp>
-#include <mapper/yoto/engine/spatial/yoto_spatial_engine.hpp>
+#include <mapper/yoto/engine/yoto_engine.hpp>
 #include <mapper/yoto/yoto_options.hpp>
 #include <stdexcept>
-#include <utility>
 
 namespace mapper::yoto {
-// The frontend owns the execution order; the engine owns algorithm operations
-// and placement/routing state. Explicit variants share this workflow.
-template <typename Engine>
-class YotoArrayMapper {
- public:
-  template <typename... Args>
-  explicit YotoArrayMapper(Args&&... args)
-      : engine_(std::forward<Args>(args)...) {}
-  MappingResult Execution() {
-    const auto start = engine_.StartSearch();
-    auto placement = engine_.SearchPlacement(start);
-    if (!placement) return engine_.Failure(start);
-    return engine_.FinishPlacement(*placement, start);
-  }
+namespace {
+MappingResult Execute(YotoEngine& engine) {
+  const auto start = engine.StartSearch();
+  auto placement = engine.SearchPlacement(start);
+  if (!placement) return engine.Failure(start);
+  if (engine.PlacementOnly())
+    return engine.FinishPlacementOnly(*placement, start);
+  auto routes = engine.RoutePlacement(*placement);
+  if (!routes) return engine.Failure(start);
+  return engine.FinishRoutedMapping(*placement, *routes, start);
+}
+}  // namespace
 
- private:
-  Engine engine_;
-};
-
-template <typename Engine>
-class YotoRoutedMapper {
- public:
-  template <typename... Args>
-  explicit YotoRoutedMapper(Args&&... args)
-      : engine_(std::forward<Args>(args)...) {}
-  MappingResult Execution() {
-    const auto start = engine_.StartSearch();
-    auto placement = engine_.SearchPlacement(start);
-    if (!placement) return engine_.Failure(start);
-    if (engine_.PlacementOnly())
-      return engine_.FinishPlacementOnly(*placement, start);
-    auto routes = engine_.RoutePlacement(*placement);
-    if (!routes) return engine_.Failure(start);
-    return engine_.FinishRoutedMapping(*placement, *routes, start);
-  }
-
- private:
-  Engine engine_;
-};
-}  // namespace mapper::yoto
-namespace mapper::yoto {
 MappingResult RunYOTOSearch(const std::shared_ptr<entity::DFG>& dfg_ptr,
                             const std::shared_ptr<entity::MRRG>& mrrg_ptr,
                             PlacementSearchKind search_kind,
@@ -63,46 +32,29 @@ MappingResult RunYOTOSearch(const std::shared_ptr<entity::DFG>& dfg_ptr,
   }
   switch (search_kind) {
     case PlacementSearchKind::kYOTO:
-      return YotoRoutedMapper<yoto_context::ModuloYOTOEngine>(
-                 *dfg_ptr, *mrrg_ptr, search_kind, effective_timeout,
-                 log_file_path, options)
-          .Execution();
     case PlacementSearchKind::kModuloPhysicalYOTO:
-      return YotoRoutedMapper<yoto_context::ModuloYOTOEngine>(
-                 *dfg_ptr, *mrrg_ptr, search_kind, effective_timeout,
-                 log_file_path, options)
-          .Execution();
     case PlacementSearchKind::kYOTOWithFallback:
-      return YotoRoutedMapper<yoto_context::ModuloYOTOEngine>(
-                 *dfg_ptr, *mrrg_ptr, search_kind, effective_timeout,
-                 log_file_path, options)
-          .Execution();
     case PlacementSearchKind::kPlacement2DYOTO:
-      return YotoRoutedMapper<yoto_spatial::Placement2DYOTOEngine>(
-                 *dfg_ptr, *mrrg_ptr, search_kind, effective_timeout,
-                 log_file_path, options)
-          .Execution();
+      break;
     default:
       throw std::invalid_argument("invalid yoto search variant");
   }
+  YotoEngine engine(*dfg_ptr, *mrrg_ptr, search_kind, effective_timeout,
+                    log_file_path, options);
+  return Execute(engine);
 }
-}  // namespace mapper::yoto
 
-namespace mapper::yoto {
 MappingResult RunYotoArray(entity::DFG& dfg, entity::MRRG& mrrg,
                            Placement2DArrayKind kind,
                            const Placement2DArrayOptions& options) {
   switch (kind) {
     case mapper::yoto::Placement2DArrayKind::kPaperGuidedYOTO:
-      return YotoArrayMapper<yoto_array::Placement2DYOTOEngine>(dfg, mrrg, kind,
-                                                                options)
-          .Execution();
     case mapper::yoto::Placement2DArrayKind::kCPUMappingYOTO:
-      return YotoArrayMapper<yoto_array::Placement2DYOTOEngine>(dfg, mrrg, kind,
-                                                                options)
-          .Execution();
+      break;
     default:
       throw std::invalid_argument("invalid yoto array variant");
   }
+  YotoEngine engine(dfg, mrrg, kind, options);
+  return Execute(engine);
 }
 }  // namespace mapper::yoto
