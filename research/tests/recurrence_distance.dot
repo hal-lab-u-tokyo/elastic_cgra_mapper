@@ -1,0 +1,6 @@
+digraph G {
+mul0[opcode=mul, latency=2];
+add1[opcode=add];
+mul0->add1[operand=0];
+add1->mul0[operand=0, distance=1];
+}

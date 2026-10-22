@@ -1,0 +1,26 @@
+digraph mac {
+    0 [label = mul0 op = mul ] ;
+    1 [label = in1 op = in ] ;
+    2 [label = reg2 op = reg ]; 
+    3 [label = mul3 op = mul ] ;
+    4 [label = in4 op = in ] ;
+    5 [label = reg5 op = reg ]; 
+    6 [label = mul6 op = mul ] ;
+    7 [label = add7 op = addi value = 2 ]; 
+    8 [label = out8 op = output ] ;
+    9 [label = add9 op = addi value = 2 ]; 
+    10 [label = in10 op = in ] ;
+    
+    1 -> 0 [port = 0  weight = 0 ]; 
+    9 -> 0 [port = 1  weight = 0 ] ;
+    0 -> 2 [port = 0  weight = 0 ] ;
+    4 -> 3 [port = 0  weight = 0 ] ;
+    9 -> 3 [port = 1  weight = 0 ] ;
+    3 -> 5 [port = 0  weight = 0 ] ;
+    2 -> 6 [port = 0  weight = 0 ] ;
+    5 -> 6 [port = 1  weight = 0 ] ;
+    6 -> 7 [port = 0  weight = 0 ] ;
+    7 -> 8 [port = 0  weight = 0 ] ;
+    # 9 -> 9 [port=0 weight = 0 ] 
+    10 -> 9 [port = 0  weight = 0 ] ;
+}
