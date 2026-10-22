@@ -1,6 +1,6 @@
-version: '3.7'
 services:
   gurobi:
+    platform: linux/amd64
     build:
       context: ../
       dockerfile: environment/Dockerfile
@@ -10,9 +10,9 @@ services:
     ports:
       - 1000:1000
     environment:
-      - HOSTNAME_FROM_HOST=${HOSTNAME}
+      - HOSTNAME_FROM_HOST=${HOSTNAME:-}
     volumes:
-      - $HOME/elastic_cgra_mapper/:/home/ubuntu/elastic_cgra_mapper
-      - $HOME/elastic_cgra_mapper/license_files/gurobi.lic:/opt/gurobi/gurobi.lic:ro
+      - ..:/home/ubuntu/elastic_cgra_mapper
+      - ../license_files/gurobi.lic:/opt/gurobi/gurobi.lic:ro
       - $HOME/.Xauthority:/root/.Xauthority
       - /etc/localtime:/etc/localtime:ro

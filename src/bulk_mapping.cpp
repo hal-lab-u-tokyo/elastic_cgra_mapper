@@ -9,7 +9,7 @@
 #include <io/mapping_io.hpp>
 #include <io/output_to_log_file.hpp>
 #include <iostream>
-#include <mapper/gurobi_placement_mapper.hpp>
+#include <mapper/ilp/placement2d_ilp_mapper.hpp>
 
 std::vector<entity::MRRGConfig> GetMRRGToTest(int dfg_node_num) {
   std::vector<entity::MRRGConfig> mrrg_config_vec;
@@ -74,7 +74,7 @@ int main(int argc, char* argv[]) {
   assert(std::filesystem::path(output_dir).is_absolute());
 
   std::shared_ptr<entity::DFG> dfg_ptr = std::make_shared<entity::DFG>();
-  entity::MapperConfig mapper_config =
+  mapper::MapperConfig mapper_config =
       io::ReadMapperConfigFromJsonFile(mapper_config_file_path);
   *dfg_ptr = io::ReadDFGDotFile(dfg_dot_file_path, mapper_config.dfg_config);
 
@@ -95,11 +95,12 @@ int main(int argc, char* argv[]) {
       std::shared_ptr<entity::MRRG> mrrg_ptr =
           std::make_shared<entity::MRRG>(mrrg_config);
 
-      mapper::GurobiPlacementILPMapper* mapper;
-      mapper =
-          mapper::GurobiPlacementILPMapper().CreateMapper(dfg_ptr, mrrg_ptr);
+      mapper::Placement2DILPMapper* mapper;
+      mapper = mapper::Placement2DILPMapper().CreateMapper(dfg_ptr, mrrg_ptr);
       mapper->SetLogFilePath(mapping_logger.GetGurobiLogFilePath());
       mapper->SetTimeOut(timeout_s);
+      mapper->SetAcceptFeasibleSolution(
+          mapper_config.algorithm_config.accept_feasible_solution);
 
       const auto result = mapper->Execution();
       is_success = result.is_success;

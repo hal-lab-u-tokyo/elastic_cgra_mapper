@@ -1,0 +1,41 @@
+digraph gemm {
+    0 [label = mul0 op = mul ] ;
+    1 [label = in1 op = in ] ;
+    2 [label = reg2 op = reg ] ;
+    3 [label = mul3 op = mul ] ;
+    4 [label = in4 op = in ] ;
+    5 [label = mul5 op = mul ] ;
+    6 [label = in6 op = in ] ;
+    7 [label = reg7 op = reg ] ;
+    8 [label = reg8 op = reg ] ;
+    9 [label = mul9 op = mul ] ;
+    10 [label = reg10 op = reg ] ;
+    11 [label = in11 op = in ] ;
+    12 [label = reg12 op = reg ] ;
+    13 [label = reg13 op = reg ] ;
+    14 [label = add14 op = add ] ;
+    15 [label = out15 op = out ] ;
+    16 [label = add16 op = addi value = 2 ] ;
+    17 [label = in17 op = in ] ;
+    18 [label = out18 op = out ] ;
+    
+    1 -> 0 [port = 0  weight = 0 ] ;
+    16 -> 0 [port = 1  weight = 0 ] ;
+    0 -> 2 [port = 0  weight = 0 ] ;
+    2 -> 3 [port = 0  weight = 0 ] ;
+    4 -> 3 [port = 1  weight = 0 ] ;
+    6 -> 5 [port = 0  weight = 0 ] ;
+    16 -> 5 [port = 1  weight = 0 ] ;
+    5 -> 7 [port = 0  weight = 0 ] ;
+    7 -> 8 [port = 0  weight = 0 ] ;
+    3 -> 9 [port = 0  weight = 0 ] ;
+    8 -> 9 [port = 1  weight = 0 ] ;
+    11 -> 10 [port = 0  weight = 0 ] ;
+    10 -> 12 [port = 0  weight = 0 ] ;
+    12 -> 13 [port = 0  weight = 0 ] ;
+    9 -> 14 [port = 0  weight = 0 ] ;
+    13 -> 14 [port = 1  weight = 0 ] ;
+    12 -> 18 [port = 0  weight = 0 ] ;
+    14 -> 15 [port = 0  weight = 0 ] ;
+    17 -> 16 [port = 0  weight = 0 ] ;
+}

@@ -1,0 +1,12 @@
+method,trials,speedup_vs_vpr_bb,average_wire_length_segments,fifo_reduction_vs_vpr_bb,source
+vpr_bb,,1.0,1.25,1.00,YOTT Table 1
+vpr_fast,,2.41,1.31,0.80,YOTT Table 1
+yoto,1,1848,1.30,0.94,YOTT Table 1
+yott,1,766,1.27,1.66,YOTT Table 1
+yoto,10,302,1.24,1.35,YOTT Table 1
+yott,10,83.4,1.18,1.96,YOTT Table 1
+yoto,100,32.6,1.20,1.49,YOTT Table 1
+yott,100,9.7,1.16,2.24,YOTT Table 1
+yoto,1000,4.2,1.17,1.92,YOTT Table 1
+yott,1000,2.1,1.16,2.38,YOTT Table 1
+sa,100,0.16,1.16,2.47,YOTT Table 1
