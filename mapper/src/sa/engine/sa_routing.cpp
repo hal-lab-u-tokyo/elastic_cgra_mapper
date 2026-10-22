@@ -1,8 +1,8 @@
-#include <mapper/sa/engine/spatial/sa_spatial_engine.hpp>
+#include <mapper/sa/engine/sa_engine.hpp>
 
-namespace mapper::sa_spatial {
+namespace mapper::sa {
 
-std::optional<RouteUsage> Placement2DSAEngine::TryRoutePlacement(
+std::optional<RouteUsage> SaEngine::TryRoutePlacement(
     const PlacementState& state) {
   std::vector<std::vector<DFGEdgeInfo>> route_orders;
   route_orders.push_back(dfg_edges_);
@@ -47,7 +47,7 @@ std::optional<RouteUsage> Placement2DSAEngine::TryRoutePlacement(
   return std::nullopt;
 }
 
-std::optional<RouteUsage> Placement2DSAEngine::TryRoutePlacementInOrder(
+std::optional<RouteUsage> SaEngine::TryRoutePlacementInOrder(
     const PlacementState& state,
     const std::vector<DFGEdgeInfo>& route_order) const {
   RouteUsage usage;
@@ -68,7 +68,7 @@ std::optional<RouteUsage> Placement2DSAEngine::TryRoutePlacementInOrder(
   return usage;
 }
 
-std::optional<PathResult> Placement2DSAEngine::FindRoutePath(
+std::optional<PathResult> SaEngine::FindRoutePath(
     int source_dfg_node, int source_mrrg, int target_mrrg,
     const PlacementState& state, const RouteUsage& usage) const {
   if (source_mrrg != target_mrrg) {
@@ -103,7 +103,7 @@ std::optional<PathResult> Placement2DSAEngine::FindRoutePath(
   return std::nullopt;
 }
 
-std::optional<PathResult> Placement2DSAEngine::FindManhattanRoutePath(
+std::optional<PathResult> SaEngine::FindManhattanRoutePath(
     int source_dfg_node, int source_mrrg, int target_mrrg,
     const PlacementState& state, const RouteUsage& usage) const {
   if (source_mrrg != target_mrrg) {
@@ -147,8 +147,7 @@ std::optional<PathResult> Placement2DSAEngine::FindManhattanRoutePath(
   return std::nullopt;
 }
 
-std::optional<PathResult>
-Placement2DSAEngine::FindManhattanRoutePathNonEmptyAllowed(
+std::optional<PathResult> SaEngine::FindManhattanRoutePathNonEmptyAllowed(
     int source_dfg_node, int source_mrrg, int target_mrrg,
     const PlacementState& state, const RouteUsage& usage,
     bool forbid_zero_length) const {
@@ -220,7 +219,7 @@ Placement2DSAEngine::FindManhattanRoutePathNonEmptyAllowed(
   return std::nullopt;
 }
 
-std::optional<PathResult> Placement2DSAEngine::FindRoutePathNonEmptyAllowed(
+std::optional<PathResult> SaEngine::FindRoutePathNonEmptyAllowed(
     int source_dfg_node, int source_mrrg, int target_mrrg,
     const PlacementState& state, const RouteUsage& usage,
     bool forbid_zero_length) const {
@@ -269,16 +268,16 @@ std::optional<PathResult> Placement2DSAEngine::FindRoutePathNonEmptyAllowed(
   return std::nullopt;
 }
 
-bool Placement2DSAEngine::CanUseEdge(int edge_id, int source_dfg_node,
-                                     const RouteUsage& usage) const {
+bool SaEngine::CanUseEdge(int edge_id, int source_dfg_node,
+                          const RouteUsage& usage) const {
   return usage.route_edge_owner[edge_id] == -1 ||
          usage.route_edge_owner[edge_id] == source_dfg_node;
 }
 
-bool Placement2DSAEngine::CanUseNode(int mrrg_node_id, int source_dfg_node,
-                                     int source_mrrg, int target_mrrg,
-                                     const PlacementState& state,
-                                     const RouteUsage& usage) const {
+bool SaEngine::CanUseNode(int mrrg_node_id, int source_dfg_node,
+                          int source_mrrg, int target_mrrg,
+                          const PlacementState& state,
+                          const RouteUsage& usage) const {
   if (mrrg_node_id == source_mrrg || mrrg_node_id == target_mrrg) return true;
   if (state.mrrg_to_dfg[mrrg_node_id] != -1) return false;
   if (!SupportsOperation(mrrg_.GetNodeProperty(mrrg_node_id),
@@ -289,10 +288,10 @@ bool Placement2DSAEngine::CanUseNode(int mrrg_node_id, int source_dfg_node,
          usage.route_node_owner[mrrg_node_id] == source_dfg_node;
 }
 
-void Placement2DSAEngine::ReserveRoute(int source_dfg_node, int source_mrrg,
-                                       int target_mrrg, const PathResult& path,
-                                       const PlacementState& state,
-                                       RouteUsage& usage) const {
+void SaEngine::ReserveRoute(int source_dfg_node, int source_mrrg,
+                            int target_mrrg, const PathResult& path,
+                            const PlacementState& state,
+                            RouteUsage& usage) const {
   for (int edge_id : path.edge_ids) {
     if (usage.route_edge_owner[edge_id] == -1) {
       usage.route_edge_owner[edge_id] = source_dfg_node;
@@ -308,7 +307,7 @@ void Placement2DSAEngine::ReserveRoute(int source_dfg_node, int source_mrrg,
   }
 }
 
-int Placement2DSAEngine::RouteEdgeCount(const RouteUsage& usage) const {
+int SaEngine::RouteEdgeCount(const RouteUsage& usage) const {
   int result = 0;
   for (const auto& edges : usage.source_to_route_edges) {
     std::set<int> unique_edges(edges.begin(), edges.end());
@@ -317,4 +316,4 @@ int Placement2DSAEngine::RouteEdgeCount(const RouteUsage& usage) const {
   return result;
 }
 
-}  // namespace mapper::sa_spatial
+}  // namespace mapper::sa

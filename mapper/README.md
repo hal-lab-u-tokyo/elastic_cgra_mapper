@@ -18,6 +18,12 @@ The six stochastic algorithms combine their former array dispatch and routed
 dispatch in one frontend, sharing the workflow across explicit variants. Engines
 no longer expose a complete `Run()` workflow. Spatial and context engines use
 the same routed frontend; array variants share their placement-only frontend.
+SA now uses one concrete `sa::SaEngine` for all three variants, with one
+workflow in `sa_mapper.cpp`. Its backend has only `sa_engine.cpp` (setup,
+resource caches and shared operations), `sa_placement.cpp` (placement/search
+and costs), and `sa_routing.cpp` (routing). The single header is
+`include/mapper/sa/engine/sa_engine.hpp`; there are no SA domain subfolders or
+template mapper/engine base classes.
 `placement_first/placement_first_mapper.cpp` similarly orders placement, routing, and output.
 
 ILP lives entirely in `ilp/`: `ilp_mapper.cpp` selects the formulation and
@@ -35,10 +41,14 @@ respectively. Engine declarations remain under `include/mapper/ilp/engine/`.
 - Array engines store `dfg_to_cell` / `cell_to_dfg`, use grid compatibility
   caches and paper/CPU candidate policies, and produce a placement with empty
   routes. Routed engines store MRRG-node assignments and route ownership;
-  treating these as one state would change candidate order and output semantics.
-- SA spatial placement reserves physical positions/context zero, while its
-  context engine selects time-expanded MRRG resources and permits temporal
-  reuse. Their random moves and legal-resource sets differ.
+  both representations are retained explicitly in SA’s single placement state
+  so their candidate order and output semantics remain unchanged.
+- SA handles one-context spatial and multiple-context resources in one engine.
+  Named legacy variants retain their placement strategy, distance-cache policy,
+  resource legality and random ordering, including explicit variants on a
+  multi-context MRRG. Grid placement keeps its grid objective and empty-route
+  output. Seed/budget/logging and critical-path operations are shared; grid
+  and MRRG candidate/move policies remain distinct operations on that engine.
 - PRISA's context backend adds physical placement followed by context
   assignment and routing; the spatial backend's refinement and candidate
   resources differ. The array variant has its own SIS/grid objective.
@@ -54,14 +64,17 @@ respectively. Engine declarations remain under `include/mapper/ilp/engine/`.
   those mathematical formulations would change the feasible set. They share
   solver orchestration, but keep separate constraint builders.
 
-These are semantic boundaries, not separate public algorithms. Keeping private
+For PRISA, YOTO and YOTT, these remain private implementation boundaries. Keeping private
 `engine/{array,spatial,context}/` implementations preserves traversal/RNG order
 and the existing experiment contracts while eliminating duplicated frontend
 workflows. Identical spatial/context operations live in each algorithm’s
 `include/mapper/<algorithm>/engine/<algorithm>_engine_operations.hpp`. These
 algorithm-owned CRTP operation classes share cache-independent search, scoring,
 resource queries, traversal and routing helpers while using concrete engine
-state and legality rules. SA shares 39 methods, PRISA 44, YOTO 38 and YOTT 38.
+state and legality rules. PRISA shares 44 methods, YOTO 38 and YOTT 38.
+SA folds its former 39 shared methods into ordinary concrete engine methods,
+without a CRTP adapter. Its grid and routed paths also share seed configuration,
+trial budgets, timeout handling, logging and critical-path computation.
 Per-algorithm timing/operation-compatibility/distance helpers are shared too;
 YOTO/YOTT array and routed engines use the same degree penalty. No helper
 selects among different algorithms. Domain-specific state, legal-resource
