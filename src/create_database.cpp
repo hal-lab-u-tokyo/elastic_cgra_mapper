@@ -9,7 +9,7 @@
 #include <io/mapping_io.hpp>
 #include <io/output_to_log_file.hpp>
 #include <iostream>
-#include <mapper/gurobi_placement_mapper.hpp>
+#include <mapper/ilp/placement2d_ilp_mapper.hpp>
 #include <remapper/algorithm/dp_remapper.hpp>
 
 std::vector<entity::MRRGConfig> GetMRRGOfSubCGRA(
@@ -152,7 +152,7 @@ int main(int argc, char* argv[]) {
   constexpr double kMinUtilization = 0.5;
 
   std::shared_ptr<entity::DFG> dfg_ptr = std::make_shared<entity::DFG>();
-  entity::MapperConfig mapper_config =
+  mapper::MapperConfig mapper_config =
       io::ReadMapperConfigFromJsonFile(mapper_config_file_path);
   *dfg_ptr = io::ReadDFGDotFile(dfg_dot_file_path, mapper_config.dfg_config);
   std::shared_ptr<entity::MRRG> target_mrrg_ptr =
@@ -239,12 +239,14 @@ int main(int argc, char* argv[]) {
           std::make_shared<entity::MRRG>(tmp_mrrg_config);
 
       double mapping_time_out_s = (db_timeout_s - creating_db_time_s) / 2;
-      mapper::GurobiPlacementILPMapper* mapper;
+      mapper::Placement2DILPMapper* mapper;
       mapper =
-          mapper::GurobiPlacementILPMapper().CreateMapper(dfg_ptr, mrrg_ptr);
+          mapper::Placement2DILPMapper().CreateMapper(dfg_ptr, mrrg_ptr);
       mapper->SetLogFilePath(logger.GetNextMappingPath(
           mapping_time_out_s, mrrg_ptr->GetMRRGConfig()));
       mapper->SetTimeOut(mapping_time_out_s);
+      mapper->SetAcceptFeasibleSolution(
+          mapper_config.algorithm_config.accept_feasible_solution);
 
       const auto mapping_result = mapper->Execution();
       creating_db_time_s += mapping_result.mapping_time_s;

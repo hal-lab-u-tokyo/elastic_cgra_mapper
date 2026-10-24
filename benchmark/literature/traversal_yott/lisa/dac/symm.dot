@@ -1,0 +1,39 @@
+digraph symm {
+    0 [label = mul0 op = mul ] ;
+    1 [label = in1 op = in ] ;
+    2 [label = reg2 op = reg ] ;
+    3 [label = reg3 op = reg ] ;
+    4 [label = reg4 op = reg ] ;
+    5 [label = in5 op = in ] ;
+    6 [label = reg6 op = reg ] ;
+    7 [label = reg7 op = reg ] ;
+    8 [label = mul8 op = mul ] ;
+    9 [label = mul9 op = mul ] ;
+    10 [label = in10 op = in ] ;
+    11 [label = reg11 op = reg ] ;
+    12 [label = reg12 op = reg ] ;
+    13 [label = add13 op = add ] ;
+    14 [label = out14 op = out ] ;
+    15 [label = add15 op = addi value = 2 ] ;
+    16 [label = in16 op = in ] ;
+    17 [label = out15 op = out ] ;
+    
+    1 -> 0 [port = 0  weight = 0 ] ;
+    15 -> 0 [port = 1  weight = 0 ] ;
+    0 -> 2 [port = 0  weight = 0 ] ;
+    2 -> 3 [port = 0  weight = 0 ] ;
+    5 -> 4 [port = 0  weight = 0 ] ;
+    4 -> 6 [port = 0  weight = 0 ] ;
+    6 -> 7 [port = 0  weight = 0 ] ;
+    3 -> 8 [port = 0  weight = 0 ] ;
+    7 -> 8 [port = 1  weight = 0 ] ;
+    10 -> 9 [port = 0  weight = 0 ] ;
+    15 -> 9 [port = 1  weight = 0 ] ;
+    9 -> 11 [port = 0  weight = 0 ] ;
+    11 -> 12 [port = 0  weight = 0 ] ;
+    8 -> 13 [port = 0  weight = 0 ] ;
+    12 -> 13 [port = 1  weight = 0 ] ;
+    11 -> 17 [port = 0  weight = 0 ] ;
+    13 -> 14 [port = 0  weight = 0 ] ;
+    16 -> 15 [port = 0  weight = 0 ] ;
+}
