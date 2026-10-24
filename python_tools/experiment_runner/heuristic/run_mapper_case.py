@@ -18,17 +18,6 @@ from lib import (
     write_metrics_csv,
 )
 
-EXTERNAL_RUNNERS = {"vpr", "vpr_modulo", "vpr_modulo_full_route"}
-
-
-def mapper_runner(mapper: dict) -> str:
-    return str(mapper.get("runner", mapper.get("external_runner", "cgra"))).lower()
-
-
-def is_external_runner(mapper: dict) -> bool:
-    return mapper_runner(mapper) in EXTERNAL_RUNNERS
-
-
 def prepare_cli_mapper_config(mapper_config_path: Path, output_dir: Path, evaluation_mode: str) -> Path:
     if evaluation_mode != "placement_only":
         return mapper_config_path
@@ -242,65 +231,10 @@ def run_mapper_case(
     evaluation_mode: str = "routing",
     progress: bool = False,
 ) -> dict:
-    """Run one benchmark/architecture/mapper case through a single dispatcher.
-
-    In-repository mappers use `build/mapping` and `mapper_config`. External
-    baselines such as VPR keep their specialized implementation files, but
-    experiment orchestration enters through this function for every mapper.
-    """
-    runner = mapper_runner(mapper)
-    if runner == "vpr":
-        from run_vpr_baseline import run_one_vpr
-
-        return run_one_vpr(
-            dfg=dfg,
-            arch_template=arch_template,
-            output_dir=output_dir,
-            benchmark=benchmark,
-            mapper_name=mapper_name,
-            arch_name=arch_name,
-            timeout_sec=timeout_sec,
-            mapper_config=mapper,
-            problem_type=problem_type,
-            evaluation_mode=evaluation_mode,
-            progress=progress,
-        )
-    if runner == "vpr_modulo":
-        from run_vpr_modulo_routing import run_one_vpr_modulo
-
-        return run_one_vpr_modulo(
-            dfg=dfg,
-            arch_template=arch_template,
-            output_dir=output_dir,
-            benchmark=benchmark,
-            mapper_name=mapper_name,
-            arch_name=arch_name,
-            mii=mii,
-            ii_max=ii_max,
-            timeout_sec=timeout_sec,
-            mapper_config=mapper,
-            missing_distance_policy=missing_distance_policy,
-            progress=progress,
-        )
-    if runner == "vpr_modulo_full_route":
-        from run_vpr_modulo_full_routing import run_one_vpr_modulo_full_route
-
-        return run_one_vpr_modulo_full_route(
-            dfg=dfg,
-            arch_template=arch_template,
-            output_dir=output_dir,
-            benchmark=benchmark,
-            mapper_name=mapper_name,
-            arch_name=arch_name,
-            mii=mii,
-            ii_max=ii_max,
-            timeout_sec=timeout_sec,
-            mapper_config=mapper,
-            missing_distance_policy=missing_distance_policy,
-            progress=progress,
-        )
+    """Run one in-repository mapper case."""
+    runner = str(mapper.get("runner", mapper.get("external_runner", "cgra"))).lower()
     if runner != "cgra":
-        raise ValueError(f"Unknown mapper runner: {runner}")
+        raise ValueError(f"Unsupported mapper runner: {runner}")
 
     return run_one(
         mapping_bin=mapping_bin,

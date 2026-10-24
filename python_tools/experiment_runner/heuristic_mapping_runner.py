@@ -14,6 +14,8 @@ try:
 except ImportError:
     ZoneInfo = None
 
+sys.path.insert(0, str(Path(__file__).resolve().parent / "heuristic"))
+
 from lib import (
     auto_square_arch_for_dfg,
     load_json,
@@ -23,7 +25,7 @@ from lib import (
     write_json,
     write_metrics_csv,
 )
-from run_mapper_case import is_external_runner, run_mapper_case
+from run_mapper_case import run_mapper_case
 
 LOCAL_TIMEZONE = ZoneInfo("Asia/Tokyo") if ZoneInfo else timezone(timedelta(hours=9), "JST")
 ANSI_STYLES = {
@@ -137,8 +139,6 @@ def prepare_mapper_config_for_run(
     run_dir: Path,
     evaluation_mode: str,
 ) -> Path:
-    if is_external_runner(mapper):
-        return Path()
     mapper_config_path = Path(mapper["mapper_config"])
     algorithm_overrides = dict(mapper.get("algorithm_overrides", {}))
     config_overrides = dict(mapper.get("mapper_config_overrides", {}))
@@ -228,12 +228,8 @@ def manifest_mappers(manifest: dict) -> list:
         entry.setdefault("routing_method", "integrated")
         result.append(entry)
 
-    for mapper in manifest.get("external_mappers", []):
-        entry = dict(mapper)
-        entry.setdefault("mapper_role", "external_baseline")
-        entry.setdefault("placement_method", entry.get("name", ""))
-        entry.setdefault("routing_method", entry.get("runner", "external"))
-        result.append(entry)
+    if manifest.get("external_mappers"):
+        raise ValueError("External mapper runners are unsupported.")
 
     return result
 
@@ -537,7 +533,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Run a research experiment manifest.")
     parser.add_argument("--manifest", required=True, type=Path)
     parser.add_argument("--out", type=Path)
-    parser.add_argument("--out-root", default=Path("research/results"), type=Path)
+    parser.add_argument("--out-root", default=Path("python_tools/experiment_runner/log/heuristic"), type=Path)
     parser.add_argument("--repo-root", default=Path.cwd(), type=Path)
     parser.add_argument("--tag", default="")
     parser.add_argument("--skip-reports", action="store_true")
@@ -719,7 +715,7 @@ def main() -> None:
         subprocess.run(
             [
                 sys.executable,
-                str(Path(__file__).resolve().parent / "generate_reports.py"),
+                str(Path(__file__).resolve().parent / "heuristic" / "generate_reports.py"),
                 "--result-dir",
                 str(result_dir),
             ],

@@ -661,20 +661,6 @@ def parse_placement_log(log_path: Optional[Path]) -> dict:
     if cell_visits:
         result["placement_cell_visits"] = cell_visits.group(1)
 
-    initial = re.search(
-        r"Initial placement cost:\s*([0-9.eE+-]+),?\s+bb_cost:\s*([0-9.eE+-]+)",
-        text,
-    )
-    if initial:
-        result["vpr_initial_placement_cost"] = initial.group(1)
-        result["vpr_initial_bb_cost"] = initial.group(2)
-    placements = re.findall(
-        r"Placement cost:\s*([0-9.eE+-]+),\s+bb_cost:\s*([0-9.eE+-]+)",
-        text,
-    )
-    if placements:
-        result["vpr_final_placement_cost"] = placements[-1][0]
-        result["vpr_final_bb_cost"] = placements[-1][1]
     return result
 
 

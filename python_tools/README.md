@@ -1,6 +1,6 @@
 # Python Tools
 
-Visualization and support utilities. Use `research/scripts/` for experiment
+Visualization and support utilities. Use `python_tools/experiment_runner/heuristic_mapping_runner.py` for experiment
 runs.
 
 ## Directories
