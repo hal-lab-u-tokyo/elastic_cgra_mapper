@@ -1,4 +1,4 @@
-#include <mapper/yott/modulo_yott_with_fallback_mapper.hpp>
+#include <mapper/yott/routed_yott_with_fallback_mapper.hpp>
 #include <mapper/yott/yott_options.hpp>
 
 namespace mapper {

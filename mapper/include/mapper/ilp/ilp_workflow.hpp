@@ -1,7 +1,7 @@
 #pragma once
 #include <iostream>
 #include <mapper/ilp/engine/full_routing_ilp_engine.hpp>
-#include <mapper/ilp/engine/placement2d_ilp_engine.hpp>
+#include <mapper/ilp/engine/grid_ilp_engine.hpp>
 namespace mapper::ilp {
 // Mapper workflow shared by the spatial and edge-flow ILP formulations.
 template <typename Engine>

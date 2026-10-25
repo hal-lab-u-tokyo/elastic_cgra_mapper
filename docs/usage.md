@@ -28,12 +28,6 @@ Generated executables:
 - `build/create_database`
 - `build/bulk_mapping`
 
-Build VPR:
-
-```bash
-sh scripts/build_vpr.sh
-```
-
 ## Single Mapping Run
 
 `build/mapping` uses named options (positional arguments are not supported):
@@ -97,7 +91,7 @@ Run:
 sh scripts/exec_mapping_experiment.sh
 ```
 
-For algorithm comparisons, use `research/scripts/run_suite.py`; it records normalized metrics, validation reports, and run metadata.
+For algorithm comparisons, use `python_tools/experiment_runner/heuristic_mapping_runner.py`; it records normalized metrics, validation reports, and run metadata.
 
 ## Remapper
 
@@ -120,13 +114,6 @@ sh scripts/analyze.sh /home/ubuntu/elastic_cgra_mapper/output/experiments/<datet
 ```
 
 ## Visualizer
-
-Visualize a DFG:
-
-```bash
-cd python_tools/visualizer
-python3 dfg_visualize_main.py <input.dot>
-```
 
 Visualize a mapping result:
 

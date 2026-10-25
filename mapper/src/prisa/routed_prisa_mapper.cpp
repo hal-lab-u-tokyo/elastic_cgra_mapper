@@ -1,4 +1,4 @@
-#include <mapper/prisa/modulo_prisa_mapper.hpp>
+#include <mapper/prisa/routed_prisa_mapper.hpp>
 #include <mapper/prisa/prisa_options.hpp>
 
 namespace mapper {

@@ -22,14 +22,18 @@ array/spatial/context engine subfolders, CRTP engine bases, or template mapper
 gateways for these four algorithms. Their frontends call placement and routing
 operations directly, including the placement-only result path.
 `placement_first/placement_first_mapper.cpp` similarly orders placement,
-routing, and output. Core and core-repair retain their own single backends.
+routing, and output. Core and core-repair each expose one concrete engine in
+`engine/<algorithm>_engine.hpp`, with setup/cache/trace operations in
+`<algorithm>_engine.cpp` and placement search in `<algorithm>_placement.cpp`.
+Core-repair additionally keeps its repair passes in `yott_core_repair_refinement.cpp`.
+Their mapper frontends call the engine directly without template gateways.
 
 ILP lives entirely in `ilp/`: `ilp_mapper.cpp` selects the formulation and
 `include/mapper/ilp/ilp_workflow.hpp` orders variable creation, objective, constraints, optimization,
 and result collection. The engine classes own the Gurobi model and variables.
 The implementation units under `src/ilp/` preserve the Gurobi source lineage:
 `ilp_mapper.cpp` contains `FullRoutingILPEngine` and the canonical ILP frontend;
-`placement2d_ilp_mapper.cpp` contains `SpatialILPEngine` and its explicit frontend.
+`grid_ilp_mapper.cpp` contains `SpatialILPEngine` and its explicit frontend.
 They are renamed from `gurobi_mapper.cpp` and `gurobi_placement_mapper.cpp`,
 respectively. Engine declarations remain under `include/mapper/ilp/engine/`.
 `connectivity_path_ilp` is deliberately unchanged pending a separate decision.
@@ -61,6 +65,14 @@ exclusivity, distance caching and assignment to time-expanded resources.
 - Spatial ILP and full-routing ILP retain separate mathematical formulations
   within the ILP algorithm. They share solver orchestration and keep distinct
   constraint builders. Connectivity-path ILP remains deferred.
+
+### Header names
+
+`grid_<algorithm>_mapper.hpp` declares grid-coordinate placement variants;
+`routed_<algorithm>_mapper.hpp` declares MRRG placement and routing variants.
+A routed variant can use one or multiple contexts, so headers no longer label
+that distinction as placement versus modulo. Existing registry/class names
+remain compatible with saved experiment configurations.
 
 ## MRRG selection
 

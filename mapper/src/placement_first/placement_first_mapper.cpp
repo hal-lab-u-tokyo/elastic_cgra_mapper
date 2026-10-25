@@ -1,5 +1,5 @@
 #include <mapper/placement_first/engine/placement_first_engine.hpp>
-#include <mapper/placement_first/modulo_placement_first_mapper.hpp>
+#include <mapper/placement_first/routed_placement_first_mapper.hpp>
 mapper::ModuloPlacementFirstMapper::ModuloPlacementFirstMapper(
     const std::shared_ptr<entity::DFG> dfg_ptr,
     const std::shared_ptr<entity::MRRG> mrrg_ptr)

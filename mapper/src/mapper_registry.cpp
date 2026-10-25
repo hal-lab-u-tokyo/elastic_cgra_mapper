@@ -7,20 +7,20 @@
 #include <mapper/mapper_factory.hpp>
 #include <mapper/connectivity_path_ilp/connectivity_path_ilp_mapper.hpp>
 #include <mapper/ilp/full_routing_ilp_mapper.hpp>
-#include <mapper/placement_first/modulo_placement_first_mapper.hpp>
-#include <mapper/prisa/modulo_prisa_mapper.hpp>
-#include <mapper/sa/modulo_sa_mapper.hpp>
-#include <mapper/yoto/modulo_yoto_mapper.hpp>
-#include <mapper/yoto/modulo_yoto_with_fallback_mapper.hpp>
-#include <mapper/yott/modulo_yott_mapper.hpp>
-#include <mapper/yott/modulo_yott_with_fallback_mapper.hpp>
-#include <mapper/ilp/placement2d_ilp_mapper.hpp>
-#include <mapper/prisa/placement2d_prisa_mapper.hpp>
-#include <mapper/sa/placement2d_sa_mapper.hpp>
-#include <mapper/yoto/placement2d_yoto_mapper.hpp>
-#include <mapper/yott_core/placement2d_yott_core_mapper.hpp>
-#include <mapper/yott_core_repair/placement2d_yott_core_repair_mapper.hpp>
-#include <mapper/yott/placement2d_yott_mapper.hpp>
+#include <mapper/placement_first/routed_placement_first_mapper.hpp>
+#include <mapper/prisa/routed_prisa_mapper.hpp>
+#include <mapper/sa/routed_sa_mapper.hpp>
+#include <mapper/yoto/routed_yoto_mapper.hpp>
+#include <mapper/yoto/routed_yoto_with_fallback_mapper.hpp>
+#include <mapper/yott/routed_yott_mapper.hpp>
+#include <mapper/yott/routed_yott_with_fallback_mapper.hpp>
+#include <mapper/ilp/grid_ilp_mapper.hpp>
+#include <mapper/prisa/grid_prisa_mapper.hpp>
+#include <mapper/sa/grid_sa_mapper.hpp>
+#include <mapper/yoto/grid_yoto_mapper.hpp>
+#include <mapper/yott_core/grid_yott_core_mapper.hpp>
+#include <mapper/yott_core_repair/grid_yott_core_repair_mapper.hpp>
+#include <mapper/yott/grid_yott_mapper.hpp>
 
 namespace {
 

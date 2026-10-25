@@ -2,7 +2,7 @@
 
 #include <algorithm>
 #include <mapper/ilp/full_routing_ilp_mapper.hpp>
-#include <mapper/ilp/placement2d_ilp_mapper.hpp>
+#include <mapper/ilp/grid_ilp_mapper.hpp>
 #include <mapper/mapper_factory.hpp>
 
 TEST(MapperTest, built_in_mapper_registry_test) {

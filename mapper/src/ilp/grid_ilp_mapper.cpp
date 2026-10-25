@@ -3,7 +3,7 @@
 #include <cassert>
 #include <filesystem>
 #include <fstream>
-#include <mapper/ilp/engine/placement2d_ilp_engine.hpp>
+#include <mapper/ilp/engine/grid_ilp_engine.hpp>
 #include <memory>
 
 namespace mapper::ilp {
@@ -472,7 +472,7 @@ MappingResult SpatialILPEngine::CollectResult(
 }  // namespace mapper::ilp
 
 #include <mapper/ilp/ilp_workflow.hpp>
-#include <mapper/ilp/placement2d_ilp_mapper.hpp>
+#include <mapper/ilp/grid_ilp_mapper.hpp>
 mapper::Placement2DILPMapper::Placement2DILPMapper(
     const std::shared_ptr<entity::DFG> dfg_ptr,
     const std::shared_ptr<entity::MRRG> mrrg_ptr)

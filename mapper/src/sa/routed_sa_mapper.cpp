@@ -1,4 +1,4 @@
-#include <mapper/sa/modulo_sa_mapper.hpp>
+#include <mapper/sa/routed_sa_mapper.hpp>
 #include <mapper/sa/sa_options.hpp>
 
 namespace mapper {

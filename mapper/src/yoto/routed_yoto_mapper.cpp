@@ -1,4 +1,4 @@
-#include <mapper/yoto/modulo_yoto_mapper.hpp>
+#include <mapper/yoto/routed_yoto_mapper.hpp>
 #include <mapper/yoto/yoto_options.hpp>
 
 namespace mapper {

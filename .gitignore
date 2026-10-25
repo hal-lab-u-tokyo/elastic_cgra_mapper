@@ -23,10 +23,3 @@ __pycache__/
 *_preproc.v
 vpr_stdout.log
 benchmark/literature/prisa_vpr8_generated/
-research/results/**
-!research/results/
-!research/results/.gitkeep
-!research/results/README.md
-!research/results/**/
-!research/results/**/.gitkeep
-research/private/
