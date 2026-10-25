@@ -6,8 +6,8 @@ import datetime
 import sys
 import multiprocessing
 import networkx as nx
-from util import *
 sys.path.append(os.pardir)
+from entity.util import *
 from entity import *
 from io_lib import *
 from exec import *
