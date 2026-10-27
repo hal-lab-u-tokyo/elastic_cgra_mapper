@@ -1,4 +1,4 @@
-FROM gurobi/optimizer:9.1.1
+FROM gurobi/optimizer:9.5.2
 
 RUN apt-get update && \
     apt-get install -y wget
