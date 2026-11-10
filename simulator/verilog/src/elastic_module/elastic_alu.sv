@@ -1,7 +1,8 @@
 `ifndef ELASTIC_ALU
 `define ELASTIC_ALU
 
-`include "param.v"
+`include "param.sv"
+`include "struct/config_data.sv"
 
 parameter BEFORE_EXEC = 2'b00;
 parameter DURING_EXEC = 2'b01;
@@ -14,8 +15,7 @@ module ElasticALU (
     // alu
     input [DATA_WIDTH-1:0] input_data_1,
     input [DATA_WIDTH-1:0] input_data_2,
-    input [OPERATION_BIT_LENGTH-1:0] op,
-    input [DATA_WIDTH-1:0] const_data,
+    input ConfigData config_data,
     output reg [DATA_WIDTH-1:0] output_data,
     // memory if
     output reg [ADDRESS_WIDTH-1:0] memory_write_address,
@@ -33,8 +33,8 @@ module ElasticALU (
     // execution param
     input start_exec
 );
-    wire output_transfer = (valid_output & !(stop_output)) | (op == 7 & (state == FINISH_EXEC));
-    wire input_transfer = (valid_input & !stop_input) | (op == 5) | (r_is_init & (op == 8)) ;
+    wire output_transfer = (valid_output & !(stop_output)) | (config_data.op == 7 & (state == FINISH_EXEC));
+    wire input_transfer = (valid_input & !stop_input) | (config_data.op == 5) | (r_is_init & (config_data.op == 8)) ;
     reg [1:0] state;
     reg [DATA_WIDTH-1:0] op_cycle_counter;
     reg [DATA_WIDTH-1:0] r_input_data_1, r_input_data_2;
@@ -45,13 +45,13 @@ module ElasticALU (
     wire [DATA_WIDTH-1:0] input_data_2_for_alu = input_transfer ? input_data_2 : r_input_data_2;
 
     assign stop_input = (state >= DURING_EXEC);
-    assign valid_output = (state == FINISH_EXEC) & (op != 7);
+    assign valid_output = (state == FINISH_EXEC) & (config_data.op != 7);
     assign switch_context = output_transfer;
 
     function [DATA_WIDTH-1:0] getOpCycle(
-        input [OPERATION_BIT_LENGTH-1:0] op);
+        input [OPERATION_BIT_LENGTH-1:0] operation);
         begin
-            case (op)
+            case (operation)
                 1: getOpCycle = ADD_CYCLE;
                 2: getOpCycle = SUB_CYCLE;
                 3: getOpCycle = MUL_CYCLE;
@@ -82,7 +82,7 @@ module ElasticALU (
                     r_input_data_1 <= input_data_1;
                     r_input_data_2 <= input_data_2;
                 end
-                case (op)
+                case (config_data.op)
                     0: output_data <= 0;  // nop
                     1: begin
                         output_data <= input_data_1_for_alu + input_data_2_for_alu;  // add
@@ -97,7 +97,7 @@ module ElasticALU (
                         output_data <= input_data_1_for_alu / input_data_2_for_alu;  // div
                     end
                     5: begin
-                        output_data <= const_data;  // const
+                        output_data <= config_data.const_data;  // const
                     end
                     6: begin  // load
                         memory_read_address <= input_data_1_for_alu[ADDRESS_WIDTH-1:0];
@@ -113,8 +113,8 @@ module ElasticALU (
                     end
                 endcase
                 if (input_transfer) begin
-                    op_cycle_counter <= getOpCycle(op) - 1;
-                    if (getOpCycle(op) == 1) begin
+                    op_cycle_counter <= getOpCycle(config_data.op) - 1;
+                    if (getOpCycle(config_data.op) == 1) begin
                         state <= FINISH_EXEC;
                     end else begin
                         state <= DURING_EXEC;
@@ -130,7 +130,7 @@ module ElasticALU (
                 end
             end
             // $display("--- ALU ---");
-            // $display("op: ", op);
+            // $display("config_data.op: ", config_data.op);
             // $display("state: ", state);
             // $display("is init: ", r_is_init);
             // $display("input transfer: ", input_transfer);

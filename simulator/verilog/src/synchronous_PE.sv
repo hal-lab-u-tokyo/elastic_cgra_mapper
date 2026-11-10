@@ -1,17 +1,14 @@
 `ifndef SYNCHRONOUS_PE
 `define SYNCHRONOUS_PE
 
-`include "param.v"
-`include "struct/config_data.v"
+`include "param.sv"
+`include "struct/config_data.sv"
 
 module PE (
     input clk,
     input reset_n,
     // config load if
-    input [INPUT_NUM_BIT_LENGTH-1:0] config_input_PE_index_1,
-    input [INPUT_NUM_BIT_LENGTH-1:0] config_input_PE_index_2,
-    input [OPERATION_BIT_LENGTH-1:0] config_op,
-    input [DATA_WIDTH-1:0] config_const_data,
+    input ConfigData config_data,
     input write_config_data,
     input [CONTEXT_SIZE_BIT_LENGTH-1:0] config_index,
     // execution param
@@ -70,10 +67,7 @@ module PE (
         end else begin
             if (write_config_data) begin
                 // write config memory
-                r_config_memory[config_index].input_PE_index_1 <= config_input_PE_index_1;
-                r_config_memory[config_index].input_PE_index_2 <= config_input_PE_index_2;
-                r_config_memory[config_index].op <= config_op;
-                r_config_memory[config_index].const_data <= config_const_data;
+                r_config_memory[config_index] <= config_data;
             end else if (r_exec_active) begin
                 r_counter <= r_counter + 1;
                 // operation

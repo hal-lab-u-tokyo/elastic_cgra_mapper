@@ -1,7 +1,7 @@
 `ifndef ELASTIC_BUFFER
 `define ELASTIC_BUFFER
 
-`include "param.v"
+`include "param.sv"
 
 // Reference
 // Cortadella, Jordi, Mike Kishinevsky, and Bill Grundmann. "Synthesis of synchronous elastic architectures." Proceedings of the 43rd Annual Design Automation Conference. 2006.
