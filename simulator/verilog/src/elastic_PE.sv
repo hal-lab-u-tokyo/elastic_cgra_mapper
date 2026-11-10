@@ -1,24 +1,20 @@
 `ifndef ELASTIC_PE
 `define ELASTIC_PE
 
-`include "param.v"
-`include "struct/elastic_wire.v"
-`include "struct/elastic_config_data.v"
-`include "elastic_module/elastic_buffer.v"
-`include "elastic_module/elastic_fork.v"
-`include "elastic_module/elastic_join.v"
-`include "elastic_module/elastic_multiplexer.v"
-`include "elastic_module/elastic_alu.v"
+`include "param.sv"
+`include "struct/elastic_wire.sv"
+`include "struct/elastic_config_data.sv"
+`include "elastic_module/elastic_buffer.sv"
+`include "elastic_module/elastic_fork.sv"
+`include "elastic_module/elastic_join.sv"
+`include "elastic_module/elastic_multiplexer.sv"
+`include "elastic_module/elastic_alu.sv"
 
 module ElasticPE (
     input clk,
     input reset_n,
     // config load if
-    input [INPUT_NUM_BIT_LENGTH-1:0] config_input_PE_index_1,
-    input [INPUT_NUM_BIT_LENGTH-1:0] config_input_PE_index_2,
-    input [NEIGHBOR_PE_NUM-1:0] config_output_PE_index,
-    input [OPERATION_BIT_LENGTH-1:0] config_op,
-    input [DATA_WIDTH-1:0] config_const_data,
+    input ElasticConfigData config_data,
     input write_config_data,
     input [CONTEXT_SIZE_BIT_LENGTH-1:0] config_index,
     input [CONTEXT_SIZE_BIT_LENGTH-1:0] mapping_context_max_id,
@@ -65,6 +61,16 @@ module ElasticPE (
     wire w_fork_a_output_valid[INPUT_NUM], w_fork_b_output_valid[INPUT_NUM];
     wire w_fork_a_output_stop[INPUT_NUM], w_fork_b_output_stop[INPUT_NUM];
 
+    wire ElasticWire w_fork_a_output[INPUT_NUM], w_fork_b_output[INPUT_NUM];
+    for (genvar channel = 0; channel < INPUT_NUM; channel++) begin
+        assign w_fork_a_output_data[channel] = w_fork_a_output[channel].data;
+        assign w_fork_a_output_valid[channel] = w_fork_a_output[channel].valid;
+        assign w_fork_a_output[channel].stop = w_fork_a_output_stop[channel];
+        assign w_fork_b_output_data[channel] = w_fork_b_output[channel].data;
+        assign w_fork_b_output_valid[channel] = w_fork_b_output[channel].valid;
+        assign w_fork_b_output[channel].stop = w_fork_b_output_stop[channel];
+    end
+
     // Mux -> Join
     ElasticWire w_mux_a_output, w_mux_b_output;
     wire w_switch_context_mux_a, w_switch_context_mux_b;
@@ -74,6 +80,13 @@ module ElasticPE (
     // Join -> ALU
     wire [DATA_WIDTH-1:0] w_elastic_join_data_output[2];
     wire w_elastic_join_valid_output, w_elastic_join_stop_output;
+    // The join synchronizes both operands; their valid/stop are shared.
+    wire ElasticWire w_elastic_join_output[2];
+    for (genvar operand = 0; operand < 2; operand++) begin
+        assign w_elastic_join_output[operand].data = w_elastic_join_data_output[operand];
+        assign w_elastic_join_output[operand].valid = w_elastic_join_valid_output;
+        assign w_elastic_join_output[operand].stop = w_elastic_join_stop_output;
+    end
 
     // ALU -> Buffer
     ElasticWire w_alu_output;
@@ -97,12 +110,12 @@ module ElasticPE (
             wire fork_stop_output[NEIGHBOR_PE_NUM];
             wire dummy_context_switch_fork;
 
-            assign w_fork_a_output_data[i] = fork_output_data[0];
-            assign w_fork_b_output_data[i] = fork_output_data[1];
-            assign w_fork_a_output_valid[i] = fork_valid_output[0];
-            assign w_fork_b_output_valid[i] = fork_valid_output[1];
-            assign fork_stop_output[0] = w_fork_a_output_stop[i];
-            assign fork_stop_output[1] = w_fork_b_output_stop[i];
+            assign w_fork_a_output[i].data = fork_output_data[0];
+            assign w_fork_b_output[i].data = fork_output_data[1];
+            assign w_fork_a_output[i].valid = fork_valid_output[0];
+            assign w_fork_b_output[i].valid = fork_valid_output[1];
+            assign fork_stop_output[0] = w_fork_a_output[i].stop;
+            assign fork_stop_output[1] = w_fork_b_output[i].stop;
 
             for (j = 2; j < NEIGHBOR_PE_NUM; j++) begin : GenerateForkOutputWire
                 assign fork_stop_output[j] = 0;
@@ -124,10 +137,10 @@ module ElasticPE (
     endgenerate
     generate
         for (i = 0; i < PE_REG_SIZE; i++) begin : AddRegValueToForkOutput
-            assign w_fork_a_output_data[NEIGHBOR_PE_NUM+i]  = r_alu_output[i];
-            assign w_fork_b_output_data[NEIGHBOR_PE_NUM+i]  = r_alu_output[i];
-            assign w_fork_a_output_valid[NEIGHBOR_PE_NUM+i] = 1;
-            assign w_fork_b_output_valid[NEIGHBOR_PE_NUM+i] = 1;
+            assign w_fork_a_output[NEIGHBOR_PE_NUM+i].data  = r_alu_output[i];
+            assign w_fork_b_output[NEIGHBOR_PE_NUM+i].data  = r_alu_output[i];
+            assign w_fork_a_output[NEIGHBOR_PE_NUM+i].valid = 1;
+            assign w_fork_b_output[NEIGHBOR_PE_NUM+i].valid = 1;
         end
     endgenerate
 
@@ -139,7 +152,7 @@ module ElasticPE (
         .stop_input(w_fork_a_output_stop),
         .data_output(w_mux_a_output.data),
         .valid_output(w_mux_a_output.valid),
-        .stop_output(w_elastic_join_stop_input[0]),
+        .stop_output(w_mux_a_output.stop),
         .input_data_index(r_config_memory[r_config_index_mux_a].input_PE_index_1),
         .switch_context(w_switch_context_mux_a)
     );
@@ -149,12 +162,14 @@ module ElasticPE (
         .stop_input(w_fork_b_output_stop),
         .data_output(w_mux_b_output.data),
         .valid_output(w_mux_b_output.valid),
-        .stop_output(w_elastic_join_stop_input[1]),
+        .stop_output(w_mux_b_output.stop),
         .input_data_index(r_config_memory[r_config_index_mux_b].input_PE_index_2),
         .switch_context(w_switch_context_mux_b)
     );
 
     // Elastic Module : Join
+    assign w_mux_a_output.stop = w_elastic_join_stop_input[0];
+    assign w_mux_b_output.stop = w_elastic_join_stop_input[1];
     assign w_elastic_join_data_input[0]  = w_mux_a_output.data;
     assign w_elastic_join_data_input[1]  = w_mux_b_output.data;
     assign w_elastic_join_valid_input[0] = w_mux_a_output.valid;
@@ -166,24 +181,28 @@ module ElasticPE (
         .stop_input  (w_elastic_join_stop_input),
         .data_output (w_elastic_join_data_output),
         .valid_output(w_elastic_join_valid_output),
-        .stop_output (w_elastic_join_stop_output)
+        .stop_output (w_elastic_join_output[0].stop | w_elastic_join_output[1].stop)
     );
 
     // Elastic Module : ALU
     ElasticALU elastic_alu (
         .clk(clk),
         .reset_n(reset_n),
-        .input_data_1(w_elastic_join_data_output[0]),
-        .input_data_2(w_elastic_join_data_output[1]),
-        .op(r_config_memory[r_config_index_alu].op),
-        .const_data(r_config_memory[r_config_index_alu].const_data),
+        .input_data_1(w_elastic_join_output[0].data),
+        .input_data_2(w_elastic_join_output[1].data),
+        .config_data('{
+            input_PE_index_1: r_config_memory[r_config_index_alu].input_PE_index_1,
+            input_PE_index_2: r_config_memory[r_config_index_alu].input_PE_index_2,
+            op: r_config_memory[r_config_index_alu].op,
+            const_data: r_config_memory[r_config_index_alu].const_data
+        }),
         .output_data(w_alu_output.data),
         .memory_write_address(memory_write_address),
         .memory_write(memory_write),
         .memory_write_data(memory_write_data),
         .memory_read_address(memory_read_address),
         .memory_read_data(memory_read_data),
-        .valid_input(w_elastic_join_valid_output),
+        .valid_input(w_elastic_join_output[0].valid & w_elastic_join_output[1].valid),
         .stop_input(w_elastic_join_stop_output),
         .valid_output(w_alu_output.valid),
         .stop_output(w_alu_output.stop),
@@ -230,11 +249,7 @@ module ElasticPE (
         end else begin
             if (write_config_data) begin
                 // write config memory
-                r_config_memory[config_index].input_PE_index_1 <= config_input_PE_index_1;
-                r_config_memory[config_index].input_PE_index_2 <= config_input_PE_index_2;
-                r_config_memory[config_index].output_PE_index<=config_output_PE_index;
-                r_config_memory[config_index].op <= config_op;
-                r_config_memory[config_index].const_data <= config_const_data;
+                r_config_memory[config_index] <= config_data;
                 r_mapping_context_max_id <= mapping_context_max_id;
             end
 

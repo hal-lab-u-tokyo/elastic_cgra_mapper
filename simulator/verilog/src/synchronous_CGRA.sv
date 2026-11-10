@@ -1,6 +1,6 @@
-`include "param.v"
-`include "data_memory.v"
-`include "synchronous_PE.v"
+`include "param.sv"
+`include "data_memory.sv"
+`include "synchronous_PE.sv"
 
 module CGRA (
     input wire clk,
@@ -8,10 +8,7 @@ module CGRA (
     // config load if
     input [PE_ROW_BIT_LENGTH-1:0] config_PE_row_index,
     input [PE_COLUMN_BIT_LENGTH-1:0] config_PE_column_index,
-    input [INPUT_NUM_BIT_LENGTH-1:0] config_input_PE_index_1,
-    input [INPUT_NUM_BIT_LENGTH-1:0] config_input_PE_index_2,
-    input [OPERATION_BIT_LENGTH-1:0] config_op,
-    input [DATA_WIDTH-1:0] config_const_data,
+    input ConfigData config_data,
     input write_config_data,
     input [CONTEXT_SIZE_BIT_LENGTH-1:0] config_index,
     // execution param
@@ -81,10 +78,7 @@ module CGRA (
                 PE pe (
                     .clk(clk),
                     .reset_n(reset_n),
-                    .config_input_PE_index_1(config_input_PE_index_1),
-                    .config_input_PE_index_2(config_input_PE_index_2),
-                    .config_op(config_op),
-                    .config_const_data(config_const_data),
+                    .config_data(config_data),
                     .write_config_data(pe_write_config_data),
                     .config_index(config_index),
                     .pe_input_data(pe_input_data),

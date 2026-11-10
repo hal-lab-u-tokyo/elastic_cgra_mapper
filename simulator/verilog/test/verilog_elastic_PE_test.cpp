@@ -4,6 +4,9 @@
 
 #include <functional>
 #include <iostream>
+#include <verilog_runner/packed_signals.hpp>
+
+namespace packed = simulator::signals;
 
 struct PEConfig {
   int input_index_1;
@@ -23,16 +26,16 @@ void WritePEConfig(int index, int input_index_1, int input_index_2,
                    bool* output_PE_index, int op, int const_data,
                    Velastic_PE* pe) {
   pe->config_index = index;
-  pe->config_input_PE_index_1 = input_index_1;
-  pe->config_input_PE_index_2 = input_index_2;
+  packed::SetBits(pe->config_data, 43, 3, input_index_1);
+  packed::SetBits(pe->config_data, 40, 3, input_index_2);
   int output_PE_index_binary = 0;
   for (int i = 3; i >= 0; i--) {
     output_PE_index_binary *= 2;
     output_PE_index_binary += output_PE_index[i];
   }
-  pe->config_output_PE_index = output_PE_index_binary;
-  pe->config_op = op;
-  pe->config_const_data = const_data;
+  packed::SetBits(pe->config_data, 36, 4, output_PE_index_binary);
+  packed::SetBits(pe->config_data, 32, 4, op);
+  packed::SetBits(pe->config_data, 0, 32, const_data);
   pe->write_config_data = 1;
 }
 
@@ -84,25 +87,29 @@ TEST(VerilogSimulatorTest, elastic_PE_test) {
         bool output_PE_index[kNeighborPENum] = {0, 0, 1, 1};
         for (int i = 0; i < kNeighborPENum; i++) {
           EXPECT_EQ(pe->pe_output_data[i], 1);
-          EXPECT_EQ(pe->valid_output[i], output_PE_index[i]);
+          EXPECT_EQ(pe->valid_output[i],
+                    output_PE_index[i]);
         }
       } else if (cycle == 12) {  // mul
         bool output_PE_index[kNeighborPENum] = {1, 1, 1, 1};
         for (int i = 0; i < kNeighborPENum; i++) {
           EXPECT_EQ(pe->pe_output_data[i], 6);
-          EXPECT_EQ(pe->valid_output[i], output_PE_index[i]);
+          EXPECT_EQ(pe->valid_output[i],
+                    output_PE_index[i]);
         }
       } else if (cycle == 17) {  // load
         bool output_PE_index[kNeighborPENum] = {1, 0, 0, 1};
         for (int i = 0; i < kNeighborPENum; i++) {
           EXPECT_EQ(pe->pe_output_data[i], 100);
-          EXPECT_EQ(pe->valid_output[i], output_PE_index[i]);
+          EXPECT_EQ(pe->valid_output[i],
+                    output_PE_index[i]);
         }
       } else if (cycle == 19) {  // const
         bool output_PE_index[kNeighborPENum] = {1, 0, 0, 0};
         for (int i = 0; i < kNeighborPENum; i++) {
           EXPECT_EQ(pe->pe_output_data[i], 10);
-          EXPECT_EQ(pe->valid_output[i], output_PE_index[i]);
+          EXPECT_EQ(pe->valid_output[i],
+                    output_PE_index[i]);
         }
       } else if (cycle == 20) {  // mul
         pe->valid_input[2] = 0;
@@ -110,7 +117,8 @@ TEST(VerilogSimulatorTest, elastic_PE_test) {
         bool output_PE_index[kNeighborPENum] = {0, 0, 1, 1};
         for (int i = 0; i < kNeighborPENum; i++) {
           EXPECT_EQ(pe->pe_output_data[i], 1);
-          EXPECT_EQ(pe->valid_output[i], output_PE_index[i]);
+          EXPECT_EQ(pe->valid_output[i],
+                    output_PE_index[i]);
         }
       } else if (26 <= cycle && cycle <= 28) {  // mul
         for (int i = 0; i < kNeighborPENum; i++) {
@@ -141,9 +149,11 @@ TEST(VerilogSimulatorTest, elastic_PE_test) {
       std::cout << std::endl;
       std::cout << "<<<<<< cycle " << cycle << " >>>>>>" << std::endl;
       for (int i = 0; i < kNeighborPENum; i++) {
-        std::cout << "output_data[" << i << "]: " << pe->pe_output_data[i]
+        std::cout << "output_data[" << i
+                  << "]: " << pe->pe_output_data[i]
                   << std::endl;
-        std::cout << "valid_output[" << i << "]: " << pe->valid_output[i] + 0
+        std::cout << "valid_output[" << i
+                  << "]: " << pe->valid_output[i] + 0
                   << std::endl;
       }
       std::cout << "memory_read_address: " << pe->memory_read_address
@@ -198,9 +208,11 @@ TEST(VerilogSimulatorTest, elastic_PE_test_const) {
       //   std::cout << std::endl;
       //   std::cout << "<<<<<< cycle " << cycle << " >>>>>>" << std::endl;
       //   for (int i = 0; i < kNeighborPENum; i++) {
-      //     std::cout << "output_data[" << i << "]: " << pe->pe_output_data[i]
+      //     std::cout << "output_data[" << i << "]: " <<
+      //     pe->pe_output_data[i]
       //               << std::endl;
-      //     std::cout << "valid_output[" << i << "]: " << pe->valid_output[i] +
+      //     std::cout << "valid_output[" << i << "]: " <<
+      //     pe->valid_output[i] +
       //     0
       //               << std::endl;
       //   }
@@ -254,9 +266,11 @@ TEST(VerilogSimulatorTest, elastic_PE_test_route) {
       //   std::cout << std::endl;
       // std::cout << "<<<<<< cycle " << cycle << " >>>>>>" << std::endl;
       //   for (int i = 0; i < kNeighborPENum; i++) {
-      //     std::cout << "output_data[" << i << "]: " << pe->pe_output_data[i]
+      //     std::cout << "output_data[" << i << "]: " <<
+      //     pe->pe_output_data[i]
       //               << std::endl;
-      //     std::cout << "valid_output[" << i << "]: " << pe->valid_output[i] +
+      //     std::cout << "valid_output[" << i << "]: " <<
+      //     pe->valid_output[i] +
       //     0
       //               << std::endl;
       //   }
@@ -309,9 +323,11 @@ TEST(VerilogSimulatorTest, elastic_PE_test_initialize) {
       // std::cout << std::endl;
       // std::cout << "<<<<<< cycle " << cycle << " >>>>>>" << std::endl;
       // for (int i = 0; i < kNeighborPENum; i++) {
-      //   std::cout << "output_data[" << i << "]: " << pe->pe_output_data[i]
+      //   std::cout << "output_data[" << i << "]: " <<
+      //   pe->pe_output_data[i]
       //             << std::endl;
-      //   std::cout << "valid_output[" << i << "]: " << pe->valid_output[i] + 0
+      //   std::cout << "valid_output[" << i << "]: " <<
+      //   pe->valid_output[i] + 0
       //             << std::endl;
       // }
       // std::cout << "memory_read_address: " << pe->memory_read_address

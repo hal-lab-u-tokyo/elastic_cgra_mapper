@@ -1,6 +1,6 @@
 `ifndef DATA_MEMORY
 `define DATA_MEMORY
-`include "param.v"
+`include "param.sv"
 
 module DataMemory (
     input clk,

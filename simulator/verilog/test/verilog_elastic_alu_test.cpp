@@ -1,5 +1,6 @@
 // #include <Velastic_PE.h>
 #include <Velastic_alu.h>
+#include <verilog_runner/packed_signals.hpp>
 #include <gtest/gtest.h>
 #include <verilated.h>
 
@@ -10,8 +11,10 @@ void SetOperation(int data_1, int data_2, int op, int const_data,
                   bool valid_input, bool stop_output, Velastic_alu* alu) {
   alu->input_data_1 = data_1;
   alu->input_data_2 = data_2;
-  alu->op = op;
-  alu->const_data = const_data;
+  simulator::signals::SetBits(alu->config_data, 39, 3, 4);
+  simulator::signals::SetBits(alu->config_data, 36, 3, 2);
+  simulator::signals::SetBits(alu->config_data, 32, 4, op);
+  simulator::signals::SetBits(alu->config_data, 0, 32, const_data);
   alu->valid_input = valid_input;
   alu->stop_output = stop_output;
 }

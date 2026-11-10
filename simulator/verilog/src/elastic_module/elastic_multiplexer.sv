@@ -1,6 +1,6 @@
 `ifndef ELASTIC_MULTIPLEXER
 `define ELASTIC_MULTIPLEXER
-`include "param.v"
+`include "param.sv"
 
 module ElasticMultiplexer (
     // input

@@ -1,7 +1,7 @@
 `ifndef ELASTIC_FORK
 `define ELASTIC_FORK
 
-`include "param.v"
+`include "param.sv"
 
 module ElasticFork (
     // base

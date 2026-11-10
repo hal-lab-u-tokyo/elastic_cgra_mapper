@@ -1,4 +1,7 @@
 #include <verilog_runner/cgra_wrapper.hpp>
+#include <verilog_runner/packed_signals.hpp>
+
+namespace packed = simulator::signals;
 
 int GetInputPEIndex(entity::ConfigId from, entity::ConfigId to) {
   if (from.row_id < to.row_id) return 0;
@@ -71,12 +74,14 @@ void simulator::CGRAWrapper::SetPortData(CGRAInputData data) {
   cgra_->config_PE_row_index = data.GetData(CGRAPortName::kConfigPERowIndex);
   cgra_->config_PE_column_index =
       data.GetData(CGRAPortName::kConfigPEColumnIndex);
-  cgra_->config_input_PE_index_1 =
-      data.GetData(CGRAPortName::kConfigInputPEIndex1);
-  cgra_->config_input_PE_index_2 =
-      data.GetData(CGRAPortName::kConfigInputPEIndex2);
-  cgra_->config_op = data.GetData(CGRAPortName::kConfigOp);
-  cgra_->config_const_data = data.GetData(CGRAPortName::kConfigConstData);
+  packed::SetBits(cgra_->config_data, 39, 3,
+                  data.GetData(CGRAPortName::kConfigInputPEIndex1));
+  packed::SetBits(cgra_->config_data, 36, 3,
+                  data.GetData(CGRAPortName::kConfigInputPEIndex2));
+  packed::SetBits(cgra_->config_data, 32, 4,
+                  data.GetData(CGRAPortName::kConfigOp));
+  packed::SetBits(cgra_->config_data, 0, 32,
+                  data.GetData(CGRAPortName::kConfigConstData));
   cgra_->write_config_data = data.GetData(CGRAPortName::kWriteConfigData);
   cgra_->config_index = data.GetData(CGRAPortName::kConfigIndex);
   cgra_->start_exec = data.GetData(CGRAPortName::kStartExec);

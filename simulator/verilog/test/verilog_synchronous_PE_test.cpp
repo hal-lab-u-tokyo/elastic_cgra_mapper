@@ -2,6 +2,10 @@
 #include <gtest/gtest.h>
 #include <verilated.h>
 
+#include <verilog_runner/packed_signals.hpp>
+
+namespace packed = simulator::signals;
+
 TEST(VerilogSimulatorTest, synchronous_PE_test) {
   Vsynchronous_PE pe;
   auto Clock = [&pe]() {
@@ -21,10 +25,10 @@ TEST(VerilogSimulatorTest, synchronous_PE_test) {
   for (int context = 0; context < 8; ++context) {
     pe.write_config_data = 1;
     pe.config_index = context;
-    pe.config_input_PE_index_1 = context % 4;
-    pe.config_input_PE_index_2 = (context + 1) % 4;
-    pe.config_const_data = (context + 1) * 2;
-    pe.config_op = context + 1;
+    packed::SetBits(pe.config_data, 39, 3, context % 4);
+    packed::SetBits(pe.config_data, 36, 3, (context + 1) % 4);
+    packed::SetBits(pe.config_data, 0, 32, (context + 1) * 2);
+    packed::SetBits(pe.config_data, 32, 4, context + 1);
     Clock();
   }
 

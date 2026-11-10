@@ -6,5 +6,5 @@ target_include_directories(verilog_runner
 target_link_libraries(verilog_runner PRIVATE entity io)
 verilate(verilog_runner TRACE INCLUDE_DIRS
          ${CMAKE_CURRENT_SOURCE_DIR}/../../verilog/src/ SOURCES
-         ${CMAKE_CURRENT_SOURCE_DIR}/../../verilog/src/synchronous_CGRA.v)
+         ${CMAKE_CURRENT_SOURCE_DIR}/../../verilog/src/synchronous_CGRA.sv)
 target_compile_options(verilog_runner PRIVATE -Wall -Wextra -Wno-deprecated)
