@@ -3,28 +3,15 @@
 #include <cassert>
 #include <filesystem>
 #include <fstream>
-#include <mapper/gurobi_mapper.hpp>
+#include <mapper/ilp/ilp_mapper.hpp>
 
-mapper::GurobiILPMapper::GurobiILPMapper(
-    const std::shared_ptr<entity::DFG> dfg_ptr,
-    const std::shared_ptr<entity::MRRG> mrrg_ptr)
-    : dfg_ptr_(dfg_ptr), mrrg_ptr_(mrrg_ptr) {}
-
-mapper::GurobiILPMapper* mapper::GurobiILPMapper::CreateMapper(
-    const std::shared_ptr<entity::DFG> dfg_ptr,
-    const std::shared_ptr<entity::MRRG> mrrg_ptr) {
-  mapper::GurobiILPMapper* result = new mapper::GurobiILPMapper;
-  *result = mapper::GurobiILPMapper(dfg_ptr, mrrg_ptr);
-
-  return result;
-}
-
-mapper::MappingResult mapper::GurobiILPMapper::Execution() {
+mapper::MappingResult mapper::ILPMapper::Execution() {
   const auto start_time = std::chrono::system_clock::now();
   try {
     // create gurobi env
     GRBEnv env = GRBEnv(true);
-    env.set(GRB_IntParam_Threads, 32);
+    // Let Gurobi choose the thread count; fixed high values are fragile in
+    // container environments.
     env.start();
 
     // create an empty model
@@ -284,7 +271,9 @@ mapper::MappingResult mapper::GurobiILPMapper::Execution() {
 
     int status = model.get(GRB_IntAttr_Status);
 
-    if (status != GRB_OPTIMAL && status != GRB_SUBOPTIMAL) {
+    if (status == GRB_INFEASIBLE ||
+        (!accept_feasible_solution_ && status != GRB_OPTIMAL &&
+         status != GRB_SUBOPTIMAL)) {
       if (status == GRB_INFEASIBLE) {
         model.computeIIS();
         model.write("debug.iis");
@@ -352,14 +341,4 @@ mapper::MappingResult mapper::GurobiILPMapper::Execution() {
     return MappingResult(false, entity::Mapping(mrrg_ptr_->GetMRRGConfig()),
                          mapping_time);
   }
-}
-
-void mapper::GurobiILPMapper::SetLogFilePath(const std::string& log_file_path) {
-  log_file_path_ = log_file_path;
-  return;
-}
-
-void mapper::GurobiILPMapper::SetTimeOut(double timeout_s) {
-  timeout_s_ = timeout_s;
-  return;
 }
