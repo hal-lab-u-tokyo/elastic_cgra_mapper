@@ -1,6 +1,6 @@
 # Mapper
 
-`mapper::CreateMapper(Algorithm.type)` creates an algorithm, followed by
+`mapper::CreateMapper(Exec.type)` creates an algorithm, followed by
 `Configure()` and `Execution()`. The registry and factory remain the common API.
 
 ## Layout
@@ -81,12 +81,12 @@ remain compatible with saved experiment configurations.
 ## MRRG selection
 
 Use `SA`, `PRISA`, `YOTO`, or `YOTT` (also `<name>Mapper`) as
-`Algorithm.type`. The corresponding algorithm's `<algorithm>_mapper.cpp` reads the input MRRG:
+`Exec.type`. The corresponding algorithm's `<algorithm>_mapper.cpp` reads the input MRRG:
 
 - `context_size == 1`: its spatial placement strategy.
 - `context_size > 1`: its context-aware strategy (physical/context assignment for PRISA).
 
-Example: `{"Algorithm": {"type": "YOTT", "random_seed": 42}}` works with
+Example: `{"Exec": {"type": "YOTT"}, "Algorithm": {"YOTT": {"random_seed": 42}}}` works with
 either a single-context array or a multi-context MRRG. `placement_only` remains
 an output/evaluation option; it does not choose the implementation.
 
@@ -115,9 +115,72 @@ validate the supported MRRGs. CMake discovers `.cpp` files recursively.
 
 ## Entity integration
 
-PR140's reviewed entity configuration and MRRG model remain authoritative.
-`mapper/configuration.hpp` extends `entity::AlgorithmConfig` with registry names
-and optional search settings, rather than adding algorithm fields to entity.
+Mapper configuration belongs to the mapper library. `MapperConfig` owns a
+`std::unique_ptr<AlgorithmConfig>` selected by `Exec.type`, plus typed defaults
+for eight families. The base is an interface, not a bag of unused parameters.
+Each algorithm directory owns its applicable fields and ReadOptions/WriteOptions;
+central file I/O lives in `mapper/src/io`. Entity retains only DFG settings.
+Include `<mapper/io/configuration_io.hpp>` and call
+`ReadMapperConfigFromJsonFile` / `WriteMapperConfigToJsonFile`, then
+`config.algorithm_config->Apply(mapper)`.
+
+CLI arguments supply log paths/timeouts through runtime setters. Neither is
+persisted in the config, and applying config does not reset them. `Exec` contains
+only the mapper selector. ILP's acceptance policy and eligible heuristics'
+placement-only flag belong to their algorithm objects. The default file lists
+every supported family field; `"auto"` preserves native variant/input-dependent
+defaults without calling an override setter. The selected object is authoritative
+on write, while other family defaults survive round trips.
+
+The registry associates mapper/config factories and consumed-option sets with
+the same alias entries. New-schema explicit options that a variant does not
+consume are rejected; unset `auto` entries and the harmless default
+`placement_only:false` allow the complete defaults file to select every alias.
+Unknown/removed family options are rejected. Old flat `Algorithm.type` files
+remain readable: previously ignored fields are filtered rather than changing
+saved experiment behavior. Writing always uses the new schema.
+
+| Family | Persisted options with an actual consumer |
+| --- | --- |
+| ILP | accept_feasible_solution (full, placement and connectivity ILP) |
+| SA | seed_count, random_seed, max_iterations; routing_retry_count and placement_only on supporting search frontends; io_node_policy on Array |
+| PRISA | SA options; max_trials only for CostAware candidate sampling |
+| YOTO / YOTT | max_trials, seed_count, random_seed; routing_retry_count / placement_only on supporting search frontends; Array policies below |
+| YOTTCore | max_trials, seed_count, random_seed, io_node_policy, trial_seed_policy, traversal_order_policy, traversal_neighbor_policy, use_yott_annotations, trace_trials |
+| YOTTCoreRepair | Core options plus max_iterations, elite_placement_count, candidate_rank_policy |
+| PlacementFirst | no exposed algorithm-specific options |
+
+For YOTO/YOTT Array, io_node_policy, traversal_neighbor_policy,
+candidate_scope_policy, candidate_rank_policy and use_yott_annotations affect
+both CPU-mapping and paper-guided searches. trial_seed_policy and trace_trials
+are consumed only by CPU-mapping. Trace options control trace-file output, not a
+mapping objective. The per-registration option sets in `mapper_registry.cpp`
+are the exact variant contract.
+
+```json
+{
+  "Exec": {"type": "SA"},
+  "Algorithm": {"SA": {"placement_only": true}},
+  "DFG": {"operation_name_label": "node_id"}
+}
+```
+
+With a context-aware MRRG, this requests placement without routing from the
+canonical SA frontend. The flag does not choose the backend or context count.
+Canonical SA/PRISA/YOTO/YOTT and the spatial search frontends forward the flag;
+explicit legacy Modulo wrappers do not. Array engines/Core/CoreRepair inherently
+return placement. ILP/Connectivity/PlacementFirst do not consume this flag.
+The runner does not insert a redundant/unsupported automatic placement flag for
+those variants. An explicit unsupported request in a new-schema config fails
+instead of silently changing its interpretation. `false` runs the backend's
+normal pipeline; it does not add routing to an inherently placement-only engine.
+
+The audit removed constructor-only fields, SA's log-only max_trials,
+YOTO/YOTT's log-only max_iterations, unused Core budgets/policies and Repair's
+unused candidate scope. The corresponding existing engine helpers/setters and
+all mapping algorithms remain unchanged. Runtime `MapperOptions` remains
+available separately for programmatic execution settings.
+
 MRRG uses `kOneHop2d` / `one_hop_2d`; legacy architecture JSON spellings are
 translated by IO, and new mappings always serialize `one_hop_2d`. The research
 metric `placement_cost_model=one_hop_axis2` keeps its mathematical definition.

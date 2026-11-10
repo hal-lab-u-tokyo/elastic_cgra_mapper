@@ -6,10 +6,10 @@
 #include <fstream>
 #include <io/architecture_io.hpp>
 #include <io/dfg_io.hpp>
-#include <io/mapper_config_io.hpp>
 #include <io/mapping_io.hpp>
 #include <io/output_to_log_file.hpp>
 #include <iostream>
+#include <mapper/io/configuration_io.hpp>
 #include <mapper/mapper_factory.hpp>
 
 std::string FixOpName(std::string op_name, int node_offset) {
@@ -128,7 +128,7 @@ int main(int argc, char* argv[]) {
   std::shared_ptr<entity::MRRG> mrrg_ptr = std::make_shared<entity::MRRG>();
 
   mapper::MapperConfig mapper_config =
-      io::ReadMapperConfigFromJsonFile(mapper_config_file_path);
+      mapper::ReadMapperConfigFromJsonFile(mapper_config_file_path);
   *dfg_ptr_to_add =
       io::ReadDFGDotFile(dfg_dot_file_path, mapper_config.dfg_config);
   *dfg_ptr = *dfg_ptr_to_add;
@@ -147,36 +147,10 @@ int main(int argc, char* argv[]) {
   }
 
   std::unique_ptr<mapper::IMapper> mapper_impl = mapper::CreateMapper(
-      mapper_config.algorithm_config.type, dfg_ptr, mrrg_ptr);
-  mapper::MapperOptions mapper_options;
-  mapper_options.log_file_path = logger.GetGurobiLogFilePath();
-  mapper_options.timeout_s = timeout_s;
-  mapper_options.accept_feasible_solution =
-      mapper_config.algorithm_config.accept_feasible_solution;
-  mapper_options.placement_only = mapper_config.algorithm_config.placement_only;
-  mapper_options.max_trials = mapper_config.algorithm_config.max_trials;
-  mapper_options.seed_count = mapper_config.algorithm_config.seed_count;
-  mapper_options.routing_retry_count =
-      mapper_config.algorithm_config.routing_retry_count;
-  mapper_options.random_seed = mapper_config.algorithm_config.random_seed;
-  mapper_options.max_iterations = mapper_config.algorithm_config.max_iterations;
-  mapper_options.elite_placement_count =
-      mapper_config.algorithm_config.elite_placement_count;
-  mapper_options.io_node_policy = mapper_config.algorithm_config.io_node_policy;
-  mapper_options.trial_seed_policy =
-      mapper_config.algorithm_config.trial_seed_policy;
-  mapper_options.traversal_order_policy =
-      mapper_config.algorithm_config.traversal_order_policy;
-  mapper_options.traversal_neighbor_policy =
-      mapper_config.algorithm_config.traversal_neighbor_policy;
-  mapper_options.candidate_scope_policy =
-      mapper_config.algorithm_config.candidate_scope_policy;
-  mapper_options.candidate_rank_policy =
-      mapper_config.algorithm_config.candidate_rank_policy;
-  mapper_options.use_yott_annotations =
-      mapper_config.algorithm_config.use_yott_annotations;
-  mapper_options.trace_trials = mapper_config.algorithm_config.trace_trials;
-  mapper_impl->Configure(mapper_options);
+      mapper_config.algorithm_config->type, dfg_ptr, mrrg_ptr);
+  mapper_impl->SetLogFilePath(logger.GetGurobiLogFilePath());
+  mapper_impl->SetTimeOut(timeout_s);
+  mapper_config.algorithm_config->Apply(*mapper_impl);
 
   const auto result = mapper_impl->Execution();
 

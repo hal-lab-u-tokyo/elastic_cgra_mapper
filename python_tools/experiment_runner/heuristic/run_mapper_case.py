@@ -7,6 +7,7 @@ import time
 from pathlib import Path
 
 from lib import (
+    apply_algorithm_overrides,
     compute_res_mii,
     find_one,
     find_single_run_dir,
@@ -22,9 +23,7 @@ def prepare_cli_mapper_config(mapper_config_path: Path, output_dir: Path, evalua
     if evaluation_mode != "placement_only":
         return mapper_config_path
     mapper_config = load_json(mapper_config_path)
-    algorithm = dict(mapper_config.get("Algorithm", {}))
-    algorithm["placement_only"] = True
-    mapper_config["Algorithm"] = algorithm
+    apply_algorithm_overrides(mapper_config, {}, placement_only=True)
     generated_dir = output_dir / "generated_inputs"
     generated_dir.mkdir(parents=True, exist_ok=True)
     generated_mapper_path = generated_dir / "mapper_config.json"

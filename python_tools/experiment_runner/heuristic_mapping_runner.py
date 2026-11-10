@@ -17,6 +17,7 @@ except ImportError:
 sys.path.insert(0, str(Path(__file__).resolve().parent / "heuristic"))
 
 from lib import (
+    apply_algorithm_overrides,
     auto_square_arch_for_dfg,
     load_json,
     placement2d_capacity_check,
@@ -149,11 +150,10 @@ def prepare_mapper_config_for_run(
         return mapper_config_path
 
     mapper_config = load_json(mapper_config_path)
-    algorithm = dict(mapper_config.get("Algorithm", {}))
-    if evaluation_mode == "placement_only":
-        algorithm["placement_only"] = True
+    algorithm = {}
     algorithm.update(algorithm_overrides)
-    mapper_config["Algorithm"] = algorithm
+    apply_algorithm_overrides(mapper_config, algorithm,
+                              placement_only=evaluation_mode == "placement_only")
     mapper_config = deep_merge_dict(mapper_config, config_overrides)
     generated_dir = run_dir / "generated_inputs"
     generated_dir.mkdir(parents=True, exist_ok=True)

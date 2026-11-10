@@ -138,14 +138,16 @@ TEST(MapperTest, algorithm_selects_engine_from_mrrg_test) {
       SCOPED_TRACE(variant.first + " contexts=" + std::to_string(contexts));
       mapper::MapperOptions options;
       options.timeout_s = 5;
-      options.random_seed = 42;
-      options.max_trials = 2;
-      options.max_iterations = 30;
-      options.seed_count = 1;
       auto automatic = mapper::CreateMapper(variant.first, dfg, mrrg);
       auto explicit_variant = mapper::CreateMapper(variant.second, dfg, mrrg);
       automatic->Configure(options);
       explicit_variant->Configure(options);
+      for (auto* target : {automatic.get(), explicit_variant.get()}) {
+        target->SetRandomSeed(42);
+        target->SetMaxTrials(2);
+        target->SetMaxIterations(30);
+        target->SetSeedCount(1);
+      }
       const auto actual = automatic->Execution();
       const auto expected = explicit_variant->Execution();
       ASSERT_TRUE(expected.is_success);

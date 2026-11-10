@@ -1,7 +1,7 @@
 #pragma once
 
 #include <entity/dfg.hpp>
-#include <entity/mapper_config.hpp>
+#include <entity/dfg_config.hpp>
 #include <string>
 
 namespace io {

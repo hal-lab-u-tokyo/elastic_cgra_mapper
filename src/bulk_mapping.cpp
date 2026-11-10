@@ -5,11 +5,12 @@
 #include <filesystem>
 #include <io/architecture_io.hpp>
 #include <io/dfg_io.hpp>
-#include <io/mapper_config_io.hpp>
 #include <io/mapping_io.hpp>
 #include <io/output_to_log_file.hpp>
 #include <iostream>
+#include <mapper/ilp/configuration.hpp>
 #include <mapper/ilp/ilp_placement_mapper.hpp>
+#include <mapper/io/configuration_io.hpp>
 
 std::vector<entity::MRRGConfig> GetMRRGToTest(int dfg_node_num) {
   std::vector<entity::MRRGConfig> mrrg_config_vec;
@@ -75,7 +76,7 @@ int main(int argc, char* argv[]) {
 
   std::shared_ptr<entity::DFG> dfg_ptr = std::make_shared<entity::DFG>();
   mapper::MapperConfig mapper_config =
-      io::ReadMapperConfigFromJsonFile(mapper_config_file_path);
+      mapper::ReadMapperConfigFromJsonFile(mapper_config_file_path);
   *dfg_ptr = io::ReadDFGDotFile(dfg_dot_file_path, mapper_config.dfg_config);
 
   const auto mrrg_config_vec = GetMRRGToTest(dfg_ptr->GetNodeNum());
@@ -100,7 +101,9 @@ int main(int argc, char* argv[]) {
       mapper->SetLogFilePath(mapping_logger.GetGurobiLogFilePath());
       mapper->SetTimeOut(timeout_s);
       mapper->SetAcceptFeasibleSolution(
-          mapper_config.algorithm_config.accept_feasible_solution);
+          dynamic_cast<const mapper::ILPConfig&>(
+              *mapper_config.algorithm_defaults.at("ILP"))
+              .accept_feasible_solution);
 
       const auto result = mapper->Execution();
       is_success = result.is_success;

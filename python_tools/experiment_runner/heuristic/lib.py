@@ -26,6 +26,40 @@ def load_json(path: Path) -> dict:
         return json.load(f)
 
 
+def apply_algorithm_overrides(config: dict, overrides: dict,
+                              placement_only: bool = False) -> None:
+    """Apply overrides without persisting CLI arguments or unused mode flags."""
+    overrides = {key: value for key, value in overrides.items()
+                 if key not in {"log_file_path", "timeout_s"}}
+    section = "Exec" if "Exec" in config else "Algorithm"
+    name = overrides.get("type", config.get(section, {}).get("type", ""))
+    lower = name.lower()
+    # Array backends already emit placement; explicit Modulo wrappers do not
+    # forward this optional flag. Do not manufacture unused config parameters.
+    supports_mode = (any(token in lower for token in ("yoto", "yott", "prisa", "sa"))
+                     and not any(token in lower for token in ("array", "cpumapping", "modulo")))
+    if placement_only and supports_mode:
+        overrides["placement_only"] = True
+    if section == "Algorithm":
+        config.setdefault("Algorithm", {}).update(overrides)
+        return
+    execution = config["Exec"]
+    if "type" in overrides:
+        execution["type"] = overrides["type"]
+    options = {key: value for key, value in overrides.items() if key != "type"}
+    if not options:
+        return
+    candidates = [("yottcorerepair", "YOTTCoreRepair"),
+                  ("yottcorebottleneckrepair", "YOTTCoreRepair"),
+                  ("yottcore", "YOTTCore"), ("yott", "YOTT"),
+                  ("yoto", "YOTO"), ("prisa", "PRISA"), ("sa", "SA"),
+                  ("placementfirst", "PlacementFirst"), ("ilp", "ILP")]
+    family = next((family for token, family in candidates if token in lower), None)
+    if family is None:
+        raise ValueError(f"Cannot identify defaults family for mapper {name!r}")
+    config.setdefault("Algorithm", {}).setdefault(family, {}).update(options)
+
+
 def write_json(path: Path, data: dict) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w") as f:

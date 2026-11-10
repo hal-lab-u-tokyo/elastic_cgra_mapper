@@ -2,9 +2,9 @@
 #include <cxxopts.hpp>
 #include <io/architecture_io.hpp>
 #include <io/dfg_io.hpp>
-#include <io/mapper_config_io.hpp>
 #include <io/mapping_io.hpp>
 #include <iostream>
+#include <mapper/io/configuration_io.hpp>
 #include <verilog_runner/simulation_runner.hpp>
 
 int main(int argc, char** argv) {
