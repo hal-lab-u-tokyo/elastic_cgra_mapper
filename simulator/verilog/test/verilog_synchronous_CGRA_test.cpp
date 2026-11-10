@@ -17,19 +17,19 @@ TEST(VerilogSimulatorTest, synchronous_CGRA_test) {
 
   simulator::SimulationRunner simulation_runner(mapping_file_path,
                                                 fst_output_file_path);
-  // simulation_runner.RunSimulation(100);
-  // simulation_runner.VerifySimulationResult();
+  simulation_runner.RunSimulation(100);
+  simulation_runner.VerifySimulationResult();
 
-  // auto simulation_result_map = simulation_runner.GetSimulationResult();
-  // auto expected_result_map = simulation_runner.GetExpectedResult();
+  auto simulation_result_map = simulation_runner.GetSimulationResult();
+  auto expected_result_map = simulation_runner.GetExpectedResult();
 
-  // EXPECT_EQ(simulation_result_map.size(), expected_result_map.size());
-  // for (const auto& [config_id, expected_output] : expected_result_map) {
-  //   auto it = simulation_result_map.find(config_id);
-  //   EXPECT_NE(it, simulation_result_map.end());
-  //   if (it != simulation_result_map.end()) {
-  //     std::vector<int> actual_output = it->second;
-  //     EXPECT_EQ(actual_output, expected_output);
-  //   }
-  // }
+  EXPECT_EQ(simulation_result_map.size(), expected_result_map.size());
+  for (const auto& [config_id, expected_output] : expected_result_map) {
+    auto it = simulation_result_map.find(config_id);
+    EXPECT_NE(it, simulation_result_map.end());
+    if (it != simulation_result_map.end()) {
+      std::vector<int> actual_output = it->second;
+      EXPECT_EQ(actual_output, expected_output);
+    }
+  }
 }
