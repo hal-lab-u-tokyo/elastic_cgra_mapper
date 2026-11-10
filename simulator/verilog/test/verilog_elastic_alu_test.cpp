@@ -1,11 +1,11 @@
 // #include <Velastic_PE.h>
 #include <Velastic_alu.h>
-#include <verilog_runner/packed_signals.hpp>
 #include <gtest/gtest.h>
 #include <verilated.h>
 
 #include <functional>
 #include <iostream>
+#include <verilog_runner/packed_signals.hpp>
 
 void SetOperation(int data_1, int data_2, int op, int const_data,
                   bool valid_input, bool stop_output, Velastic_alu* alu) {
