@@ -82,9 +82,9 @@ int main(int argc, char* argv[]) {
   const auto mrrg_config_vec = GetMRRGToTest(dfg_ptr->GetNodeNum());
 
   for (auto mrrg_config : mrrg_config_vec) {
-    bool is_success = false;
+    bool mapping_available = false;
     int count = 0;
-    while (!is_success) {
+    while (!mapping_available) {
       io::MappingLogger mapping_logger;
       io::MappingInput mapping_input;
       mapping_input.dfg_dot_file_path = dfg_dot_file_path;
@@ -106,12 +106,12 @@ int main(int argc, char* argv[]) {
               .accept_feasible_solution);
 
       const auto result = mapper->Execution();
-      is_success = result.is_success;
+      mapping_available = result.HasMapping();
 
-      if (is_success) {
+      if (mapping_available) {
         io::MappingOutput mapping_output;
         mapping_output.mapping_time_s = result.mapping_time_s;
-        mapping_output.is_success = result.is_success;
+        mapping_output.status = result.status;
         mapping_output.mapping_ptr = result.mapping_ptr;
         mapping_output.mrrg_config = mrrg_config;
         mapping_logger.LogMappingOutput(mapping_output);

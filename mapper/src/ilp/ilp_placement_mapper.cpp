@@ -4,6 +4,7 @@
 #include <filesystem>
 #include <fstream>
 #include <mapper/ilp/ilp_placement_mapper.hpp>
+#include <mapper/ilp/result_status.hpp>
 #include <memory>
 
 mapper::PlacementILPMapper::PlacementILPMapper(
@@ -408,6 +409,8 @@ mapper::MappingResult mapper::PlacementILPMapper::Execution() {
     model.optimize();
 
     int status = model.get(GRB_IntAttr_Status);
+    const auto result_status = ClassifyILPResult(
+        status, model.get(GRB_IntAttr_SolCount), accept_feasible_solution_);
 
     // Time-limited runs may still have a feasible incumbent. Keep that
     // behavior configurable for experiments that require stricter status.
@@ -420,7 +423,8 @@ mapper::MappingResult mapper::PlacementILPMapper::Execution() {
                                                                 start_time)
               .count() /
           1000.0;
-      return MappingResult(false, entity::Mapping(mrrg_ptr_->GetMRRGConfig()),
+      return MappingResult(mapper::MappingStatus::kFailure,
+                           entity::Mapping(mrrg_ptr_->GetMRRGConfig()),
                            mapping_time);
     }
 
@@ -432,7 +436,8 @@ mapper::MappingResult mapper::PlacementILPMapper::Execution() {
                                                                 start_time)
               .count() /
           1000.0;
-      return MappingResult(false, entity::Mapping(mrrg_ptr_->GetMRRGConfig()),
+      return MappingResult(mapper::MappingStatus::kFailure,
+                           entity::Mapping(mrrg_ptr_->GetMRRGConfig()),
                            mapping_time);
     }
 
@@ -443,7 +448,8 @@ mapper::MappingResult mapper::PlacementILPMapper::Execution() {
                                                                 start_time)
               .count() /
           1000.0;
-      return MappingResult(false, entity::Mapping(mrrg_ptr_->GetMRRGConfig()),
+      return MappingResult(mapper::MappingStatus::kFailure,
+                           entity::Mapping(mrrg_ptr_->GetMRRGConfig()),
                            mapping_time);
     }
 
@@ -475,7 +481,7 @@ mapper::MappingResult mapper::PlacementILPMapper::Execution() {
             .count() /
         1000.0;
     return MappingResult(
-        true,
+        result_status,
         entity::Mapping(*mrrg_ptr_, *dfg_ptr_, dfg_node_to_mrrg_node,
                         dfg_output_to_mrrg_reg),
         mapping_time);
@@ -490,7 +496,8 @@ mapper::MappingResult mapper::PlacementILPMapper::Execution() {
             .count() /
         1000.0;
 
-    return MappingResult(false, entity::Mapping(mrrg_ptr_->GetMRRGConfig()),
+    return MappingResult(mapper::MappingStatus::kFailure,
+                         entity::Mapping(mrrg_ptr_->GetMRRGConfig()),
                          mapping_time);
   }
 }

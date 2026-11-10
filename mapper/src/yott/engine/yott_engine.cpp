@@ -75,7 +75,8 @@ mapper::MappingResult YottEngine::MakeFailureResult(
   const double mapping_time_s = SecondsSince(start);
   Log("failure mapper=" + MapperName() +
       " time_s=" + std::to_string(mapping_time_s));
-  return mapper::MappingResult(false, entity::Mapping(mrrg_.GetMRRGConfig()),
+  return mapper::MappingResult(mapper::MappingStatus::kFailure,
+                               entity::Mapping(mrrg_.GetMRRGConfig()),
                                mapping_time_s);
 }
 
@@ -301,7 +302,8 @@ mapper::MappingResult YottEngine::FinishPlacementOnly(
   Log("placement_only_success mapper=" + MapperName() +
       " time_s=" + std::to_string(mapping_time_s) +
       " placement_cost=" + std::to_string(PlacementCost(placement)));
-  return mapper::MappingResult(true, mapping, mapping_time_s);
+  return mapper::MappingResult(mapper::MappingStatus::kOptimalityUnknown,
+                               mapping, mapping_time_s);
 }
 
 std::optional<RouteUsage> YottEngine::RoutePlacement(
@@ -324,7 +326,8 @@ mapper::MappingResult YottEngine::FinishRoutedMapping(
       " time_s=" + std::to_string(mapping_time_s) +
       " placement_cost=" + std::to_string(PlacementCost(placement)) +
       " route_edges=" + std::to_string(RouteEdgeCount(route_usage)));
-  return mapper::MappingResult(true, mapping, mapping_time_s);
+  return mapper::MappingResult(mapper::MappingStatus::kOptimalityUnknown,
+                               mapping, mapping_time_s);
 }
 
 double YottEngine::DegreeMatchScore(int dfg_node_id, int mrrg_node_id,
@@ -1370,8 +1373,8 @@ mapper::MappingResult YottEngine::GridFailure(
   Log("failure mapper=" + GridMapperName() + " reason=" +
       (last_failure_reason_.empty() ? "no placement candidate"
                                     : last_failure_reason_));
-  return mapper::MappingResult(false, entity::Mapping(config_),
-                               SecondsSince(start));
+  return mapper::MappingResult(mapper::MappingStatus::kFailure,
+                               entity::Mapping(config_), SecondsSince(start));
 }
 
 mapper::MappingResult YottEngine::GridFinishPlacement(
@@ -1381,7 +1384,8 @@ mapper::MappingResult YottEngine::GridFinishPlacement(
   for (int node = 0; node < dfg_.GetNodeNum(); node++) {
     const int cell = placement.dfg_to_cell[node];
     if (cell < 0 || cell >= static_cast<int>(cell_to_mrrg_.size())) {
-      return mapper::MappingResult(false, entity::Mapping(config_),
+      return mapper::MappingResult(mapper::MappingStatus::kFailure,
+                                   entity::Mapping(config_),
                                    SecondsSince(start));
     }
     if (GridUsesStructuralIOCellTypes() &&
@@ -1389,7 +1393,8 @@ mapper::MappingResult YottEngine::GridFinishPlacement(
       Log("failure mapper=" + GridMapperName() +
           " reason=final placement violates structural I/O node=" +
           GridNodeLabel(node) + " cell=" + std::to_string(cell));
-      return mapper::MappingResult(false, entity::Mapping(config_),
+      return mapper::MappingResult(mapper::MappingStatus::kFailure,
+                                   entity::Mapping(config_),
                                    SecondsSince(start));
     }
     dfg_to_mrrg[node] = cell_to_mrrg_[cell];
@@ -1403,7 +1408,8 @@ mapper::MappingResult YottEngine::GridFinishPlacement(
       " placement_cost=" + std::to_string(GridPlacementCost(placement)) +
       " placement_swap_attempts=" + std::to_string(placement_swap_attempts_) +
       " cell_visits=" + std::to_string(cell_visits_));
-  return mapper::MappingResult(true, mapping, elapsed);
+  return mapper::MappingResult(mapper::MappingStatus::kOptimalityUnknown,
+                               mapping, elapsed);
 }
 
 }  // namespace mapper::yott

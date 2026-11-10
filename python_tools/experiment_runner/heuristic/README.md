@@ -21,3 +21,17 @@ Explicit unsupported new-schema options are rejected by the mapper reader.
 Legacy flat Algorithm inputs preserve their existing effective behavior.
 Run `python3 mapper/test/configuration_runner_test.py` from the repository root
 for schema/override checks; the mapper README describes the consumption matrix.
+
+Result optimality is recorded in `mapping_status`: optimal, suboptimal,
+optimality_unknown or failure. Output JSON's new tag is authoritative; legacy
+boolean-only success is conservatively unknown. Solver logs are diagnostics,
+and an optimal subproblem log cannot promote a staged/heuristic result to a
+global optimum. See the mapper README for tolerance and acceptance-policy details.
+
+CSV appends mapping_status as column159; the original158column order stays
+unchanged. The existing status column remains the run verdict (success, failed,
+timeout, timeout_feasible, error, etc.), while mapping_status carries optimality.
+Pre-execution errors have failure; old success rows without certificates have
+optimality_unknown. Invalid explicit tags raise an error instead of being treated
+as success. Run `python3 mapper/test/mapping_status_runner_test.py` for the
+status/legacy/CSV contract checks.

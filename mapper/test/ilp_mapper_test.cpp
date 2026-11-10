@@ -59,7 +59,8 @@ TEST(MapperTest, placement2d_ilp_mapper_test) {
       mapper::PlacementILPMapper().CreateMapper(dfg_ptr, mrrg_ptr);
   const auto result = mapper_ptr->Execution();
 
-  EXPECT_EQ(result.is_success, true);
+  EXPECT_EQ(result.HasMapping(), true);
+  EXPECT_EQ(result.status, mapper::MappingStatus::kOptimal);
 }
 
 TEST(MapperTest, full_routing_ilp_mapper_test) {
@@ -101,7 +102,8 @@ TEST(MapperTest, full_routing_ilp_mapper_test) {
       mapper::CreateMapper("FullRoutingILPMapper", dfg_ptr, mrrg_ptr);
   const auto result = mapper_ptr->Execution();
 
-  EXPECT_EQ(result.is_success, true);
+  EXPECT_EQ(result.HasMapping(), true);
+  EXPECT_EQ(result.status, mapper::MappingStatus::kOptimal);
 }
 
 TEST(MapperTest, algorithm_selects_engine_from_mrrg_test) {
@@ -150,8 +152,8 @@ TEST(MapperTest, algorithm_selects_engine_from_mrrg_test) {
       }
       const auto actual = automatic->Execution();
       const auto expected = explicit_variant->Execution();
-      ASSERT_TRUE(expected.is_success);
-      ASSERT_TRUE(actual.is_success);
+      ASSERT_TRUE(expected.HasMapping());
+      ASSERT_TRUE(actual.HasMapping());
       const auto actual_configs = actual.mapping_ptr->GetConfigMap();
       const auto expected_configs = expected.mapping_ptr->GetConfigMap();
       ASSERT_EQ(actual_configs.size(), expected_configs.size());
@@ -204,8 +206,8 @@ TEST(MapperTest, full_routing_alias_preserves_single_context_formulation_test) {
   mapper::ILPMapper full_routing(dfg, mrrg);
   full_routing.SetTimeOut(5);
   const auto expected = full_routing.Execution();
-  ASSERT_TRUE(actual.is_success);
-  ASSERT_TRUE(expected.is_success);
+  ASSERT_TRUE(actual.HasMapping());
+  ASSERT_TRUE(expected.HasMapping());
   const auto actual_configs = actual.mapping_ptr->GetConfigMap();
   const auto expected_configs = expected.mapping_ptr->GetConfigMap();
   ASSERT_EQ(actual_configs.size(), expected_configs.size());

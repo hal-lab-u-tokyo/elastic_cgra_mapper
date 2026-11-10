@@ -187,3 +187,36 @@ metric `placement_cost_model=one_hop_axis2` keeps its mathematical definition.
 
 Operation enums follow Google style (`OpType::kAdd`, `kLoad`, etc.), without
 uppercase aliases. Numeric values and JSON/opcode strings are unchanged.
+
+`MappingResult` stores `MappingStatus status` instead of a success boolean.
+Use `result.HasMapping()` when control flow only needs to know whether a mapping
+was accepted; inspect `result.status` when optimality matters.
+
+| C++ status | JSON mapping_status | Meaning |
+| --- | --- | --- |
+| kOptimal | optimal | Full/placement ILP reports GRB_OPTIMAL with an incumbent |
+| kSuboptimal | suboptimal | Full/placement ILP reports GRB_SUBOPTIMAL with an incumbent |
+| kOptimalityUnknown | optimality_unknown | Accepted incumbent after another termination, heuristic success, or bounded/staged Connectivity ILP success |
+| kFailure | failure | No accepted mapping, including policy rejection or no incumbent |
+
+The ILP labels follow [Gurobi status definitions](https://docs.gurobi.com/projects/optimizer/en/current/reference/numericcodes/statuscodes.html):
+optimality is subject to solver tolerances, and SUBOPTIMAL means its optimality
+tolerances were not satisfied. The latter is a solver-reported classification,
+not proof of a strictly worse objective. Unknown does not mean nonoptimal;
+heuristics never receive an optimality label just because they returned a mapping.
+Connectivity submodel optima do not establish a global mapping optimum. Status
+refers to the selected formulation/execution mode, so placement-only success
+also does not certify routing.
+
+The existing acceptance policy is unchanged: OPTIMAL and SUBOPTIMAL incumbents
+are accepted even when accept_feasible_solution is false. Other incumbent
+termination states need that flag; zero solutions always fail before values are
+read. Failure describes the accepted result, not a new taxonomy or proof of
+infeasibility. Compare `status == MappingStatus::kOptimal` if only the solver's
+optimal result is wanted.
+
+Mapping output JSON carries authoritative `mapping_status`; `is_success` remains
+only as a derived compatibility field. Database readers prefer the new tag and
+fall back to old boolean-only logs. C++ MappingResult/MappingOutput have no
+parallel stored boolean. Tests cover all four serialized tags and the classifier
+policy table, including an actual solution-limited solver incumbent.

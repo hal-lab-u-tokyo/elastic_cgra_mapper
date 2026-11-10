@@ -258,7 +258,8 @@ MappingResult PlacementFirstEngine::Finish(
                                                             start_time)
           .count() /
       1000.0;
-  return mapper::MappingResult(true, mapping, mapping_time);
+  return mapper::MappingResult(mapper::MappingStatus::kOptimalityUnknown,
+                               mapping, mapping_time);
 }
 MappingResult PlacementFirstEngine::Failure(
     std::chrono::system_clock::time_point start_time) const {
@@ -266,6 +267,7 @@ MappingResult PlacementFirstEngine::Failure(
                              std::chrono::system_clock::now() - start_time)
                              .count() /
                          1000.0;
-  return MappingResult(false, entity::Mapping(mrrg_config), elapsed);
+  return MappingResult(mapper::MappingStatus::kFailure,
+                       entity::Mapping(mrrg_config), elapsed);
 }
 }  // namespace mapper::placement_first

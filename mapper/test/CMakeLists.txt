@@ -1,4 +1,4 @@
-add_executable(mapper_test ilp_mapper_test.cpp configuration_io_test.cpp)
+add_executable(mapper_test ilp_mapper_test.cpp configuration_io_test.cpp mapping_status_test.cpp)
 
 include(GoogleTest)
 
