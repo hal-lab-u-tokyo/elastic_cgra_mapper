@@ -1,0 +1,21 @@
+digraph cholesky {
+    0 [label = mul0 op = mul ] ;
+    1 [label = in1 op = in ] ;
+    2 [label = reg2 op = reg ] ;
+    3 [label = reg3 op = reg ] ;
+    4 [label = mul4 op = mul ] ;
+    5 [label = sub5 op = subi value = 1 ] ;
+    6 [label = out6 op = out ] ;
+    7 [label = add7 op = addi value = 2 ] ;
+    8 [label = in8 op = in ] ;
+    
+    1 -> 0 [port = 0  weight = 0 ] ;
+    7 -> 0 [port = 1  weight = 0 ] ;
+    0 -> 2 [port = 0  weight = 0 ] ;
+    0 -> 3 [port = 0  weight = 0 ] ;
+    2 -> 4 [port = 0  weight = 0 ] ;
+    3 -> 4 [port = 1  weight = 0 ] ;
+    4 -> 5 [port = 0  weight = 0 ] ;
+    5 -> 6 [port = 0  weight = 0 ] ;
+    8 -> 7 [port = 0  weight = 0 ] ;
+}

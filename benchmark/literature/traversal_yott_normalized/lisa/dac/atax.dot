@@ -1,0 +1,32 @@
+digraph G {
+  add_10 [opcode="add"];
+  add_12 [opcode="add", const_value=" 2"];
+  load_1 [opcode="load"];
+  load_13 [opcode="load"];
+  load_4 [opcode="load"];
+  load_7 [opcode="load"];
+  mul_0 [opcode="mul"];
+  mul_3 [opcode="mul"];
+  mul_9 [opcode="mul"];
+  output_11 [opcode="output"];
+  output_14 [opcode="output"];
+  select_2 [opcode="select"];
+  select_5 [opcode="select"];
+  select_6 [opcode="select"];
+  select_8 [opcode="select"];
+  mul_0 -> select_2 [operand=0];
+  mul_0 -> output_14 [operand=0];
+  load_1 -> mul_0 [operand=0, distance=1];
+  select_2 -> add_10 [operand=0];
+  mul_3 -> select_5 [operand=0];
+  load_4 -> mul_3 [operand=0, distance=1];
+  select_5 -> mul_9 [operand=0];
+  select_6 -> select_8 [operand=0];
+  load_7 -> select_6 [operand=0, distance=1];
+  select_8 -> mul_9 [operand=1];
+  mul_9 -> add_10 [operand=1];
+  add_10 -> output_11 [operand=0];
+  add_12 -> mul_0 [operand=1, distance=1];
+  add_12 -> mul_3 [operand=1, distance=1];
+  load_13 -> add_12 [operand=0, distance=1];
+}

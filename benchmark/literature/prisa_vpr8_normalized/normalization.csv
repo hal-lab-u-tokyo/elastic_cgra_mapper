@@ -1,0 +1,15 @@
+source,output,status,nodes,edges,op_counts,unsupported_ops,skipped_control_nodes,bypassed_control_edges,dropped_edges
+vpr8/blob_merge.dot,vpr8/blob_merge.dot,generated_near,839,1145,{'add': 839},,0,0,0
+vpr8/boundtop.dot,vpr8/boundtop.dot,generated_granularity_mismatch,399,205,{'add': 399},,0,0,0
+vpr8/cosine2.dot,vpr8/cosine2.dot,ready,81,91,"{'add': 52, 'mul': 16, 'sub': 13}",,0,0,0
+vpr8/diffeq2.dot,vpr8/diffeq2.dot,generated_granularity_mismatch,245,188,{'add': 245},,0,0,0
+vpr8/fir1.dot,vpr8/fir1.dot,ready,44,43,"{'add': 10, 'load': 22, 'mul': 11, 'output': 1}",,0,0,0
+vpr8/fir16.dot,vpr8/fir16.dot,ready,77,91,"{'add': 18, 'mul': 16, 'select': 43}",,0,0,0
+vpr8/fir2.dot,vpr8/fir2.dot,ready,40,39,"{'add': 32, 'mul': 8}",,0,0,0
+vpr8/h2v2_smo.dot,vpr8/h2v2_smo.dot,ready,64,67,"{'add': 29, 'load': 16, 'mul': 2, 'output': 1, 'select': 16}",,0,0,0
+vpr8/interpolate.dot,vpr8/interpolate.dot,ready,108,104,"{'add': 52, 'load': 12, 'mul': 36, 'output': 4, 'sub': 4}",,0,0,0
+vpr8/invert_matrix.dot,vpr8/invert_matrix.dot,ready,357,378,"{'add': 94, 'div': 1, 'load': 64, 'mul': 140, 'output': 16, 'select': 24, 'sub': 18}",,0,0,0
+vpr8/k4n4op.dot,vpr8/k4n4op.dot,ready,62,76,{'add': 62},,0,0,0
+vpr8/mksmadapter.dot,vpr8/mksmadapter.dot,generated_granularity_mismatch,517,363,{'add': 517},,0,0,0
+vpr8/motion_vec.dot,vpr8/motion_vec.dot,ready,32,29,"{'add': 14, 'load': 2, 'mul': 14, 'output': 2}",,0,0,0
+vpr8/w_bmp_head.dot,vpr8/w_bmp_head.dot,ready,110,92,"{'add': 38, 'load': 11, 'mul': 2, 'or': 18, 'output': 24, 'select': 4, 'shift': 13}",,0,0,0

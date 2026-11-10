@@ -5,7 +5,6 @@
 #include <io/mapper_config_io.hpp>
 #include <io/mapping_io.hpp>
 #include <iostream>
-#include <mapper/gurobi_placement_mapper.hpp>
 #include <verilog_runner/simulation_runner.hpp>
 
 int main(int argc, char** argv) {
