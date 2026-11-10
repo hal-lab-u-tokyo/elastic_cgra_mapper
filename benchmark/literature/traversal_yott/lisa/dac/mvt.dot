@@ -1,0 +1,35 @@
+digraph mvt {
+    0 [label = reg0 op = reg ] ;
+    1 [label = in1 op = in ] ;
+    2 [label = reg2 op = reg ] ;
+    3 [label = mul3 op = mul ] ;
+    4 [label = in4 op = in ] ;
+    5 [label = reg5 op = reg ] ;
+    6 [label = reg6 op = reg ] ;
+    7 [label = mul7 op = mul ] ;
+    8 [label = in8 op = in ] ;
+    9 [label = reg9 op = reg ] ;
+    10 [label = mul10 op = mul ] ;
+    11 [label = add11 op = add ] ;
+    12 [label = out12 op = out ] ;
+    13 [label = add13 op = addi value = 2 ] ;
+    14 [label = in14 op = in ] ;
+    15 [label = out15 op = out ] ;
+    
+    1 -> 0 [port = 0  weight = 0 ] ;
+    0 -> 2 [port = 0  weight = 0 ] ;
+    4 -> 3 [port = 0  weight = 0 ] ;
+    13 -> 3 [port = 1  weight = 0 ] ;
+    3 -> 5 [port = 0  weight = 0 ] ;
+    5 -> 6 [port = 0  weight = 0 ] ;
+    8 -> 7 [port = 0  weight = 0 ] ;
+    13 -> 7 [port = 1  weight = 0 ] ;
+    7 -> 9 [port = 0  weight = 0 ] ;
+    6 -> 10 [port = 0  weight = 0 ] ;
+    9 -> 10 [port = 1  weight = 0 ] ;
+    2 -> 11 [port = 0  weight = 0 ] ;
+    10 -> 11 [port = 1  weight = 0 ] ;
+    0 -> 15 [port = 0  weight = 0 ] ;
+    11 -> 12 [port = 0  weight = 0 ] ;
+    14 -> 13 [port = 0  weight = 0 ] ;
+}

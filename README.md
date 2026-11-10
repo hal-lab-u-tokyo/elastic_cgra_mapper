@@ -193,7 +193,9 @@ the script reports that there are no remaining failures and exits successfully.
 After building, the mapper can also be invoked directly:
 
 ```bash
-./build/mapping input.dot input_arch.json output_mapping.json
+./build/mapping --dfg_file input.dot --cgra_file input_arch.json \
+  --output_dir output/mapping --mapper_config data/mapper_config.json \
+  --timeout_s 60 --parallel_num 1
 ```
 
 ## Visualizer

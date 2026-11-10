@@ -1,0 +1,33 @@
+digraph atax {
+    0 [label = mul0 op = mul ] ;
+    1 [label = in1 op = in ] ;
+    2 [label = reg2 op = reg ]; 
+    3 [label = mul3 op = mul ] ;
+    4 [label = in4 op = in ] ;
+    5 [label = reg5 op = reg ]; 
+    6 [label = reg6 op = reg ] ;
+    7 [label = in7 op = in ] ;
+    8 [label = reg8 op = reg ]; 
+    9 [label = mul9 op = mul ] ;
+    10 [label = add10 op = add ]; 
+    11 [label = out11 op = out ] ;
+    12 [label = add12 op = addi value = 2 ] ;
+    13 [label = in13 op = in ] ;
+    14 [label = out14 op = out ] ;
+
+    1 -> 0 [port = 0  weight = 0 ]; 
+    12 -> 0 [port = 1  weight = 10 ]; 
+    0 -> 2 [port = 0  weight = 0 ] ;
+    4 -> 3 [port = 0  weight = 0 ] ;
+    12 -> 3 [port = 1  weight = 0 ] ;
+    3 -> 5 [port = 0  weight = 0 ] ;
+    7 -> 6 [port = 0  weight = 0 ] ;
+    6 -> 8 [port = 0  weight = 0 ] ;
+    5 -> 9 [port = 0  weight = 0 ] ;
+    8 -> 9 [port = 1  weight = 0 ] ;
+    2 -> 10 [port = 0  weight = 0 ] ;
+    9 -> 10 [port = 1  weight = 0 ] ;
+    10 -> 11 [port = 0  weight = 0 ] ;
+    13 -> 12 [port = 0  weight = 0 ] ;
+    0 -> 14 [port = 0  weight = 0 ] ;
+}
