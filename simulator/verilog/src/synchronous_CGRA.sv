@@ -1,6 +1,6 @@
-`include "param.v"
-`include "data_memory.v"
-`include "synchronous_PE.v"
+`include "param.sv"
+`include "data_memory.sv"
+`include "synchronous_PE.sv"
 
 module CGRA (
     input wire clk,

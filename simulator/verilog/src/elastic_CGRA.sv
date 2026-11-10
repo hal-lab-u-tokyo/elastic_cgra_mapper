@@ -1,6 +1,6 @@
-`include "param.v"
-`include "data_memory.v"
-`include "elastic_PE.v"
+`include "param.sv"
+`include "data_memory.sv"
+`include "elastic_PE.sv"
 
 module ElasticCGRA (
     input wire clk,

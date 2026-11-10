@@ -1,14 +1,14 @@
 `ifndef ELASTIC_PE
 `define ELASTIC_PE
 
-`include "param.v"
-`include "struct/elastic_wire.v"
-`include "struct/elastic_config_data.v"
-`include "elastic_module/elastic_buffer.v"
-`include "elastic_module/elastic_fork.v"
-`include "elastic_module/elastic_join.v"
-`include "elastic_module/elastic_multiplexer.v"
-`include "elastic_module/elastic_alu.v"
+`include "param.sv"
+`include "struct/elastic_wire.sv"
+`include "struct/elastic_config_data.sv"
+`include "elastic_module/elastic_buffer.sv"
+`include "elastic_module/elastic_fork.sv"
+`include "elastic_module/elastic_join.sv"
+`include "elastic_module/elastic_multiplexer.sv"
+`include "elastic_module/elastic_alu.sv"
 
 module ElasticPE (
     input clk,

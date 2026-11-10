@@ -1,8 +1,8 @@
 `ifndef SYNCHRONOUS_PE
 `define SYNCHRONOUS_PE
 
-`include "param.v"
-`include "struct/config_data.v"
+`include "param.sv"
+`include "struct/config_data.sv"
 
 module PE (
     input clk,

@@ -1,7 +1,7 @@
 `ifndef ELASTIC_ALU
 `define ELASTIC_ALU
 
-`include "param.v"
+`include "param.sv"
 
 parameter BEFORE_EXEC = 2'b00;
 parameter DURING_EXEC = 2'b01;

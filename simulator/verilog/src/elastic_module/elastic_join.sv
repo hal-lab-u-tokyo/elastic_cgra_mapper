@@ -1,7 +1,7 @@
 `ifndef ELASTIC_JOIN
 `define ELASTIC_JOIN
 
-`include "param.v"
+`include "param.sv"
 
 module ElasticJoin (
     // input
