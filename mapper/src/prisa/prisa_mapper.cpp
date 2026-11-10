@@ -1,6 +1,6 @@
-#include <mapper/prisa/routed_prisa_mapper.hpp>
 #include <mapper/prisa/engine/prisa_engine.hpp>
 #include <mapper/prisa/prisa_options.hpp>
+#include <mapper/prisa/routed_prisa_mapper.hpp>
 #include <stdexcept>
 
 namespace mapper::prisa {

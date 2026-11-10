@@ -17,7 +17,7 @@ digraph symm {
     15 [label = add15 op = addi value = 2 ] ;
     16 [label = in16 op = in ] ;
     17 [label = out15 op = out ] ;
-    
+
     1 -> 0 [port = 0  weight = 0 ] ;
     15 -> 0 [port = 1  weight = 0 ] ;
     0 -> 2 [port = 0  weight = 0 ] ;

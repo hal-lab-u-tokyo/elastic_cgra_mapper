@@ -5,8 +5,8 @@
 #include <cmath>
 #include <iostream>
 #include <map>
-#include <memory>
 #include <mapper/ilp/connectivity_path_ilp_mapper.hpp>
+#include <memory>
 #include <optional>
 #include <queue>
 #include <set>
@@ -123,8 +123,7 @@ std::vector<std::vector<int>> BuildCandidateNodes(entity::DFG& dfg,
 std::vector<bool> BuildFunctionalNodeFlags(entity::DFG& dfg,
                                            entity::MRRG& mrrg) {
   std::vector<bool> result(mrrg.GetNodeNum(), false);
-  for (int mrrg_node_id = 0; mrrg_node_id < mrrg.GetNodeNum();
-       mrrg_node_id++) {
+  for (int mrrg_node_id = 0; mrrg_node_id < mrrg.GetNodeNum(); mrrg_node_id++) {
     if (!SupportsAnyDFGOperation(mrrg.GetNodeProperty(mrrg_node_id))) {
       continue;
     }
@@ -191,13 +190,14 @@ std::vector<std::unordered_map<int, int>> BuildNeighborDistances(
 std::vector<EdgeCandidate> BuildEdgeCandidates(
     const std::vector<DFGEdge>& dfg_edge_vec,
     const std::vector<std::vector<int>>& candidate_nodes,
-    const std::vector<std::unordered_map<int, int>>& neighbor_distance_by_source,
+    const std::vector<std::unordered_map<int, int>>&
+        neighbor_distance_by_source,
     std::vector<std::vector<int>>& edge_candidate_ids_by_dfg_edge) {
   std::vector<EdgeCandidate> result;
   edge_candidate_ids_by_dfg_edge.assign(dfg_edge_vec.size(), {});
 
-  for (int dfg_edge_id = 0;
-       dfg_edge_id < static_cast<int>(dfg_edge_vec.size()); dfg_edge_id++) {
+  for (int dfg_edge_id = 0; dfg_edge_id < static_cast<int>(dfg_edge_vec.size());
+       dfg_edge_id++) {
     int source_dfg_node_id = dfg_edge_vec[dfg_edge_id].source;
     int target_dfg_node_id = dfg_edge_vec[dfg_edge_id].target;
 
@@ -216,7 +216,8 @@ std::vector<EdgeCandidate> BuildEdgeCandidates(
         int edge_candidate_id = static_cast<int>(result.size());
         result.push_back({dfg_edge_id, source_dfg_node_id, target_dfg_node_id,
                           source_mrrg_node_id, target_mrrg_node_id});
-        edge_candidate_ids_by_dfg_edge[dfg_edge_id].push_back(edge_candidate_id);
+        edge_candidate_ids_by_dfg_edge[dfg_edge_id].push_back(
+            edge_candidate_id);
       }
     }
   }
@@ -256,9 +257,11 @@ bool ContainsNode(const std::vector<int>& node_ids, int node_id) {
   return std::find(node_ids.begin(), node_ids.end(), node_id) != node_ids.end();
 }
 
-std::vector<std::vector<int>> FindKShortestSimplePaths(
-    entity::MRRG& mrrg, int source_mrrg_node_id, int target_mrrg_node_id,
-    int max_paths, int max_path_edges) {
+std::vector<std::vector<int>> FindKShortestSimplePaths(entity::MRRG& mrrg,
+                                                       int source_mrrg_node_id,
+                                                       int target_mrrg_node_id,
+                                                       int max_paths,
+                                                       int max_path_edges) {
   std::vector<std::vector<int>> result;
   struct PathState {
     int node_id;
@@ -360,10 +363,11 @@ std::vector<int> BuildInternalNodeIds(entity::MRRG& mrrg,
   return std::vector<int>(internal_node_set.begin(), internal_node_set.end());
 }
 
-PathData BuildPathData(
-    entity::MRRG& mrrg, const std::vector<EdgeCandidate>& edge_candidates,
-    const std::vector<std::unordered_map<int, int>>& neighbor_distance_by_source,
-    int paths_per_connection, int extra_depth) {
+PathData BuildPathData(entity::MRRG& mrrg,
+                       const std::vector<EdgeCandidate>& edge_candidates,
+                       const std::vector<std::unordered_map<int, int>>&
+                           neighbor_distance_by_source,
+                       int paths_per_connection, int extra_depth) {
   PathData data;
   data.path_ids_by_edge_candidate.assign(edge_candidates.size(), {});
   data.path_ids_by_mrrg_edge.assign(mrrg.GetEdgeNum(), {});
@@ -386,16 +390,16 @@ PathData BuildPathData(
       auto distance_it =
           neighbor_distance_by_source[edge_candidate.source_mrrg_node_id].find(
               edge_candidate.target_mrrg_node_id);
-      if (distance_it == neighbor_distance_by_source
-                             [edge_candidate.source_mrrg_node_id]
-                                 .end()) {
+      if (distance_it ==
+          neighbor_distance_by_source[edge_candidate.source_mrrg_node_id]
+              .end()) {
         continue;
       }
       int max_path_edges = distance_it->second + extra_depth;
-      path_edge_id_vecs = FindKShortestSimplePaths(
-          mrrg, edge_candidate.source_mrrg_node_id,
-          edge_candidate.target_mrrg_node_id, paths_per_connection,
-          max_path_edges);
+      path_edge_id_vecs =
+          FindKShortestSimplePaths(mrrg, edge_candidate.source_mrrg_node_id,
+                                   edge_candidate.target_mrrg_node_id,
+                                   paths_per_connection, max_path_edges);
     }
 
     for (const auto& path_edge_ids : path_edge_id_vecs) {
@@ -474,10 +478,9 @@ PlacementVars AddPlacementAndConnectivityConstraints(
   const int mrrg_node_num = mrrg.GetNodeNum();
   const double coefficient = 1.0;
 
-  PlacementVars vars{
-      std::vector<std::vector<GRBVar>>(
-          dfg_node_num, std::vector<GRBVar>(mrrg_node_num)),
-      std::vector<GRBVar>(data.edge_candidates.size())};
+  PlacementVars vars{std::vector<std::vector<GRBVar>>(
+                         dfg_node_num, std::vector<GRBVar>(mrrg_node_num)),
+                     std::vector<GRBVar>(data.edge_candidates.size())};
 
   for (int dfg_node_id = 0; dfg_node_id < dfg_node_num; dfg_node_id++) {
     for (int mrrg_node_id = 0; mrrg_node_id < mrrg_node_num; mrrg_node_id++) {
@@ -490,21 +493,19 @@ PlacementVars AddPlacementAndConnectivityConstraints(
   for (int edge_candidate_id = 0;
        edge_candidate_id < static_cast<int>(data.edge_candidates.size());
        edge_candidate_id++) {
-    vars.map_dfg_edge_to_fu_pair[edge_candidate_id] =
-        model.addVar(0.0, 1.0, 0.0, GRB_BINARY,
-                     "e_" + std::to_string(edge_candidate_id));
+    vars.map_dfg_edge_to_fu_pair[edge_candidate_id] = model.addVar(
+        0.0, 1.0, 0.0, GRB_BINARY, "e_" + std::to_string(edge_candidate_id));
   }
 
   for (int dfg_node_id = 0; dfg_node_id < dfg_node_num; dfg_node_id++) {
     GRBLinExpr placement_expr;
     for (int mrrg_node_id = 0; mrrg_node_id < mrrg_node_num; mrrg_node_id++) {
-      placement_expr.addTerms(&coefficient,
-                              &(vars.map_op_to_PE[dfg_node_id][mrrg_node_id]),
-                              1);
+      placement_expr.addTerms(
+          &coefficient, &(vars.map_op_to_PE[dfg_node_id][mrrg_node_id]), 1);
       if (!SupportsOperation(mrrg.GetNodeProperty(mrrg_node_id),
                              dfg.GetNodeProperty(dfg_node_id).op)) {
-        model.addConstr(vars.map_op_to_PE[dfg_node_id][mrrg_node_id],
-                        GRB_EQUAL, 0,
+        model.addConstr(vars.map_op_to_PE[dfg_node_id][mrrg_node_id], GRB_EQUAL,
+                        0,
                         "c_legality_" + std::to_string(dfg_node_id) + "_" +
                             std::to_string(mrrg_node_id));
       }
@@ -526,27 +527,27 @@ PlacementVars AddPlacementAndConnectivityConstraints(
   for (int edge_candidate_id = 0;
        edge_candidate_id < static_cast<int>(data.edge_candidates.size());
        edge_candidate_id++) {
-    const EdgeCandidate& edge_candidate = data.edge_candidates[edge_candidate_id];
-    model.addConstr(
-        vars.map_dfg_edge_to_fu_pair[edge_candidate_id], GRB_LESS_EQUAL,
-        vars.map_op_to_PE[edge_candidate.source_dfg_node_id]
-                         [edge_candidate.source_mrrg_node_id],
-        "c_edge_source_" + std::to_string(edge_candidate_id));
-    model.addConstr(
-        vars.map_dfg_edge_to_fu_pair[edge_candidate_id], GRB_LESS_EQUAL,
-        vars.map_op_to_PE[edge_candidate.target_dfg_node_id]
-                         [edge_candidate.target_mrrg_node_id],
-        "c_edge_target_" + std::to_string(edge_candidate_id));
+    const EdgeCandidate& edge_candidate =
+        data.edge_candidates[edge_candidate_id];
+    model.addConstr(vars.map_dfg_edge_to_fu_pair[edge_candidate_id],
+                    GRB_LESS_EQUAL,
+                    vars.map_op_to_PE[edge_candidate.source_dfg_node_id]
+                                     [edge_candidate.source_mrrg_node_id],
+                    "c_edge_source_" + std::to_string(edge_candidate_id));
+    model.addConstr(vars.map_dfg_edge_to_fu_pair[edge_candidate_id],
+                    GRB_LESS_EQUAL,
+                    vars.map_op_to_PE[edge_candidate.target_dfg_node_id]
+                                     [edge_candidate.target_mrrg_node_id],
+                    "c_edge_target_" + std::to_string(edge_candidate_id));
   }
 
-  for (int dfg_edge_id = 0;
-       dfg_edge_id < static_cast<int>(dfg_edge_vec.size()); dfg_edge_id++) {
+  for (int dfg_edge_id = 0; dfg_edge_id < static_cast<int>(dfg_edge_vec.size());
+       dfg_edge_id++) {
     GRBLinExpr edge_expr;
     for (int edge_candidate_id :
          data.edge_candidate_ids_by_dfg_edge[dfg_edge_id]) {
-      edge_expr.addTerms(
-          &coefficient,
-          &(vars.map_dfg_edge_to_fu_pair[edge_candidate_id]), 1);
+      edge_expr.addTerms(&coefficient,
+                         &(vars.map_dfg_edge_to_fu_pair[edge_candidate_id]), 1);
     }
     model.addConstr(edge_expr, GRB_EQUAL, 1,
                     "c_dfg_edge_pair_" + std::to_string(dfg_edge_id));
@@ -555,9 +556,10 @@ PlacementVars AddPlacementAndConnectivityConstraints(
   return vars;
 }
 
-std::optional<PlacementCandidate> ExtractPlacement(
-    GRBModel& model, const PlacementVars& vars, int dfg_node_num,
-    int mrrg_node_num) {
+std::optional<PlacementCandidate> ExtractPlacement(GRBModel& model,
+                                                   const PlacementVars& vars,
+                                                   int dfg_node_num,
+                                                   int mrrg_node_num) {
   PlacementCandidate placement{{std::vector<int>(dfg_node_num, -1)}};
 
   for (int dfg_node_id = 0; dfg_node_id < dfg_node_num; dfg_node_id++) {
@@ -577,9 +579,9 @@ std::optional<PlacementCandidate> ExtractPlacement(
   return placement;
 }
 
-void AddNoGoodPlacementConstraints(GRBModel& model, const PlacementVars& vars,
-                                   const std::vector<PlacementCandidate>&
-                                       rejected_placements) {
+void AddNoGoodPlacementConstraints(
+    GRBModel& model, const PlacementVars& vars,
+    const std::vector<PlacementCandidate>& rejected_placements) {
   const double coefficient = 1.0;
   for (int rejected_id = 0;
        rejected_id < static_cast<int>(rejected_placements.size());
@@ -590,8 +592,8 @@ void AddNoGoodPlacementConstraints(GRBModel& model, const PlacementVars& vars,
     for (int dfg_node_id = 0; dfg_node_id < static_cast<int>(placement.size());
          dfg_node_id++) {
       same_assignment_count.addTerms(
-          &coefficient, &(vars.map_op_to_PE[dfg_node_id][placement[dfg_node_id]]),
-          1);
+          &coefficient,
+          &(vars.map_op_to_PE[dfg_node_id][placement[dfg_node_id]]), 1);
     }
     model.addConstr(same_assignment_count, GRB_LESS_EQUAL,
                     static_cast<int>(placement.size()) - 1,
@@ -599,12 +601,13 @@ void AddNoGoodPlacementConstraints(GRBModel& model, const PlacementVars& vars,
   }
 }
 
-bool SolvePlacementOnly(
-    entity::DFG& dfg, entity::MRRG& mrrg, const ConnectivityData& data,
-    const std::vector<DFGEdge>& dfg_edge_vec,
-    const std::optional<std::string>& log_file,
-    const std::optional<double>& timeout_s, bool accept_feasible_solution,
-    std::chrono::system_clock::time_point start_time) {
+bool SolvePlacementOnly(entity::DFG& dfg, entity::MRRG& mrrg,
+                        const ConnectivityData& data,
+                        const std::vector<DFGEdge>& dfg_edge_vec,
+                        const std::optional<std::string>& log_file,
+                        const std::optional<double>& timeout_s,
+                        bool accept_feasible_solution,
+                        std::chrono::system_clock::time_point start_time) {
   GRBEnv env = GRBEnv(true);
   env.start();
   GRBModel model = GRBModel(env);
@@ -631,24 +634,23 @@ std::optional<PlacementCandidate> SolveRelaxedPlacement(
     return std::nullopt;
   }
 
-  PlacementVars placement_vars =
-      AddPlacementAndConnectivityConstraints(model, dfg, mrrg, data,
-                                             dfg_edge_vec);
+  PlacementVars placement_vars = AddPlacementAndConnectivityConstraints(
+      model, dfg, mrrg, data, dfg_edge_vec);
   AddNoGoodPlacementConstraints(model, placement_vars, rejected_placements);
 
   std::vector<GRBVar> select_path(path_data.paths.size());
   for (int path_id = 0; path_id < static_cast<int>(path_data.paths.size());
        path_id++) {
     select_path[path_id] =
-        model.addVar(0.0, 1.0, 0.0, GRB_BINARY,
-                     "p_" + std::to_string(path_id));
+        model.addVar(0.0, 1.0, 0.0, GRB_BINARY, "p_" + std::to_string(path_id));
   }
 
   const double coefficient = 1.0;
   GRBLinExpr objective;
   for (int path_id = 0; path_id < static_cast<int>(path_data.paths.size());
        path_id++) {
-    double path_cost = static_cast<double>(path_data.paths[path_id].edge_ids.size());
+    double path_cost =
+        static_cast<double>(path_data.paths[path_id].edge_ids.size());
     objective.addTerms(&path_cost, &(select_path[path_id]), 1);
   }
   model.setObjective(objective, GRB_MINIMIZE);
@@ -657,7 +659,8 @@ std::optional<PlacementCandidate> SolveRelaxedPlacement(
        edge_candidate_id < static_cast<int>(data.edge_candidates.size());
        edge_candidate_id++) {
     GRBLinExpr path_selection;
-    for (int path_id : path_data.path_ids_by_edge_candidate[edge_candidate_id]) {
+    for (int path_id :
+         path_data.path_ids_by_edge_candidate[edge_candidate_id]) {
       path_selection.addTerms(&coefficient, &(select_path[path_id]), 1);
       model.addConstr(select_path[path_id], GRB_LESS_EQUAL,
                       placement_vars.map_dfg_edge_to_fu_pair[edge_candidate_id],
@@ -668,19 +671,16 @@ std::optional<PlacementCandidate> SolveRelaxedPlacement(
                     "c_edge_has_path_" + std::to_string(edge_candidate_id));
   }
 
-  for (int mrrg_edge_id = 0; mrrg_edge_id < mrrg.GetEdgeNum();
-       mrrg_edge_id++) {
+  for (int mrrg_edge_id = 0; mrrg_edge_id < mrrg.GetEdgeNum(); mrrg_edge_id++) {
     GRBLinExpr edge_occupancy;
     for (int path_id : path_data.path_ids_by_mrrg_edge[mrrg_edge_id]) {
       edge_occupancy.addTerms(&coefficient, &(select_path[path_id]), 1);
     }
     model.addConstr(edge_occupancy, GRB_LESS_EQUAL, kRelaxedResourceCapacity,
-                    "c_relaxed_edge_capacity_" +
-                        std::to_string(mrrg_edge_id));
+                    "c_relaxed_edge_capacity_" + std::to_string(mrrg_edge_id));
   }
 
-  for (int mrrg_node_id = 0; mrrg_node_id < mrrg.GetNodeNum();
-       mrrg_node_id++) {
+  for (int mrrg_node_id = 0; mrrg_node_id < mrrg.GetNodeNum(); mrrg_node_id++) {
     GRBLinExpr node_occupancy;
     for (int dfg_node_id = 0; dfg_node_id < dfg.GetNodeNum(); dfg_node_id++) {
       node_occupancy.addTerms(
@@ -690,10 +690,8 @@ std::optional<PlacementCandidate> SolveRelaxedPlacement(
     for (int path_id : path_data.path_ids_by_internal_node[mrrg_node_id]) {
       node_occupancy.addTerms(&coefficient, &(select_path[path_id]), 1);
     }
-    model.addConstr(node_occupancy, GRB_LESS_EQUAL,
-                    kRelaxedResourceCapacity,
-                    "c_relaxed_node_capacity_" +
-                        std::to_string(mrrg_node_id));
+    model.addConstr(node_occupancy, GRB_LESS_EQUAL, kRelaxedResourceCapacity,
+                    "c_relaxed_node_capacity_" + std::to_string(mrrg_node_id));
   }
 
   model.optimize();
@@ -708,11 +706,12 @@ std::optional<PlacementCandidate> SolveRelaxedPlacement(
 PathData BuildRoutingPathDataForPlacement(
     entity::MRRG& mrrg, const std::vector<DFGEdge>& dfg_edge_vec,
     const std::vector<int>& dfg_node_to_mrrg_node,
-    const std::vector<std::unordered_map<int, int>>& neighbor_distance_by_source,
+    const std::vector<std::unordered_map<int, int>>&
+        neighbor_distance_by_source,
     std::vector<EdgeCandidate>& fixed_edge_candidates) {
   fixed_edge_candidates.clear();
-  for (int dfg_edge_id = 0;
-       dfg_edge_id < static_cast<int>(dfg_edge_vec.size()); dfg_edge_id++) {
+  for (int dfg_edge_id = 0; dfg_edge_id < static_cast<int>(dfg_edge_vec.size());
+       dfg_edge_id++) {
     int source_dfg_node_id = dfg_edge_vec[dfg_edge_id].source;
     int target_dfg_node_id = dfg_edge_vec[dfg_edge_id].target;
     fixed_edge_candidates.push_back(
@@ -726,8 +725,9 @@ PathData BuildRoutingPathDataForPlacement(
 }
 
 std::optional<entity::Mapping> SolveRoutingOnly(
-    entity::DFG& dfg, entity::MRRG& mrrg, const std::vector<DFGEdge>& dfg_edge_vec,
-    const ConnectivityData& data, const PlacementCandidate& placement,
+    entity::DFG& dfg, entity::MRRG& mrrg,
+    const std::vector<DFGEdge>& dfg_edge_vec, const ConnectivityData& data,
+    const PlacementCandidate& placement,
     const std::optional<std::string>& log_file,
     const std::optional<double>& timeout_s, bool accept_feasible_solution,
     std::chrono::system_clock::time_point start_time) {
@@ -752,16 +752,16 @@ std::optional<entity::Mapping> SolveRoutingOnly(
   std::vector<GRBVar> select_path(path_data.paths.size());
   for (int path_id = 0; path_id < static_cast<int>(path_data.paths.size());
        path_id++) {
-    select_path[path_id] =
-        model.addVar(0.0, 1.0, 0.0, GRB_BINARY,
-                     "route_p_" + std::to_string(path_id));
+    select_path[path_id] = model.addVar(0.0, 1.0, 0.0, GRB_BINARY,
+                                        "route_p_" + std::to_string(path_id));
   }
 
   const double coefficient = 1.0;
   GRBLinExpr objective;
   for (int path_id = 0; path_id < static_cast<int>(path_data.paths.size());
        path_id++) {
-    double path_cost = static_cast<double>(path_data.paths[path_id].edge_ids.size());
+    double path_cost =
+        static_cast<double>(path_data.paths[path_id].edge_ids.size());
     objective.addTerms(&path_cost, &(select_path[path_id]), 1);
   }
   model.setObjective(objective, GRB_MINIMIZE);
@@ -770,15 +770,15 @@ std::optional<entity::Mapping> SolveRoutingOnly(
        edge_candidate_id < static_cast<int>(fixed_edge_candidates.size());
        edge_candidate_id++) {
     GRBLinExpr selected_path_count;
-    for (int path_id : path_data.path_ids_by_edge_candidate[edge_candidate_id]) {
+    for (int path_id :
+         path_data.path_ids_by_edge_candidate[edge_candidate_id]) {
       selected_path_count.addTerms(&coefficient, &(select_path[path_id]), 1);
     }
     model.addConstr(selected_path_count, GRB_EQUAL, 1,
                     "c_route_one_path_" + std::to_string(edge_candidate_id));
   }
 
-  for (int mrrg_edge_id = 0; mrrg_edge_id < mrrg.GetEdgeNum();
-       mrrg_edge_id++) {
+  for (int mrrg_edge_id = 0; mrrg_edge_id < mrrg.GetEdgeNum(); mrrg_edge_id++) {
     std::map<int, std::vector<int>> path_ids_by_source_mrrg;
     for (int path_id : path_data.path_ids_by_mrrg_edge[mrrg_edge_id]) {
       path_ids_by_source_mrrg[path_data.paths[path_id].source_mrrg_node_id]
@@ -800,15 +800,13 @@ std::optional<entity::Mapping> SolveRoutingOnly(
         source_path_count.addTerms(&coefficient, &(select_path[path_id]), 1);
       }
       model.addConstr(owner, GRB_LESS_EQUAL, source_path_count,
-                      "c_route_edge_owner_ub_" +
-                          std::to_string(mrrg_edge_id) + "_" +
-                          std::to_string(owner_id));
+                      "c_route_edge_owner_ub_" + std::to_string(mrrg_edge_id) +
+                          "_" + std::to_string(owner_id));
       edge_owner_count.addTerms(&coefficient, &owner, 1);
       owner_id++;
     }
     model.addConstr(edge_owner_count, GRB_LESS_EQUAL, 1,
-                    "c_route_edge_exclusivity_" +
-                        std::to_string(mrrg_edge_id));
+                    "c_route_edge_exclusivity_" + std::to_string(mrrg_edge_id));
   }
 
   std::vector<int> mrrg_node_operation_occupancy(mrrg.GetNodeNum(), 0);
@@ -816,8 +814,7 @@ std::optional<entity::Mapping> SolveRoutingOnly(
     mrrg_node_operation_occupancy[node_id] = 1;
   }
 
-  for (int mrrg_node_id = 0; mrrg_node_id < mrrg.GetNodeNum();
-       mrrg_node_id++) {
+  for (int mrrg_node_id = 0; mrrg_node_id < mrrg.GetNodeNum(); mrrg_node_id++) {
     std::map<int, std::vector<int>> path_ids_by_source_mrrg;
     for (int path_id : path_data.path_ids_by_internal_node[mrrg_node_id]) {
       path_ids_by_source_mrrg[path_data.paths[path_id].source_mrrg_node_id]
@@ -839,16 +836,14 @@ std::optional<entity::Mapping> SolveRoutingOnly(
         source_path_count.addTerms(&coefficient, &(select_path[path_id]), 1);
       }
       model.addConstr(owner, GRB_LESS_EQUAL, source_path_count,
-                      "c_route_node_owner_ub_" +
-                          std::to_string(mrrg_node_id) + "_" +
-                          std::to_string(owner_id));
+                      "c_route_node_owner_ub_" + std::to_string(mrrg_node_id) +
+                          "_" + std::to_string(owner_id));
       node_owner_count.addTerms(&coefficient, &owner, 1);
       owner_id++;
     }
     model.addConstr(node_owner_count, GRB_LESS_EQUAL,
                     1 - mrrg_node_operation_occupancy[mrrg_node_id],
-                    "c_route_node_exclusivity_" +
-                        std::to_string(mrrg_node_id));
+                    "c_route_node_exclusivity_" + std::to_string(mrrg_node_id));
   }
 
   model.optimize();
@@ -904,16 +899,15 @@ mapper::MappingResult mapper::ConnectivityPathILPMapper::Execution() {
     std::vector<int> neighbor_count_schedule = BuildNeighborCountSchedule();
 
     for (int neighbor_count : neighbor_count_schedule) {
-      ConnectivityData data =
-          BuildConnectivityData(*dfg_ptr_, *mrrg_ptr_, dfg_edge_vec,
-                                neighbor_count);
+      ConnectivityData data = BuildConnectivityData(
+          *dfg_ptr_, *mrrg_ptr_, dfg_edge_vec, neighbor_count);
       if (!HasRequiredCandidates(data)) {
         continue;
       }
 
       bool placement_only_success = SolvePlacementOnly(
-          *dfg_ptr_, *mrrg_ptr_, data, dfg_edge_vec, log_file_path_,
-          timeout_s_, accept_feasible_solution_, start_time);
+          *dfg_ptr_, *mrrg_ptr_, data, dfg_edge_vec, log_file_path_, timeout_s_,
+          accept_feasible_solution_, start_time);
       if (!placement_only_success) {
         continue;
       }
@@ -923,8 +917,8 @@ mapper::MappingResult mapper::ConnectivityPathILPMapper::Execution() {
           kRelaxedPathsPerConnection, kRelaxedPathExtraDepth);
 
       std::vector<PlacementCandidate> rejected_placements;
-      for (int placement_attempt = 0;
-           placement_attempt < kMaxRelaxedPlacements; placement_attempt++) {
+      for (int placement_attempt = 0; placement_attempt < kMaxRelaxedPlacements;
+           placement_attempt++) {
         std::optional<PlacementCandidate> placement = SolveRelaxedPlacement(
             *dfg_ptr_, *mrrg_ptr_, data, relaxed_path_data, dfg_edge_vec,
             rejected_placements, log_file_path_, timeout_s_,

@@ -22,7 +22,7 @@ digraph gemver {
     20 [label = add20 op = addi value=2] ;
     21 [label = in21 op = in ] ;
     22 [label = out22 op = out ] ;
-    
+
     1 -> 0 [port = 0  weight = 0 ] ;
     20 -> 0 [port = 1  weight = 0 ] ;
     0 -> 2 [port = 0  weight = 0 ] ;

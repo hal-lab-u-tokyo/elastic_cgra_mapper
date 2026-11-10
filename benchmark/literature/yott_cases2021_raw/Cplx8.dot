@@ -46,7 +46,7 @@ digraph Cplx8 {
 	copy_4 [label = copy_4 ];
 	X [label = X ];
 	STadd_0 -> reg24;
-	reg24 -> reg25; 
+	reg24 -> reg25;
 	reg25 -> reg26;
 	reg26 -> reg27;
 	reg27 -> reg28;

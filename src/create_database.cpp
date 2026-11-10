@@ -240,8 +240,7 @@ int main(int argc, char* argv[]) {
 
       double mapping_time_out_s = (db_timeout_s - creating_db_time_s) / 2;
       mapper::PlacementILPMapper* mapper;
-      mapper =
-          mapper::PlacementILPMapper().CreateMapper(dfg_ptr, mrrg_ptr);
+      mapper = mapper::PlacementILPMapper().CreateMapper(dfg_ptr, mrrg_ptr);
       mapper->SetLogFilePath(logger.GetNextMappingPath(
           mapping_time_out_s, mrrg_ptr->GetMRRGConfig()));
       mapper->SetTimeOut(mapping_time_out_s);

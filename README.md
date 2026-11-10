@@ -5,7 +5,7 @@ Mapping tool for Elastic CGRAs.
 ## Requirements
 
 - GCC 8.5.0 or later
-- Gurobi 9.1.1
+- Gurobi 9.5.2
 - CMake 3.20.2 or later
 - Ninja
 - Python 3 and the Python packages installed by the project Docker image

@@ -1,11 +1,11 @@
 # YOTT Case-Study Benchmarks
 
-Ready DOTs: 23/23  
-Node counts matching the YOTT paper: 23/23  
-Edge counts matching the YOTT paper: 23/23  
-Graph source counts matching paper IN: 23/23  
-Graph sink counts matching paper OUT: 23/23  
-Opcode `load` counts matching paper IN: 2/23  
+Ready DOTs: 23/23
+Node counts matching the YOTT paper: 23/23
+Edge counts matching the YOTT paper: 23/23
+Graph source counts matching paper IN: 23/23
+Graph sink counts matching paper OUT: 23/23
+Opcode `load` counts matching paper IN: 2/23
 Opcode `output` counts matching paper OUT: 13/23
 
 The paper's IN/OUT columns match graph source/sink counts. They do not always match normalized `load`/`output` opcodes because the public DOT files do not encode I/O ports in a uniform opcode convention.

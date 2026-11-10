@@ -15,7 +15,7 @@ digraph mvt {
     13 [label = add13 op = addi value = 2 ] ;
     14 [label = in14 op = in ] ;
     15 [label = out15 op = out ] ;
-    
+
     1 -> 0 [port = 0  weight = 0 ] ;
     0 -> 2 [port = 0  weight = 0 ] ;
     4 -> 3 [port = 0  weight = 0 ] ;

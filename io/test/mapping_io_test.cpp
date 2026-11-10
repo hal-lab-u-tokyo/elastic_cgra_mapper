@@ -47,7 +47,8 @@ TEST(IOTest, maping_io_test) {
   *mrrg_ptr = entity::MRRG(mrrg_config);
 
   // exec mapping
-  auto mapper_ptr = mapper::CreateMapper("FullRoutingILPMapper", dfg_ptr, mrrg_ptr);
+  auto mapper_ptr =
+      mapper::CreateMapper("FullRoutingILPMapper", dfg_ptr, mrrg_ptr);
   entity::Mapping input_mapping;
   const auto result = mapper_ptr->Execution();
 

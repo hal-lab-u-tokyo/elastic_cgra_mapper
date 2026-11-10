@@ -4,7 +4,8 @@
 
 TEST(IOTest, mapper_config_io_test) {
   entity::AlgorithmConfig entity_config;
-  EXPECT_EQ(entity_config.algorithm, entity::AlgorithmType::kPlacementILPMapper);
+  EXPECT_EQ(entity_config.algorithm,
+            entity::AlgorithmType::kPlacementILPMapper);
   mapper::MapperConfig mapper_config;
   EXPECT_EQ(mapper_config.algorithm_config.algorithm, entity_config.algorithm);
   mapper_config.dfg_config.operation_name_label = "node_id";

@@ -1,5 +1,5 @@
-#include <mapper/sa/routed_sa_mapper.hpp>
 #include <mapper/sa/engine/sa_engine.hpp>
+#include <mapper/sa/routed_sa_mapper.hpp>
 #include <mapper/sa/sa_options.hpp>
 #include <stdexcept>
 
