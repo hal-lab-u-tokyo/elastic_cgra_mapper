@@ -5,11 +5,12 @@
 #include <fstream>
 #include <io/architecture_io.hpp>
 #include <io/dfg_io.hpp>
-#include <io/mapper_config_io.hpp>
 #include <io/mapping_io.hpp>
 #include <io/output_to_log_file.hpp>
 #include <iostream>
+#include <mapper/ilp/configuration.hpp>
 #include <mapper/ilp/ilp_placement_mapper.hpp>
+#include <mapper/io/configuration_io.hpp>
 #include <remapper/algorithm/dp_remapper.hpp>
 
 std::vector<entity::MRRGConfig> GetMRRGOfSubCGRA(
@@ -153,7 +154,7 @@ int main(int argc, char* argv[]) {
 
   std::shared_ptr<entity::DFG> dfg_ptr = std::make_shared<entity::DFG>();
   mapper::MapperConfig mapper_config =
-      io::ReadMapperConfigFromJsonFile(mapper_config_file_path);
+      mapper::ReadMapperConfigFromJsonFile(mapper_config_file_path);
   *dfg_ptr = io::ReadDFGDotFile(dfg_dot_file_path, mapper_config.dfg_config);
   std::shared_ptr<entity::MRRG> target_mrrg_ptr =
       std::make_shared<entity::MRRG>();
@@ -245,7 +246,9 @@ int main(int argc, char* argv[]) {
           mapping_time_out_s, mrrg_ptr->GetMRRGConfig()));
       mapper->SetTimeOut(mapping_time_out_s);
       mapper->SetAcceptFeasibleSolution(
-          mapper_config.algorithm_config.accept_feasible_solution);
+          dynamic_cast<const mapper::ILPConfig&>(
+              *mapper_config.algorithm_defaults.at("ILP"))
+              .accept_feasible_solution);
 
       const auto mapping_result = mapper->Execution();
       creating_db_time_s += mapping_result.mapping_time_s;

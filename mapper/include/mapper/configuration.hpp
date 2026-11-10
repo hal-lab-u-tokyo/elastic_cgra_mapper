@@ -1,34 +1,41 @@
 #pragma once
 
-#include <entity/mapper_config.hpp>
+#include <boost/property_tree/ptree_fwd.hpp>
+#include <entity/dfg_config.hpp>
+#include <initializer_list>
+#include <map>
+#include <mapper/mapper.hpp>
+#include <memory>
 #include <optional>
+#include <set>
 #include <string>
 
 namespace mapper {
 
-// Registry names and algorithm-specific runtime options extend the reviewed
-// entity configuration without changing its typed model. Runtime dispatch uses
-// type; entity::AlgorithmType remains the historical entity classification.
-struct AlgorithmConfig : entity::AlgorithmConfig {
-  std::string type = "PlacementILPMapper";
-  std::optional<int> max_trials;
-  std::optional<int> seed_count;
-  std::optional<int> routing_retry_count;
-  std::optional<int> random_seed;
-  std::optional<int> max_iterations;
-  std::optional<int> elite_placement_count;
-  std::optional<std::string> io_node_policy;
-  std::optional<std::string> trial_seed_policy;
-  std::optional<std::string> traversal_order_policy;
-  std::optional<std::string> traversal_neighbor_policy;
-  std::optional<std::string> candidate_scope_policy;
-  std::optional<std::string> candidate_rank_policy;
-  std::optional<bool> use_yott_annotations;
-  std::optional<bool> trace_trials;
+// Persistent execution policy common to mappers; CLI log/timeout stay in
+// runtime arguments. Family options live in derived types.
+struct AlgorithmConfig {
+  virtual ~AlgorithmConfig() = default;
+  std::string type;
+  void Apply(IMapper& target) const;
+  void Validate() const;
+  // Registry metadata, not serialized options or a second alias table.
+  std::optional<std::set<std::string>> supported_options;
+  virtual const char* FamilyName() const = 0;
+  virtual void ReadOptions(const boost::property_tree::ptree& tree) = 0;
+  virtual void WriteOptions(boost::property_tree::ptree& tree) const = 0;
+
+ protected:
+  static void CheckKnownOptions(const boost::property_tree::ptree& tree,
+                                std::initializer_list<const char*> names);
+  virtual void ApplyOptions(IMapper& target) const = 0;
 };
 
 struct MapperConfig {
+  MapperConfig();
   entity::DFGConfig dfg_config;
-  AlgorithmConfig algorithm_config;
+  std::unique_ptr<AlgorithmConfig> algorithm_config;
+  // Typed defaults for all families, including those not selected by Exec.type.
+  std::map<std::string, std::unique_ptr<AlgorithmConfig>> algorithm_defaults;
 };
 }  // namespace mapper

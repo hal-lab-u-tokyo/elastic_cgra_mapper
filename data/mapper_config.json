@@ -1,9 +1,84 @@
 {
-    "Algorithm": {
-        "type": "ILPMapper",
-        "accept_feasible_solution": true
+    "Exec": {
+        "type": "ILPMapper"
     },
     "DFG": {
         "operation_name_label": "node_id"
+    },
+    "Algorithm": {
+        "ILP": {
+            "accept_feasible_solution": true
+        },
+        "SA": {
+            "seed_count": "auto",
+            "routing_retry_count": "auto",
+            "random_seed": "auto",
+            "max_iterations": "auto",
+            "io_node_policy": "auto",
+            "placement_only": false
+        },
+        "PRISA": {
+            "max_trials": "auto",
+            "seed_count": "auto",
+            "routing_retry_count": "auto",
+            "random_seed": "auto",
+            "max_iterations": "auto",
+            "io_node_policy": "auto",
+            "placement_only": false
+        },
+        "YOTO": {
+            "max_trials": "auto",
+            "seed_count": "auto",
+            "routing_retry_count": "auto",
+            "random_seed": "auto",
+            "io_node_policy": "auto",
+            "trial_seed_policy": "auto",
+            "traversal_neighbor_policy": "auto",
+            "candidate_scope_policy": "auto",
+            "candidate_rank_policy": "auto",
+            "use_yott_annotations": "auto",
+            "trace_trials": "auto",
+            "placement_only": false
+        },
+        "YOTT": {
+            "max_trials": "auto",
+            "seed_count": "auto",
+            "routing_retry_count": "auto",
+            "random_seed": "auto",
+            "io_node_policy": "auto",
+            "trial_seed_policy": "auto",
+            "traversal_neighbor_policy": "auto",
+            "candidate_scope_policy": "auto",
+            "candidate_rank_policy": "auto",
+            "use_yott_annotations": "auto",
+            "trace_trials": "auto",
+            "placement_only": false
+        },
+        "YOTTCore": {
+            "max_trials": "auto",
+            "seed_count": "auto",
+            "random_seed": "auto",
+            "io_node_policy": "auto",
+            "trial_seed_policy": "auto",
+            "traversal_order_policy": "auto",
+            "traversal_neighbor_policy": "auto",
+            "use_yott_annotations": "auto",
+            "trace_trials": "auto"
+        },
+        "YOTTCoreRepair": {
+            "max_trials": "auto",
+            "seed_count": "auto",
+            "random_seed": "auto",
+            "max_iterations": "auto",
+            "elite_placement_count": "auto",
+            "io_node_policy": "auto",
+            "trial_seed_policy": "auto",
+            "traversal_order_policy": "auto",
+            "traversal_neighbor_policy": "auto",
+            "candidate_rank_policy": "auto",
+            "use_yott_annotations": "auto",
+            "trace_trials": "auto"
+        },
+        "PlacementFirst": {}
     }
 }

@@ -6,11 +6,4 @@ target_link_libraries(io INTERFACE entity Boost::graph Boost::property_tree)
 target_compile_options(io INTERFACE -Wall -Wextra -Wno-deprecated)
 target_sources(
   io INTERFACE dfg_io.cpp architecture_io.cpp mapping_io.cpp
-               output_to_log_file.cpp mapper_config_io.cpp select_database.cpp)
-
-# Runtime mapper configuration extends the entity config in mapper headers.
-set_property(
-  TARGET io
-  APPEND
-  PROPERTY INTERFACE_INCLUDE_DIRECTORIES
-           ${CMAKE_CURRENT_SOURCE_DIR}/../../mapper/include)
+               output_to_log_file.cpp select_database.cpp)
