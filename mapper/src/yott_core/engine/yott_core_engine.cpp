@@ -81,8 +81,8 @@ mapper::MappingResult YottCoreEngine::Failure(
   Log("failure mapper=" + MapperName() + " reason=" +
       (last_failure_reason_.empty() ? "no placement candidate"
                                     : last_failure_reason_));
-  return mapper::MappingResult(false, entity::Mapping(config_),
-                               SecondsSince(start));
+  return mapper::MappingResult(mapper::MappingStatus::kFailure,
+                               entity::Mapping(config_), SecondsSince(start));
 }
 
 mapper::MappingResult YottCoreEngine::FinishPlacement(
@@ -92,14 +92,16 @@ mapper::MappingResult YottCoreEngine::FinishPlacement(
   for (int node = 0; node < dfg_.GetNodeNum(); node++) {
     const int cell = placement.dfg_to_cell[node];
     if (cell < 0 || cell >= static_cast<int>(cell_to_mrrg_.size())) {
-      return mapper::MappingResult(false, entity::Mapping(config_),
+      return mapper::MappingResult(mapper::MappingStatus::kFailure,
+                                   entity::Mapping(config_),
                                    SecondsSince(start));
     }
     if (UsesStructuralIOCellTypes() && !IsCPUMappingCompatible(node, cell)) {
       Log("failure mapper=" + MapperName() +
           " reason=final placement violates structural I/O node=" +
           NodeLabel(node) + " cell=" + std::to_string(cell));
-      return mapper::MappingResult(false, entity::Mapping(config_),
+      return mapper::MappingResult(mapper::MappingStatus::kFailure,
+                                   entity::Mapping(config_),
                                    SecondsSince(start));
     }
     dfg_to_mrrg[node] = cell_to_mrrg_[cell];
@@ -112,7 +114,8 @@ mapper::MappingResult YottCoreEngine::FinishPlacement(
       " placement_cost=" + std::to_string(PlacementCost(placement)) +
       " placement_swap_attempts=" + std::to_string(placement_swap_attempts_) +
       " cell_visits=" + std::to_string(cell_visits_));
-  return mapper::MappingResult(true, mapping, elapsed);
+  return mapper::MappingResult(mapper::MappingStatus::kOptimalityUnknown,
+                               mapping, elapsed);
 }
 
 void YottCoreEngine::BuildDFGCache() {

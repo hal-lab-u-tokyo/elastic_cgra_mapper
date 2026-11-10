@@ -4,6 +4,7 @@
 #include <io/json_reader.hpp>
 #include <io/mapping_io.hpp>
 #include <io/select_database.hpp>
+#include <mapper/mapping_status.hpp>
 
 entity::Database io::select_database(
     const std::filesystem::path& database_dir_path,
@@ -80,7 +81,7 @@ entity::Database io::select_database(
       if (!mapping_dir.is_directory()) {
         continue;
       }
-      bool is_success = false;
+      bool mapping_available = false;
       for (const auto& file :
            std::filesystem::directory_iterator(mapping_dir.path())) {
         if (!file.is_regular_file()) {
@@ -93,12 +94,16 @@ entity::Database io::select_database(
           std::ifstream json_file(file.path());
           boost::property_tree::ptree ptree;
           boost::property_tree::read_json(json_file, ptree);
-          is_success = GetValueFromPTree<bool>(ptree, "is_success");
+          const auto status = ptree.get_optional<std::string>("mapping_status");
+          mapping_available =
+              status
+                  ? mapper::HasMapping(mapper::MappingStatusFromString(*status))
+                  : GetValueFromPTree<bool>(ptree, "is_success");
           break;
         }
       }
 
-      if (!is_success) {
+      if (!mapping_available) {
         continue;
       }
 

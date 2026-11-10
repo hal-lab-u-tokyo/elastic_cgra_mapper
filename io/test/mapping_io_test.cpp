@@ -52,7 +52,7 @@ TEST(IOTest, maping_io_test) {
   entity::Mapping input_mapping;
   const auto result = mapper_ptr->Execution();
 
-  EXPECT_EQ(result.is_success, true);
+  EXPECT_EQ(result.HasMapping(), true);
 
   // write mapping
   std::string file_name = "./mapping_data.json";

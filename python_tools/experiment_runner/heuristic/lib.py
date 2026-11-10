@@ -1362,6 +1362,19 @@ def mapping_utilization(
     return empty
 
 
+MAPPING_STATUSES = {"optimal", "suboptimal", "optimality_unknown", "failure"}
+
+
+def read_mapping_status(output_log: dict) -> str:
+    """Read the result tag; legacy success never certifies global optimality."""
+    if "mapping_status" in output_log:
+        value = output_log["mapping_status"]
+        if not isinstance(value, str) or value not in MAPPING_STATUSES:
+            raise ValueError(f"Unknown mapping_status: {value!r}")
+        return value
+    return "optimality_unknown" if output_log.get("is_success") is True else "failure"
+
+
 def normalize_run(
     run_dir: Path,
     benchmark: str,
@@ -1392,13 +1405,14 @@ def normalize_run(
         "edge_count": "",
     }
 
-    is_success = bool(output_log.get("is_success", False))
+    mapping_status = read_mapping_status(output_log)
+    is_success = mapping_status != "failure"
     status = "success" if is_success else "failed"
     if gurobi_metrics["gurobi_status"] == "time_limit":
         status = "timeout_feasible" if is_success else "timeout"
     elif gurobi_metrics["gurobi_status"] == "infeasible":
         status = "infeasible"
-    elif gurobi_metrics["gurobi_status"] == "optimal" and is_success:
+    elif mapping_status == "optimal":
         status = "optimal"
 
     ii_ratio = ""
@@ -1422,6 +1436,7 @@ def normalize_run(
         "achieved_II": achieved_ii if achieved_ii is not None else "",
         "II_ratio": ii_ratio,
         "status": status,
+        "mapping_status": mapping_status,
         "mapping_time_sec": output_log.get("mapping_time_s", ""),
         "placement_swap_attempts": placement_log_metrics[
             "placement_swap_attempts"
@@ -1744,6 +1759,7 @@ CSV_FIELDS = [
     "stderr_file",
     "arch_file",
     "raw_output_dir",
+    "mapping_status",
 ]
 
 
@@ -1753,4 +1769,15 @@ def write_metrics_csv(path: Path, rows: Iterable[dict]) -> None:
         writer = csv.DictWriter(f, fieldnames=CSV_FIELDS)
         writer.writeheader()
         for row in rows:
+            row = dict(row)
+            if "mapping_status" not in row:
+                # Pre-execution errors have no accepted mapping. Legacy success
+                # rows lack a certificate, even when their workflow says optimal.
+                row["mapping_status"] = (
+                    "optimality_unknown"
+                    if row.get("status") in {"success", "optimal", "timeout_feasible"}
+                    else "failure"
+                )
+            if row["mapping_status"] not in MAPPING_STATUSES:
+                raise ValueError(f"Unknown mapping_status: {row['mapping_status']!r}")
             writer.writerow({field: row.get(field, "") for field in CSV_FIELDS})

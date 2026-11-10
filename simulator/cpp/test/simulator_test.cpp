@@ -41,7 +41,7 @@ TEST(SimulatorTest, simulator_default_result_test) {
   std::shared_ptr<entity::Mapping> mapping_ptr =
       std::make_shared<entity::Mapping>();
   const auto result = mapper->Execution();
-  ASSERT_TRUE(result.is_success)
+  ASSERT_TRUE(result.HasMapping())
       << "Mapping must succeed before the simulator result can be tested";
   ASSERT_NE(result.mapping_ptr, nullptr);
 

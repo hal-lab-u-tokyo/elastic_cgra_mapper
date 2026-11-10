@@ -257,7 +257,7 @@ int main(int argc, char* argv[]) {
 
       io::MappingOutput mapping_output;
       mapping_output.mapping_time_s = mapping_result.mapping_time_s;
-      mapping_output.is_success = mapping_result.is_success;
+      mapping_output.status = mapping_result.status;
       mapping_output.mapping_ptr = mapping_result.mapping_ptr;
       mapping_output.mrrg_config = mrrg_ptr->GetMRRGConfig();
 

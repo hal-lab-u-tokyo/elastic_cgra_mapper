@@ -156,7 +156,7 @@ int main(int argc, char* argv[]) {
 
   io::MappingOutput output;
   output.mapping_time_s = result.mapping_time_s;
-  output.is_success = result.is_success;
+  output.status = result.status;
   output.mapping_ptr = result.mapping_ptr;
   output.mrrg_config = mrrg_ptr->GetMRRGConfig();
   logger.LogMappingOutput(output);

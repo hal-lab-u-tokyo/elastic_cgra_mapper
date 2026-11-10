@@ -1,6 +1,7 @@
 #pragma once
 
 #include <entity/mapping.hpp>
+#include <mapper/mapping_status.hpp>
 #include <memory>
 #include <optional>
 #include <string>
@@ -15,13 +16,14 @@ struct MapperOptions {
 };
 
 struct MappingResult {
-  MappingResult(bool is_success, const entity::Mapping& mapping,
+  MappingResult(MappingStatus status, const entity::Mapping& mapping,
                 double mapping_time_s)
-      : is_success(is_success),
+      : status(status),
         mapping_ptr(std::make_shared<entity::Mapping>(mapping)),
         mapping_time_s(mapping_time_s){};
 
-  bool is_success;
+  MappingStatus status;
+  bool HasMapping() const { return mapper::HasMapping(status); }
   std::shared_ptr<entity::Mapping> mapping_ptr;
   double mapping_time_s;
 };

@@ -162,7 +162,11 @@ void io::MappingLogger::LogMappingOutput(const io::MappingOutput& output) {
                        output.mrrg_config);
   std::unordered_map<std::string, std::string> json_str_vec;
   json_str_vec["mapping_time_s"] = std::to_string(output.mapping_time_s);
-  json_str_vec["is_success"] = output.is_success ? "true" : "false";
+  json_str_vec["mapping_status"] =
+      "\"" + mapper::MappingStatusToString(output.status) + "\"";
+  // Compatibility only: the enum is authoritative; no parallel bool is stored.
+  json_str_vec["is_success"] =
+      mapper::HasMapping(output.status) ? "true" : "false";
   json_str_vec["mapping_file"] = "\"" + mapping_file_path_.string() + "\"";
   json_str_vec["gurobi_log_file"] =
       "\"" + gurobi_log_file_path_.string() + "\"";

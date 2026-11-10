@@ -4,6 +4,7 @@
 #include <filesystem>
 #include <fstream>
 #include <mapper/ilp/ilp_mapper.hpp>
+#include <mapper/ilp/result_status.hpp>
 
 mapper::MappingResult mapper::ILPMapper::Execution() {
   const auto start_time = std::chrono::system_clock::now();
@@ -270,6 +271,8 @@ mapper::MappingResult mapper::ILPMapper::Execution() {
     model.optimize();
 
     int status = model.get(GRB_IntAttr_Status);
+    const auto result_status = ClassifyILPResult(
+        status, model.get(GRB_IntAttr_SolCount), accept_feasible_solution_);
 
     if (status == GRB_INFEASIBLE ||
         (!accept_feasible_solution_ && status != GRB_OPTIMAL &&
@@ -284,7 +287,8 @@ mapper::MappingResult mapper::ILPMapper::Execution() {
                                                                 start_time)
               .count() /
           1000.0;
-      return MappingResult(false, entity::Mapping(mrrg_ptr_->GetMRRGConfig()),
+      return MappingResult(mapper::MappingStatus::kFailure,
+                           entity::Mapping(mrrg_ptr_->GetMRRGConfig()),
                            mapping_time);
     }
 
@@ -295,7 +299,8 @@ mapper::MappingResult mapper::ILPMapper::Execution() {
                                                                 start_time)
               .count() /
           1000.0;
-      return MappingResult(false, entity::Mapping(mrrg_ptr_->GetMRRGConfig()),
+      return MappingResult(mapper::MappingStatus::kFailure,
+                           entity::Mapping(mrrg_ptr_->GetMRRGConfig()),
                            mapping_time);
     }
 
@@ -322,7 +327,7 @@ mapper::MappingResult mapper::ILPMapper::Execution() {
                                                               start_time)
             .count() /
         1000.0;
-    return MappingResult(true,
+    return MappingResult(result_status,
                          entity::GenerateMappingFromRoutingResult(
                              *mrrg_ptr_, *dfg_ptr_, dfg_node_to_mrrg_node,
                              dfg_output_to_mrrg_edge),
@@ -338,7 +343,8 @@ mapper::MappingResult mapper::ILPMapper::Execution() {
             .count() /
         1000.0;
 
-    return MappingResult(false, entity::Mapping(mrrg_ptr_->GetMRRGConfig()),
+    return MappingResult(mapper::MappingStatus::kFailure,
+                         entity::Mapping(mrrg_ptr_->GetMRRGConfig()),
                          mapping_time);
   }
 }

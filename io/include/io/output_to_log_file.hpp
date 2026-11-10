@@ -3,6 +3,7 @@
 #include <entity/mapping.hpp>
 #include <filesystem>
 #include <fstream>
+#include <mapper/mapping_status.hpp>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -18,7 +19,7 @@ struct MappingInput {
 };
 struct MappingOutput {
   double mapping_time_s;
-  bool is_success;
+  mapper::MappingStatus status = mapper::MappingStatus::kFailure;
   std::shared_ptr<entity::Mapping> mapping_ptr;
   entity::MRRGConfig mrrg_config;
 };

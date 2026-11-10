@@ -931,7 +931,9 @@ mapper::MappingResult mapper::ConnectivityPathILPMapper::Execution() {
             *dfg_ptr_, *mrrg_ptr_, dfg_edge_vec, data, placement.value(),
             log_file_path_, timeout_s_, accept_feasible_solution_, start_time);
         if (routed_mapping.has_value()) {
-          return MappingResult(true, routed_mapping.value(),
+          // Bounded staged placement/routing does not certify a global optimum.
+          return MappingResult(mapper::MappingStatus::kOptimalityUnknown,
+                               routed_mapping.value(),
                                ElapsedSeconds(start_time));
         }
 
@@ -939,11 +941,13 @@ mapper::MappingResult mapper::ConnectivityPathILPMapper::Execution() {
       }
     }
 
-    return MappingResult(false, empty_mapping, ElapsedSeconds(start_time));
+    return MappingResult(mapper::MappingStatus::kFailure, empty_mapping,
+                         ElapsedSeconds(start_time));
   } catch (GRBException e) {
     std::cout << "Error code = " << e.getErrorCode() << std::endl;
     std::cout << e.getMessage() << std::endl;
-    return MappingResult(false, empty_mapping, ElapsedSeconds(start_time));
+    return MappingResult(mapper::MappingStatus::kFailure, empty_mapping,
+                         ElapsedSeconds(start_time));
   }
 }
 
