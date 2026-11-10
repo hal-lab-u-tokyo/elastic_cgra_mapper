@@ -640,20 +640,12 @@ def parse_placement_log(log_path: Optional[Path]) -> dict:
     result = {
         "placement_swap_attempts": "",
         "placement_cell_visits": "",
-        "vpr_initial_placement_cost": "",
-        "vpr_initial_bb_cost": "",
-        "vpr_final_placement_cost": "",
-        "vpr_final_bb_cost": "",
     }
     if not log_path or not log_path.exists():
         return result
 
     text = log_path.read_text(errors="replace")
     swap_attempts = re.search(r"placement_swap_attempts=([0-9]+)", text)
-    if not swap_attempts:
-        swap_attempts = re.search(
-            r"Placement total # of swap attempts:\s*([0-9]+)", text
-        )
     if swap_attempts:
         result["placement_swap_attempts"] = swap_attempts.group(1)
 

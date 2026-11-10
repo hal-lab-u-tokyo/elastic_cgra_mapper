@@ -38,9 +38,6 @@ RUN apt-get update && \
 
 ENV PATH="${GUROBI_HOME}/bin:/home/verilator/bin:${PATH}"
 ENV GRB_LICENSE_FILE="/opt/gurobi/gurobi.lic"
-ENV VTR_ROOT="${APPLICATION_DIRECTORY}/third_party/vtr"
-ENV VPR_BIN="${APPLICATION_DIRECTORY}/third_party/vtr/build/vpr/vpr"
-ENV VPR_ARCH_XML="${APPLICATION_DIRECTORY}/third_party/vtr/vtr_flow/arch/timing/k6_N10_40nm.xml"
 
 COPY ../requirements.txt ${APPLICATION_DIRECTORY}/requirements.txt
 RUN pip install -r ${APPLICATION_DIRECTORY}/requirements.txt
