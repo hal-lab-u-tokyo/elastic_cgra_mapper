@@ -23,6 +23,10 @@ entity::MRRG io::ReadMRRGFromJsonFile(std::string file_name) {
 
   mrrg_config.memory_io = entity::MRRGMemoryIOTypeFromString(memory_io_data);
   mrrg_config.cgra_type = entity::MRRGCGRATypeFromString(cgra_type_data);
+  if (network_type_data == "one_hop_axis2" || network_type_data == "one_hop" ||
+      network_type_data == "1hop") {
+    network_type_data = "one_hop_2d";
+  }
   mrrg_config.network_type =
       entity::MRRGNetworkTypeFromString(network_type_data);
   BOOST_FOREACH (

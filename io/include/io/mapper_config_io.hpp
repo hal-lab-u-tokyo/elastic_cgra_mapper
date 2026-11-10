@@ -1,9 +1,9 @@
 #pragma once
 
-#include <entity/mapper_config.hpp>
+#include <mapper/configuration.hpp>
 
 namespace io {
-entity::MapperConfig ReadMapperConfigFromJsonFile(std::string file_name);
+mapper::MapperConfig ReadMapperConfigFromJsonFile(std::string file_name);
 void WriteMapperConfigToJsonFile(std::string file_name,
-                                 const entity::MapperConfig& mapper_config);
+                                 const mapper::MapperConfig& mapper_config);
 }  // namespace io
