@@ -9,5 +9,8 @@ target_sources(
                output_to_log_file.cpp mapper_config_io.cpp select_database.cpp)
 
 # Runtime mapper configuration extends the entity config in mapper headers.
-set_property(TARGET io APPEND PROPERTY INTERFACE_INCLUDE_DIRECTORIES
-             ${CMAKE_CURRENT_SOURCE_DIR}/../../mapper/include)
+set_property(
+  TARGET io
+  APPEND
+  PROPERTY INTERFACE_INCLUDE_DIRECTORIES
+           ${CMAKE_CURRENT_SOURCE_DIR}/../../mapper/include)

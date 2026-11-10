@@ -9,7 +9,7 @@ class PlacementILPMapper : public IMapper {
  public:
   PlacementILPMapper(){};
   PlacementILPMapper(const std::shared_ptr<entity::DFG> dfg_ptr,
-                       const std::shared_ptr<entity::MRRG> mmrg_ptr);
+                     const std::shared_ptr<entity::MRRG> mmrg_ptr);
   PlacementILPMapper* CreateMapper(
       const std::shared_ptr<entity::DFG> dfg_ptr,
       const std::shared_ptr<entity::MRRG> mmrg_ptr);

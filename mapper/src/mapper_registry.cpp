@@ -1,25 +1,25 @@
-#include <mapper/ilp/ilp_mapper.hpp>
-#include <mapper/sa/sa_mapper.hpp>
-#include <mapper/prisa/prisa_mapper.hpp>
-#include <mapper/yoto/yoto_mapper.hpp>
-#include <mapper/yott/yott_mapper.hpp>
 #include <initializer_list>
-#include <mapper/mapper_factory.hpp>
 #include <mapper/ilp/connectivity_path_ilp_mapper.hpp>
+#include <mapper/ilp/ilp_mapper.hpp>
+#include <mapper/ilp/ilp_placement_mapper.hpp>
+#include <mapper/mapper_factory.hpp>
 #include <mapper/placement_first/routed_placement_first_mapper.hpp>
+#include <mapper/prisa/grid_prisa_mapper.hpp>
+#include <mapper/prisa/prisa_mapper.hpp>
 #include <mapper/prisa/routed_prisa_mapper.hpp>
+#include <mapper/sa/grid_sa_mapper.hpp>
 #include <mapper/sa/routed_sa_mapper.hpp>
+#include <mapper/sa/sa_mapper.hpp>
+#include <mapper/yoto/grid_yoto_mapper.hpp>
 #include <mapper/yoto/routed_yoto_mapper.hpp>
 #include <mapper/yoto/routed_yoto_with_fallback_mapper.hpp>
+#include <mapper/yoto/yoto_mapper.hpp>
+#include <mapper/yott/grid_yott_mapper.hpp>
 #include <mapper/yott/routed_yott_mapper.hpp>
 #include <mapper/yott/routed_yott_with_fallback_mapper.hpp>
-#include <mapper/ilp/ilp_placement_mapper.hpp>
-#include <mapper/prisa/grid_prisa_mapper.hpp>
-#include <mapper/sa/grid_sa_mapper.hpp>
-#include <mapper/yoto/grid_yoto_mapper.hpp>
+#include <mapper/yott/yott_mapper.hpp>
 #include <mapper/yott_core/grid_yott_core_mapper.hpp>
 #include <mapper/yott_core_repair/grid_yott_core_repair_mapper.hpp>
-#include <mapper/yott/grid_yott_mapper.hpp>
 
 namespace {
 
@@ -89,16 +89,13 @@ bool RegisterBuiltInMappers() {
   RegisterNames<mapper::ModuloPlacementFirstMapper>(
       {"ModuloPlacementFirstMapper", "ModuloPlacementFirst",
        "PlacementFirstHeuristicMapper"});
-  RegisterNames<mapper::ModuloSAMapper>(
-      {"ModuloSAMapper", "ModuloSA"});
-  RegisterNames<mapper::ModuloYOTOMapper>(
-      {"ModuloYOTOMapper", "ModuloYOTO"});
+  RegisterNames<mapper::ModuloSAMapper>({"ModuloSAMapper", "ModuloSA"});
+  RegisterNames<mapper::ModuloYOTOMapper>({"ModuloYOTOMapper", "ModuloYOTO"});
   RegisterNames<mapper::ModuloPhysicalYOTOMapper>(
       {"ModuloPhysicalYOTOMapper", "ModuloPhysicalYOTO"});
   RegisterNames<mapper::ModuloYOTOWithFallbackMapper>(
       {"ModuloYOTOWithFallbackMapper", "ModuloYOTOWithFallback"});
-  RegisterNames<mapper::ModuloYOTTMapper>(
-      {"ModuloYOTTMapper", "ModuloYOTT"});
+  RegisterNames<mapper::ModuloYOTTMapper>({"ModuloYOTTMapper", "ModuloYOTT"});
   RegisterNames<mapper::ModuloPhysicalYOTTMapper>(
       {"ModuloPhysicalYOTTMapper", "ModuloPhysicalYOTT"});
   RegisterNames<mapper::ModuloYOTTWithFallbackMapper>(

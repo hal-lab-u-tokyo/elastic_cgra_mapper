@@ -1,0 +1,33 @@
+digraph "Raccoon-style CDFG for 'kernel_2mm' function" {
+    rankdir=TB;
+    splines=true;
+    overlap=false;
+    nodesep=0.45;
+    ranksep=0.65;
+    graph [fontname="Helvetica"];
+    node  [shape=record, fontname="Helvetica", fontsize=10];
+    edge  [fontname="Helvetica", fontsize=9];
+    // ============================================================
+    // Data computation
+    // ============================================================
+    Node0x01 [shape=record, label="load A[i,k]", opcode=load, context=0,
+              operand="A"];
+    Node0x02 [shape=record, label="scale A", opcode=mul, context=0,
+              operand="Node0x01, 1"];
+    Node0x03 [shape=record, label="add A", opcode=add, context=0,
+              operand="Node0x02, 1"];
+    // ============================================================
+    // Control edges: loop hierarchy
+    // ============================================================
+    edge [color=blue, style="solid"];
+    // ============================================================
+    // Loop-control fanout edges
+    // ============================================================
+    edge [color=red, style="dotted"];
+    // ============================================================
+    // Data edges
+    // ============================================================
+    edge [color=black, style="solid"];
+    Node0x01 -> Node0x02;
+    Node0x02 -> Node0x03;
+}

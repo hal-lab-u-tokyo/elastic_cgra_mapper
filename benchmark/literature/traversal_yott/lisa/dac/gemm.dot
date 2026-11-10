@@ -18,7 +18,7 @@ digraph gemm {
     16 [label = add16 op = addi value = 2 ] ;
     17 [label = in17 op = in ] ;
     18 [label = out18 op = out ] ;
-    
+
     1 -> 0 [port = 0  weight = 0 ] ;
     16 -> 0 [port = 1  weight = 0 ] ;
     0 -> 2 [port = 0  weight = 0 ] ;

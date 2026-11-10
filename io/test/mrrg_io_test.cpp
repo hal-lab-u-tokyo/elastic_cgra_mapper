@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
 
-#include <io/architecture_io.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
+#include <io/architecture_io.hpp>
 #include <set>
 #include <string>
 
@@ -31,7 +31,6 @@ TEST(IOTest, mrrg_io_test) {
             output_mrrg.GetMRRGConfig().loop_controller_position_vec.size());
 }
 
-
 TEST(IOTest, one_hop_2d_canonical_and_legacy_input_test) {
   entity::MRRGConfig config{};
   config.column = 5;
@@ -49,18 +48,21 @@ TEST(IOTest, one_hop_2d_canonical_and_legacy_input_test) {
   EXPECT_EQ(json.get<std::string>("network_type"), "one_hop_2d");
   EXPECT_EQ(entity::MRRGNetworkTypeFromString("one_hop_2d"),
             entity::MRRGNetworkType::kOneHop2d);
-  for (const std::string name : {"one_hop_2d", "one_hop_axis2", "one_hop", "1hop"}) {
+  for (const std::string name :
+       {"one_hop_2d", "one_hop_axis2", "one_hop", "1hop"}) {
     SCOPED_TRACE(name);
     json.put("network_type", name);
     boost::property_tree::write_json(file, json);
     auto read = io::ReadMRRGFromJsonFile(file);
-    EXPECT_EQ(read.GetMRRGConfig().network_type, entity::MRRGNetworkType::kOneHop2d);
+    EXPECT_EQ(read.GetMRRGConfig().network_type,
+              entity::MRRGNetworkType::kOneHop2d);
     const int center = read.GetMRRGNodeId(2, 2, 0);
     std::set<std::pair<int, int>> neighbors;
     for (int node : read.GetAdjacentNodeIdVec(center)) {
       neighbors.insert(read.GetNodeProperty(node).position_id);
     }
-    // The model also retains the same-PE next-context edge (a self edge at II=1).
+    // The model also retains the same-PE next-context edge (a self edge at
+    // II=1).
     const std::set<std::pair<int, int>> expected = {
         {0, 2}, {1, 2}, {3, 2}, {4, 2}, {2, 0}, {2, 1}, {2, 2}, {2, 3}, {2, 4}};
     EXPECT_EQ(neighbors, expected);

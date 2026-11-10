@@ -31,7 +31,7 @@ digraph motion_vectors {
     MUL_27 [label = MUL_27;];
     ADD_47 [label = ADD_47;];
     MUL_42 [label = MUL_42;];
-    
+
     ADD_36 -> STR_37 [name = 0;];
     MUL_13 -> ADD_20 [name = 1;];
     ADD_59 -> ADD_61 [name = 2;];

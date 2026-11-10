@@ -37,7 +37,7 @@ digraph arf {
     35 [label = IN_35 op = in ] ;
     36 [label = OUT_36 op = out ] ;
     37 [label = OUT_37 op = out ] ;
-    
+
     28 -> 0 [port = 0  weight = 0 ] ;
     29 -> 1 [port = 0  weight = 0 ] ;
     30 -> 2 [port = 0  weight = 0 ] ;

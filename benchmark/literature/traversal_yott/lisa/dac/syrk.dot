@@ -14,7 +14,7 @@ digraph syrk {
     12 [label = add12 op = addi value = 2 ] ;
     13 [label = in13 op = in ] ;
     14 [label = out14 op = out ] ;
-    
+
     1 -> 0 [port = 0  weight = 0 ] ;
     12 -> 0 [port = 1  weight = 0 ] ;
     0 -> 2 [port = 0  weight = 0 ] ;

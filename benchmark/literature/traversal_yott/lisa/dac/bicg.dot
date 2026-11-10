@@ -25,7 +25,7 @@ digraph bicg {
     23 [label = in23 op = in ] ;
     24 [label = out24 op = out ] ;
     25 [label = out25 op = out ] ;
-    
+
     1 -> 0 [port = 0  weight = 0 ] ;
     22 -> 0 [port = 1  weight = 0 ] ;
     0 -> 2 [port = 0  weight = 0 ] ;

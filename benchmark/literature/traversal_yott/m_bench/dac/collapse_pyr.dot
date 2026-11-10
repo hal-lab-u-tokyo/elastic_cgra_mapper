@@ -9,7 +9,7 @@ digraph collapse_pyr {
     7 [label = SUB_7 op = subi value = 2 ] ;
     8 [label = ADD_8 op = add ] ;
     9 [label = REG_9 op = reg ] ;
-    10 [label = REG_10 op = reg ]; 
+    10 [label = REG_10 op = reg ];
     11 [label = MUL_11 op = muli value = 2 ] ;
     12 [label = OUT_12 op = out ] ;
     13 [label = REG_13 op = reg ] ;
@@ -85,7 +85,7 @@ digraph collapse_pyr {
     83 [label = OUT_83 op = out ] ;
     84 [label = OUT_84 op = out ] ;
     85 [label = OUT_85 op = out ] ;
-    
+
     5 -> 0 [port = 0  weight = 0 ] ;
     18 -> 0 [port = 1  weight = 0 ] ;
     18 -> 1 [port = 0  weight = 0 ] ;
@@ -147,10 +147,10 @@ digraph collapse_pyr {
     1 -> 41 [port = 0  weight = 0 ] ;
     26 -> 42 [port = 0  weight = 0 ] ;
     65 -> 43 [port = 0  weight = 0 ] ;
-    49 -> 44 [port = 0  weight = 0 ]; 
+    49 -> 44 [port = 0  weight = 0 ];
     54 -> 45 [port = 0  weight = 0 ] ;
     66 -> 46 [port = 0  weight = 0 ] ;
-    69 -> 47 [port = 0  weight = 0 ]; 
+    69 -> 47 [port = 0  weight = 0 ];
     5 -> 48 [port = 0  weight = 0 ] ;
     57 -> 49 [port = 0  weight = 0 ] ;
     48 -> 50 [port = 0  weight = 0 ] ;

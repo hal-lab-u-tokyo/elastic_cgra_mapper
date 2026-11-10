@@ -46,7 +46,7 @@ digraph ewf {
     44 [label = out44 op = out ] ;
     45 [label = out45 op = out ] ;
     46 [label = out46 op = out ] ;
-    
+
     28 -> 42 [port = 0  weight = 0 ] ;
     33 -> 43 [port = 0  weight = 0 ] ;
     13 -> 44 [port = 0  weight = 0 ] ;

@@ -2,8 +2,8 @@
 
 #include <algorithm>
 #include <mapper/ilp/ilp_mapper.hpp>
-#include <mapper/mapper_factory.hpp>
 #include <mapper/ilp/ilp_placement_mapper.hpp>
+#include <mapper/mapper_factory.hpp>
 
 TEST(MapperTest, built_in_mapper_registry_test) {
   const auto types = mapper::GetRegisteredMapperTypes();
@@ -132,10 +132,8 @@ TEST(MapperTest, algorithm_selects_engine_from_mrrg_test) {
         {"PRISA", contexts == 1 ? "Placement2DPRISA" : "ModuloPhysicalPRISA"},
         {"YOTO", contexts == 1 ? "Placement2DYOTO" : "ModuloYOTO"},
         {"YOTT", contexts == 1 ? "Placement2DYOTT" : "ModuloYOTT"},
-        {"ILP",
-         "FullRoutingILPMapper"},
-        {"ILPMapper",
-         "FullRoutingILPMapper"}};
+        {"ILP", "FullRoutingILPMapper"},
+        {"ILPMapper", "FullRoutingILPMapper"}};
     for (const auto& variant : variants) {
       SCOPED_TRACE(variant.first + " contexts=" + std::to_string(contexts));
       mapper::MapperOptions options;

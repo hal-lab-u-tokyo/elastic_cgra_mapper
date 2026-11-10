@@ -1,8 +1,7 @@
-#include <mapper/mapper_factory.hpp>
-
 #include <cstdlib>
 #include <iostream>
 #include <map>
+#include <mapper/mapper_factory.hpp>
 #include <sstream>
 #include <utility>
 

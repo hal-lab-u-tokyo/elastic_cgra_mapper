@@ -163,7 +163,8 @@ int main(int argc, char* argv[]) {
   mapper_options.elite_placement_count =
       mapper_config.algorithm_config.elite_placement_count;
   mapper_options.io_node_policy = mapper_config.algorithm_config.io_node_policy;
-  mapper_options.trial_seed_policy = mapper_config.algorithm_config.trial_seed_policy;
+  mapper_options.trial_seed_policy =
+      mapper_config.algorithm_config.trial_seed_policy;
   mapper_options.traversal_order_policy =
       mapper_config.algorithm_config.traversal_order_policy;
   mapper_options.traversal_neighbor_policy =

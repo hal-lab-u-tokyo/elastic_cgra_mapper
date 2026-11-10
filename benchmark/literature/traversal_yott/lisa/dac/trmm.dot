@@ -19,7 +19,7 @@ digraph trmm {
     17 [label = add17 op = addi value = 2 ] ;
     18 [label = in18 op = in ] ;
     19 [label = out19 op = out ] ;
-    
+
     1 -> 0 [port = 0  weight = 0 ] ;
     17 -> 0 [port = 1  weight = 0 ] ;
     0 -> 2 [port = 0  weight = 0 ] ;

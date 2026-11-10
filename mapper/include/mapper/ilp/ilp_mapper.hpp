@@ -9,9 +9,13 @@ class ILPMapper : public IMapper {
             const std::shared_ptr<entity::MRRG> mrrg)
       : dfg_ptr_(dfg), mrrg_ptr_(mrrg) {}
   MappingResult Execution() override;
-  void SetLogFilePath(const std::string& path) override { log_file_path_ = path; }
+  void SetLogFilePath(const std::string& path) override {
+    log_file_path_ = path;
+  }
   void SetTimeOut(double timeout) override { timeout_s_ = timeout; }
-  void SetAcceptFeasibleSolution(bool accept) override { accept_feasible_solution_ = accept; }
+  void SetAcceptFeasibleSolution(bool accept) override {
+    accept_feasible_solution_ = accept;
+  }
 
  private:
   std::shared_ptr<entity::DFG> dfg_ptr_;

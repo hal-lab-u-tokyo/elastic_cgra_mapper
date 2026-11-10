@@ -8,7 +8,7 @@ digraph cholesky {
     6 [label = out6 op = out ] ;
     7 [label = add7 op = addi value = 2 ] ;
     8 [label = in8 op = in ] ;
-    
+
     1 -> 0 [port = 0  weight = 0 ] ;
     7 -> 0 [port = 1  weight = 0 ] ;
     0 -> 2 [port = 0  weight = 0 ] ;
