@@ -65,3 +65,11 @@ verilate(VerilogElasticPETest INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/../src/
          SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/../src/elastic_PE.sv)
 target_link_libraries(VerilogElasticPETest PRIVATE gtest_main io mapper)
 add_test(NAME VerilogElasticPETest COMMAND VerilogElasticPETest)
+
+add_executable(VerilogElasticCGRATest verilog_elastic_CGRA_test.cpp)
+target_link_libraries(VerilogElasticCGRATest PRIVATE gtest_main io mapper
+                                                     verilog_runner)
+target_compile_definitions(
+  VerilogElasticCGRATest
+  PRIVATE VERILOG_TEST_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/data")
+add_test(NAME VerilogElasticCGRATest COMMAND VerilogElasticCGRATest)

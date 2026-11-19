@@ -36,7 +36,9 @@ module ElasticCGRA (
     output DEBUG_pe_fork_a_output_stop[PE_ROW_SIZE][PE_COLUMN_SIZE][INPUT_NUM],
     output DEBUG_pe_fork_a_output_valid[PE_ROW_SIZE][PE_COLUMN_SIZE][INPUT_NUM],
     output DEBUG_pe_join_output_stop[PE_ROW_SIZE][PE_COLUMN_SIZE],
-    output DEBUG_pe_join_output_valid[PE_ROW_SIZE][PE_COLUMN_SIZE]
+    output DEBUG_pe_join_output_valid[PE_ROW_SIZE][PE_COLUMN_SIZE],
+    output DEBUG_vailid_output[PE_ROW_SIZE][PE_COLUMN_SIZE],
+    output [DATA_WIDTH-1:0] DEBUG_output_context_id[PE_ROW_SIZE][PE_COLUMN_SIZE],
 );
     // data path
     wire [DATA_WIDTH-1:0] memory_read_data[PE_ROW_SIZE][PE_COLUMN_SIZE];

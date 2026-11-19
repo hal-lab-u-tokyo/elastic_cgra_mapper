@@ -87,29 +87,25 @@ TEST(VerilogSimulatorTest, elastic_PE_test) {
         bool output_PE_index[kNeighborPENum] = {0, 0, 1, 1};
         for (int i = 0; i < kNeighborPENum; i++) {
           EXPECT_EQ(pe->pe_output_data[i], 1);
-          EXPECT_EQ(pe->valid_output[i],
-                    output_PE_index[i]);
+          EXPECT_EQ(pe->valid_output[i], output_PE_index[i]);
         }
       } else if (cycle == 12) {  // mul
         bool output_PE_index[kNeighborPENum] = {1, 1, 1, 1};
         for (int i = 0; i < kNeighborPENum; i++) {
           EXPECT_EQ(pe->pe_output_data[i], 6);
-          EXPECT_EQ(pe->valid_output[i],
-                    output_PE_index[i]);
+          EXPECT_EQ(pe->valid_output[i], output_PE_index[i]);
         }
       } else if (cycle == 17) {  // load
         bool output_PE_index[kNeighborPENum] = {1, 0, 0, 1};
         for (int i = 0; i < kNeighborPENum; i++) {
           EXPECT_EQ(pe->pe_output_data[i], 100);
-          EXPECT_EQ(pe->valid_output[i],
-                    output_PE_index[i]);
+          EXPECT_EQ(pe->valid_output[i], output_PE_index[i]);
         }
       } else if (cycle == 19) {  // const
         bool output_PE_index[kNeighborPENum] = {1, 0, 0, 0};
         for (int i = 0; i < kNeighborPENum; i++) {
           EXPECT_EQ(pe->pe_output_data[i], 10);
-          EXPECT_EQ(pe->valid_output[i],
-                    output_PE_index[i]);
+          EXPECT_EQ(pe->valid_output[i], output_PE_index[i]);
         }
       } else if (cycle == 20) {  // mul
         pe->valid_input[2] = 0;
@@ -117,8 +113,7 @@ TEST(VerilogSimulatorTest, elastic_PE_test) {
         bool output_PE_index[kNeighborPENum] = {0, 0, 1, 1};
         for (int i = 0; i < kNeighborPENum; i++) {
           EXPECT_EQ(pe->pe_output_data[i], 1);
-          EXPECT_EQ(pe->valid_output[i],
-                    output_PE_index[i]);
+          EXPECT_EQ(pe->valid_output[i], output_PE_index[i]);
         }
       } else if (26 <= cycle && cycle <= 28) {  // mul
         for (int i = 0; i < kNeighborPENum; i++) {
@@ -149,11 +144,9 @@ TEST(VerilogSimulatorTest, elastic_PE_test) {
       std::cout << std::endl;
       std::cout << "<<<<<< cycle " << cycle << " >>>>>>" << std::endl;
       for (int i = 0; i < kNeighborPENum; i++) {
-        std::cout << "output_data[" << i
-                  << "]: " << pe->pe_output_data[i]
+        std::cout << "output_data[" << i << "]: " << pe->pe_output_data[i]
                   << std::endl;
-        std::cout << "valid_output[" << i
-                  << "]: " << pe->valid_output[i] + 0
+        std::cout << "valid_output[" << i << "]: " << pe->valid_output[i] + 0
                   << std::endl;
       }
       std::cout << "memory_read_address: " << pe->memory_read_address
