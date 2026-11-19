@@ -48,7 +48,7 @@ repos:
     hooks:
       - id: ctest
         name: ctest
-        entry: bash /home/ubuntu/elastic_cgra_mapper/scripts/test.sh
+        entry: bash scripts/test.sh
         stages:
           - "push"
         language: system
